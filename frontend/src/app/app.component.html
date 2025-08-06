@@ -1,0 +1,13 @@
+<div style="padding: 20px;">
+  <h2>🎬 Movie Finder</h2>
+  <input [(ngModel)]="query" placeholder="Describe the movie you want..." />
+  <button (click)="search()">Search</button>
+
+  <div *ngIf="results.length > 0">
+    <h3>Results:</h3>
+    <div *ngFor="let movie of results">
+      <h4>{{ movie.title }}</h4>
+      <p>{{ movie.plot }}</p>
+    </div>
+  </div>
+</div>
