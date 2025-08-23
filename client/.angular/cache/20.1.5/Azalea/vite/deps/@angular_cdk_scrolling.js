@@ -1,0 +1,47 @@
+import {
+  CdkFixedSizeVirtualScroll,
+  CdkScrollable,
+  CdkScrollableModule,
+  CdkVirtualForOf,
+  CdkVirtualScrollViewport,
+  CdkVirtualScrollable,
+  CdkVirtualScrollableElement,
+  CdkVirtualScrollableWindow,
+  DEFAULT_RESIZE_TIME,
+  DEFAULT_SCROLL_TIME,
+  FixedSizeVirtualScrollStrategy,
+  ScrollDispatcher,
+  ScrollingModule,
+  VIRTUAL_SCROLLABLE,
+  VIRTUAL_SCROLL_STRATEGY,
+  ViewportRuler,
+  _fixedSizeVirtualScrollStrategyFactory
+} from "./chunk-JBBMWPVB.js";
+import "./chunk-WYT3BKEZ.js";
+import {
+  Dir
+} from "./chunk-G7E7H5DT.js";
+import "./chunk-7OCQUTFL.js";
+import "./chunk-DBQVMHQU.js";
+import "./chunk-RA36H4C2.js";
+import "./chunk-WDMUDEB6.js";
+export {
+  CdkFixedSizeVirtualScroll,
+  CdkScrollable,
+  CdkScrollableModule,
+  CdkVirtualForOf,
+  CdkVirtualScrollViewport,
+  CdkVirtualScrollable,
+  CdkVirtualScrollableElement,
+  CdkVirtualScrollableWindow,
+  DEFAULT_RESIZE_TIME,
+  DEFAULT_SCROLL_TIME,
+  FixedSizeVirtualScrollStrategy,
+  ScrollDispatcher,
+  ScrollingModule,
+  VIRTUAL_SCROLLABLE,
+  VIRTUAL_SCROLL_STRATEGY,
+  ViewportRuler,
+  _fixedSizeVirtualScrollStrategyFactory,
+  Dir as ɵɵDir
+};

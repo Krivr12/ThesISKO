@@ -51,7 +51,7 @@
 
 .loginform {
     background-color: white;
-    margin-top: 20px;
+    margin-top: 50px;
     padding: 2rem;
     border-radius: 30px;
     text-align: left; 
@@ -70,14 +70,15 @@ h1 {
     font-weight: bold;
     color: #800000;
     text-align: left;
-    margin-bottom: 2rem;
+    margin-top: 100px;
+    margin-bottom: 1rem;
   }
   
 
 .field label {
     display: block;
-    margin-bottom: 2rem;
-    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
     font-weight: 400;
     font-size: 1rem;
     color: #0b0202;
@@ -105,7 +106,7 @@ h1 {
     color: rgb(0, 0, 0);                             
     padding: 0.5rem;
     width: 480px !important;
-    height: 64px; 
+    height: 50px; 
     border-radius: 10px;
 }
 
@@ -118,7 +119,7 @@ h1 {
 /*passwords*/
 .p-password {
     width: 480px !important;
-    height: 64px; 
+    height: 50px; 
     border-radius: 10px;
 }
 
@@ -127,7 +128,7 @@ h1 {
     border: 1px solid #800000 !important;
     color: black;
     width: 480px !important;
-    height: 64px; 
+    height: 50px;  
     border-radius: 10px;
 }
 
@@ -137,7 +138,7 @@ h1 {
     border: 1px solid #800000 !important;      
     color: black !important;    
     width: 480px !important;
-    height: 64px; 
+    height: 50px; 
     border-radius: 10px;             
 }
 
@@ -151,7 +152,7 @@ h1 {
 .p-inputtext,
 :host ::ng-deep .p-password input {
     width: 480px !important;
-    height: 64px; 
+    height: 50px; 
     border-radius: 10px;
     padding: 0.5rem;
     box-sizing: border-box;
@@ -160,7 +161,7 @@ h1 {
 
 :host ::ng-deep .p-button {
     width: 480px !important;
-    height: 55px; 
+    height: 50px; 
     border-radius: 10px;
     font-weight: bold;
     font-size: 1rem;
@@ -223,7 +224,7 @@ h1 {
   }
 
 .mt-2 {
-    margin-top: 10rem; 
+    margin-top: 4rem; 
     margin-left: -20rem;      
     font-size: 1rem;         
     color: #000000;          

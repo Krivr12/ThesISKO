@@ -13,6 +13,7 @@
         <h1 class="login-header">Sign Up</h1>
 
         <form [formGroup]="signupForm" (ngSubmit)="onSignup()" class="signupForm">
+          <div class="form-row"> 
           <div class="field">
             <label for="firstName">First Name</label>
             <input
@@ -40,7 +41,7 @@
             @if(lastName.invalid &&  (lastName.dirty || lastName.touched)) {
                 <small class="block p-error"> Last Name is required. </small> }
           </div>
-  
+          </div>
    
           <div class="field">
             <label for="email">Email</label>
@@ -106,7 +107,7 @@
       
 
           
-      
+          <div class="form-row">
           <div class="field">
             <label for="password">Password</label>
             <p-password
@@ -138,6 +139,7 @@
                 @if(signupForm.hasError('passwordMismatch') && password.valid && confirmPassword.valid) {
                     <small class="block p-error"> Password mismatch. </small>
                 }
+          </div>
           </div>
 
           <p-button
