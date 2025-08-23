@@ -1,0 +1,93 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+html,body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #800000; 
+    }
+    
+    .hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: center; 
+      align-items: flex-start;
+      min-height: 100vh; 
+      max-width: 1500px;
+      padding-left: 12%; 
+      color: white;
+      z-index: 1;
+    }
+    
+    .hero h1 {
+      font-size: 75px;
+      font-weight: 900;
+      margin-bottom: 1.5rem; 
+      line-height: 100%;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+    }
+    
+    .hero h1 .break {
+      display: block;
+      white-space: nowrap; 
+    }
+    
+    
+    .hero p {
+      font-size: 1.1rem;
+      margin-bottom: 2.5rem; /* add more space under subtext */
+      line-height: 1.6;
+      color: #f2f2f2;
+      max-width: 700px;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+    }
+    
+    .search-container {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 70px;
+      width: 100%;
+      max-width: 1000px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      margin-top: 1rem; /* add breathing room */
+    }
+    
+    .search-container input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+    }
+    
+    .search-container button {
+      background: #ffd966; /* yellow */
+      border: none;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      height: 70px;
+      width: 250px;
+    }
+    
+    .search-container button:hover {
+      background: #ffcc33;
+    }
+    
+}
+
+* {
+    font-family: 'Inter', sans-serif;
+  }
+  
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
