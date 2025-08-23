@@ -63,7 +63,7 @@
   
 .field label {
     display: block;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     margin-top: 0.5rem;
     font-weight: 400;
     font-size: 1rem;
@@ -72,7 +72,7 @@
   }
 
 .field {
-    margin-bottom: 1rem; 
+    margin-bottom: 0.5rem; 
     width: 100%; 
     max-width: 480px;
 }
@@ -89,8 +89,8 @@
     border: 1px solid #800000 !important;    
     color: rgb(0, 0, 0);                             
     padding: 0.5rem;
-    width: 480px !important;
-    height: 64px; 
+    width: 100%;
+    height: 50px; 
     border-radius: 10px;
 }
 
@@ -106,7 +106,7 @@
     border: 1px solid #800000 !important;      
     color: black !important;    
     width: 480px !important;
-    height: 64px; 
+    height: 50px; 
     border-radius: 10px;             
 }
 
@@ -119,8 +119,8 @@
 
 .p-inputtext,
 :host ::ng-deep .p-password input {
-    width: 480px !important;
-    height: 64px; 
+    width: 100% !important;
+    height: 50px; 
     border-radius: 10px;
     padding: 0.5rem;
     box-sizing: border-box;
@@ -129,7 +129,7 @@
 
 :host ::ng-deep .p-button {
     width: 480px !important;
-    height: 55px; 
+    height: 50px; 
     border-radius: 10px;
     font-weight: bold;
     font-size: 1rem;
@@ -140,7 +140,7 @@
 
 :host ::ng-deep .p-button {
     width: 480px !important;
-    height: 55px; 
+    height: 50px; 
     border-radius: 10px;
     font-weight: bold;
     font-size: 1rem;
