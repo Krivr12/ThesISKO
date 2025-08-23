@@ -26,7 +26,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatSelectModule,
   ],
   templateUrl: './signup.html',
-  styleUrls: ['./signup.css'] // ✅ fixed: should be styleUrls
+  styleUrls: ['./signup.css'] 
 })
 export class Signup {
   private signupService = inject(Auth);
@@ -138,7 +138,6 @@ export class Signup {
 
   filteredCourses: any[] = [];
 
-  // Form Group
   signupForm = new FormGroup({
     firstName: new FormControl('', [
       Validators.required,
@@ -164,10 +163,9 @@ export class Signup {
     validators: passwordMismatchValidator
   });
 
-  // Filter courses when department changes
   onDepartmentChange(dept: string) {
     this.filteredCourses = this.courses[dept] || [];
-    this.signupForm.get('course')?.setValue(''); // ✅ reset course
+    this.signupForm.get('course')?.setValue(''); 
   }
 
   // Submit handler
