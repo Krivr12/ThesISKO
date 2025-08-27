@@ -8,10 +8,10 @@ import { Footer } from '../footer/footer';
 
 interface UpdateItem {
   title: string;
-  dateIssued: string;
-  authors: string;
+  submitted_at: string;   // backend sends Date, but Angular will treat it as string
+  authors: string[];
+  access_level: string;
   tags: string[];
-  access: string;
 }
 
 @Component({
