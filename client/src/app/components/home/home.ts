@@ -5,10 +5,12 @@ import { InputIconModule } from 'primeng/inputicon';
 import { ButtonModule } from 'primeng/button';
 import { CarouselModule } from 'primeng/carousel';
 import { Footer } from '../footer/footer';
+import { RecordsService } from '../../service/records.service';
+import { DatePipe } from '@angular/common';  // ✅ import here
 
 interface UpdateItem {
   title: string;
-  submitted_at: string;   // backend sends Date, but Angular will treat it as string
+  submitted_at: string;
   authors: string[];
   access_level: string;
   tags: string[];
@@ -16,11 +18,17 @@ interface UpdateItem {
 
 @Component({
   selector: 'app-home',
-  imports: [Navbar, Footer,
+  standalone: true,
+  imports: [
+    Navbar,
+    Footer,
     IconFieldModule,
     InputIconModule,
     ButtonModule,
-    CarouselModule],
+    CarouselModule,
+    DatePipe   // ✅ add it to imports if using standalone
+  ],
+  providers: [DatePipe],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -29,31 +37,29 @@ export class Home implements OnInit {
   updates: UpdateItem[] = [];
 
   responsiveOptions: any[] = [
-    {
-      breakpoint: '1199px',
-      numVisible: 3,
-      numScroll: 1
-    },
-    {
-      breakpoint: '991px',
-      numVisible: 2,
-      numScroll: 1
-    },
-    {
-      breakpoint: '767px',
-      numVisible: 1,
-      numScroll: 1
-    }
+    { breakpoint: '1199px', numVisible: 3, numScroll: 1 },
+    { breakpoint: '991px', numVisible: 2, numScroll: 1 },
+    { breakpoint: '767px', numVisible: 1, numScroll: 1 }
   ];
 
-  /*dito yung sa carousel */
+  // ✅ inject multiple services in one constructor
+  constructor(
+    private recordsService: RecordsService,
+    private datePipe: DatePipe
+  ) {}
+
   ngOnInit() {
-    this.updates = [
-      { title: 'Library System Upgrade', dateIssued: '2025-08-15', authors: 'Admin Team', tags: ['System', 'Update'], access: 'Public' },
-      { title: 'New Repository Feature', dateIssued: '2025-08-12', authors: 'IT Dept.', tags: ['Repository'], access: 'Restricted' },
-      { title: 'Maintenance Notice', dateIssued: '2025-08-10', authors: 'Library Staff', tags: ['Notice'], access: 'Public' },
-      { title: 'New Digital Books', dateIssued: '2025-08-08', authors: 'Acquisitions', tags: ['Books', 'Digital'], access: 'Public' },
-      { title: 'Security Patch Applied', dateIssued: '2025-08-05', authors: 'Tech Team', tags: ['Security'], access: 'Restricted' }
-    ];
+    this.recordsService.getLatestRecords().subscribe({
+      next: (data) => {
+        // Example: format the date right after fetching
+        this.updates = data.map(item => ({
+          ...item,
+          submitted_at: this.datePipe.transform(item.submitted_at, 'mediumDate') || ''
+        }));
+      },
+      error: (err) => {
+        console.error('Error fetching latest records:', err);
+      }
+    });
   }
 }

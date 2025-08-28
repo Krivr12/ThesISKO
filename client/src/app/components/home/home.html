@@ -1,7 +1,7 @@
 <app-navbar></app-navbar>
 <div class="page-wrapper">
 <div class="hero"> 
-  <img src="public/2.png" alt="PUP" class="bgimg">
+  <img src="../../../public/2.png" alt="PUP" class="bgimg">
   <h1>
     Thesis mula sa isko, <span class="break">para sa bayan</span>
   </h1>      
@@ -25,17 +25,26 @@
       [responsiveOptions]="responsiveOptions" 
       autoplayInterval="3000"
       class="custom-carousel">
-  
+
       <ng-template pTemplate="item" let-item>
         <div class="carousel-box">
           <h3 class="title">{{ item.title }}</h3>
-          <p class="date">Date Issued: {{ item.dateIssued }}</p>
-          <p class="authors">Authors: {{ item.authors }}</p>
-          <div class="tags">Tags: {{ item.tag }}</div>
-          <p class="access">Access Level: {{ item.access }}</p>
+          <p class="date">
+            Date Issued: {{ item.submitted_at | date:'MMM d, y' }}
+          </p>
+          <p class="authors">
+            Authors: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}
+          </p>
+          <div class="tags">
+            Tags: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}
+          </div>
+          <p class="access">
+            Access Level: {{ item.access_level || 'Unknown' }}
+          </p>
         </div>
       </ng-template>
     </p-carousel>
+
   </div>
   
   <div class="containerSubmitWork">
