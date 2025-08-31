@@ -1,5 +1,138 @@
 [
   {
+    "title": "Optimizing Urban Traffic Flow Using Reinforcement Learning and Real-Time Sensor Data",
+    "abstract": "Urban traffic congestion remains a persistent issue in modern cities, leading to economic inefficiencies, increased emissions, and commuter frustration. This study introduces a reinforcement learning (RL)-based framework that utilizes real-time sensor data to optimize traffic signal control across urban intersections. By employing a model-free Deep Q-Learning algorithm, the system enables an intelligent agent to learn adaptive signal timing strategies aimed at minimizing vehicle waiting times, congestion levels, and travel delays.",
+    "access_level": "Public",
+    "authors": ["Juan Dela Cruz", "Maria Santos", "Jose Ramirez", "Liza Bautista"],
+    "tags": ["Reinforcement Learning", "Traffic", "Smart Cities"]
+  },
+  {
+    "title": "Enhancing Crop Yield Prediction Using Machine Learning and Satellite Imagery",
+    "abstract": "Accurate crop yield prediction is vital for food security and resource allocation. This study leverages machine learning algorithms combined with satellite imagery to forecast yields with high precision. Data on vegetation indices, soil moisture, and historical yields were used to train a Random Forest model that demonstrates improved accuracy compared to traditional statistical approaches.",
+    "access_level": "Limited",
+    "authors": ["Mark Villanueva", "Angela Reyes", "Carlos Mendoza", "Kristine Ramos"],
+    "tags": ["Agriculture", "Machine Learning", "Satellite Data"]
+  },
+  {
+    "title": "Blockchain-Based Voting System for Secure and Transparent Elections",
+    "abstract": "This research proposes a blockchain-based voting platform aimed at enhancing election security, transparency, and voter trust. The system utilizes decentralized ledger technology to prevent tampering, ensure anonymity, and enable real-time vote verification, addressing major concerns in traditional voting systems.",
+    "access_level": "Restricted",
+    "authors": ["Patrick Flores", "Elaine Cruz", "Ramon Navarro", "Bianca Morales"],
+    "tags": ["Blockchain", "Elections", "Security"]
+  },
+  {
+    "title": "Developing a Smart Flood Monitoring and Early Warning System Using IoT",
+    "abstract": "Flooding is a recurring disaster in the Philippines, causing significant damage and displacement. This project presents an IoT-based flood monitoring system integrating water-level sensors, GSM modules, and cloud-based dashboards to provide real-time alerts for early disaster response and community safety.",
+    "access_level": "Public",
+    "authors": ["Jessa Aquino", "Marco Torres", "Daniel Castillo", "Sophia Hernandez"],
+    "tags": ["IoT", "Disaster Management", "Flood Monitoring"]
+  },
+  {
+    "title": "Predicting Student Academic Performance Through Learning Analytics",
+    "abstract": "This study applies learning analytics techniques on student data such as attendance, LMS interactions, and quiz performance to predict academic outcomes. Machine learning models like Support Vector Machines and Gradient Boosting are evaluated to identify at-risk students and improve intervention strategies.",
+    "access_level": "Limited",
+    "authors": ["Kevin Lopez", "Andrea Santiago", "Francis Dizon", "Janelle Gutierrez"],
+    "tags": ["Education", "Learning Analytics", "Prediction"]
+  },
+  {
+    "title": "Renewable Energy Integration in Smart Grids Using AI Forecasting Models",
+    "abstract": "The increasing penetration of renewable energy sources introduces variability in power supply. This research develops AI-based forecasting models for solar and wind power generation, enabling more efficient integration into smart grids while maintaining stability and reducing reliance on fossil fuels.",
+    "access_level": "Public",
+    "authors": ["Nico Ramos", "Hannah Bautista", "Luis Fernandez", "Carla Diaz"],
+    "tags": ["Renewable Energy", "AI", "Smart Grids"]
+  },
+  {
+    "title": "AI-Powered Mental Health Chatbot for Early Detection of Depression",
+    "abstract": "Mental health challenges are rising, yet access to professional help remains limited. This project introduces an AI chatbot that performs sentiment analysis on user interactions to detect early signs of depression and anxiety. The chatbot provides supportive responses and refers users to mental health professionals when needed.",
+    "access_level": "Restricted",
+    "authors": ["Paolo Cruz", "Jasmine Flores", "Allan Garcia", "Bea Mendoza"],
+    "tags": ["AI", "Mental Health", "Chatbot"]
+  },
+  {
+    "title": "Optimizing E-Commerce Recommendation Systems Using Deep Learning",
+    "abstract": "This research explores the use of deep neural networks for enhancing e-commerce recommendation systems. By analyzing user browsing history, purchase data, and clickstream patterns, the model provides more personalized recommendations, improving user engagement and sales conversion rates.",
+    "access_level": "Public",
+    "authors": ["Vincent Perez", "Rhea Santos", "Erwin Villanueva", "Claudia Ramos"],
+    "tags": ["E-Commerce", "Deep Learning", "Recommender Systems"]
+  },
+  {
+    "title": "Climate Change Impact Modeling on Philippine Coastal Communities",
+    "abstract": "The Philippines is highly vulnerable to rising sea levels and extreme weather events. This study models the long-term impacts of climate change on coastal communities using geospatial data, predictive climate models, and socio-economic indicators to inform policy-making and adaptive strategies.",
+    "access_level": "Limited",
+    "authors": ["Miguel Cruz", "Patricia Gomez", "Joel Bautista", "Sofia Castillo"],
+    "tags": ["Climate Change", "Coastal", "Modeling"]
+  },
+  {
+    "title": "5G Network Security Challenges and Solutions in Developing Countries",
+    "abstract": "As 5G networks roll out globally, security threats such as man-in-the-middle attacks and network slicing vulnerabilities are emerging. This research investigates security frameworks tailored for developing countries, balancing performance, cost, and resilience.",
+    "access_level": "Restricted",
+    "authors": ["Andre Morales", "Camille Reyes", "Jason Navarro", "Denise Cruz"],
+    "tags": ["5G", "Network Security", "Developing Countries"]
+  },
+  {
+    "title": "Improving Disaster Response with Drone-Based Aerial Surveillance",
+    "abstract": "This project designs a drone-based system for rapid aerial assessment during disasters. Equipped with thermal imaging and live-streaming capabilities, drones provide emergency responders with real-time situational awareness, improving decision-making and resource deployment.",
+    "access_level": "Public",
+    "authors": ["Joshua Mendoza", "Lara Cruz", "Enrique Santos", "Mariel Gonzales"],
+    "tags": ["Drones", "Disaster Response", "Surveillance"]
+  },
+  {
+    "title": "Smart Healthcare Monitoring System Using Wearable Devices",
+    "abstract": "This study introduces a wearable health monitoring device that continuously tracks vital signs such as heart rate, oxygen levels, and blood pressure. The data is transmitted securely to healthcare providers, enabling early detection of medical emergencies and better patient care.",
+    "access_level": "Limited",
+    "authors": ["Ralph Gutierrez", "Fiona Lim", "Oscar Delgado", "Grace Villanueva"],
+    "tags": ["Healthcare", "Wearables", "IoT"]
+  },
+  {
+    "title": "Automating Legal Document Analysis Using Natural Language Processing",
+    "abstract": "Legal practitioners face overwhelming amounts of text data. This research applies NLP models such as BERT to automate contract analysis, clause extraction, and risk identification, reducing manual workload and improving efficiency in the legal sector.",
+    "access_level": "Restricted",
+    "authors": ["Christian Ramos", "Elaine David", "Martin Cruz", "Angela Torres"],
+    "tags": ["NLP", "Law", "Automation"]
+  },
+  {
+    "title": "Gamified Mobile Application for Language Learning",
+    "abstract": "This study presents a mobile application that incorporates gamification techniques—such as points, levels, and challenges—into language learning. The system enhances learner engagement, motivation, and retention compared to traditional language-learning apps.",
+    "access_level": "Public",
+    "authors": ["Ronald Villanueva", "Michelle Santiago", "Dennis Reyes", "Clara Fernandez"],
+    "tags": ["Gamification", "Mobile App", "Language Learning"]
+  },
+  {
+    "title": "Real-Time Earthquake Detection Using Crowdsourced Smartphone Sensors",
+    "abstract": "This research leverages accelerometer data from smartphones to create a crowdsourced earthquake detection system. The system processes real-time vibration data to provide early warnings and supplement government seismic networks.",
+    "access_level": "Public",
+    "authors": ["Leandro Cruz", "Hannah Morales", "Victor Castillo", "Joanna Gomez"],
+    "tags": ["Earthquake", "Crowdsourcing", "Sensors"]
+  },
+  {
+    "title": "Cybersecurity Threat Detection in Cloud Infrastructures Using AI",
+    "abstract": "Cloud infrastructures are increasingly targeted by cyber threats. This study employs deep learning models to detect anomalies in network traffic, enhancing the detection of zero-day attacks and insider threats in cloud platforms.",
+    "access_level": "Restricted",
+    "authors": ["Jerome Dela Cruz", "Katrina Santos", "Felix Ramirez", "Mica Bautista"],
+    "tags": ["Cybersecurity", "Cloud", "AI"]
+  },
+  {
+    "title": "AI-Enhanced Personalized Fitness Coaching Platform",
+    "abstract": "This project introduces an AI-driven fitness application that personalizes workout plans based on user goals, biometrics, and activity data. The system leverages reinforcement learning to adjust exercise intensity and routines dynamically.",
+    "access_level": "Limited",
+    "authors": ["Alfredo Lopez", "Jenny Ramos", "Gabriel Fernandez", "Monica Cruz"],
+    "tags": ["Fitness", "AI", "Personalization"]
+  },
+  {
+    "title": "Digital Twin Technology for Smart Manufacturing",
+    "abstract": "This study develops a digital twin framework for manufacturing systems that enables real-time monitoring, predictive maintenance, and optimization of production lines. The research shows improvements in efficiency and cost savings.",
+    "access_level": "Public",
+    "authors": ["Samuel Gutierrez", "Nina Reyes", "Arthur Mendoza", "Celine Navarro"],
+    "tags": ["Digital Twin", "Manufacturing", "Optimization"]
+  },
+  {
+    "title": "Autonomous Vehicle Navigation in Complex Urban Environments",
+    "abstract": "The rise of autonomous vehicles requires robust navigation systems. This research implements deep reinforcement learning for self-driving cars, enabling them to adapt to traffic lights, pedestrians, and unpredictable road scenarios in urban settings.",
+    "access_level": "Restricted",
+    "authors": ["Darren Torres", "Elaine Cruz", "Ivan Morales", "Rica Santos"],
+    "tags": ["Autonomous Vehicles", "Navigation", "Reinforcement Learning"]
+  },
+  {
     "title": "Smart Rice Farming System Using Computer Vision and IoT Sensors",
     "abstract": "Rice farming in the Philippines faces challenges from pests, weather variability, and resource optimization. This study develops an integrated system combining computer vision for pest detection, IoT sensors for soil monitoring, and mobile alerts to help farmers make data-driven decisions for improved rice yield and sustainable farming practices.",
     "access_level": "Public",
