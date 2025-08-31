@@ -1,135 +1,212 @@
 [
   {
-    "title": "Optimizing Urban Traffic Flow Using Reinforcement Learning and Real-Time Sensor Data",
-    "abstract": "Urban traffic congestion remains a persistent issue in modern cities, leading to economic inefficiencies, increased emissions, and commuter frustration. This study introduces a reinforcement learning (RL)-based framework that utilizes real-time sensor data to optimize traffic signal control across urban intersections. By employing a model-free Deep Q-Learning algorithm, the system enables an intelligent agent to learn adaptive signal timing strategies aimed at minimizing vehicle waiting times, congestion levels, and travel delays.",
+    "title": "Smart Rice Farming System Using Computer Vision and IoT Sensors",
+    "abstract": "Rice farming in the Philippines faces challenges from pests, weather variability, and resource optimization. This study develops an integrated system combining computer vision for pest detection, IoT sensors for soil monitoring, and mobile alerts to help farmers make data-driven decisions for improved rice yield and sustainable farming practices.",
     "access_level": "Public",
-    "authors": ["Juan Dela Cruz", "Maria Santos", "Jose Ramirez", "Liza Bautista"],
-    "tags": ["Reinforcement Learning", "Traffic", "Smart Cities"]
+    "authors": ["Ricardo Dela Rosa", "Carmen Villanueva", "Eduardo Santos", "Isabelle Cruz"],
+    "tags": ["Computer Vision", "IoT", "Agriculture", "Smart Farming"]
   },
   {
-    "title": "Enhancing Crop Yield Prediction Using Machine Learning and Satellite Imagery",
-    "abstract": "Accurate crop yield prediction is vital for food security and resource allocation. This study leverages machine learning algorithms combined with satellite imagery to forecast yields with high precision. Data on vegetation indices, soil moisture, and historical yields were used to train a Random Forest model that demonstrates improved accuracy compared to traditional statistical approaches.",
+    "title": "Blockchain-Based Barangay ID Management System for Rural Communities",
+    "abstract": "Rural barangays in the Philippines often struggle with identity verification and record-keeping. This research proposes a blockchain-based digital ID system that ensures secure, tamper-proof resident records while enabling offline functionality for areas with limited internet connectivity.",
     "access_level": "Limited",
-    "authors": ["Mark Villanueva", "Angela Reyes", "Carlos Mendoza", "Kristine Ramos"],
-    "tags": ["Agriculture", "Machine Learning", "Satellite Data"]
+    "authors": ["Fernando Reyes", "Maria Elena Torres", "Benjamin Cruz", "Rosario Mendoza"],
+    "tags": ["Blockchain", "Digital Identity", "Rural Technology", "Government Services"]
   },
   {
-    "title": "Blockchain-Based Voting System for Secure and Transparent Elections",
-    "abstract": "This research proposes a blockchain-based voting platform aimed at enhancing election security, transparency, and voter trust. The system utilizes decentralized ledger technology to prevent tampering, ensure anonymity, and enable real-time vote verification, addressing major concerns in traditional voting systems.",
-    "access_level": "Restricted",
-    "authors": ["Patrick Flores", "Elaine Cruz", "Ramon Navarro", "Bianca Morales"],
-    "tags": ["Blockchain", "Elections", "Security"]
-  },
-  {
-    "title": "Developing a Smart Flood Monitoring and Early Warning System Using IoT",
-    "abstract": "Flooding is a recurring disaster in the Philippines, causing significant damage and displacement. This project presents an IoT-based flood monitoring system integrating water-level sensors, GSM modules, and cloud-based dashboards to provide real-time alerts for early disaster response and community safety.",
+    "title": "AI-Powered Jeepney Route Optimization for Metro Manila Traffic",
+    "abstract": "Traditional jeepney routes in Metro Manila contribute to traffic congestion and inefficient public transport. This study applies genetic algorithms and real-time traffic data to optimize jeepney routes, reducing travel time and improving passenger satisfaction while preserving the cultural significance of this iconic transport mode.",
     "access_level": "Public",
-    "authors": ["Jessa Aquino", "Marco Torres", "Daniel Castillo", "Sophia Hernandez"],
-    "tags": ["IoT", "Disaster Management", "Flood Monitoring"]
+    "authors": ["Roberto Fernandez", "Ana Gutierrez", "Miguel Santos", "Gloria Ramos"],
+    "tags": ["Transportation", "Optimization", "Urban Planning", "Genetic Algorithms"]
   },
   {
-    "title": "Predicting Student Academic Performance Through Learning Analytics",
-    "abstract": "This study applies learning analytics techniques on student data such as attendance, LMS interactions, and quiz performance to predict academic outcomes. Machine learning models like Support Vector Machines and Gradient Boosting are evaluated to identify at-risk students and improve intervention strategies.",
+    "title": "Coconut Disease Detection Using Deep Learning and Drone Imagery",
+    "abstract": "Coconut farming is crucial to Philippine agriculture but faces threats from various diseases. This research employs convolutional neural networks to analyze drone-captured images for early detection of coconut diseases, enabling timely intervention and reducing crop losses in remote farming areas.",
     "access_level": "Limited",
-    "authors": ["Kevin Lopez", "Andrea Santiago", "Francis Dizon", "Janelle Gutierrez"],
-    "tags": ["Education", "Learning Analytics", "Prediction"]
+    "authors": ["Carlos Villanueva", "Luz Maria Santos", "Antonio Cruz", "Remedios Flores"],
+    "tags": ["Deep Learning", "Agriculture", "Drone Technology", "Disease Detection"]
   },
   {
-    "title": "Renewable Energy Integration in Smart Grids Using AI Forecasting Models",
-    "abstract": "The increasing penetration of renewable energy sources introduces variability in power supply. This research develops AI-based forecasting models for solar and wind power generation, enabling more efficient integration into smart grids while maintaining stability and reducing reliance on fossil fuels.",
+    "title": "Smart City Dashboard for Cebu: Real-Time Urban Analytics Platform",
+    "abstract": "Cebu City's rapid urbanization requires better data-driven governance. This project develops a comprehensive smart city dashboard integrating traffic, waste management, energy consumption, and citizen feedback data to support evidence-based decision-making for sustainable urban development.",
     "access_level": "Public",
-    "authors": ["Nico Ramos", "Hannah Bautista", "Luis Fernandez", "Carla Diaz"],
-    "tags": ["Renewable Energy", "AI", "Smart Grids"]
+    "authors": ["Jose Ramon Diaz", "Patricia Morales", "Arturo Bautista", "Esperanza Navarro"],
+    "tags": ["Smart Cities", "Data Analytics", "Urban Management", "Dashboard"]
   },
   {
-    "title": "AI-Powered Mental Health Chatbot for Early Detection of Depression",
-    "abstract": "Mental health challenges are rising, yet access to professional help remains limited. This project introduces an AI chatbot that performs sentiment analysis on user interactions to detect early signs of depression and anxiety. The chatbot provides supportive responses and refers users to mental health professionals when needed.",
+    "title": "Machine Learning Approach to Predicting Typhoon Impact on Power Grids",
+    "abstract": "The Philippines experiences numerous typhoons annually, often causing widespread power outages. This study develops ML models using historical weather data, grid topology, and damage reports to predict power grid vulnerabilities and optimize pre-positioning of repair resources.",
     "access_level": "Restricted",
-    "authors": ["Paolo Cruz", "Jasmine Flores", "Allan Garcia", "Bea Mendoza"],
-    "tags": ["AI", "Mental Health", "Chatbot"]
+    "authors": ["Alfonso Cruz", "Beatriz Santos", "Domingo Reyes", "Catalina Mendoza"],
+    "tags": ["Machine Learning", "Disaster Preparedness", "Power Grid", "Typhoon Prediction"]
   },
   {
-    "title": "Optimizing E-Commerce Recommendation Systems Using Deep Learning",
-    "abstract": "This research explores the use of deep neural networks for enhancing e-commerce recommendation systems. By analyzing user browsing history, purchase data, and clickstream patterns, the model provides more personalized recommendations, improving user engagement and sales conversion rates.",
-    "access_level": "Public",
-    "authors": ["Vincent Perez", "Rhea Santos", "Erwin Villanueva", "Claudia Ramos"],
-    "tags": ["E-Commerce", "Deep Learning", "Recommender Systems"]
-  },
-  {
-    "title": "Climate Change Impact Modeling on Philippine Coastal Communities",
-    "abstract": "The Philippines is highly vulnerable to rising sea levels and extreme weather events. This study models the long-term impacts of climate change on coastal communities using geospatial data, predictive climate models, and socio-economic indicators to inform policy-making and adaptive strategies.",
+    "title": "Virtual Reality Training System for Filipino Healthcare Workers",
+    "abstract": "Healthcare training in remote Philippine areas faces resource constraints. This research creates a VR-based medical training platform specifically designed for Filipino healthcare contexts, including common tropical diseases and culturally appropriate patient interactions, improving training accessibility and effectiveness.",
     "access_level": "Limited",
-    "authors": ["Miguel Cruz", "Patricia Gomez", "Joel Bautista", "Sofia Castillo"],
-    "tags": ["Climate Change", "Coastal", "Modeling"]
+    "authors": ["Teodoro Villanueva", "Angela Maria Cruz", "Rodrigo Santos", "Cecilia Ramos"],
+    "tags": ["Virtual Reality", "Healthcare Training", "Medical Education", "Simulation"]
   },
   {
-    "title": "5G Network Security Challenges and Solutions in Developing Countries",
-    "abstract": "As 5G networks roll out globally, security threats such as man-in-the-middle attacks and network slicing vulnerabilities are emerging. This research investigates security frameworks tailored for developing countries, balancing performance, cost, and resilience.",
-    "access_level": "Restricted",
-    "authors": ["Andre Morales", "Camille Reyes", "Jason Navarro", "Denise Cruz"],
-    "tags": ["5G", "Network Security", "Developing Countries"]
-  },
-  {
-    "title": "Improving Disaster Response with Drone-Based Aerial Surveillance",
-    "abstract": "This project designs a drone-based system for rapid aerial assessment during disasters. Equipped with thermal imaging and live-streaming capabilities, drones provide emergency responders with real-time situational awareness, improving decision-making and resource deployment.",
+    "title": "Crowdsourced Water Quality Monitoring Network for Philippine Rivers",
+    "abstract": "Water pollution in Philippine rivers poses serious health risks. This study establishes a crowdsourced monitoring network using low-cost sensors and mobile apps, enabling communities to track water quality in real-time and report pollution incidents to authorities.",
     "access_level": "Public",
-    "authors": ["Joshua Mendoza", "Lara Cruz", "Enrique Santos", "Mariel Gonzales"],
-    "tags": ["Drones", "Disaster Response", "Surveillance"]
+    "authors": ["Manuel Torres", "Rosa Cruz", "Alejandro Gutierrez", "Maricar Santos"],
+    "tags": ["Water Quality", "Crowdsourcing", "Environmental Monitoring", "Mobile Apps"]
   },
   {
-    "title": "Smart Healthcare Monitoring System Using Wearable Devices",
-    "abstract": "This study introduces a wearable health monitoring device that continuously tracks vital signs such as heart rate, oxygen levels, and blood pressure. The data is transmitted securely to healthcare providers, enabling early detection of medical emergencies and better patient care.",
+    "title": "Natural Language Processing for Filipino Text Sentiment Analysis",
+    "abstract": "Social media monitoring in the Philippines requires understanding Filipino language nuances. This research develops NLP models specifically trained on Filipino text data, including Tagalog, Taglish, and regional dialects, for accurate sentiment analysis of social media posts and news articles.",
+    "access_level": "Public",
+    "authors": ["Gabriel Reyes", "Luz Santos", "Francisco Cruz", "Adelaida Morales"],
+    "tags": ["Natural Language Processing", "Sentiment Analysis", "Filipino Language", "Social Media"]
+  },
+  {
+    "title": "Edge Computing Solution for Remote Island Connectivity",
+    "abstract": "Many Philippine islands lack reliable internet infrastructure. This study implements edge computing nodes that can operate autonomously, providing essential digital services like online banking, telemedicine consultations, and educational content even with intermittent connectivity.",
     "access_level": "Limited",
-    "authors": ["Ralph Gutierrez", "Fiona Lim", "Oscar Delgado", "Grace Villanueva"],
-    "tags": ["Healthcare", "Wearables", "IoT"]
+    "authors": ["Ernesto Villanueva", "Carmen Santos", "Pablo Cruz", "Milagros Fernandez"],
+    "tags": ["Edge Computing", "Rural Connectivity", "Digital Inclusion", "Island Technology"]
   },
   {
-    "title": "Automating Legal Document Analysis Using Natural Language Processing",
-    "abstract": "Legal practitioners face overwhelming amounts of text data. This research applies NLP models such as BERT to automate contract analysis, clause extraction, and risk identification, reducing manual workload and improving efficiency in the legal sector.",
-    "access_level": "Restricted",
-    "authors": ["Christian Ramos", "Elaine David", "Martin Cruz", "Angela Torres"],
-    "tags": ["NLP", "Law", "Automation"]
-  },
-  {
-    "title": "Gamified Mobile Application for Language Learning",
-    "abstract": "This study presents a mobile application that incorporates gamification techniques—such as points, levels, and challenges—into language learning. The system enhances learner engagement, motivation, and retention compared to traditional language-learning apps.",
+    "title": "Augmented Reality App for Philippine Historical Site Tourism",
+    "abstract": "Philippine tourism can benefit from interactive technology. This project develops an AR mobile application that overlays historical information, stories, and reconstructions onto real Philippine heritage sites, enhancing tourist experiences while promoting cultural preservation and education.",
     "access_level": "Public",
-    "authors": ["Ronald Villanueva", "Michelle Santiago", "Dennis Reyes", "Clara Fernandez"],
-    "tags": ["Gamification", "Mobile App", "Language Learning"]
+    "authors": ["Leonardo Santos", "Marites Cruz", "Vicente Reyes", "Dolores Bautista"],
+    "tags": ["Augmented Reality", "Tourism", "Cultural Preservation", "Mobile App"]
   },
   {
-    "title": "Real-Time Earthquake Detection Using Crowdsourced Smartphone Sensors",
-    "abstract": "This research leverages accelerometer data from smartphones to create a crowdsourced earthquake detection system. The system processes real-time vibration data to provide early warnings and supplement government seismic networks.",
-    "access_level": "Public",
-    "authors": ["Leandro Cruz", "Hannah Morales", "Victor Castillo", "Joanna Gomez"],
-    "tags": ["Earthquake", "Crowdsourcing", "Sensors"]
-  },
-  {
-    "title": "Cybersecurity Threat Detection in Cloud Infrastructures Using AI",
-    "abstract": "Cloud infrastructures are increasingly targeted by cyber threats. This study employs deep learning models to detect anomalies in network traffic, enhancing the detection of zero-day attacks and insider threats in cloud platforms.",
-    "access_level": "Restricted",
-    "authors": ["Jerome Dela Cruz", "Katrina Santos", "Felix Ramirez", "Mica Bautista"],
-    "tags": ["Cybersecurity", "Cloud", "AI"]
-  },
-  {
-    "title": "AI-Enhanced Personalized Fitness Coaching Platform",
-    "abstract": "This project introduces an AI-driven fitness application that personalizes workout plans based on user goals, biometrics, and activity data. The system leverages reinforcement learning to adjust exercise intensity and routines dynamically.",
+    "title": "Automated Tuna Quality Grading Using Computer Vision",
+    "abstract": "The Philippines is a major tuna exporter, but manual quality grading is subjective and time-consuming. This research develops computer vision algorithms to automatically assess tuna quality based on color, texture, and size parameters, standardizing export quality and reducing processing time.",
     "access_level": "Limited",
-    "authors": ["Alfredo Lopez", "Jenny Ramos", "Gabriel Fernandez", "Monica Cruz"],
-    "tags": ["Fitness", "AI", "Personalization"]
+    "authors": ["Ramon Gutierrez", "Victoria Santos", "Nestor Cruz", "Corazon Villanueva"],
+    "tags": ["Computer Vision", "Food Processing", "Quality Control", "Export Industry"]
   },
   {
-    "title": "Digital Twin Technology for Smart Manufacturing",
-    "abstract": "This study develops a digital twin framework for manufacturing systems that enables real-time monitoring, predictive maintenance, and optimization of production lines. The research shows improvements in efficiency and cost savings.",
+    "title": "Smart Energy Management System for Philippine Households",
+    "abstract": "Rising electricity costs burden Filipino families. This study creates a smart home energy management system using IoT devices and machine learning to optimize appliance usage, reduce peak-hour consumption, and integrate solar panels for cost-effective household energy management.",
     "access_level": "Public",
-    "authors": ["Samuel Gutierrez", "Nina Reyes", "Arthur Mendoza", "Celine Navarro"],
-    "tags": ["Digital Twin", "Manufacturing", "Optimization"]
+    "authors": ["Sergio Morales", "Remedios Cruz", "Armando Santos", "Teresita Reyes"],
+    "tags": ["Smart Home", "Energy Management", "IoT", "Solar Integration"]
   },
   {
-    "title": "Autonomous Vehicle Navigation in Complex Urban Environments",
-    "abstract": "The rise of autonomous vehicles requires robust navigation systems. This research implements deep reinforcement learning for self-driving cars, enabling them to adapt to traffic lights, pedestrians, and unpredictable road scenarios in urban settings.",
+    "title": "Digital Banking Security Framework for Rural Philippine Communities",
+    "abstract": "Digital banking adoption in rural Philippines faces security concerns and low digital literacy. This research develops a simplified, secure mobile banking interface with biometric authentication and SMS-based backup systems tailored for rural users with limited smartphone experience.",
     "access_level": "Restricted",
-    "authors": ["Darren Torres", "Elaine Cruz", "Ivan Morales", "Rica Santos"],
-    "tags": ["Autonomous Vehicles", "Navigation", "Reinforcement Learning"]
+    "authors": ["Florencio Santos", "Concepcion Cruz", "Emilio Villanueva", "Socorro Ramos"],
+    "tags": ["Digital Banking", "Rural Finance", "Security", "User Experience"]
+  },
+  {
+    "title": "Machine Learning for Predicting Fish Catch Patterns in Philippine Waters",
+    "abstract": "Filipino fishing communities rely on traditional knowledge for fishing patterns. This study combines historical catch data, weather patterns, and ocean conditions with machine learning algorithms to predict optimal fishing locations and times, supporting sustainable fishing practices.",
+    "access_level": "Public",
+    "authors": ["Abundio Cruz", "Esperanza Santos", "Marcelino Reyes", "Purificacion Torres"],
+    "tags": ["Machine Learning", "Fisheries", "Sustainable Fishing", "Marine Resources"]
+  },
+  {
+    "title": "IoT-Based Landslide Early Warning System for Mountain Barangays",
+    "abstract": "Mountainous areas in the Philippines are prone to landslides during rainy seasons. This project deploys IoT sensors to monitor soil moisture, ground movement, and rainfall, providing automated early warnings to vulnerable barangays through SMS and community alert systems.",
+    "access_level": "Public",
+    "authors": ["Primitivo Villanueva", "Visitacion Santos", "Ambrosio Cruz", "Soledad Gutierrez"],
+    "tags": ["IoT", "Landslide Detection", "Early Warning", "Community Safety"]
+  },
+  {
+    "title": "Automated Classroom Attendance System Using Facial Recognition",
+    "abstract": "Philippine schools face challenges with accurate attendance tracking. This study implements a facial recognition system adapted for Filipino students, addressing challenges like varying lighting conditions and face mask usage while ensuring privacy protection and cultural sensitivity.",
+    "access_level": "Limited",
+    "authors": ["Catalino Reyes", "Encarnacion Santos", "Hilario Cruz", "Natividad Morales"],
+    "tags": ["Facial Recognition", "Education Technology", "Attendance System", "Privacy"]
+  },
+  {
+    "title": "AI-Powered Crop Insurance Assessment for Filipino Farmers",
+    "abstract": "Crop insurance claims in the Philippines often face delays and disputes. This research develops an AI system using satellite imagery and weather data to automatically assess crop damage, speeding up insurance claims processing and reducing fraudulent claims while supporting farmer livelihoods.",
+    "access_level": "Restricted",
+    "authors": ["Macario Santos", "Pilar Cruz", "Celestino Villanueva", "Perfecta Reyes"],
+    "tags": ["Artificial Intelligence", "Insurance Technology", "Agriculture", "Risk Assessment"]
+  },
+  {
+    "title": "Mobile Health Platform for Maternal Care in Rural Philippines",
+    "abstract": "Maternal mortality rates in remote Philippine areas remain high due to limited healthcare access. This mHealth platform provides prenatal guidance, appointment scheduling, and emergency alerts while connecting pregnant women with healthcare providers through telemedicine consultations.",
+    "access_level": "Limited",
+    "authors": ["Numeriano Cruz", "Salvacion Santos", "Eusebio Reyes", "Consolacion Morales"],
+    "tags": ["Mobile Health", "Maternal Care", "Telemedicine", "Rural Healthcare"]
+  },
+  {
+    "title": "Smart Traffic Light System for Provincial Cities Using AI",
+    "abstract": "Growing traffic in Philippine provincial cities needs intelligent solutions. This study develops an AI-driven traffic light control system that adapts to local traffic patterns, considers pedestrian crossings, and integrates with public transport schedules to improve traffic flow in smaller urban centers.",
+    "access_level": "Public",
+    "authors": ["Pacifico Villanueva", "Trinidad Santos", "Ceferino Cruz", "Felicidad Gutierrez"],
+    "tags": ["Artificial Intelligence", "Traffic Management", "Provincial Cities", "Smart Systems"]
+  },
+  {
+    "title": "Blockchain-Based Supply Chain Tracking for Philippine Mangoes",
+    "abstract": "Philippine mango exports require transparent quality assurance. This research implements a blockchain system to track mangoes from farm to export, recording quality checks, storage conditions, and transportation data to ensure product integrity and build international buyer confidence.",
+    "access_level": "Limited",
+    "authors": ["Dionisio Santos", "Caridad Cruz", "Proceso Reyes", "Milagros Villanueva"],
+    "tags": ["Blockchain", "Supply Chain", "Food Traceability", "Export Quality"]
+  },
+  {
+    "title": "Smart Waste Segregation System for Filipino Households",
+    "abstract": "Waste segregation compliance in Philippine communities is low. This IoT-based smart bin system uses sensors and mobile apps to guide proper waste sorting, track household compliance, and gamify recycling efforts while integrating with local waste collection schedules.",
+    "access_level": "Public",
+    "authors": ["Gregorio Cruz", "Asuncion Santos", "Leopoldo Morales", "Engracia Reyes"],
+    "tags": ["Smart Waste Management", "IoT", "Environmental Sustainability", "Gamification"]
+  },
+  {
+    "title": "Deep Learning for Philippine Banknote Authentication",
+    "abstract": "Counterfeit currency detection is crucial for Philippine financial security. This study develops a deep learning model trained on authentic Philippine peso features to detect counterfeit bills through mobile phone cameras, supporting micro-businesses and informal vendors in fraud prevention.",
+    "access_level": "Restricted",
+    "authors": ["Bonifacio Villanueva", "Filomena Santos", "Anastacio Cruz", "Presentacion Torres"],
+    "tags": ["Deep Learning", "Financial Security", "Currency Authentication", "Fraud Detection"]
+  },
+  {
+    "title": "AI-Enhanced Learning Management System for K-12 Philippine Schools",
+    "abstract": "Philippine K-12 education needs personalized learning support. This LMS integrates AI to adapt content difficulty, identify learning gaps, and provide personalized recommendations while considering local curriculum requirements and limited technology resources in rural schools.",
+    "access_level": "Public",
+    "authors": ["Florante Santos", "Rosalinda Cruz", "Perfecto Reyes", "Gliceria Morales"],
+    "tags": ["Educational Technology", "Artificial Intelligence", "K-12 Education", "Personalized Learning"]
+  },
+  {
+    "title": "Cybersecurity Framework for Philippine Government Agencies",
+    "abstract": "Philippine government digital transformation requires robust cybersecurity. This research develops a comprehensive security framework addressing common vulnerabilities in government systems, including employee training protocols and incident response procedures tailored for local government capabilities.",
+    "access_level": "Restricted",
+    "authors": ["Tranquilino Cruz", "Amparo Santos", "Demetrio Villanueva", "Maxima Gutierrez"],
+    "tags": ["Cybersecurity", "Government Systems", "Digital Transformation", "Risk Management"]
+  },
+  {
+    "title": "Smart Aquaculture Monitoring for Philippine Fish Farms",
+    "abstract": "Aquaculture is vital to Philippine food security and exports. This IoT system monitors water quality, feeding schedules, and fish behavior in real-time, using machine learning to predict optimal harvest times and prevent disease outbreaks in tilapia and bangus farms.",
+    "access_level": "Limited",
+    "authors": ["Guillermo Reyes", "Consolacion Santos", "Aurelio Cruz", "Remedios Villanueva"],
+    "tags": ["IoT", "Aquaculture", "Smart Farming", "Food Security"]
+  },
+  {
+    "title": "Mobile Payment Integration for Philippine Sari-Sari Stores",
+    "abstract": "Sari-sari stores are integral to Philippine communities but often lack digital payment options. This study develops a simplified mobile payment system designed for small store owners with limited technical skills, integrating with existing Filipino digital wallets and providing offline transaction capabilities.",
+    "access_level": "Public",
+    "authors": ["Telesforo Santos", "Purificacion Cruz", "Arcadio Morales", "Felicitas Reyes"],
+    "tags": ["Mobile Payments", "Digital Inclusion", "Small Business", "Financial Technology"]
+  },
+  {
+    "title": "Computer Vision System for Automatic License Plate Recognition",
+    "abstract": "Traffic enforcement in Philippine cities needs automation support. This computer vision system recognizes Philippine license plates under various conditions including poor lighting and different plate formats, supporting law enforcement and parking management systems in urban areas.",
+    "access_level": "Limited",
+    "authors": ["Eliseo Cruz", "Guadalupe Santos", "Valeriano Villanueva", "Perpetua Torres"],
+    "tags": ["Computer Vision", "License Plate Recognition", "Traffic Enforcement", "Urban Systems"]
+  },
+  {
+    "title": "AI Chatbot for Philippine Government Service Information",
+    "abstract": "Citizens often struggle to find information about government services. This multilingual AI chatbot provides 24/7 support for common inquiries about Philippine government processes, requirements, and procedures, reducing office visits and improving citizen service experience.",
+    "access_level": "Public",
+    "authors": ["Zacarias Reyes", "Consolacion Santos", "Martiniano Cruz", "Adoracion Morales"],
+    "tags": ["Artificial Intelligence", "Government Services", "Chatbot", "Citizen Engagement"]
+  },
+  {
+    "title": "Machine Learning for Dengue Outbreak Prediction in Philippine Cities",
+    "abstract": "Dengue fever is a persistent health threat in the Philippines. This study combines weather data, mosquito surveillance reports, and historical outbreak patterns with machine learning algorithms to predict dengue hotspots, enabling proactive public health interventions and resource allocation.",
+    "access_level": "Public",
+    "authors": ["Severino Santos", "Encarnacion Cruz", "Policarpio Villanueva", "Vicenta Gutierrez"],
+    "tags": ["Machine Learning", "Public Health", "Disease Prediction", "Epidemiology"]
   }
 ]
