@@ -2,11 +2,7 @@ import {
   Platform,
   coerceElement,
   coerceNumberProperty
-<<<<<<<< HEAD:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-3C7WBAY3.js
-} from "./chunk-7ZPNOOMT.js";
-========
 } from "./chunk-3ZM7VOXY.js";
->>>>>>>> 9d8fa1f26f6c49449ff1db2b0db38320f1ead8bc:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-OUVFELX7.js
 import {
   BidiModule
 } from "./chunk-G7E7H5DT.js";
@@ -3201,8 +3197,4 @@ export {
   _isTestEnvironment,
   MatCommonModule
 };
-<<<<<<<< HEAD:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-3C7WBAY3.js
-//# sourceMappingURL=chunk-3C7WBAY3.js.map
-========
 //# sourceMappingURL=chunk-OUVFELX7.js.map
->>>>>>>> 9d8fa1f26f6c49449ff1db2b0db38320f1ead8bc:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-OUVFELX7.js

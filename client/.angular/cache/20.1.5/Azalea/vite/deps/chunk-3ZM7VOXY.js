@@ -10,6 +10,20 @@ import {
   ɵɵdefineInjectable
 } from "./chunk-RA36H4C2.js";
 
+// node_modules/@angular/cdk/fesm2022/element-x4z00URv.mjs
+function coerceNumberProperty(value, fallbackValue = 0) {
+  if (_isNumberValue(value)) {
+    return Number(value);
+  }
+  return arguments.length === 2 ? fallbackValue : 0;
+}
+function _isNumberValue(value) {
+  return !isNaN(parseFloat(value)) && !isNaN(Number(value));
+}
+function coerceElement(elementOrRef) {
+  return elementOrRef instanceof ElementRef ? elementOrRef.nativeElement : elementOrRef;
+}
+
 // node_modules/@angular/cdk/fesm2022/platform-DNDzkVcI.mjs
 var hasV8BreakIterator;
 try {
@@ -71,20 +85,6 @@ var Platform = class _Platform {
   }], () => [], null);
 })();
 
-// node_modules/@angular/cdk/fesm2022/element-x4z00URv.mjs
-function coerceNumberProperty(value, fallbackValue = 0) {
-  if (_isNumberValue(value)) {
-    return Number(value);
-  }
-  return arguments.length === 2 ? fallbackValue : 0;
-}
-function _isNumberValue(value) {
-  return !isNaN(parseFloat(value)) && !isNaN(Number(value));
-}
-function coerceElement(elementOrRef) {
-  return elementOrRef instanceof ElementRef ? elementOrRef.nativeElement : elementOrRef;
-}
-
 // node_modules/@angular/cdk/fesm2022/scrolling-BkvA05C8.mjs
 var RtlScrollAxisType;
 (function(RtlScrollAxisType2) {
@@ -143,15 +143,11 @@ function getRtlScrollAxisType() {
 }
 
 export {
-  Platform,
   coerceNumberProperty,
   coerceElement,
+  Platform,
   RtlScrollAxisType,
   supportsScrollBehavior,
   getRtlScrollAxisType
 };
-<<<<<<<< HEAD:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-7ZPNOOMT.js
-//# sourceMappingURL=chunk-7ZPNOOMT.js.map
-========
 //# sourceMappingURL=chunk-3ZM7VOXY.js.map
->>>>>>>> 9d8fa1f26f6c49449ff1db2b0db38320f1ead8bc:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-3ZM7VOXY.js

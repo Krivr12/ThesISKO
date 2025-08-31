@@ -5,11 +5,7 @@ import {
   coerceNumberProperty,
   getRtlScrollAxisType,
   supportsScrollBehavior
-<<<<<<<< HEAD:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-A4DVXTR2.js
-} from "./chunk-7ZPNOOMT.js";
-========
 } from "./chunk-3ZM7VOXY.js";
->>>>>>>> 9d8fa1f26f6c49449ff1db2b0db38320f1ead8bc:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-PV22PZPK.js
 import {
   BidiModule,
   Directionality
@@ -1699,8 +1695,4 @@ export {
   CdkScrollableModule,
   ScrollingModule
 };
-<<<<<<<< HEAD:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-A4DVXTR2.js
-//# sourceMappingURL=chunk-A4DVXTR2.js.map
-========
 //# sourceMappingURL=chunk-PV22PZPK.js.map
->>>>>>>> 9d8fa1f26f6c49449ff1db2b0db38320f1ead8bc:client/.angular/cache/20.1.5/Azalea/vite/deps/chunk-PV22PZPK.js
