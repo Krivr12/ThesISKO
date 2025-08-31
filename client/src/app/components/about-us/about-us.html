@@ -1,0 +1,141 @@
+<app-navbar></app-navbar>
+<div class="page-wrapper">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="text-content">
+        <h1>Ensuring each Thesis are Stored for Future Iskolars</h1>
+        <p>
+          ThesISKO is the official thesis repository of the Polytechnic University of the
+          Philippines (PUP), built to archive, preserve, and showcase student research
+          across all disciplines. It serves as a digital library where students, faculty, and
+          researchers can easily access a wide range of academic works produced
+          within the university.
+        </p>
+        <div class="search-container">
+          <input type="text" [(ngModel)]="query" placeholder="Look for a thesis" class="search-input" />
+          <button class="search-button" (click)="search()">Search</button>
+        </div>
+      </div>
+      <div class="image-gallery">
+        <div class="image-placeholder main-image"></div>
+        <div class="side-images">
+          <div class="image-placeholder top-image"></div>
+          <div class="image-placeholder bottom-image"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="mission-and-goals">
+    <div class="content-container">
+      <h1 class="main-title">Mission and Goals</h1>
+      <div class="mission-section">
+        <div class="mission-text">
+          <h2 class="sub-title">Our Mission</h2>
+          <p class="mission-description">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua.
+          </p>
+        </div>
+        <div class="mission-image"></div>
+      </div>
+
+      <div class="strategic-goals-section">
+        <h2 class="strategic-goals-title">Strategic Goals</h2>
+        <div class="pillars-container">
+          <div class="pillar">
+            <h3 class="pillar-title">Pillar 1: Teaching and Learning</h3>
+            <ul class="goal-list">
+              <li>SG 1: Innovative Curricula and Instruction</li>
+              <li>SG 2: Empowered, Expert, and Productive Faculty Members</li>
+              <li>SG 3: Holistic Student Development</li>
+            </ul>
+          </div>
+          <div class="pillar">
+            <h3 class="pillar-title">Pillar 2: Research and Extension</h3>
+            <ul class="goal-list">
+              <li>SG 4: Intensified Research Innovation, Dissemination and Utilization</li>
+              <li>SG 5: Strengthened Sustainable and Impactful Extension Program</li>
+              <li>SG 6: Expanded Research and Extension Networks with Local, National, and International Partners</li>
+            </ul>
+          </div>
+          <div class="pillar">
+            <h3 class="pillar-title">Pillar 3: Internal Governance</h3>
+            <ul class="goal-list">
+              <li>SG 7: Transformational University Leadership</li>
+              <li>SG 8: Judicious and Ethical Stewardship of Physical and Financial Resources</li>
+              <li>SG 9: Effective and Efficient Human Resource Management</li>
+              <li>SG 10: Excellent Citizen/Client Satisfaction</li>
+              <li>SG 11: Smart Campuses</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="officials-and-staffs">
+    <div class="content-container">
+      <h1>Officials and Staffs</h1>
+      <div class="staff-cards">
+        <div class="staff-card">
+          <div class="profile-image-container">
+            <div class="profile-image john-doe"></div>
+          </div>
+          <div class="staff-info">
+            <h3>John Doe, RL, MLIS</h3>
+            <p>College Librarian IV</p>
+          </div>
+        </div>
+        <div class="staff-card">
+          <div class="profile-image-container">
+            <div class="profile-image stacy-white"></div>
+          </div>
+          <div class="staff-info">
+            <h3>Stacy White, RL, MLIS</h3>
+            <p>College Librarian IV</p>
+          </div>
+        </div>
+        <div class="staff-card">
+          <div class="profile-image-container">
+            <div class="profile-image steven-santos"></div>
+          </div>
+          <div class="staff-info">
+            <h3>Steven Santos, RL, MLIS</h3>
+            <p>College Librarian IV</p>
+          </div>
+        </div>
+      </div>
+      <button class="view-team-button">View the Team</button>
+    </div>
+  </section>
+
+  <section class="contact-section">
+    <div class="content-container">
+      <h1>Got some concerns? Connect with us!</h1>
+      <form class="contact-form">
+        <div class="form-group-grid">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Your Name" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="Your Email Address" />
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" placeholder="The Subject of your Message" />
+          </div>
+          <div class="form-group message-area">
+            <label for="message">Message</label>
+            <textarea id="message" rows="5" placeholder="Write your message here"></textarea>
+          </div>
+          <div class="form-group submit-button-area">
+            <button type="submit" class="submit-button">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+</section>
+</div>
