@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
+import { Footer } from "../footer/footer";
 
 @Component({
   selector: 'app-about-us',
-  imports: [FormsModule, Navbar],
+  imports: [FormsModule, Navbar, Footer],
   templateUrl: './about-us.html',
   styleUrl: './about-us.css'
 })

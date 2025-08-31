@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
+import { Footer } from "../footer/footer";
 
 interface Thesis {
   title: string;
@@ -13,7 +14,7 @@ interface Thesis {
 @Component({
   selector: 'app-search-thesis',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar],
+  imports: [CommonModule, FormsModule, Navbar, Footer],
   templateUrl: './search-thesis.html',
   styleUrl: './search-thesis.css'
 })
