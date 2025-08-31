@@ -1,6 +1,6 @@
 import {
   isPlatformBrowser
-} from "./chunk-7OCQUTFL.js";
+} from "./chunk-HRG4LBZB.js";
 import {
   ElementRef,
   Injectable,
@@ -9,20 +9,6 @@ import {
   setClassMetadata,
   ɵɵdefineInjectable
 } from "./chunk-RA36H4C2.js";
-
-// node_modules/@angular/cdk/fesm2022/element-x4z00URv.mjs
-function coerceNumberProperty(value, fallbackValue = 0) {
-  if (_isNumberValue(value)) {
-    return Number(value);
-  }
-  return arguments.length === 2 ? fallbackValue : 0;
-}
-function _isNumberValue(value) {
-  return !isNaN(parseFloat(value)) && !isNaN(Number(value));
-}
-function coerceElement(elementOrRef) {
-  return elementOrRef instanceof ElementRef ? elementOrRef.nativeElement : elementOrRef;
-}
 
 // node_modules/@angular/cdk/fesm2022/platform-DNDzkVcI.mjs
 var hasV8BreakIterator;
@@ -85,6 +71,20 @@ var Platform = class _Platform {
   }], () => [], null);
 })();
 
+// node_modules/@angular/cdk/fesm2022/element-x4z00URv.mjs
+function coerceNumberProperty(value, fallbackValue = 0) {
+  if (_isNumberValue(value)) {
+    return Number(value);
+  }
+  return arguments.length === 2 ? fallbackValue : 0;
+}
+function _isNumberValue(value) {
+  return !isNaN(parseFloat(value)) && !isNaN(Number(value));
+}
+function coerceElement(elementOrRef) {
+  return elementOrRef instanceof ElementRef ? elementOrRef.nativeElement : elementOrRef;
+}
+
 // node_modules/@angular/cdk/fesm2022/scrolling-BkvA05C8.mjs
 var RtlScrollAxisType;
 (function(RtlScrollAxisType2) {
@@ -143,11 +143,11 @@ function getRtlScrollAxisType() {
 }
 
 export {
+  Platform,
   coerceNumberProperty,
   coerceElement,
-  Platform,
   RtlScrollAxisType,
   supportsScrollBehavior,
   getRtlScrollAxisType
 };
-//# sourceMappingURL=chunk-WYT3BKEZ.js.map
+//# sourceMappingURL=chunk-7ZPNOOMT.js.map
