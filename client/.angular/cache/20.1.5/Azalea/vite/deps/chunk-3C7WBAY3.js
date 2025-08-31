@@ -2,7 +2,7 @@ import {
   Platform,
   coerceElement,
   coerceNumberProperty
-} from "./chunk-WYT3BKEZ.js";
+} from "./chunk-7ZPNOOMT.js";
 import {
   BidiModule
 } from "./chunk-G7E7H5DT.js";
@@ -3197,4 +3197,4 @@ export {
   _isTestEnvironment,
   MatCommonModule
 };
-//# sourceMappingURL=chunk-WJRBNQYS.js.map
+//# sourceMappingURL=chunk-3C7WBAY3.js.map
