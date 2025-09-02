@@ -86,6 +86,8 @@ router.post("/", async (req, res) => {
       access_level: req.body.access_level,
       authors: Array.isArray(req.body.authors) ? req.body.authors : [],
       tags: Array.isArray(req.body.tags) ? req.body.tags : [],
+      program: req.body.program,
+      document_type: req.body.document_type,
       abstract_embedding: embedding,
     };
 
@@ -116,25 +118,25 @@ router.post("/bulk", async (req, res) => {
 
     const newDocuments = await Promise.all(
       req.body.map(async (doc, index) => {
-        const newDocId = `${year}-${String(countForYear + index + 1).padStart(
-          4,
-          "0"
-        )}`;
-        const textToEmbed = `${doc.title} ${doc.abstract}`;
-        const embedding = await generateEmbedding(textToEmbed);
+      const newDocId = `${year}-${String(countForYear + index + 1).padStart(4, "0")}`;
+      const textToEmbed = `${doc.title} ${doc.abstract}`;
+      const embedding = await generateEmbedding(textToEmbed);
 
-        return {
-          doc_id: newDocId,
-          title: doc.title,
-          abstract: doc.abstract,
-          submitted_at: new Date(),
-          access_level: doc.access_level,
-          authors: Array.isArray(doc.authors) ? doc.authors : [],
-          tags: Array.isArray(doc.tags) ? doc.tags : [],
-          abstract_embedding: embedding,
-        };
-      })
-    );
+    return {
+      doc_id: newDocId,
+      title: doc.title,
+      abstract: doc.abstract,
+      submitted_at: new Date(),
+      access_level: doc.access_level,
+      authors: Array.isArray(doc.authors) ? doc.authors : [],
+      tags: Array.isArray(doc.tags) ? doc.tags : [],
+      program: doc.program,            // ✅ fixed
+      document_type: doc.document_type, // ✅ fixed
+      abstract_embedding: embedding,
+    };
+  })
+);
+
 
     const result = await collection.insertMany(newDocuments);
 
