@@ -2,6 +2,238 @@
 <div class="page-wrapper">
   <div class="search-page-container">
     <div class="search-bar-container">
+      <input 
+        type="text" 
+        placeholder="Look for a thesis" 
+        class="search-input"
+        [(ngModel)]="searchQuery"
+        (keypress)="onSearchKeyPress($event)"
+        [disabled]="isLoading" />
+      <button 
+        class="search-button" 
+        (click)="onSearchClick()"
+        [disabled]="isLoading">
+        {{ isLoading ? 'Searching...' : 'Search' }}
+      </button>
+      <button 
+        *ngIf="hasSearched" 
+        class="clear-button" 
+        (click)="clearSearch()"
+        [disabled]="isLoading">
+        Clear
+      </button>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading" class="loading-indicator">
+      <p>Searching for theses...</p>
+    </div>
+
+    <!-- No search performed yet -->
+    <div *ngIf="!hasSearched && !isLoading" class="no-search-message">
+      <h2>Search for Thesis Documents</h2>
+      <p>Enter a topic, keyword, or research area to find relevant thesis documents using semantic search.</p>
+    </div>
+
+    <!-- No results found -->
+    <div *ngIf="hasSearched && !isLoading && totalItems === 0" class="no-results-message">
+      <h2>No Results Found</h2>
+      <p>No thesis documents found for "{{ searchQuery }}". Try different keywords or broader terms.</p>
+    </div>
+
+    <!-- Results layout -->
+    <div class="results-layout" *ngIf="hasSearched && totalItems > 0 && !isLoading">
+      <aside class="filter-sidebar">
+        <div class="filter-header">
+          <h3 class="filter-title">Filter</h3>
+          <button class="collapse-button" (click)="toggleFilters()">
+            <span *ngIf="isCollapsed">Show Filters</span>
+            <span *ngIf="!isCollapsed">Hide Filters</span>
+          </button>
+        </div>
+
+        <div class="filter-options-wrapper" [ngClass]="{'collapsed': isCollapsed}">
+          <div class="filter-group">
+            <h4 class="filter-group-title">Search Info</h4>
+            <p class="search-query-display">Query: "{{ searchQuery }}"</p>
+            <p class="results-summary">{{ totalItems }} results found</p>
+          </div>
+
+          <div class="filter-group">
+            <h4 class="filter-group-title">Filter Options</h4>
+            <ul class="filter-list">
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  High Relevance (>80%)
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Medium Relevance (60-80%)
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Recent (2023-2024)
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Computer Science
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Engineering
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Agriculture
+                </label>
+              </li>
+            </ul>
+          </div>
+
+          <div class="filter-group">
+            <h4 class="filter-group-title">Access Levels</h4>
+            <ul class="filter-list">
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Public Access
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  University Access
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Restricted Access
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Full Text Available
+                </label>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <div class="search-results">
+        <h2 class="results-count">{{ totalItems }} records found for "{{ searchQuery }}"</h2>
+
+        <div class="result-card" *ngFor="let result of displayedResults">
+          <div class="result-header">
+            <h3 class="thesis-title">{{ result.title }}</h3>
+            <span class="relevance-score">{{ formatScore(result.score) }} match</span>
+          </div>
+          <p class="thesis-abstract">{{ truncateAbstract(result.abstract) }}</p>
+          <div class="result-actions">
+            <button class="view-details-btn">View Details</button>
+            <button class="download-btn">Download</button>
+            <span class="thesis-id">ID: {{ result._id }}</span>
+          </div>
+        </div>
+
+        <!-- Pagination (only show if there are multiple pages) -->
+        <div class="paginator" *ngIf="totalPages > 1">
+          <button
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="paginator-button nav-button"
+          >
+            &lt;&lt;
+          </button>
+          <button
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="paginator-button nav-button"
+          >
+            &lt;
+          </button>
+
+          <ng-container *ngIf="pages[0] > 1">
+            <button
+              (click)="goToPage(1)"
+              [ngClass]="{'active': currentPage === 1}"
+              class="paginator-button"
+            >
+              1
+            </button>
+            <span *ngIf="pages[0] > 2" class="paginator-ellipsis">...</span>
+          </ng-container>
+
+          <button
+            *ngFor="let page of pages"
+            (click)="goToPage(page)"
+            [ngClass]="{'active': currentPage === page}"
+            class="paginator-button"
+          >
+            {{ page }}
+          </button>
+
+          <ng-container *ngIf="pages[pages.length - 1] < totalPages">
+            <span *ngIf="pages[pages.length - 1] < totalPages - 1" class="paginator-ellipsis">...</span>
+            <button
+              (click)="goToPage(totalPages)"
+              [ngClass]="{'active': currentPage === totalPages}"
+              class="paginator-button"
+            >
+              {{ totalPages }}
+            </button>
+          </ng-container>
+
+          <button
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="paginator-button nav-button"
+          >
+            &gt;
+          </button>
+          <button
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="paginator-button nav-button"
+          >
+            &gt;&gt;
+          </button>
+        </div>
+
+        <div class="pagination-info" *ngIf="totalPages > 1">
+          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to 
+          {{ getPaginationEndIndex() }} of {{ totalItems }} results
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>
+
+
+<!-- <app-navbar></app-navbar>
+<div class="page-wrapper">
+  <div class="search-page-container">
+    <div class="search-bar-container">
       <input type="text" placeholder="Look for a thesis" class="search-input" />
       <button class="search-button">Search</button>
     </div>
@@ -170,4 +402,4 @@
   </div>
 </div>
 
-<app-footer> </app-footer>
+<app-footer> </app-footer> -->
