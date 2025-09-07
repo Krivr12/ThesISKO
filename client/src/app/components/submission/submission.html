@@ -1,0 +1,616 @@
+<app-navbar></app-navbar>
+
+<div class="page-wrapper">
+  <div class="submission-container">
+    <header class="submission-header">
+      <h1 class="main-title">Submission</h1>
+    </header>
+
+    <main class="content-grid">
+      
+      <aside class="sidebar">
+        <h2 class="sidebar-title">Submission Process</h2>
+        <nav>
+          <ol class="step-list">
+            @for (step of submissionSteps; track step.id) {
+              <li 
+                class="step-item" 
+                [class.active]="step.id === currentStep()">
+                {{ step.id }}. {{ step.title }}
+              </li>
+            }
+          </ol>
+        </nav>
+      </aside>
+<!-- step 1 - upload manuscript -->
+      <section class="main-content">
+        @switch (currentStep()) {
+          <!-- first submission (step1) -->
+          @case (1) {
+            <h2 class="content-title">Thesis Manuscript Submission</h2>
+            <div class="content-body">
+              @switch (viewState()) {
+                @case ('initial') {
+                  <div class="upload-area-container">
+                    <p class="info-text">Please upload your manuscript to begin.</p>
+                    <div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" class="file-drop-zone" [class.drag-over]="isDragging()">
+                      <input type="file" #fileInput class="file-input-hidden" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx">
+                      <svg class="upload-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                      <p class="upload-text">Drag files here or <span class="browse-link" (click)="fileInput.click()">Browse</span></p>
+                    </div>
+                  </div>
+                }
+                @case ('fileSelected') {
+                  <div class="file-selected-container">
+                    <p class="info-text">Your file is ready for submission.</p>
+                    @if (file()) {
+                      <div class="file-progress-card">
+                        <div class="file-info"><svg class="file-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                          <div><p class="file-name">{{ file()?.name }}</p><p class="file-size">{{ (file()?.size || 0) / (1024 * 1024) | number:'1.1-2' }} MB</p></div>
+                        </div>
+                        <div class="progress-bar-container"><div class="progress-bar" [style.width.%]="uploadProgress()"></div></div>
+                        <p class="progress-percentage">{{uploadProgress()}}%</p>
+                      </div>
+                    }
+                  </div>
+                }
+                @case('submitted') { <div class="submission-feedback"><p class="text-success">Thank you for submitting! Please wait and always check your status.</p></div> }
+                <!--paper needs revision (step1) -->
+                @case('needsRevision') {
+                  <div class="upload-area-container">
+                    <p class="text-error">Sorry, you have a minor revision. Please resubmit the manuscript.</p>
+                    <div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" class="file-drop-zone" [class.drag-over]="isDragging()">
+                      <input type="file" #fileInput class="file-input-hidden" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx">
+                      <svg class="upload-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                      <p class="upload-text">Drag new file here or <span class="browse-link" (click)="fileInput.click()">Browse</span></p>
+                    </div>
+                  </div>
+                }
+                @case('revisionFileSelected') {
+                  <div class="file-selected-container">
+                    <p class="info-text">Your revised file is ready for submission.</p>
+                    @if (file()) {
+                      <div class="file-progress-card">
+                        <div class="file-info"><svg class="file-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                          <div><p class="file-name">{{ file()?.name }}</p><p class="file-size">{{ (file()?.size || 0) / (1024 * 1024) | number:'1.1-2' }} MB</p></div>
+                        </div>
+                        <div class="progress-bar-container"><div class="progress-bar" [style.width.%]="uploadProgress()"></div></div><p class="progress-percentage">{{uploadProgress()}}%</p>
+                      </div>
+                    }
+                  </div>
+                }
+                @case('revisionSubmitted') { <div class="submission-feedback"><p class="text-warning">Thank you for submitting your revision! Please wait and always check your status.</p></div> }
+                <!-- paper is approved (step1 complete) -->
+                @case('approved') { <div class="submission-feedback"><p class="text-success">Your thesis manuscript has been approved. You can now proceed to Step 2.</p></div> }
+              }
+            </div>
+          }
+<!-- step 2 copyright form -->
+          @case (2) {
+            <h2 class="content-title">Upload Copyright Form</h2>
+             <div class="content-body">
+               @switch (viewState()) {
+                  @case ('step2_templateDownload') {
+                    <div class="file-selected-container">
+                      <p class="info-text">Please download the template below before clicking next.</p>
+                      <!-- pdf file for copyright form located in submission.ts -->
+                      <div class="file-progress-card">
+                        <div class="file-info"><svg class="file-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                          <div><p class="file-name">{{ copyrightTemplate.name }}</p><p class="file-size">{{ copyrightTemplate.size / (1024 * 1024) | number:'1.1-2' }} MB</p></div>
+                        </div>
+                        <div class="progress-bar-container"><div class="progress-bar" [style.width.%]="100"></div></div><p class="progress-percentage">100%</p>
+                      </div>
+                    </div>
+                  }
+                  @case ('step2_initial') {
+                    <div class="upload-area-container">
+                      <div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" class="file-drop-zone" [class.drag-over]="isDragging()">
+                        <input type="file" #fileInput class="file-input-hidden" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx">
+                        <svg class="upload-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <p class="upload-text">Drag files here or <span class="browse-link" (click)="fileInput.click()">Browse</span></p>
+                      </div>
+                    </div>
+                  }
+                  @case ('step2_fileSelected') {
+                    <div class="file-selected-container">
+                      @if (file()) {
+                        <div class="file-progress-card">
+                          <div class="file-info"><svg class="file-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                            <div><p class="file-name">{{ file()?.name }}</p><p class="file-size">{{ (file()?.size || 0) / (1024 * 1024) | number:'1.1-2' }} MB</p></div>
+                          </div>
+                          <div class="progress-bar-container"><div class="progress-bar" [style.width.%]="uploadProgress()"></div></div>
+                          <p class="progress-percentage">{{uploadProgress()}}%</p>
+                        </div>
+                      }
+                    </div>
+                  }
+                  @case ('step2_submitted') { <div class="submission-feedback"><p class="text-success">Thank you for submitting! Please wait and always check your status.</p></div> }
+                  <!-- step 2 complete -->
+                  @case ('step2_approved') { <div class="submission-feedback"><p class="text-success">You can now proceed to Step 3.</p></div> }
+               }
+            </div>
+          }
+          <!-- step 3 turnitin checker -->
+          @case (3) {
+            <h2 class="content-title">Turnitin AI Checker</h2>
+            <div class="content-body">
+              @switch (viewState()) {
+                @case('step3_initial') {
+                  <div class="turnitin-checker-container">
+                    <div class="turnitin-upload-box" (click)="fileInput.click()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+                      <input type="file" #fileInput class="file-input-hidden" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx">
+                      <div class="turnitin-upload-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                        <span>Upload File</span>
+                      </div>
+                    </div>
+                    <div class="turnitin-actions">
+                      <button class="btn btn-tertiary" disabled>Clear</button>
+                      <button class="btn btn-tertiary" disabled>Check</button>
+                    </div>
+                  </div>
+                }
+                @case('step3_fileSelected') {
+                  <div class="turnitin-checker-container">
+                    <div class="turnitin-upload-box">
+                       <div class="turnitin-file-display">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                        <span>{{ file()?.name }}</span>
+                      </div>
+                    </div>
+                    <div class="turnitin-actions">
+                      <button class="btn btn-tertiary" (click)="clearStep3File()">Clear</button>
+                      <button class="btn btn-tertiary" (click)="checkStep3File()">Check</button>
+                    </div>
+                  </div>
+                }
+                @case('step3_checking') {
+                  <div class="submission-feedback">
+                    <p class="text-warning">Checking file, please wait...</p>
+                    <div class="spinner"></div>
+                  </div>
+                }
+                @case('step3_results') {
+                  <div class="turnitin-results-container">
+                    <!-- pdf file to be placed here is in submission.ts -->
+                    <p class="info-text">You can now proceed to Step 4. But make sure to download the form.</p>
+                    <div class="turnitin-results-card">
+                      <p class="similarity-title">Turnitin Similarity Results</p>
+                      <p class="similarity-percentage">{{ similarityIndex() }}%</p>
+                      <button class="completion-form-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                        <span>{{ completionFormTemplate.name }}</span>
+                      </button>
+                      <p class="results-status-text">Status: passed</p>
+                      <p class="results-status-text">Similarity index: {{ similarityIndex() }}%</p>
+                      <p class="results-status-text">You may now download your Completion Form.</p>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+          <!-- step 4 upload documents -->
+          @case (4) {
+            <h2 class="content-title">Upload all Required Documents</h2>
+            <div class="content-body">
+              @switch (viewState()) {
+                @case ('step4_initial') {
+                  <div class="upload-area-container">
+                    <p class="info-text">Please upload all required documents.</p>
+                    <div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropMultiple($event)" class="file-drop-zone" [class.drag-over]="isDragging()">
+                      <input type="file" #fileInputMultiple class="file-input-hidden" (change)="onFilesSelected($event)" multiple>
+                      <svg class="upload-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                      <p class="upload-text">Drag files here or <span class="browse-link" (click)="fileInputMultiple.click()">Browse</span></p>
+                    </div>
+                  </div>
+                }
+                @case ('step4_filesSelected') {
+                  <div class="file-selected-container">
+                    <p class="info-text">Your files are ready for submission.</p>
+                    @for (file of files(); track file.name) {
+                      <div class="file-progress-card">
+                        <div class="file-info">
+                          <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                          </svg>
+                          <div>
+                            <p class="file-name">{{ file.name }}</p>
+                            <p class="file-size">{{ file.size / (1024 * 1024) | number:'1.1-2' }} MB</p>
+                          </div>
+                        </div>
+                        <div class="progress-bar-container">
+                          <div class="progress-bar" [style.width.%]="uploadProgresses().get(file.name) || 0"></div>
+                        </div>
+                        <p class="progress-percentage">{{ uploadProgresses().get(file.name) || 0 }}%</p>
+                      </div>
+                    }
+                  </div>
+                }
+                @case('step4_submitted') { 
+                  <div class="submission-feedback">
+                    <p class="text-success">Thank you for submitting! Please wait and always check your status.</p>
+                  </div> 
+                }
+                <!-- papers are incomplete/needs revision -->
+                @case('step4_needsRevision') {
+                  <div class="upload-area-container">
+                    <p class="text-error">Sorry, your submitted documents are incomplete and/or need a minor revision. Please resubmit the correct and/or complete documents.</p>
+                    <div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropMultiple($event)" class="file-drop-zone" [class.drag-over]="isDragging()">
+                      <input type="file" #fileInputMultiple class="file-input-hidden" (change)="onFilesSelected($event)" multiple>
+                      <svg class="upload-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                      <p class="upload-text">Drag files here or <span class="browse-link" (click)="fileInputMultiple.click()">Browse</span></p>
+                    </div>
+                  </div>
+                }
+                @case('step4_revisionFilesSelected') {
+                  <div class="file-selected-container">
+                    <p class="info-text">Your revised files are ready for submission.</p>
+                    @for (file of files(); track file.name) {
+                      <div class="file-progress-card">
+                        <div class="file-info">
+                          <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                          </svg>
+                          <div>
+                            <p class="file-name">{{ file.name }}</p>
+                            <p class="file-size">{{ file.size / (1024 * 1024) | number:'1.1-2' }} MB</p>
+                          </div>
+                        </div>
+                        <div class="progress-bar-container">
+                          <div class="progress-bar" [style.width.%]="uploadProgresses().get(file.name) || 0"></div>
+                        </div>
+                        <p class="progress-percentage">{{ uploadProgresses().get(file.name) || 0 }}%</p>
+                      </div>
+                    }
+                  </div>
+                }
+                @case('step4_revisionSubmitted') { 
+                  <div class="submission-feedback">
+                    <p class="text-warning">Thank you for submitting your revision! Please wait and always check your status.</p>
+                  </div> 
+                }
+                <!-- step 4 complete -->
+                @case('step4_approved') { 
+                  <div class="submission-feedback">
+                    <p class="text-success">You can now proceed to Step 5.</p>
+                  </div> 
+                }
+              }
+            </div>
+          }
+          <!-- step 5 describe work -->
+          @case (5) {
+            <h2 class="content-title">Describe Your Work</h2>
+            <div class="content-body">
+              @switch (viewState()) {
+                @case ('step5_initial') {
+                  <div class="describe-work-container">
+                    <!-- group number -->
+                    <div class="form-group">
+                      <label class="form-label">Group Number</label>
+                      <select class="form-select" (change)="updateGroupNumber($any($event.target).value)">
+                        <option value="">Select Group Number</option>
+                        @for (num of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; track num) {
+                          <option [value]="num" [selected]="groupNumber() === num">Group {{num}}</option>
+                        }
+                      </select>
+                    </div>
+                    
+                    <!-- member names -->
+                      <div class="form-group">
+                      <label class="form-label">Member Names</label>
+                      <div class="member-input-container">
+                        <textarea 
+                          class="form-textarea member-textarea" 
+                          rows="3"
+                          placeholder="Enter member name and press Enter"
+                          [value]="memberInput()"
+                          (input)="memberInput.set($any($event.target).value)"
+                          (keydown)="onMemberKeydown($event)"
+                        ></textarea>
+                      </div>
+                      
+                      <!-- chip display -->
+                      @if (memberNames().length > 0) {
+                        <div class="member-chips-container">
+                          @for (member of memberNames(); track member; let i = $index) {
+                            <div class="member-chip">
+                              <span class="member-name">{{ member }}</span>
+                              <span class="remove-member" (click)="removeMember(i)">×</span>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                    
+                    <!-- tags -->
+                    <div class="form-group">
+                      <label class="form-label">Add Tags</label>
+                      <div class="tags-container">
+                        @for (tag of predefinedTags(); track tag) {
+                          <span class="tag" 
+                                [class.selected]="tags().includes(tag)"
+                                (click)="toggleTag(tag)">
+                            {{tag}}
+                          </span>
+                        }
+                      </div>
+                      <div class="custom-tag-input">
+                        <input type="text" 
+                              class="form-input" 
+                              placeholder="Add custom tag"
+                              [value]="customTag()"
+                              (input)="customTag.set($any($event.target).value)">
+                        <button class="btn btn-tertiary" (click)="addCustomTag()">Add</button>
+                      </div>
+                      @if (tags().length > 0) {
+                        <div class="selected-tags">
+                          <p>Selected Tags:</p>
+                          @for (tag of tags(); track tag) {
+                            <span class="selected-tag">
+                              {{tag}}
+                              <span class="remove-tag" (click)="removeTag(tag)">×</span>
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
+                    
+                    <!-- title -->
+                    <div class="form-group">
+                      <label class="form-label">Title</label>
+                      <input type="text" 
+                            class="form-input" 
+                            placeholder="Enter title"
+                            [value]="title()"
+                            (input)="updateTitle($any($event.target).value)">
+                    </div>
+                    
+                    <!-- abstract -->
+                    <div class="form-group">
+                      <label class="form-label">Abstract</label>
+                      <textarea class="form-textarea" 
+                                rows="6"
+                                placeholder="Enter abstract"
+                                [value]="abstract()"
+                                (input)="updateAbstract($any($event.target).value)"></textarea>
+                    </div>
+                    
+                    <!-- access Level -->
+                    <div class="form-group">
+                      <label class="form-label">Select Access Level</label>
+                      <div class="radio-group">
+                        <label class="radio-label">
+                          <input type="radio" 
+                                name="accessLevel" 
+                                value="Full" 
+                                [checked]="accessLevel() === 'Full'"
+                                (change)="updateAccessLevel('Full')">
+                          Full
+                        </label>
+                        <label class="radio-label">
+                          <input type="radio" 
+                                name="accessLevel" 
+                                value="Partial" 
+                                [checked]="accessLevel() === 'Partial'"
+                                (change)="updateAccessLevel('Partial')">
+                          Partial
+                        </label>
+                        <label class="radio-label">
+                          <input type="radio" 
+                                name="accessLevel" 
+                                value="Restricted" 
+                                [checked]="accessLevel() === 'Restricted'"
+                                (change)="updateAccessLevel('Restricted')">
+                          Restricted
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                }
+                <!-- step 5 completee -->
+                @case('step5_submitted') { 
+                  <div class="submission-feedback">
+                    <p class="text-success">Work description submitted successfully!</p>
+                  </div> 
+                }
+              }
+            </div>
+          }
+          <!-- step 6 archive theses-->
+          @case (6) {
+            <h2 class="content-title">Archive Submission</h2>
+            <div class="content-body">
+              @switch (viewState()) {
+                @case ('step6_initial') {
+                  <div class="archive-container">
+                    <!-- displays answers from step 5-->
+                    <div class="review-info">
+                
+                      
+                      <!-- members name -->
+                      @if (memberNames().length > 0) {
+                        <h3>Team Members</h3>
+                        <div class="member-box">
+                          <div class="member-chips-container">
+                            @for (member of memberNames(); track member; let i = $index) {
+                              <div class="member-chip">
+                                <span class="member-name">{{ member }}</span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                      
+                      <!-- tags -->
+                      @if (tags().length > 0) {
+                        <h3>Tags</h3>
+                        <div class="tags-box">
+                          <div class="tags-grid">
+                            @for (tag of tags(); track tag; let i = $index) {
+                              <span class="tag-pill">{{ tag }}</span>
+                            }
+                          </div>
+                        </div>
+                      }
+                      
+                      <!-- title -->
+                      @if (title()) {
+                        <h3>Title</h3>
+                        <div class="title-review">
+                          <p><strong>{{ title() }}</strong></p>
+                        </div>
+                      }
+                      
+                      <!-- abstract -->
+                      @if (abstract()) {
+                        <h3>Abstract</h3>
+                        <div class="abstract-review">
+                          <p>{{ abstract() }}</p>
+                        </div>
+                      }
+                      
+                      <!-- access level -->
+                      @if (accessLevel()) {
+                        <h3>Access Level</h3>
+                        <div class="access-review">
+                          <p>{{ accessLevel() }}</p>
+                        </div>
+                      }
+                      
+                      <!-- confirm archive -->
+                      <div class="confirmation-checkbox">
+                        <label>
+                          <input type="checkbox" 
+                                [checked]="confirmationChecked()"
+                                (change)="toggleConfirmation()">
+                          I confirm that all information is correct and ready for archiving.
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- return button and confirm -->
+                  <div class="button-container-dual">
+                    <button class="btn btn-secondary" (click)="backToStep5()">Back</button>
+                    <button class="btn btn-primary" 
+                            [class.btn-disabled]="!confirmationChecked()"
+                            [disabled]="!confirmationChecked()"
+                            (click)="submitStep6()">
+                      Archive
+                    </button>
+                  </div>
+                }
+                <!-- dont remove, might break but after this it will lead to separate thank you page -->
+                @case('step6_archived') { 
+                  <div class="submission-feedback">
+                    <h3 class="text-success">Thank you so much, Iskolar!</h3>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod</p>
+                    <p>tempor incididunt ut labore et dolore magna aliqua.</p>
+                  </div> 
+                }
+              }
+            </div>
+          }
+        }
+<!-- to avoid duplicate buttons when in step 6 -->
+        @if (currentStep() !== 6) {
+        <div class="button-container">
+          <button class="btn"
+                  [class.btn-primary]="!isButtonDisabled()"
+                  [class.btn-disabled]="isButtonDisabled()"
+                  [disabled]="isButtonDisabled()"
+                  (click)="handleButtonClick()">
+              {{ getButtonText() }}
+          </button>
+        </div>
+        }
+      </section>
+
+      <aside class="sidebar">
+        <h2 class="sidebar-title">Status</h2>
+         @if (statusHistory().length > 0) {
+          <ul class="status-list">
+            @for (status of statusHistory(); track status.text) {
+               <li class="status-item">
+                <span class="status-dot" [ngClass]="status.type"></span>
+                <span class="status-text" [ngClass]="status.type">{{ status.text }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="no-status-text">No submission status yet.</p>
+        }
+      </aside>
+    </main>
+  </div>
+</div>
+
+<!-- step 2 modal -->
+@if (viewState() === 'confirming' || viewState() === 'revisionConfirming' || viewState() === 'step2_confirming') {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Uploaded File</h3>
+         <button (click)="closeModal()" class="modal-close-btn">&times;</button>
+      </div>
+      <p class="modal-body">Are you sure the uploaded file is correct?</p>
+      <div class="modal-actions">
+        <button (click)="confirmUpload(true)" class="btn btn-primary">Yes</button>
+        <button (click)="confirmUpload(false)" class="btn btn-secondary">No</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- step 4 modal -->
+@if (viewState() === 'step4_confirming' || viewState() === 'step4_revisionConfirming') {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Uploaded Files</h3>
+        <button (click)="closeStep4Modal()" class="modal-close-btn">&times;</button>
+      </div>
+      <p class="modal-body">Are you sure all the uploaded files are correct?</p>
+      <div class="modal-actions">
+        <button (click)="confirmStep4Upload(true)" class="btn btn-primary">Yes</button>
+        <button (click)="confirmStep4Upload(false)" class="btn btn-secondary">No</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- step 5 modal -->
+@if (viewState() === 'step5_confirming') {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Information</h3>
+      </div>
+      <p class="modal-body">Are you sure all information is correct?</p>
+      <div class="modal-actions">
+        <button (click)="confirmStep5(true)" class="btn btn-primary">Yes</button>
+        <button (click)="confirmStep5(false)" class="btn btn-secondary">No</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- step 6 modal -->
+@if (viewState() === 'step6_confirming') {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Archive Confirmation</h3>
+      </div>
+      <p class="modal-body">Are you sure you want to archive?</p>
+      <div class="modal-actions">
+        <button (click)="confirmStep6(true)" class="btn btn-primary">Yes</button>
+        <button (click)="confirmStep6(false)" class="btn btn-secondary">No</button>
+      </div>
+    </div>
+  </div>
+}
+
+<app-footer></app-footer>

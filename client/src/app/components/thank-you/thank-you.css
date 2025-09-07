@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.thank-you-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.thank-you-content {
+  text-align: center;
+  width: 100%; 
+  max-width: none;
+  padding: 2rem;
+}
+
+.thank-you-title {
+  font-size: 5.5rem;
+  font-weight: 1000;
+  color: #800000;
+  margin-bottom: 2rem;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.thank-you-message {
+  font-size: 1.25rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.btn {
+  margin-top: 2rem;
+  padding: 1rem 3rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.btn:hover {
+  background-color: #800000;
+}
