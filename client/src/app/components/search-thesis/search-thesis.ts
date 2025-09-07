@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
 import { Footer } from "../footer/footer";
+import { Router } from '@angular/router';
 
 interface Thesis {
   title: string;
@@ -19,6 +20,7 @@ interface Thesis {
   styleUrl: './search-thesis.css'
 })
 export class SearchThesis implements OnInit {
+  constructor(private router: Router) {}
   totalItems: number = 0;
   itemsPerPage: number = 8;
   currentPage: number = 1;
@@ -27,6 +29,29 @@ export class SearchThesis implements OnInit {
   pages: number[] = [];
   
   isCollapsed: boolean = false;
+  searchQuery: string = '';
+  
+  // filter states
+  selectedTags: string[] = [];
+  selectedYear: string = '';
+  authorName: string = '';
+
+  // can add tags here
+  predefinedTags = signal<string[]>([
+    'Technology',
+    'Information Systems',
+    'Web Application',
+    'Mobile Application',
+    'Artificial Intelligence',
+    'Data Science',
+    'Cloud Computing',
+    'Cybersecurity',
+    'User Experience',
+    'Database'
+  ]);
+
+  // get unique years from theses
+  availableYears = signal<number[]>([]);
 
   allTheses: Thesis[] = [
     {
@@ -187,16 +212,86 @@ export class SearchThesis implements OnInit {
     },
   ];
 
+  filteredTheses: Thesis[] = [];
   displayedTheses: Thesis[] = [];
 
   ngOnInit(): void {
-    this.totalItems = this.allTheses.length;
-    this.calculatePagination();
-    this.updateDisplayedTheses();
+    // Extract unique years from theses
+    const years = [...new Set(this.allTheses.map(thesis => thesis.year))].sort((a, b) => b - a);
+    this.availableYears.set(years);
+    
+    this.applyFilters();
   }
 
   toggleFilters(): void {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  onSearch(): void {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  onTagChange(tag: string, event: Event): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    
+    if (isChecked) {
+      this.selectedTags.push(tag);
+    } else {
+      this.selectedTags = this.selectedTags.filter(t => t !== tag);
+    }
+    
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  onYearChange(year: string): void {
+    this.selectedYear = year;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  onAuthorChange(): void {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.selectedTags = [];
+    this.selectedYear = '';
+    this.authorName = '';
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    this.filteredTheses = this.allTheses.filter(thesis => {
+      // Search query filter
+      const matchesSearch = this.searchQuery === '' || 
+        thesis.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        thesis.author.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        thesis.keywords.some(kw => kw.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      
+      // Tag filter
+      const matchesTags = this.selectedTags.length === 0 || 
+        this.selectedTags.some(tag => 
+          thesis.keywords.some(kw => kw.toLowerCase().includes(tag.toLowerCase()))
+        );
+      
+      // Year filter
+      const matchesYear = this.selectedYear === '' || 
+        thesis.year.toString() === this.selectedYear;
+      
+      // Author filter
+      const matchesAuthor = this.authorName === '' || 
+        thesis.author.toLowerCase().includes(this.authorName.toLowerCase());
+      
+      return matchesSearch && matchesTags && matchesYear && matchesAuthor;
+    });
+    
+    this.totalItems = this.filteredTheses.length;
+    this.calculatePagination();
+    this.updateDisplayedTheses();
   }
 
   private calculatePagination(): void {
@@ -228,7 +323,7 @@ export class SearchThesis implements OnInit {
   private updateDisplayedTheses(): void {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
-    this.displayedTheses = this.allTheses.slice(startIndex, endIndex);
+    this.displayedTheses = this.filteredTheses.slice(startIndex, endIndex);
   }
 
   goToPage(page: number): void {
@@ -236,7 +331,12 @@ export class SearchThesis implements OnInit {
       this.currentPage = page;
       this.calculatePagination();
       this.updateDisplayedTheses();
-      console.log(`Mapsd to page: ${this.currentPage}`);
     }
+  }
+
+  viewThesis(thesis: Thesis): void {
+    this.router.navigate(['/search-result'], { 
+      state: { thesis: thesis } 
+    });
   }
 }
