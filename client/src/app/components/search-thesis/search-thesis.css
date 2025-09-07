@@ -153,6 +153,13 @@ body {
   border-radius: 12px;
   margin-bottom: 25px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  cursor: pointer; 
+  transition: transform 0.2s ease, box-shadow 0.2s ease; 
+}
+
+.result-card:hover {
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); 
 }
 
 .thesis-title {
@@ -268,4 +275,91 @@ body {
     padding: 10px 15px;
     min-width: 40px;
   }
+}
+
+/* filters styles */
+.filter-group {
+  margin-bottom: 30px;
+}
+
+.filter-group-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #800000;
+  margin-bottom: 12px;
+}
+
+.filter-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  color: #616161;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.filter-option:hover {
+  background-color: #f5f5f5;
+}
+
+.filter-option input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tag-year {
+  background-color: #800000;
+  color: white;
+}
+
+.tag-keywords {
+  background-color: #e0e0e0;
+  color: #616161;
+}
+
+/* Scrollbar styling for filter list */
+.filter-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.filter-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.filter-list::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
 }
