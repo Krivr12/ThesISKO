@@ -4,238 +4,12 @@
     <div class="search-bar-container">
       <input 
         type="text" 
-        placeholder="Look for a thesis" 
-        class="search-input"
+        placeholder="Search by title, author, or keywords..." 
+        class="search-input" 
         [(ngModel)]="searchQuery"
-        (keypress)="onSearchKeyPress($event)"
-        [disabled]="isLoading" />
-      <button 
-        class="search-button" 
-        (click)="onSearchClick()"
-        [disabled]="isLoading">
-        {{ isLoading ? 'Searching...' : 'Search' }}
-      </button>
-      <button 
-        *ngIf="hasSearched" 
-        class="clear-button" 
-        (click)="clearSearch()"
-        [disabled]="isLoading">
-        Clear
-      </button>
-    </div>
-
-    <!-- Error message -->
-    <div *ngIf="errorMessage" class="error-message">
-      {{ errorMessage }}
-    </div>
-
-    <!-- Loading indicator -->
-    <div *ngIf="isLoading" class="loading-indicator">
-      <p>Searching for theses...</p>
-    </div>
-
-    <!-- No search performed yet -->
-    <div *ngIf="!hasSearched && !isLoading" class="no-search-message">
-      <h2>Search for Thesis Documents</h2>
-      <p>Enter a topic, keyword, or research area to find relevant thesis documents using semantic search.</p>
-    </div>
-
-    <!-- No results found -->
-    <div *ngIf="hasSearched && !isLoading && totalItems === 0" class="no-results-message">
-      <h2>No Results Found</h2>
-      <p>No thesis documents found for "{{ searchQuery }}". Try different keywords or broader terms.</p>
-    </div>
-
-    <!-- Results layout -->
-    <div class="results-layout" *ngIf="hasSearched && totalItems > 0 && !isLoading">
-      <aside class="filter-sidebar">
-        <div class="filter-header">
-          <h3 class="filter-title">Filter</h3>
-          <button class="collapse-button" (click)="toggleFilters()">
-            <span *ngIf="isCollapsed">Show Filters</span>
-            <span *ngIf="!isCollapsed">Hide Filters</span>
-          </button>
-        </div>
-
-        <div class="filter-options-wrapper" [ngClass]="{'collapsed': isCollapsed}">
-          <div class="filter-group">
-            <h4 class="filter-group-title">Search Info</h4>
-            <p class="search-query-display">Query: "{{ searchQuery }}"</p>
-            <p class="results-summary">{{ totalItems }} results found</p>
-          </div>
-
-          <div class="filter-group">
-            <h4 class="filter-group-title">Filter Options</h4>
-            <ul class="filter-list">
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  High Relevance (>80%)
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Medium Relevance (60-80%)
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Recent (2023-2024)
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Computer Science
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Engineering
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Agriculture
-                </label>
-              </li>
-            </ul>
-          </div>
-
-          <div class="filter-group">
-            <h4 class="filter-group-title">Access Levels</h4>
-            <ul class="filter-list">
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Public Access
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  University Access
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Restricted Access
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Full Text Available
-                </label>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </aside>
-
-      <div class="search-results">
-        <h2 class="results-count">{{ totalItems }} records found for "{{ searchQuery }}"</h2>
-
-        <div class="result-card" *ngFor="let result of displayedResults">
-          <div class="result-header">
-            <h3 class="thesis-title">{{ result.title }}</h3>
-            <span class="relevance-score">{{ formatScore(result.score) }} match</span>
-          </div>
-          <p class="thesis-abstract">{{ truncateAbstract(result.abstract) }}</p>
-          <div class="result-actions">
-            <button class="view-details-btn">View Details</button>
-            <button class="download-btn">Download</button>
-            <span class="thesis-id">ID: {{ result._id }}</span>
-          </div>
-        </div>
-
-        <!-- Pagination (only show if there are multiple pages) -->
-        <div class="paginator" *ngIf="totalPages > 1">
-          <button
-            (click)="goToPage(currentPage - 1)"
-            [disabled]="currentPage === 1"
-            class="paginator-button nav-button"
-          >
-            &lt;&lt;
-          </button>
-          <button
-            (click)="goToPage(currentPage - 1)"
-            [disabled]="currentPage === 1"
-            class="paginator-button nav-button"
-          >
-            &lt;
-          </button>
-
-          <ng-container *ngIf="pages[0] > 1">
-            <button
-              (click)="goToPage(1)"
-              [ngClass]="{'active': currentPage === 1}"
-              class="paginator-button"
-            >
-              1
-            </button>
-            <span *ngIf="pages[0] > 2" class="paginator-ellipsis">...</span>
-          </ng-container>
-
-          <button
-            *ngFor="let page of pages"
-            (click)="goToPage(page)"
-            [ngClass]="{'active': currentPage === page}"
-            class="paginator-button"
-          >
-            {{ page }}
-          </button>
-
-          <ng-container *ngIf="pages[pages.length - 1] < totalPages">
-            <span *ngIf="pages[pages.length - 1] < totalPages - 1" class="paginator-ellipsis">...</span>
-            <button
-              (click)="goToPage(totalPages)"
-              [ngClass]="{'active': currentPage === totalPages}"
-              class="paginator-button"
-            >
-              {{ totalPages }}
-            </button>
-          </ng-container>
-
-          <button
-            (click)="goToPage(currentPage + 1)"
-            [disabled]="currentPage === totalPages"
-            class="paginator-button nav-button"
-          >
-            &gt;
-          </button>
-          <button
-            (click)="goToPage(currentPage + 1)"
-            [disabled]="currentPage === totalPages"
-            class="paginator-button nav-button"
-          >
-            &gt;&gt;
-          </button>
-        </div>
-
-        <div class="pagination-info" *ngIf="totalPages > 1">
-          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to 
-          {{ getPaginationEndIndex() }} of {{ totalItems }} results
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<app-footer></app-footer>
-
-
-<!-- <app-navbar></app-navbar>
-<div class="page-wrapper">
-  <div class="search-page-container">
-    <div class="search-bar-container">
-      <input type="text" placeholder="Look for a thesis" class="search-input" />
-      <button class="search-button">Search</button>
+        (keyup.enter)="onSearch()"
+      />
+      <button class="search-button" (click)="onSearch()">Search</button>
     </div>
 
     <div class="results-layout">
@@ -250,91 +24,61 @@
 
         <div class="filter-options-wrapper" [ngClass]="{'collapsed': isCollapsed}">
           <div class="filter-group">
-            <h4 class="filter-group-title">Filter Options</h4>
+            <h4 class="filter-group-title">By Author</h4>
+            <input 
+              type="text" 
+              placeholder="Author name..." 
+              class="search-input" 
+              [(ngModel)]="authorName"
+              (keyup)="onAuthorChange()"
+            />
+          </div>
+
+          <div class="filter-group">
+            <h4 class="filter-group-title">By Year</h4>
+            <select class="search-input" [(ngModel)]="selectedYear" (change)="onYearChange(selectedYear)">
+              <option value="">All Years</option>
+              <option *ngFor="let year of availableYears()" [value]="year">{{ year }}</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <h4 class="filter-group-title">By Tags</h4>
             <ul class="filter-list">
-              <li>
+              <li *ngFor="let tag of predefinedTags()">
                 <label class="filter-option">
-                  <input type="checkbox">
-                  Filter Option 1
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Filter Option 2
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Filter Option 3
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Filter Option 4
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Filter Option 5
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Filter Option 6
+                  <input 
+                    type="checkbox" 
+                    [checked]="selectedTags.includes(tag)"
+                    (change)="onTagChange(tag, $event)"
+                  >
+                  {{ tag }}
                 </label>
               </li>
             </ul>
           </div>
 
-          <div class="filter-group">
-            <h4 class="filter-group-title">Access Levels</h4>
-            <ul class="filter-list">
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Access Level Option 1
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Access Level Option 2
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Access Level Option 3
-                </label>
-              </li>
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox">
-                  Access Level Option 4
-                </label>
-              </li>
-            </ul>
-          </div>
+          <button class="search-button" (click)="clearFilters()" style="margin-top: 20px; width: 100%;">
+            Clear All Filters
+          </button>
         </div>
       </aside>
 
       <div class="search-results">
         <h2 class="results-count">{{ totalItems }} records found.</h2>
 
-        <div class="result-card" *ngFor="let thesis of displayedTheses">
+        <div class="result-card" *ngFor="let thesis of displayedTheses" (click)="viewThesis(thesis)">
           <h3 class="thesis-title">{{ thesis.title }}</h3>
-          <p class="thesis-meta">By: {{ thesis.author }}</p>
+          <p class="thesis-meta">By: {{ thesis.author }} | Year: {{ thesis.year }}</p>
           <div class="tags-container">
             <span class="tag tag-year">{{ thesis.year }}</span>
-            <span class="tag tag-keywords">Tags: {{ thesis.keywords.join(', ') }}</span>
+            <span *ngFor="let keyword of thesis.keywords" class="tag tag-keywords">
+              {{ keyword }}
+            </span>
           </div>
         </div>
 
+<!-- paginator component -->
         <div class="paginator">
           <button
             (click)="goToPage(currentPage - 1)"
