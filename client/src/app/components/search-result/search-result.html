@@ -9,41 +9,43 @@
     </div>
 
     <div class="main-title">
-      <h1>{{ document.title }}</h1>
+      <h1>{{ thesis.title }}</h1>
     </div>
 
     <div class="section">
       <h2 class="section-title">Abstract</h2>
-      <p class="section-text">{{ document.abstract }}</p>
+      <p class="section-text">{{ thesis.abstract }}</p>
     </div>
 
     <div class="details-grid">
       <div class="details-column">
         <div class="detail-item">
           <p class="detail-label">Date of Publication</p>
-          <p class="detail-value">{{ document.dateOfPublication }}</p>
+          <p class="detail-value">
+            {{ thesis.submitted_at | date:'MMMM d, y' }}
+          </p>
         </div>
         <div class="detail-item">
-          <p class="detail-label">Degree Name</p>
-          <p class="detail-value">{{ document.degreeName }}</p>
+          <p class="detail-label">Access Level</p>
+          <p class="detail-value">{{ thesis.access_level }}</p>
         </div>
         <div class="detail-item">
           <p class="detail-label">Subject Categories</p>
-          <p class="detail-value">{{ document.subjectCategories }}</p>
+          <p class="detail-value">{{ thesis.tags }}</p>
         </div>
       </div>
       <div class="details-column">
         <div class="detail-item">
           <p class="detail-label">Author's</p>
-          <p class="detail-value">{{ document.authors }}</p>
+          <p class="detail-value">{{ thesis.authors }}</p>
         </div>
         <div class="detail-item">
-          <p class="detail-label">College</p>
-          <p class="detail-value">{{ document.college }}</p>
+          <p class="detail-label">Program</p>
+          <p class="detail-value">{{ thesis.program }}</p>
         </div>
         <div class="detail-item">
           <p class="detail-label">Document Type</p>
-          <p class="detail-value">{{ document.documentType }}</p>
+          <p class="detail-value">{{ thesis.document_type }}</p>
         </div>
       </div>
     </div>

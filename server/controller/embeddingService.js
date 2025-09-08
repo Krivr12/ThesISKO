@@ -56,8 +56,9 @@ export async function semanticSearch(query, topK = 5) {
       $project: {
         _id: 1,
         title: 1,
-        abstract: 1,
-        score: { $meta: "vectorSearchScore" }
+        submitted_at: 1,
+        authors: 1,
+        tags: 1,
       }
     }
   ]);
