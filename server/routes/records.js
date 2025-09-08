@@ -2,6 +2,7 @@
 import express from "express";
 import RepoMongodb from "../RepoMongodb/connection.js";
 import { generateEmbedding, semanticSearch  } from "../controller/embeddingService.js";
+import { ObjectId } from "mongodb";
 
 const router = express.Router();
 const VECTOR_INDEX = "AbstractSemanticSearch"; // replace with your Atlas vector index
@@ -164,6 +165,30 @@ router.post("/search", async (req, res) => {
   } catch (err) {
     console.error("❌ Semantic search error:", err);
     return res.status(500).json({ error: "Error performing semantic search" });
+  }
+});
+
+
+// POST get single document
+router.post("/theses/by-ids", async (req, res) => {
+  try {
+    const { ids } = req.body;
+    
+    if (!ids || !Array.isArray(ids)) {
+      return res.status(400).json({ error: "IDs array is required" });
+    }
+
+    // Convert string IDs to ObjectIds
+    const objectIds = ids.map(id => new ObjectId(id));
+    
+    const results = await collection.find({
+      _id: { $in: objectIds }
+    }).toArray();
+    
+    res.status(200).json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error fetching theses by IDs" });
   }
 });
 

@@ -1,49 +1,55 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Navbar } from '../navbar/navbar';
 import { Footer } from "../footer/footer";
 import { Router } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
-// Updated interface to match backend response
-interface SearchResult {
+interface Thesis {
   _id: string;
+  doc_id: string;
   title: string;
   abstract: string;
-  score: number;
-}
-
-interface SearchResponse {
-  results: SearchResult[];
+  submitted_at: string; // we'll parse year dynamically
+  access_level: string;
+  authors: string[];
+  tags: string[];
+  program: string;
+  document_type: string;
 }
 
 @Component({
   selector: 'app-search-thesis',
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule, Navbar, Footer],
-  templateUrl: './search-thesis.html',
-  styleUrl: './search-thesis.css'
+  templateUrl: 'search-thesis.html',
+  styleUrls: ['search-thesis.css']
 })
 export class SearchThesis implements OnInit {
-  constructor(private router: Router) {}
+  constructor(private router: Router, private http: HttpClient) {}
+
+  // Pagination
   totalItems: number = 0;
   itemsPerPage: number = 8;
   currentPage: number = 1;
   maxPageButtons: number = 5;
   totalPages: number = 0;
   pages: number[] = [];
-  
-  // UI state
+
+  // Filters
   isCollapsed: boolean = false;
   searchQuery: string = '';
-  
-  // filter states
   selectedTags: string[] = [];
   selectedYear: string = '';
   authorName: string = '';
 
-  // can add tags here
+  // Data containers
+  allTheses: Thesis[] = [];
+  filteredTheses: Thesis[] = [];
+  displayedTheses: Thesis[] = [];
+
+  // Signals
   predefinedTags = signal<string[]>([
     'Technology',
     'Information Systems',
@@ -56,22 +62,29 @@ export class SearchThesis implements OnInit {
     'User Experience',
     'Database'
   ]);
-
-  // get unique years from theses
   availableYears = signal<number[]>([]);
 
-  // Display data
-  displayedResults: SearchResult[] = [];
-
-  filteredTheses: Thesis[] = [];
-  displayedTheses: Thesis[] = [];
-
   ngOnInit(): void {
-    // Extract unique years from theses
-    const years = [...new Set(this.allTheses.map(thesis => thesis.year))].sort((a, b) => b - a);
-    this.availableYears.set(years);
-    
-    this.applyFilters();
+    this.fetchAllRecords();
+  }
+
+  private fetchAllRecords(): void {
+    this.http.get<Thesis[]>('http://localhost:5050/records').subscribe({
+      next: (data) => {
+        this.allTheses = data;
+
+        // Extract years from submitted_at
+        const years = [...new Set(
+          this.allTheses.map(thesis => new Date(thesis.submitted_at).getFullYear())
+        )].sort((a, b) => b - a);
+        this.availableYears.set(years);
+
+        this.applyFilters();
+      },
+      error: (err) => {
+        console.error("❌ Error fetching records:", err);
+      }
+    });
   }
 
   toggleFilters(): void {
@@ -79,19 +92,45 @@ export class SearchThesis implements OnInit {
   }
 
   onSearch(): void {
-    this.currentPage = 1;
-    this.applyFilters();
+    if (!this.searchQuery.trim()) {
+      this.applyFilters();
+      return;
+    }
+
+    this.http.post<{ results: any[] }>('http://localhost:5050/records/search', {
+      query: this.searchQuery,
+      topK: 10
+    }).subscribe({
+      next: (res) => {
+        // Replace allTheses with partial results from semantic search
+        this.allTheses = res.results.map(r => ({
+          _id: r._id,
+          doc_id: r.doc_id ?? '',
+          title: r.title,
+          abstract: r.abstract ?? '',
+          submitted_at: r.submitted_at,
+          access_level: r.access_level ?? '',
+          authors: r.authors || [],
+          tags: r.tags || [],
+          program: r.program ?? '',
+          document_type: r.document_type ?? ''
+        }));
+
+        this.applyFilters();
+      },
+      error: (err) => {
+        console.error("❌ Semantic search error:", err);
+      }
+    });
   }
 
   onTagChange(tag: string, event: Event): void {
     const isChecked = (event.target as HTMLInputElement).checked;
-    
     if (isChecked) {
       this.selectedTags.push(tag);
     } else {
       this.selectedTags = this.selectedTags.filter(t => t !== tag);
     }
-    
     this.currentPage = 1;
     this.applyFilters();
   }
@@ -112,34 +151,27 @@ export class SearchThesis implements OnInit {
     this.selectedTags = [];
     this.selectedYear = '';
     this.authorName = '';
+    this.currentPage = 1;
     this.applyFilters();
   }
 
   applyFilters(): void {
     this.filteredTheses = this.allTheses.filter(thesis => {
-      // Search query filter
-      const matchesSearch = this.searchQuery === '' || 
-        thesis.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        thesis.author.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        thesis.keywords.some(kw => kw.toLowerCase().includes(this.searchQuery.toLowerCase()));
-      
-      // Tag filter
-      const matchesTags = this.selectedTags.length === 0 || 
-        this.selectedTags.some(tag => 
-          thesis.keywords.some(kw => kw.toLowerCase().includes(tag.toLowerCase()))
-        );
-      
+      // Tag filter (exact match)
+      const matchesTags = this.selectedTags.length === 0 ||
+        this.selectedTags.some(tag => thesis.tags.includes(tag));
+
       // Year filter
-      const matchesYear = this.selectedYear === '' || 
-        thesis.year.toString() === this.selectedYear;
-      
+      const thesisYear = new Date(thesis.submitted_at).getFullYear().toString();
+      const matchesYear = this.selectedYear === '' || thesisYear === this.selectedYear;
+
       // Author filter
-      const matchesAuthor = this.authorName === '' || 
-        thesis.author.toLowerCase().includes(this.authorName.toLowerCase());
-      
-      return matchesSearch && matchesTags && matchesYear && matchesAuthor;
+      const matchesAuthor = this.authorName === '' ||
+        thesis.authors.some(a => a.toLowerCase().includes(this.authorName.toLowerCase()));
+
+      return matchesTags && matchesYear && matchesAuthor;
     });
-    
+
     this.totalItems = this.filteredTheses.length;
     this.calculatePagination();
     this.updateDisplayedTheses();
@@ -171,7 +203,7 @@ export class SearchThesis implements OnInit {
     return Array.from(Array(endPage - startPage + 1).keys()).map(i => startPage + i);
   }
 
-  private updateDisplayedResults(): void {
+  private updateDisplayedTheses(): void {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
     this.displayedTheses = this.filteredTheses.slice(startIndex, endIndex);
@@ -186,8 +218,17 @@ export class SearchThesis implements OnInit {
   }
 
   viewThesis(thesis: Thesis): void {
-    this.router.navigate(['/search-result'], { 
-      state: { thesis: thesis } 
+    this.http.post<Thesis[]>('http://localhost:5050/records/theses/by-ids', {
+      ids: [thesis._id]
+    }).subscribe({
+      next: (res) => {
+        if (res.length > 0) {
+          this.router.navigate(['/search-result'], { state: { thesis: res[0] } });
+        }
+      },
+      error: (err) => {
+        console.error("❌ Error fetching thesis details:", err);
+      }
     });
   }
 }
