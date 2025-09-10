@@ -1,4 +1,3 @@
-// records.js
 import express from "express";
 import RepoMongodb from "../RepoMongodb/connection.js";
 import { generateEmbedding, semanticSearch  } from "../controller/embeddingService.js";
