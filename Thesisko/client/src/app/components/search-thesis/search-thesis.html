@@ -1,0 +1,171 @@
+<app-navbar></app-navbar>
+<div class="page-wrapper">
+  <div class="search-page-container">
+    <div class="search-bar-container">
+      <input type="text" placeholder="Look for a thesis" class="search-input" />
+      <button class="search-button">Search</button>
+    </div>
+
+    <div class="results-layout">
+      <aside class="filter-sidebar">
+        <div class="filter-header">
+          <h3 class="filter-title">Filter</h3>
+          <button class="collapse-button" (click)="toggleFilters()">
+            <span *ngIf="isCollapsed">Show Filters</span>
+            <span *ngIf="!isCollapsed">Hide Filters</span>
+          </button>
+        </div>
+
+        <div class="filter-options-wrapper" [ngClass]="{'collapsed': isCollapsed}">
+          <div class="filter-group">
+            <h4 class="filter-group-title">Filter Options</h4>
+            <ul class="filter-list">
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Filter Option 1
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Filter Option 2
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Filter Option 3
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Filter Option 4
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Filter Option 5
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Filter Option 6
+                </label>
+              </li>
+            </ul>
+          </div>
+
+          <div class="filter-group">
+            <h4 class="filter-group-title">Access Levels</h4>
+            <ul class="filter-list">
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Access Level Option 1
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Access Level Option 2
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Access Level Option 3
+                </label>
+              </li>
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox">
+                  Access Level Option 4
+                </label>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <div class="search-results">
+        <h2 class="results-count">{{ totalItems }} records found.</h2>
+
+        <div class="result-card" *ngFor="let thesis of displayedTheses">
+          <h3 class="thesis-title">{{ thesis.title }}</h3>
+          <p class="thesis-meta">By: {{ thesis.author }}</p>
+          <div class="tags-container">
+            <span class="tag tag-year">{{ thesis.year }}</span>
+            <span class="tag tag-keywords">Tags: {{ thesis.keywords.join(', ') }}</span>
+          </div>
+        </div>
+
+        <div class="paginator">
+          <button
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="paginator-button nav-button"
+          >
+            &lt;&lt;
+          </button>
+          <button
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="paginator-button nav-button"
+          >
+            &lt;
+          </button>
+
+          <ng-container *ngIf="pages[0] > 1">
+            <button
+              (click)="goToPage(1)"
+              [ngClass]="{'active': currentPage === 1}"
+              class="paginator-button"
+            >
+              1
+            </button>
+            <span *ngIf="pages[0] > 2" class="paginator-ellipsis">...</span>
+          </ng-container>
+
+          <button
+            *ngFor="let page of pages"
+            (click)="goToPage(page)"
+            [ngClass]="{'active': currentPage === page}"
+            class="paginator-button"
+          >
+            {{ page }}
+          </button>
+
+          <ng-container *ngIf="pages[pages.length - 1] < totalPages">
+            <span *ngIf="pages[pages.length - 1] < totalPages - 1" class="paginator-ellipsis">...</span>
+            <button
+              (click)="goToPage(totalPages)"
+              [ngClass]="{'active': currentPage === totalPages}"
+              class="paginator-button"
+            >
+              {{ totalPages }}
+            </button>
+          </ng-container>
+
+          <button
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="paginator-button nav-button"
+          >
+            &gt;
+          </button>
+          <button
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="paginator-button nav-button"
+          >
+            &gt;&gt;
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

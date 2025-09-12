@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+:host {
+  display: block;
+  font-family: 'Inter', Arial, sans-serif;
+  color: #333;
+}
+
+body {
+  margin: 0;
+  background-color: #fff;
+}
+
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: #fff;
+
+}
+
+.search-page-container {
+  max-width: 1400px;
+  margin: 40px auto;
+  padding: 0 40px;
+}
+
+.search-bar-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 50px;
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 15px 20px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.search-button {
+  padding: 15px 40px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #800000;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #6a0000;
+}
+
+.results-layout {
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+.filter-sidebar {
+  flex-basis: 300px;
+  padding-right: 20px;
+  position: sticky;
+  top: 40px;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filter-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #800000;
+  margin: 0;
+}
+
+.collapse-button {
+  background: none;
+  border: none;
+  color: #800000;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter-options-wrapper {
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.filter-options-wrapper.collapsed {
+  max-height: 0;
+}
+
+.filter-group {
+  margin-bottom: 30px;
+}
+
+.filter-group-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #800000;
+  margin-bottom: 15px;
+}
+
+.filter-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  color: #616161;
+  cursor: pointer;
+}
+
+.search-results {
+  flex-grow: 1;
+}
+
+.results-count {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #3c763d;
+  background-color: #dff0d8;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  display: inline-block;
+}
+
+.result-card {
+  background-color: #ffefae;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.thesis-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #800000;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.thesis-meta {
+  font-size: 1rem;
+  color: #616161;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.tags-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 6px 15px;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.tag-year {
+  background-color: #800000;
+  color: white;
+}
+
+.tag-keywords {
+  color: #616161;
+}
+
+.paginator {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+  gap: 10px;
+  align-items: center;
+}
+
+.paginator-button {
+  padding: 12px 20px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 50px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.paginator-button:hover:not([disabled]):not(.active) {
+  background-color: #dcdcdc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.paginator-button.active {
+  background-color: #800000;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-color: #800000;
+}
+
+.paginator-button.nav-button {
+  background-color: #fff;
+  color: #800000;
+  font-weight: bold;
+  border-color: #800000;
+}
+
+.paginator-button.nav-button:hover:not([disabled]) {
+  background-color: #f0f0f0;
+}
+
+.paginator-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.paginator-ellipsis {
+  font-size: 1.2rem;
+  color: #757575;
+  margin: 0 5px;
+}
+
+@media (max-width: 768px) {
+  .results-layout {
+    flex-direction: column;
+  }
+  .filter-sidebar {
+    width: 100%;
+    padding-right: 0;
+  }
+  .paginator {
+    padding: 0 10px;
+  }
+  .paginator-button {
+    padding: 10px 15px;
+    min-width: 40px;
+  }
+}

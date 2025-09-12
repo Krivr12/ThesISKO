@@ -1,0 +1,64 @@
+*{
+    background-color: #800000;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar {
+    background-color: #800000;
+    color: white;
+    padding: 0 2rem;
+    height: 80px; 
+    font-size: 16px; 
+    border: none;
+  }
+  
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem; 
+  }
+  
+  .logo {
+    margin: 0;
+    font-weight: bold;
+  }
+  
+  .login-button {
+    font-weight: bold;
+  }
+  
+
+    :host ::ng-deep .nav-left .p-button:hover {
+    background-color: #a00000 !important;
+  }
+  
+:host ::ng-deep .p-toolbar {
+    height: 80px;          
+    font-size: 16px;         
+  }
+  
+  :host ::ng-deep .p-toolbar .p-toolbar-group-left,
+  :host ::ng-deep .p-toolbar .p-toolbar-group-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  :host ::ng-deep .dark .p-button {
+    background-color: #fbea31 !important;
+    border: none;
+    width: 105px;
+    height: 44px;
+  }
+
+  :host ::ng-deep .dark .p-button:hover {
+    background-color: #fff477 !important;
+    border: none;
+    width: 105px;
+    height: 44px;
+  }
