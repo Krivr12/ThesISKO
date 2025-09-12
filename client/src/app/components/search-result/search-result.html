@@ -5,7 +5,8 @@
       <div class="return-link" (click)="onReturnClick()">
         &lt; Return
       </div>
-      <button class="request-button">Request for full access</button>
+      <!-- modified request button to open the login pup op -->
+      <button class="request-button" (click)="openLoginModal()">Request for full access</button>
     </div>
 
     <div class="main-title">
@@ -50,3 +51,9 @@
   </div>
 </div>
 <app-footer></app-footer>
+
+<!-- modal componentt -->
+<app-login-modal 
+  [isVisible]="isLoginModalVisible" 
+  (close)="closeLoginModal()">
+</app-login-modal>

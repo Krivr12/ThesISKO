@@ -35,6 +35,7 @@ export class SearchThesis implements OnInit {
   selectedTags: string[] = [];
   selectedYear: string = '';
   authorName: string = '';
+  customTagInput: string = ''; //added filter state for custom tag
 
   // can add tags here
   predefinedTags = signal<string[]>([
@@ -49,6 +50,9 @@ export class SearchThesis implements OnInit {
     'User Experience',
     'Database'
   ]);
+
+  // user-added tags
+  customTags = signal<string[]>([]);
 
   // get unique years from theses
   availableYears = signal<number[]>([]);
@@ -256,11 +260,30 @@ export class SearchThesis implements OnInit {
     this.applyFilters();
   }
 
+  // New function for adding user-inputted tags
+  addCustomTag(): void {
+    if (this.customTagInput.trim() && !this.customTags().includes(this.customTagInput.trim())) {
+      this.customTags.update(tags => [...tags, this.customTagInput.trim()]);
+      this.customTagInput = '';
+    }
+  }
+
+  removeCustomTag(tag: string): void {
+    this.customTags.update(tags => tags.filter(t => t !== tag));
+    
+    // Also remove from selected tags if it was selected
+    this.selectedTags = this.selectedTags.filter(t => t !== tag);
+    
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
   clearFilters(): void {
     this.searchQuery = '';
     this.selectedTags = [];
     this.selectedYear = '';
     this.authorName = '';
+    this.customTags.set([]);
     this.applyFilters();
   }
 

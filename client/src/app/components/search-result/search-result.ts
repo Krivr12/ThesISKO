@@ -2,15 +2,19 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { Footer } from "../footer/footer";
 import { Navbar } from "../navbar/navbar";
+import { LoginModal } from '../login-modal/login-modal';
 
 @Component({
   selector: 'app-search-result',
   standalone: true,
-  imports: [Footer, Navbar],
+  imports: [Footer, Navbar, LoginModal],
   templateUrl: './search-result.html',
   styleUrl: './search-result.css'
 })
 export class SearchResult {
+  // Makes sure modal not visible
+  isLoginModalVisible = false;
+
   //Placeholder
   document = {
     title: 'Optimizing Urban Traffic Flow Using Reinforcement Learning and Real-Time Sensor Data',
@@ -30,5 +34,14 @@ export class SearchResult {
     // This will navigate to the specified route
     // Replace 'your-page-route' with the actual route you want to go to
     this.router.navigate(['/search-thesis']);
+  }
+
+  // Pop up Function
+  openLoginModal(): void {
+    this.isLoginModalVisible = true;
+  }
+
+  closeLoginModal(): void {
+    this.isLoginModalVisible = false;
   }
 }
