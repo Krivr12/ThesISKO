@@ -1,10 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
-import { Footer } from "../footer/footer";
-import { Router } from '@angular/router';
 import { Footer } from "../footer/footer";
 import { Router } from '@angular/router';
 
@@ -32,6 +29,33 @@ export class SearchThesis implements OnInit {
   pages: number[] = [];
   
   isCollapsed: boolean = false;
+  searchQuery: string = '';
+  
+  // filter states
+  selectedTags: string[] = [];
+  selectedYear: string = '';
+  authorName: string = '';
+  customTagInput: string = ''; //added filter state for custom tag
+
+  // can add tags here
+  predefinedTags = signal<string[]>([
+    'Technology',
+    'Information Systems',
+    'Web Application',
+    'Mobile Application',
+    'Artificial Intelligence',
+    'Data Science',
+    'Cloud Computing',
+    'Cybersecurity',
+    'User Experience',
+    'Database'
+  ]);
+
+  // user-added tags
+  customTags = signal<string[]>([]);
+
+  // get unique years from theses
+  availableYears = signal<number[]>([]);
 
   allTheses: Thesis[] = [
     {
@@ -205,6 +229,92 @@ export class SearchThesis implements OnInit {
 
   toggleFilters(): void {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  onSearch(): void {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  onTagChange(tag: string, event: Event): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    
+    if (isChecked) {
+      this.selectedTags.push(tag);
+    } else {
+      this.selectedTags = this.selectedTags.filter(t => t !== tag);
+    }
+    
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  onYearChange(year: string): void {
+    this.selectedYear = year;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  onAuthorChange(): void {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  // New function for adding user-inputted tags
+  addCustomTag(): void {
+    if (this.customTagInput.trim() && !this.customTags().includes(this.customTagInput.trim())) {
+      this.customTags.update(tags => [...tags, this.customTagInput.trim()]);
+      this.customTagInput = '';
+    }
+  }
+
+  removeCustomTag(tag: string): void {
+    this.customTags.update(tags => tags.filter(t => t !== tag));
+    
+    // Also remove from selected tags if it was selected
+    this.selectedTags = this.selectedTags.filter(t => t !== tag);
+    
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.selectedTags = [];
+    this.selectedYear = '';
+    this.authorName = '';
+    this.customTags.set([]);
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    this.filteredTheses = this.allTheses.filter(thesis => {
+      // Search query filter
+      const matchesSearch = this.searchQuery === '' || 
+        thesis.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        thesis.author.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        thesis.keywords.some(kw => kw.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      
+      // Tag filter
+      const matchesTags = this.selectedTags.length === 0 || 
+        this.selectedTags.some(tag => 
+          thesis.keywords.some(kw => kw.toLowerCase().includes(tag.toLowerCase()))
+        );
+      
+      // Year filter
+      const matchesYear = this.selectedYear === '' || 
+        thesis.year.toString() === this.selectedYear;
+      
+      // Author filter
+      const matchesAuthor = this.authorName === '' || 
+        thesis.author.toLowerCase().includes(this.authorName.toLowerCase());
+      
+      return matchesSearch && matchesTags && matchesYear && matchesAuthor;
+    });
+    
+    this.totalItems = this.filteredTheses.length;
+    this.calculatePagination();
+    this.updateDisplayedTheses();
   }
 
   private calculatePagination(): void {

@@ -3,9 +3,10 @@
       <div class="nav-left">
         <h2 class="logo">ThesISKO</h2>
         <p-button label="Home" text plain routerLink="/home"></p-button>
-        <p-button label="Search" text plain routerLink="/search"></p-button>
-        <p-button label="About" text plain routerLink="/about"></p-button>
-        <p-button label="Submit" text plain routerLink="/submit"></p-button>
+        <p-button label="Search" text plain routerLink="/search-thesis"></p-button>
+        <p-button label="About" text plain routerLink="/about-us"></p-button>
+        <!-- modified the submit button to show pop up. Can't authorize yet so double click "Submit" to show the pop up login-->
+        <p-button label="Submit" text plain routerLink="/submission" (click)="openLoginModal()"></p-button>
       </div>
     </ng-template>
   
