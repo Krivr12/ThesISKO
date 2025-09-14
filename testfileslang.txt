@@ -1,2 +1,97 @@
-heloooo
+
+The SuperAdmin will create each program
+[PROGRAMS]
+{   
+    "_id": **SYSTEM GENERATED** - from MongoDB
+    "program_id": "BSIT" - PRIMARY KEY
+    "department": "CCIS"
+    "program": "Bachelor of Science in Information Technology"
+    "chairperson_id": "FA00000MN2025"
+    "created_at": **SYSTEM GENERATED**
+    "updated_at": **SYSTEM GENERATED**
+}
+
+The Chairperson can create blocks under his program
+[BLOCKS]
+{
+    "_id": **SYSTEM GENERATED** - from MongoDB
+    "block_id": **SYSTEM GENERATED** - format=> 2425-BSIT-5 (combine academic_year + program_id + block_code)
+    "academic_year": "2425"
+    "program_id": "BSIT"
+    "block_code": "5"
+    "faculty_in_charge": "FA0090MN2024"
+    "panelists" : ["FA0090MN2023", "FA0090MN2024", "FA0090MN2025"]
+}
+
+The Faculty in Charge can create groups under his block_code
+[GROUPS]
+{
+    "_id": **SYSTEM GENERATED** - from MongoDB
+    "block_id": "2425-BSIT-5"
+    "title": null by default
+    "leader": {
+        "surname": "Evangelista"
+        "firstname": "Christopher Bryan"
+        "email": "christopherbryanevangelista@iskolarngbayan.pup.edu.ph"
+    }
+    "members": [
+    {
+        "surname": "Doe",
+        "firstname": "John",
+        "email": "johndoe@iskolarngbayan.pup.edu.ph"
+    },
+    {
+        "surname": "Luffy",
+        "firstname": "Monkey",
+        "email": "monkeyluffy@iskolarngbayan.pup.edu.ph"
+    },
+    {
+        "surname": "Newgate",
+        "firstname": "Edward",
+        "email": "edwardnewgate@iskolarngbayan.pup.edu.ph"
+    }
+    ]
+
+
+    "milestones": {
+        "upload_manuscript": { 
+            "status": false, 
+            "s3_key": null, 
+            "approved_by": [], 
+            "verified": {
+                "faculty_in_charge": false,
+            }
+        },
+        "complete_copyright": { 
+            "status": false, 
+            "s3_key": null, 
+            "verified": {
+                "chairperson": false
+            }
+        },
+        "pass_turnitin": { 
+            "status": false, 
+            "s3_key": null, 
+            "verified": {
+                "chairperson": false
+            }
+        },
+        "upload_all_docs": { 
+            "status": false, 
+            "s3_key": [], 
+            "verified": {
+                "chairperson": false
+            }
+        },
+        "describe_work": { 
+            "status": false, 
+            "verified": {
+                "chairperson": false
+            }
+        },
+    },
+    "progress": "ongoing" enum ("not started, ongoing, completed, rejected)
+    "created_at": **SYSTEM GENERATED**
+    "updated_at": **SYSTEM GENERATED**
+}
 
