@@ -244,4 +244,35 @@ router.delete("/delete", async (req, res) => {
   }
 });
 
+// Flexible status checker
+router.get("/check-status/:group_id/:requirement", async (req, res) => {
+  try {
+    const { group_id, requirement } = req.params;
+
+    // Find the group progress doc
+    const group = await collection.findOne({ group_id: group_id });
+
+    if (!group) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    // Check if requirement field exists
+    if (!(requirement in group)) {
+      return res.status(400).json({ error: `Requirement "${requirement}" not found` });
+    }
+
+    // Return status
+    const status = group[requirement] === "true";
+    res.status(200).json({
+      requirement,
+      status,
+      canProceed: status // alias, useful for frontend
+    });
+
+  } catch (error) {
+    console.error("Error checking status:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

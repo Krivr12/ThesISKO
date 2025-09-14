@@ -31,3 +31,6 @@ out/
 .idea/
 *.swp
 *.swo
+
+# Ignore Thesisko folder
+/Thesisko/
