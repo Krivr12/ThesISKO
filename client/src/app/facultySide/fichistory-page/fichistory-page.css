@@ -1,0 +1,128 @@
+
+app-sidenavbar { width:200px; flex-shrink:0; }
+.layout { display:flex; gap:16px; min-height:100vh; background:#fff; }
+
+.rectangle{
+  width:100%;
+  margin:0;
+  background:#fff;
+  border:2px solid #800000;          /* maroon frame */
+  border-radius:12px;
+  box-sizing:border-box;
+  overflow:hidden;
+  padding:18px 18px 24px;
+  margin-bottom:24px;
+}
+
+.FICpage{ max-width:980px; margin:0 auto; }
+
+/* Back link */
+.return{
+  border:0; background:transparent; color:#800000;
+  font-weight:700; margin:4px 0 12px; cursor:pointer;
+}
+
+/* —— Meta (rows with maroon rules, no card border) —— */
+.meta-card{
+  background:#fff;
+  border:0;
+  padding:0 2px;                    /* tight like screenshot */
+}
+.meta-card .row{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:10px 14px;
+  padding:12px 0;
+  border-bottom:1px solid #800000;  /* maroon dividers */
+}
+.meta-card .row:last-child{ border-bottom:0; }
+
+.meta-card .label{
+  color:#000; font-weight:700;      /* label left */
+}
+.meta-card .value{
+  color:#1e1e1e; line-height:1.35;
+}
+
+/* —— Panelists box —— */
+.panelist-card{ margin-top:18px; border:0; padding:0; }
+.panelist-header{ color:#000; font-weight:700; margin:0 0 10px; }
+
+.panelist-list{
+  border:1.5px solid #800000;       /* rounded rectangle like your shot */
+  border-radius:12px;
+  overflow:hidden;
+  background:#fff;
+}
+
+.panelist-row{
+  display:grid;
+  grid-template-columns:1fr 220px;  /* wider status column */
+  gap:8px 12px;
+  padding:10px 14px;
+  border-bottom:1px solid #800000;  /* solid maroon row lines */
+  align-items:center;
+}
+.panelist-row:last-child{ border-bottom:0; }
+
+.panelist-name{ color:#111; }
+
+/* link-style status on the right */
+.panelist-status{
+  color:#800000;
+  text-decoration: underline;
+  font-weight:700;
+  justify-self:start;               /* text sits near left of status column */
+}
+
+/* —— History —— */
+.history-card{ margin-top:22px; border:0; padding:0; }
+.history-title{ color:#000; font-weight:700; margin-bottom:10px; }
+
+.history-table{
+  width:100%;
+  border-collapse:collapse;
+  border:1.5px solid #800000;       /* maroon rounded frame */
+  border-radius:12px;
+  overflow:hidden;
+  font-size:0.92rem;
+}
+.history-table thead th{
+  text-align:left;
+  padding:12px 14px;
+  border-bottom:1px solid #800000;  /* strong header rule */
+  background:#fff;                  /* flat like screenshot */
+  color:#800000;
+  font-weight:800;
+}
+.history-table tbody td{
+  padding:12px 14px;
+  border-bottom:1px solid #800000;  /* maroon row lines */
+  color:#202020;
+}
+.history-table tbody tr:last-child td{ border-bottom:0; }
+.caret{ opacity:.6; margin-left:6px; }
+
+/* —— Actions / buttons —— */
+.actions{
+  display:flex; gap:24px; align-items:center; justify-content:center;
+  margin:24px auto 4px; max-width:980px;
+}
+.btn{
+  padding:16px 28px; border-radius:12px; font-weight:700;
+  min-width:260px; cursor:pointer; transition:opacity .2s ease;
+}
+.btn.primary{ background:#800000; color:#fff; }
+.btn.primary:hover{ opacity:.9; }
+.btn.ghost{ background:#fff; border:2px solid #800000; color:#800000; }
+.btn.ghost:hover{ background:#fde9e9; }
+.btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* —— Responsive —— */
+@media (max-width:900px){
+  .meta-card .row{ grid-template-columns:1fr; }
+  .panelist-row{ grid-template-columns:1fr; }
+  .panelist-status{ justify-self:start; margin-top:6px; }
+  .actions{ flex-direction:column; }
+  .btn{ min-width:0; width:100%; }
+}

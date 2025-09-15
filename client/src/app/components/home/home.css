@@ -111,86 +111,96 @@ section {
 /*carousel side*/
 .carousel-container {
   text-align: center;
-  margin: 1rem 0;
-  background-color: white;
-  min-height: 450px;
-  display: flex;
-  flex-direction: column;     
+  background: #fff;
   margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
+  padding: 5rem
 }
 
+.carousel-shell {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
 
 .carousel-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 1rem;
   color: #800000;
 }
 
+:host ::ng-deep .custom-carousel .p-carousel-content { justify-content: center; }
+:host ::ng-deep .custom-carousel .p-carousel-items-content { padding: 0 !important; overflow: visible; }
+:host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 20px; box-sizing: border-box; }
+:host ::ng-deep .custom-carousel .p-carousel-indicators { justify-content: center; }
 
-::ng-deep .custom-carousel .p-carousel-content {
-  justify-content: center !important;
-}
 
 .carousel-box {
-  background-color: #ffd966;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  width: 360px;
-  height: 280px;
+  background: #ffd966;
+  border: 1px solid #d7c178;
+  border-radius: 12px;
+  width: 360px; 
+  height: 280px; 
   padding: 1rem;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;  
+  align-items: stretch;
+  gap: 10px;                     
   box-sizing: border-box;
-  margin: auto; 
+  overflow: hidden;
+  word-break: break-word;
 }
 
-.carousel-box p,
-.carousel-box h3 {
-  text-align: justify;
+.carousel-box h3,
+.carousel-box p {
+  margin: 0;
+  line-height: 1.25;
+  text-align: left;
 }
+
 
 .carousel-box .title {
-  font-size: 1.125rem;
-  font-weight: bold;
+  font-size: 1.30rem;
+  font-weight: 800;
   color: #333;
+  margin-top: 1rem;
+  text-align: left;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;      
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.carousel-box .date {
-  font-size: 0.875rem;
-  color: #666;
-}
-
-
-
-.carousel-box .authors {
-  font-size: 0.875rem;
-  color: #444;
-}
-
+.carousel-box .date,
+.carousel-box .authors,
+.carousel-box .access,
 .carousel-box .tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.25;
+  text-align: left;
+  margin: 0;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
-.carousel-box .tag {
-  background: #ffe599;
-  padding: 0.25rem 0.5rem;
-  border-radius: 5px;
-  font-size: 0.75rem;
+
+@media (max-width: 768px) {
+  .carousel-shell { padding: 0 12px; }
+  :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 12px; }
+  .carousel-box { padding: 12px; }
 }
 
-.carousel-box .access {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #333;
-}
+
+
 
 
 

@@ -1,51 +1,50 @@
 <app-navbar></app-navbar>
 <div class="page-wrapper">
 <div class="hero"> 
-  <img src="../../../public/2.png" alt="PUP" class="bgimg">
+  <img src="2.png" alt="PUP" class="bgimg">
   <h1>
     Thesis mula sa isko, <span class="break">para sa bayan</span>
   </h1>      
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
 
   <div class="search-container">
-    <input type="text" placeholder="Look for a thesis">
-    <p-button class="search" > Search </p-button>
+    <input
+      type="text"
+      placeholder="Look for a thesis"
+      [(ngModel)]="homeQuery"
+      (keyup.enter)="goSearch()" />
+  
+    <!-- PrimeNG directive button -->
+    <button pButton class="search" type="button" (click)="goSearch()">Search</button>
   </div>
 </div> 
 </div>
 
 <div class="carousel-container">
-    <h3 class="carousel-title">Check this Out</h3>
-  
-    <p-carousel 
-      [value]="updates" 
-      [numVisible]="3" 
-      [numScroll]="1" 
-      [circular]="true" 
-      [responsiveOptions]="responsiveOptions" 
+  <h3 class="carousel-title">Check this Out</h3>
+
+  <div class="carousel-shell">
+    <p-carousel
+      [value]="updates"
+      [numVisible]="3"
+      [numScroll]="1"
+      [circular]="true"
+      [responsiveOptions]="responsiveOptions"
       autoplayInterval="3000"
       class="custom-carousel">
-
       <ng-template pTemplate="item" let-item>
         <div class="carousel-box">
           <h3 class="title">{{ item.title }}</h3>
-          <p class="date">
-            Date Issued: {{ item.submitted_at | date:'MMM d, y' }}
-          </p>
-          <p class="authors">
-            Authors: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}
-          </p>
-          <div class="tags">
-            Tags: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}
-          </div>
-          <p class="access">
-            Access Level: {{ item.access_level || 'Unknown' }}
-          </p>
+          <p class="date">Date Issued: {{ item.submitted_at | date:'MMM d, y' }}</p>
+          <p class="authors">Authors: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}</p>
+          <div class="tags">Tags: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}</div>
+          <p class="access">Access Level: {{ item.access_level || 'Unknown' }}</p>
         </div>
       </ng-template>
     </p-carousel>
-
   </div>
+</div>
+
   
   <div class="containerSubmitWork">
     <div class="inner">
