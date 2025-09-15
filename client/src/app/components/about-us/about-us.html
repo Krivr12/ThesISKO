@@ -11,10 +11,18 @@
           researchers can easily access a wide range of academic works produced
           within the university.
         </p>
+
         <div class="search-container">
-          <input type="text" [(ngModel)]="query" placeholder="Look for a thesis" class="search-input" />
-          <button class="search-button" (click)="search()">Search</button>
-        </div>
+    <input
+      type="text"
+      placeholder="Look for a thesis"
+      [(ngModel)]="homeQuery"
+      (keyup.enter)="goSearch()" />
+  
+    <!-- PrimeNG directive button -->
+    <button pButton class="search" type="button" (click)="goSearch()">Search</button>
+  </div>
+        
       </div>
       <div class="image-gallery">
         <div class="image-placeholder main-image"></div>

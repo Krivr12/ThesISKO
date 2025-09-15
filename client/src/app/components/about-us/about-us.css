@@ -68,51 +68,53 @@
   max-width: 600px;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
 }
-
 .search-container {
   display: flex;
   align-items: center;
-  background: #6a0000;
+  background: white;
   border-radius: 8px;
   overflow: hidden;
   height: 70px;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  margin-top: 1rem;
+  max-width: 1000px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  margin-top: 1rem; 
 }
 
-.search-container .search-input {
-  flex: 2;
-  padding: 0.75rem 1rem;
-  border: none;
-  outline: none;
-  font-size: 1rem;
-  background-color: #6a0000;
-  color: white;
+.search-container > input {
+  flex: 1 1 auto;
+  height: 100%;
+  padding: 0 16px;
+  border: 0;
+  outline: 0;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.search-container .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.search-button {
-  flex: 1;
-  background: #ffd966;
+.search-container button {
+  background: #ffd966; 
   border: none;
   padding: 0.75rem 2rem;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
   height: 70px;
-  min-width: 150px;
-  color: #800000;
-  border-radius: 0 8px 8px 0;
+  width: 250px;
 }
 
-.search-button:hover {
+:host ::ng-deep .search .p-button:hover {
   background-color: #ffcc33 !important;
 }
+
+
+
+.search-container .search-input::placeholder {
+  color: white (255, 255, 255, 0.7);
+}
+
 
 .image-gallery {
   display: flex;
@@ -123,7 +125,7 @@
 }
 
 .image-placeholder {
-  background-color: #e0e0e0;
+  background-color: white;
   border-radius: 12px;
   position: relative;
   overflow: hidden;
@@ -467,6 +469,7 @@ textarea {
     padding: 1rem;
     border-radius: 8px 8px 0 0;
     text-align: center;
+    height: 60px;
   }
   .search-button {
     width: 100%;
