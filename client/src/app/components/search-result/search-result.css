@@ -51,6 +51,29 @@
   color: #f5f5f5;
 }
 
+/* make the "Return" button look like plain text (no bg, no border) */
+.card-header .return-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  color: #800000;          /* optional: your maroon */
+  font: inherit;           /* match surrounding text */
+  cursor: pointer;
+}
+
+/* optional: link-like hover + accessible focus ring */
+.card-header .return-link:hover { text-decoration: underline; }
+.card-header .return-link:focus-visible {
+  outline: 2px solid #800000;
+  outline-offset: 2px;
+}
+
+.card-header .return-link:focus { outline: none; }
+
+
+
 .main-title {
   padding-bottom: 1.5rem;
   margin-bottom: 2.5rem;
@@ -101,4 +124,96 @@
 
 .detail-value {
   color: #555;
+}
+
+
+
+/* ===== Material dialog shell ===== */
+:host ::ng-deep .mat-mdc-dialog-surface {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .mat-mdc-dialog-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1f1f1f;
+  padding: 20px 24px 8px;
+  margin: 0;
+}
+
+:host ::ng-deep .mat-mdc-dialog-content {
+  padding: 0 24px 12px;
+  max-height: 70vh;
+}
+
+:host ::ng-deep .mat-mdc-dialog-actions {
+  padding: 8px 16px 16px;
+  gap: 8px;
+}
+
+/* make the primary (accent) action maroon like your brand */
+:host ::ng-deep .mat-mdc-raised-button.mat-accent:not(:disabled) {
+  background-color: #800000;
+  color: #ffffff;
+}
+
+/* ===== Your dialog body & sections ===== */
+.dialog-body {
+  min-width: 520px; /* similar width to the screenshot */
+}
+
+.dialog-section {
+  margin: 12px 0 16px;
+}
+
+.section-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #800000; /* maroon */
+}
+
+/* checkbox grid layout */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px 12px;
+  padding: 6px 0;
+}
+
+/* align checkbox label content nicely */
+.checkbox-grid .mdc-form-field {
+  width: 100%;
+  align-items: flex-start;
+}
+.checkbox-grid .mdc-checkbox {
+  margin-top: 2px;
+}
+
+/* full-width fields */
+.w-100 { width: 100%; }
+
+/* comfy textarea height */
+mat-form-field.w-100 textarea[matInput] {
+  min-height: 120px;
+}
+
+/* tip line */
+.hint {
+  color: #6b6b6b;
+  font-size: 12px;
+}
+
+/* optional light separators between sections */
+/*
+.dialog-section + .dialog-section {
+  border-top: 1px solid #e9e9e9;
+  padding-top: 14px;
+}
+*/
+
+/* optional: style the trigger button in the card actions */
+.request-button {
+  border-color: #800000 !important;
+  color: #800000 !important;
 }

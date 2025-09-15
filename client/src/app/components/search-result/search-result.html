@@ -2,11 +2,70 @@
 <div class="container">
   <div class="content-card">
     <div class="card-header">
-      <div class="return-link" (click)="onReturnClick()">
-        &lt; Return
+      <button type="button" class="return-link" (click)="onReturnClick()">
+        &larr; Return
+      </button>
+    
+      <div class="actions">
+        <button
+          mat-stroked-button
+          color="primary"
+          class="request-button"
+          (click)="$event.stopPropagation(); openRequestDialog()">
+          Request Manuscript
+        </button>
       </div>
-      <button class="request-button">Request for full access</button>
     </div>
+    
+
+
+<!-- Dialog: Request full access -->
+<ng-template #dlgRequestAccess let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request full access</h2>
+
+  <mat-dialog-content class="dialog-body">
+    <!-- Chapters -->
+    <div class="dialog-section">
+      <div class="section-title">Select chapters</div>
+      <div class="checkbox-grid">
+        <mat-checkbox
+          *ngFor="let c of requestOptions"
+          [checked]="selectedRequestChapters.has(c)"
+          (change)="toggleRequestChapter(c, $event.checked)">
+          {{ c }}
+        </mat-checkbox>
+      </div>
+      <small class="hint">Tip: Select “All” if you need the entire manuscript.</small>
+    </div>
+
+    <!-- Purpose -->
+    <div class="dialog-section">
+      <div class="section-title">Purpose of request</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea matInput [(ngModel)]="requestPurpose"
+                  placeholder="State your purpose"
+                  rows="4"></textarea>
+      </mat-form-field>
+    </div>
+
+    <!-- Email -->
+    <div class="dialog-section">
+      <div class="section-title">Your email</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput [(ngModel)]="requestEmail" type="email" placeholder="name@example.com" />
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
+    <button mat-raised-button color="accent" [disabled]="!formValid" (click)="confirmRequest(dialogRef)">
+      Send request
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+
 
     <div class="main-title">
       <h1>{{ thesis.title }}</h1>
