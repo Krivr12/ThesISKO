@@ -247,3 +247,16 @@ h1 {
     font-size: 0.95rem;
   }
   
+  
+  @media (max-width: 1024px) {
+    .background { flex-direction: column; }
+    .leftside { display: none; }
+    .rightside { align-items: flex-start; }
+    .form-container { margin-top: 32px; }
+  }
+  
+  @media (max-width: 480px) {
+    .header { font-size: 32px; }
+    .form-container { max-width: calc(100% - 32px); }
+  }
+  

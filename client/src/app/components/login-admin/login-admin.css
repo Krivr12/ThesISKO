@@ -1,6 +1,6 @@
 * {
     color: #800000;
-    background-color: white s;
+    background-color: white;
     font-family: 'Inter', sans-serif;
 }
 
@@ -44,15 +44,12 @@
     font-size: 60px;
     font-weight: 900;
     color: #800000;
-    margin-bottom: 1rem;
     margin-left: 2rem;
     text-align: left;
   }
 
 .loginform {
     background-color: white;
-    margin-top: 50px;
-    padding: 2rem;
     border-radius: 30px;
     text-align: left; 
     display: flex;
@@ -70,8 +67,6 @@ h1 {
     font-weight: bold;
     color: #800000;
     text-align: left;
-    margin-top: 100px;
-    margin-bottom: 1rem;
   }
   
 
@@ -158,10 +153,6 @@ h1 {
     box-sizing: border-box;
 }
 
-
-c
-
-
 :host ::ng-deep .loginbtn .p-button {
     background-color: #800000 !important;
     border: none !important;
@@ -169,62 +160,11 @@ c
     font-weight: bold;
     border-radius: 10px;
     height: 55px;
+    width: 480px !important;
   }
-  
- 
-  :host ::ng-deep .gglbtn .p-button {
-    background-color: white !important;
-    color: #800000 !important;
-    border: 2px solid #800000 !important;
-    font-weight: bold;
-    border-radius: 10px;
-    height: 55px;
-  }
-  
 
 :host ::ng-deep .loginbtn .p-button:hover {
     background-color: #a00000 !important;
-  }
-  
- 
-  :host ::ng-deep .gglbtn .p-button:hover {
-    background-color: #f9f9f9 !important;
-    color: #a00000 !important;
-    border-color: #a00000 !important;
-  }
-  
-
-.divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    width: 100%;
-    margin: 1.5rem 0;
-    gap: 1rem;
-  }
-  
-  .divider hr {
-    flex: 1;
-    border: none;
-    border-top: 1px solid #800000; 
-  }
-  
-  .divider span {
-    color: #800000;
-    font-weight: bold;
-  }
-
-.mt-2 {
-    margin-top: 4rem; 
-    margin-left: -20rem;      
-    font-size: 1rem;         
-    color: #000000;          
-    text-align: left !important;      
-  }
-  .mt-2 a {
-    text-decoration: underline;
-    font-weight: bold;
-    color: #800000;
   }
 
 .p-inputtext::placeholder {
@@ -236,5 +176,17 @@ c
   :host ::ng-deep .p-password input::placeholder {
     color: #450808;         
     font-size: 0.95rem;
+  }
+  
+  @media (max-width: 1024px) {
+    .background { flex-direction: column; }
+    .leftside { display: none; }
+    .rightside { align-items: flex-start; }
+    .form-container { margin-top: 32px; }
+  }
+  
+  @media (max-width: 480px) {
+    .header { font-size: 32px; }
+    .form-container { max-width: calc(100% - 32px); }
   }
   
