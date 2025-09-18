@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import records from "./routes/records.js";
 import group_progress from "./routes/group_progress.js"
+import s3Routes from "./routes/s3Routes.js"; // import S3 routes
+import s3SearchRoutes from "./routes/s3Search.js"; // import separate search route
+
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -29,11 +32,11 @@ app.use(cors({
 app.use(express.json());
 app.use("/records", records);
 app.use("/group_progress", group_progress);
+app.use("/s3", s3Routes); // Routes which includes Upload/Upload-multiple/Delete/View
+app.use("/s3", s3SearchRoutes); // Routes for search
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server listening on port ${PORT}`);
 });
-
-
-
-//node --env-file=config.env server.js
+//node --env-file=config.env server.js            
