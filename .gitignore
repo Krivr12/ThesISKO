@@ -34,3 +34,4 @@ out/
 
 # Ignore Thesisko folder
 /Thesisko/
+server/config.env
