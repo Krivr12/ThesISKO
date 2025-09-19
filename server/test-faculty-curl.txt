@@ -1,0 +1,25 @@
+# Test Faculty Email Sender with cURL
+# Make sure your server is running on port 5050
+
+curl -X POST http://localhost:5050/admin/faculty \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstname": "Ma. Angela",
+    "lastname": "Galicia", 
+    "email": "galicia.maangela.natano@gmail.com",
+    "faculty_id": "FA0001MN2024"
+  }'
+
+# Expected Response:
+# {
+#   "success": true,
+#   "message": "Faculty account created successfully",
+#   "data": {
+#     "user_id": 123,
+#     "firstname": "Ma. Angela",
+#     "lastname": "Galicia",
+#     "email": "galicia.maangela.natano@gmail.com",
+#     "faculty_id": "FA0001MN2024",
+#     "generated_password": "Abc12345"
+#   }
+# }
