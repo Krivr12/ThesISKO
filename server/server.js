@@ -18,6 +18,7 @@ const allowedOrigins = [
   "https://your-production-domain.com" // replace with your real prod domain
 ];
 
+
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, Postman)

@@ -14,6 +14,7 @@ router.get("/search", async (req, res) => {
       return res.status(400).json({ error: "Filename query is required" });
     }
 
+    
     const command = new ListObjectsV2Command({
       Bucket: process.env.AWS_BUCKET_NAME,
       Prefix: "submission/", // optional: if you store inside 'submission/'

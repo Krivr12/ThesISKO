@@ -7,7 +7,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-
 // Student upload route
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
