@@ -1,5 +1,5 @@
 import express from "express";
-import RepoMongodb from "../RepoMongodb/connection.js";
+import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 import { generateEmbedding, semanticSearch  } from "../controller/embeddingService.js";
 import { ObjectId } from "mongodb";
 

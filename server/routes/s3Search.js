@@ -1,7 +1,7 @@
 // server/routes/s3Search.js
 import express from "express";
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
-import s3 from "../s3Bucket/s3.js";
+import s3 from "../databaseConnections/AWS/s3_connection.js";
 
 const router = express.Router();
 

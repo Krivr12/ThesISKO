@@ -1,5 +1,5 @@
 import express from "express";
-import RepoMongodb from "../RepoMongodb/connection.js";
+import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 
 const router = express.Router();
 const collection = RepoMongodb.collection("group_progress");

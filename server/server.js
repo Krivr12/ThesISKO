@@ -42,4 +42,6 @@ app.use("/s3", s3SearchRoutes); // Routes for search
 app.listen(PORT, () => {
   console.log(`✅ Server listening on port ${PORT}`);
 });
+
+
 //node --env-file=config.env server.js            

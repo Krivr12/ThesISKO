@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import s3  from "../s3Bucket/s3.js"; // make sure s3 is exported as { s3 } in s3.js
+import s3  from "../databaseConnections/AWS/s3_connection.js"; // make sure s3 is exported as { s3 } in s3.js
 import { DeleteObjectCommand, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
