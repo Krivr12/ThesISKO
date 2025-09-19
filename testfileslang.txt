@@ -27,7 +27,7 @@ The Faculty in Charge can create groups under his block_code
 [GROUPS]
 {
     "_id": **SYSTEM GENERATED** - from MongoDB
-    "block_id": "2425-BSIT-5"
+    "group_id": "2425-BSIT-5"
     "title": null by default
     "leader": {
         "surname": "Evangelista"
