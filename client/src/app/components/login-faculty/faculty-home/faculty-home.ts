@@ -106,7 +106,9 @@ export class FacultyHome implements OnInit, AfterViewInit {
 
         this.recalcStats(); // initial stats
       },
-      error: (err) => console.error('Could not load assets/groups.json', err),
+      error: (err) => {
+        // Handle error silently or show user-friendly message
+      },
     });
   }
 
@@ -122,7 +124,6 @@ export class FacultyHome implements OnInit, AfterViewInit {
   }
 
   viewGroup(element: Group) {
-    console.log('Viewing group:', element);
     // this.router.navigate(['/history', element.group_id]);
   }
 

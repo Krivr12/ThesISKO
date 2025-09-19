@@ -5,7 +5,9 @@ import { ObjectId } from "mongodb";
 
 const router = express.Router();
 const VECTOR_INDEX = "AbstractSemanticSearch"; // replace with your Atlas vector index
-const collection = RepoMongodb.collection("records");
+
+// Lazy collection access to avoid blocking server startup
+const getCollection = () => RepoMongodb.collection("records");
 
 
 // -------------------- Routes --------------------
@@ -13,7 +15,7 @@ const collection = RepoMongodb.collection("records");
 // GET all records
 router.get("/", async (req, res) => {
   try {
-    const results = await collection.find({}).toArray();
+    const results = await getCollection().find({}).toArray();
     res.status(200).json(results);
   } catch (err) {
     console.error(err);
@@ -52,7 +54,7 @@ router.get("/latest", async (req, res) => {
 // GET single record by doc_id
 router.get("/:doc_id", async (req, res) => {
   try {
-    const result = await collection.findOne({ doc_id: req.params.doc_id });
+    const result = await getCollection().findOne({ doc_id: req.params.doc_id });
 
     if (!result) {
       return res.status(404).json({ error: "Record not found" });
@@ -68,7 +70,7 @@ router.get("/:doc_id", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const year = new Date().getFullYear();
-    const countForYear = await collection.countDocuments({
+    const countForYear = await getCollection().countDocuments({
       doc_id: { $regex: `^${year}-` },
     });
 
@@ -91,7 +93,7 @@ router.post("/", async (req, res) => {
       abstract_embedding: embedding,
     };
 
-    const result = await collection.insertOne(newDocument);
+    const result = await getCollection().insertOne(newDocument);
     res.status(201).json({
       insertedId: result.insertedId,
       doc_id: newDocId,
@@ -112,7 +114,7 @@ router.post("/bulk", async (req, res) => {
     }
 
     const year = new Date().getFullYear();
-    let countForYear = await collection.countDocuments({
+    let countForYear = await getCollection().countDocuments({
       doc_id: { $regex: `^${year}-` },
     });
 
@@ -138,7 +140,7 @@ router.post("/bulk", async (req, res) => {
 );
 
 
-    const result = await collection.insertMany(newDocuments);
+    const result = await getCollection().insertMany(newDocuments);
 
     res.status(201).json({
       insertedCount: result.insertedCount,
@@ -180,7 +182,7 @@ router.post("/theses/by-ids", async (req, res) => {
     // Convert string IDs to ObjectIds
     const objectIds = ids.map(id => new ObjectId(id));
     
-    const results = await collection.find({
+    const results = await getCollection().find({
       _id: { $in: objectIds }
     }).toArray();
     
@@ -194,7 +196,7 @@ router.post("/theses/by-ids", async (req, res) => {
 // DELETE a record by doc_id
 router.delete("/:doc_id", async (req, res) => {
   try {
-    const result = await collection.deleteOne({ doc_id: req.params.doc_id });
+    const result = await getCollection().deleteOne({ doc_id: req.params.doc_id });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ error: "Record not found" });
@@ -215,7 +217,7 @@ router.put("/:doc_id", async (req, res) => {
     const { doc_id } = req.params;
 
     // Find existing record (needed for embedding regeneration)
-    const existingDoc = await collection.findOne({ doc_id });
+    const existingDoc = await getCollection().findOne({ doc_id });
     if (!existingDoc) {
       return res.status(404).json({ error: "Record not found" });
     }
@@ -236,7 +238,7 @@ router.put("/:doc_id", async (req, res) => {
       updateFields.abstract_embedding = await generateEmbedding(textToEmbed);
     }
 
-    const result = await collection.updateOne(
+    const result = await getCollection().updateOne(
       { doc_id },
       { $set: updateFields }
     );

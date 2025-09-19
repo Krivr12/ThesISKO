@@ -1,6 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { Home } from './home';
+
+declare global {
+  function describe(description: string, specDefinitions: () => void): void;
+  function it(expectation: string, assertion: () => void): void;
+  function beforeEach(action: () => void): void;
+  function expect(actual: any): any;
+}
 
 describe('Home', () => {
   let component: Home;

@@ -32,24 +32,31 @@ private router = inject(Router);
 private messageService = inject(MessageService);
 onLogin() {
   const {email, password} = this.login;
-  this.authService.getUserDetails(email, password).subscribe({
-    next: (response) => {
-      if (response.length >= 1) {
+  this.authService.loginUser(email, password).subscribe({
+    next: (response: {message: string, user: any}) => {
+      if (response.user) {
+        const user = response.user;
+        // Store complete user data
         sessionStorage.setItem('email', email);
+        sessionStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('role', user.Status || 'student');
+        
+        // Navigate to home
         this.router.navigate(['home']);
       } else {
         this.messageService.add({
           severity: 'error',
-          summary: 'error',
-          detail: 'Wrong password or email.', 
+          summary: 'Error',
+          detail: 'Invalid credentials.', 
         });
       }
     },
-    error: () => {
+    error: (error: any) => {
+      console.error('Login error:', error);
       this.messageService.add({
         severity: 'error',
-        summary: 'error',
-        detail: 'Something went wrong', 
+        summary: 'Error',
+        detail: error.error?.error || 'Something went wrong', 
       });
     }
   })

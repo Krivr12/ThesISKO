@@ -1,159 +1,161 @@
 <div  class = "background">
+  <p-toast></p-toast>
     
-    <div class = "leftside">
-    <img 
-      src="puplagoon.jpg" 
-      alt="pup lagoon" 
-    />
-    <div class="overlay"></div>
-    </div>
+  <div class = "leftside">
+  <img 
+    src="puplagoon.jpg" 
+    alt="pup lagoon" 
+  />
+  <div class="overlay"></div>
+  </div>
 
-    <div class="rightside">
-      <div class="form-container">
-        <h1 class="login-header">Sign Up</h1>
+  <div class="rightside">
+    <div class="form-container">
+      <h1 class="login-header">Sign Up</h1>
 
-        <form [formGroup]="signupForm" (ngSubmit)="onSignup()" class="signupForm">
-          <div class="form-row"> 
-          <div class="field">
-            <label for="firstName">First Name</label>
-            <input
-              pInputText
-              class="w-full"
-              id="firstName"
-              formControlName="firstName"
-              placeholder="Enter first name"
-              required
-            />
-            @if(firstName.invalid &&  (firstName.dirty || firstName.touched)) {
-                <small class="block p-error"> First Name is required. </small> }
-          </div>
-      
-          <div class="field">
-            <label for="lastName">Last Name</label>
-            <input
-              pInputText
-              class="w-full"
-              id="lastName"
-              formControlName="lastName"
-              placeholder="Enter last name"
-              required
-            />
-            @if(lastName.invalid &&  (lastName.dirty || lastName.touched)) {
-                <small class="block p-error"> Last Name is required. </small> }
-          </div>
-          </div>
-   
-          <div class="field">
-            <label for="email">Email</label>
-            <input
-              pInputText
-              class="w-full"
-              id="email"
-              formControlName="email"
-              placeholder="Enter email"
-            />
-            @if(email.invalid &&  (email.dirty || email.touched)) {
-                <small class="block p-error">
-                    @if(email.hasError('required')) {
-                        <span> Email is required. </span>
-                    } @else if(email.hasError('pattern')) {
-                        <span> Email is Invalid. </span>
-                    }
-                </small>
-            }
-          </div>
+      <form [formGroup]="signupForm" (ngSubmit)="onSignup()" class="signupForm">
+        <div class="form-row"> 
+        <div class="field">
+          <label for="firstName">First Name</label>
+          <input
+            pInputText
+            class="w-full"
+            id="firstName"
+            formControlName="firstName"
+            placeholder="Enter first name"
+            required
+          />
+          @if(firstName.invalid &&  (firstName.dirty || firstName.touched)) {
+              <small class="block p-error"> First Name is required. </small> }
+        </div>
+    
+        <div class="field">
+          <label for="lastName">Last Name</label>
+          <input
+            pInputText
+            class="w-full"
+            id="lastName"
+            formControlName="lastName"
+            placeholder="Enter last name"
+            required
+          />
+          @if(lastName.invalid &&  (lastName.dirty || lastName.touched)) {
+              <small class="block p-error"> Last Name is required. </small> }
+        </div>
+        </div>
+ 
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            pInputText
+            class="w-full"
+            id="email"
+            formControlName="email"
+            placeholder="Enter email"
+          />
+          @if(email.invalid &&  (email.dirty || email.touched)) {
+              <small class="block p-error">
+                  @if(email.hasError('required')) {
+                      <span> Email is required. </span>
+                  } @else if(email.hasError('pattern')) {
+                      <span> Email is Invalid. </span>
+                  }
+              </small>
+          }
+        </div>
 
-          <div class="field">
-            <label for="StudentNum">Student Number</label>
-            <input
-              pInputText
-              class="w-full"
-              id="studentNum"
-              formControlName="studentNum"
-              placeholder="Enter Student Number"
-              required
-            />
-          
-            <small class="format-hint">Format: 20xx-xxxxx-xx-0</small>
-          
-            @if(studentNum.invalid && (studentNum.dirty || studentNum.touched)) {
-              <small class="block p-error"> Student Number is required. </small>
-            }
-          </div>
-          
-          
-          
+        <div class="field">
+          <label for="StudentNum">Student Number</label>
+          <input
+            pInputText
+            class="w-full"
+            id="studentNum"
+            formControlName="studentNum"
+            placeholder="Enter Student Number"
+            required
+          />
+        
+          <small class="format-hint">Format: 20xx-xxxxx-xx-0</small>
+        
+          @if(studentNum.invalid && (studentNum.dirty || studentNum.touched)) {
+            <small class="block p-error"> Student Number is required. </small>
+          }
+        </div>
+        
+        
+        
 
-          <div class="form-row">
-            <mat-form-field appearance="fill" class="department-field">
-              <mat-label>Department</mat-label>
-              <mat-select formControlName="department" (selectionChange)="onDepartmentChange($event.value)">
-                @for (dept of departments; track dept) {
-                  <mat-option [value]="dept.value">{{ dept.viewValue }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-            
-            <mat-form-field appearance="fill" class="course-field">
-              <mat-label>Course</mat-label>
-              <mat-select formControlName="course" [disabled]="!department.value">
-                @for (course of filteredCourses; track course) {
-                  <mat-option [value]="course.value">{{ course.viewValue }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
+        <div class="form-row">
+          <mat-form-field appearance="fill" class="department-field">
+            <mat-label>Department</mat-label>
+            <mat-select formControlName="department" (selectionChange)="onDepartmentChange($event.value)">
+              @for (dept of departments; track dept) {
+                <mat-option [value]="dept.value">{{ dept.viewValue }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
           
-      
+          <mat-form-field appearance="fill" class="course-field">
+            <mat-label>Course</mat-label>
+            <mat-select formControlName="course" [disabled]="!department.value">
+              @for (course of filteredCourses; track course) {
+                <mat-option [value]="course.value">{{ course.viewValue }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        
+    
 
-          
-          <div class="form-row">
-          <div class="field">
-            <label for="password">Password</label>
-            <p-password
-            placeholder="Enter password"
-              formControlName="password"
-              [feedback]="false"
-              [toggleMask]="true"
-              inputId="password"
-              inputStyleClass="w-full"
-              styleClass="w-full"
-            ></p-password>
-            @if(password.invalid &&  (password.dirty || password.touched)) {
-                <small class="block p-error"> Password is required. </small> }
-          </div>
-      
-          <div class="field">
-            <label for="confirmPassword">Confirm Password</label>
-            <p-password
-              formControlName="confirmPassword"
-              [feedback]="false"
-              [toggleMask]="true"
-              inputId="confirmPassword"
-              inputStyleClass="w-full"
-              styleClass="w-full"
-            ></p-password>
-            @if(password.invalid &&  (password.dirty || password.touched)) {
-                <small class="block p-error"> Password is required. </small> }
-
-                @if(signupForm.hasError('passwordMismatch') && password.valid && confirmPassword.valid) {
-                    <small class="block p-error"> Password mismatch. </small>
-                }
-          </div>
-          </div>
-
-          <p-button
-            type="submit"
-            label="Sign Up"
+        
+        <div class="form-row">
+        <div class="field">
+          <label for="password">Password</label>
+          <p-password
+          placeholder="Enter password"
+            formControlName="password"
+            [feedback]="false"
+            [toggleMask]="true"
+            inputId="password"
+            inputStyleClass="w-full"
             styleClass="w-full"
-            [disabled]="signupForm.invalid"
-          ></p-button>
+          ></p-password>
+          @if(password.invalid &&  (password.dirty || password.touched)) {
+              <small class="block p-error"> Password is required. </small> }
+        </div>
+    
+        <div class="field">
+          <label for="confirmPassword">Confirm Password</label>
+          <p-password
+            formControlName="confirmPassword"
+            [feedback]="false"
+            [toggleMask]="true"
+            inputId="confirmPassword"
+            inputStyleClass="w-full"
+            styleClass="w-full"
+          ></p-password>
+          @if(password.invalid &&  (password.dirty || password.touched)) {
+              <small class="block p-error"> Password is required. </small> }
 
-          <div class="mt-2"> Already have an account? <a routerLink="/login"> Login </a> </div>
-        </form>
-      </div>
-    </div>
-      
-    </div>
-      
+              @if(signupForm.hasError('passwordMismatch') && password.valid && confirmPassword.valid) {
+                  <small class="block p-error"> Password mismatch. </small>
+              }
+        </div>
+        </div>
 
+        <p-button
+          type="submit"
+          label="Sign Up"
+          styleClass="w-full"
+          [disabled]="signupForm.invalid"
+        ></p-button>
+
+        <!-- Debug button - remove this later -->
+
+        <div class="mt-2"> Already have an account? <a routerLink="/login"> Login </a> </div>
+      </form>
+    </div>
+  </div>
+    
+  </div>
+    

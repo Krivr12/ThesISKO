@@ -11,56 +11,56 @@ create table if not exists courses (
 
 -- OUS
 insert into courses (department_id, course_code, course_name) values
-((select department_id from departments where code = 'OUS'), 'DBA', 'DBA'),
-((select department_id from departments where code = 'OUS'), 'D.ENG', 'D.ENG'),
-((select department_id from departments where code = 'OUS'), 'PHDEM', 'PHDEM'),
-((select department_id from departments where code = 'OUS'), 'DPA', 'DPA'),
-((select department_id from departments where code = 'OUS'), 'MC', 'MC'),
-((select department_id from departments where code = 'OUS'), 'MBA', 'MBA'),
-((select department_id from departments where code = 'OUS'), 'MAEM', 'MAEM'),
-((select department_id from departments where code = 'OUS'), 'MIT', 'MIT'),
-((select department_id from departments where code = 'OUS'), 'MPA', 'MPA');
+((select department_id from departments where department_code = 'OUS'), 'DBA', 'DBA'),
+((select department_id from departments where department_code = 'OUS'), 'D.ENG', 'D.ENG'),
+((select department_id from departments where department_code = 'OUS'), 'PHDEM', 'PHDEM'),
+((select department_id from departments where department_code = 'OUS'), 'DPA', 'DPA'),
+((select department_id from departments where department_code = 'OUS'), 'MC', 'MC'),
+((select department_id from departments where department_code = 'OUS'), 'MBA', 'MBA'),
+((select department_id from departments where department_code = 'OUS'), 'MAEM', 'MAEM'),
+((select department_id from departments where department_code = 'OUS'), 'MIT', 'MIT'),
+((select department_id from departments where department_code = 'OUS'), 'MPA', 'MPA');
 
 -- CAF
 insert into courses (department_id, course_code, course_name) values
-((select department_id from departments where code = 'CAF'), 'BSA', 'BSA'),
-((select department_id from departments where code = 'CAF'), 'BSBAFM', 'BSBAFM'),
-((select department_id from departments where code = 'CAF'), 'BSMA', 'BSMA');
+((select department_id from departments where department_code = 'CAF'), 'BSA', 'BSA'),
+((select department_id from departments where department_code = 'CAF'), 'BSBAFM', 'BSBAFM'),
+((select department_id from departments where department_code = 'CAF'), 'BSMA', 'BSMA');
 
 -- CADBE
 insert into courses (department_id, course_code, course_name) values
-((select department_id from departments where code = 'CADBE'), 'BSARCH', 'BSARCH'),
-((select department_id from departments where code = 'CADBE'), 'BSID', 'BSID'),
-((select department_id from departments where code = 'CADBE'), 'BSEP', 'BSEP');
+((select department_id from departments where department_code = 'CADBE'), 'BSARCH', 'BSARCH'),
+((select department_id from departments where department_code = 'CADBE'), 'BSID', 'BSID'),
+((select department_id from departments where department_code = 'CADBE'), 'BSEP', 'BSEP');
 
 -- CAL
 insert into courses (department_id, course_code, course_name) values
-((select department_id from departments where code = 'CAL'), 'ABELS', 'ABELS'),
-((select department_id from departments where code = 'CAL'), 'ABF', 'ABF'),
-((select department_id from departments where code = 'CAL'), 'ABLCS', 'ABLCS'),
-((select department_id from departments where code = 'CAL'), 'ABPHILO', 'ABPHILO'),
-((select department_id from departments where code = 'CAL'), 'BPEA', 'BPEA');
+((select department_id from departments where department_code = 'CAL'), 'ABELS', 'ABELS'),
+((select department_id from departments where department_code = 'CAL'), 'ABF', 'ABF'),
+((select department_id from departments where department_code = 'CAL'), 'ABLCS', 'ABLCS'),
+((select department_id from departments where department_code = 'CAL'), 'ABPHILO', 'ABPHILO'),
+((select department_id from departments where department_code = 'CAL'), 'BPEA', 'BPEA');
 
 -- CBA
 insert into courses (department_id, course_code, course_name) values
-((select department_id from departments where code = 'CBA'), 'DBA', 'DBA'),
-((select department_id from departments where code = 'CBA'), 'MBA', 'MBA'),
-((select department_id from departments where code = 'CBA'), 'BSBAHRM', 'BSBAHRM'),
-((select department_id from departments where code = 'CBA'), 'BSBAMM', 'BSBAMM'),
-((select department_id from departments where code = 'CBA'), 'BSENTREP', 'BSENTREP'),
-((select department_id from departments where code = 'CBA'), 'BSOA', 'BSOA');
+((select department_id from departments where department_code = 'CBA'), 'DBA', 'DBA'),
+((select department_id from departments where department_code = 'CBA'), 'MBA', 'MBA'),
+((select department_id from departments where department_code = 'CBA'), 'BSBAHRM', 'BSBAHRM'),
+((select department_id from departments where department_code = 'CBA'), 'BSBAMM', 'BSBAMM'),
+((select department_id from departments where department_code = 'CBA'), 'BSENTREP', 'BSENTREP'),
+((select department_id from departments where department_code = 'CBA'), 'BSOA', 'BSOA');
 
 -- COC
 insert into courses (department_id, course_code, course_name) values
-((select department_id from departments where code = 'COC'), 'BADPR', 'BADPR'),
-((select department_id from departments where code = 'COC'), 'BAB', 'BAB'),
-((select department_id from departments where code = 'COC'), 'BACR', 'BACR'),
-((select department_id from departments where code = 'COC'), 'BAJ', 'BAJ');
+((select department_id from departments where department_code = 'COC'), 'BADPR', 'BADPR'),
+((select department_id from departments where department_code = 'COC'), 'BAB', 'BAB'),
+((select department_id from departments where department_code = 'COC'), 'BACR', 'BACR'),
+((select department_id from departments where department_code = 'COC'), 'BAJ', 'BAJ');
 
 -- CCIS
 insert into courses (department_id, course_code, course_name) values
-((select department_id from departments where code = 'CCIS'), 'BSCS', 'BSCS'),
-((select department_id from departments where code = 'CCIS'), 'BSIT', 'BSIT');
+((select department_id from departments where department_code = 'CCIS'), 'BSCS', 'BSCS'),
+((select department_id from departments where department_code = 'CCIS'), 'BSIT', 'BSIT');
 
 -- COED
 insert into courses (department_id, course_code, course_name) values

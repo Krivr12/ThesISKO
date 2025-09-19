@@ -1,0 +1,123 @@
+<div class="layout">
+  <app-sidenavbar></app-sidenavbar>
+
+  <div class="page">
+    <button mat-button class="return" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon> Return
+    </button>
+
+    <div class="approval-panel" *ngIf="groupVM as g; else emptyState">
+      <h2 class="title"><b>Title:</b> {{ g.title }}</h2>
+
+      <div class="meta">
+        <div><b>Group ID:</b> {{ g.group_id }}</div>
+        <div><b>School Year:</b> {{ g.schoolYear }}</div>
+        <div><b>Course:</b> {{ g.parsedCourse || g.course }}</div>
+        <div><b>Year & Section:</b> {{ g.year }}{{ g.section }}</div>
+        <div><b>Group No:</b> {{ g.groupNo }}</div>
+      </div>
+
+      <div class="people">
+        <p><b>Leader:</b> {{ g.leader || '—' }}</p>
+        <p><b>Leader’s Email:</b> {{ g.leader_email || '—' }}</p>
+        <p><b>Group Members:</b> {{ g.members.length ? g.members.join(', ') : '—' }}</p>
+        <p><b>Members' Emails:</b> {{ g.member_emails.length ? g.member_emails.join(', ') : '—' }}</p>
+      </div>
+
+      <div class="subject-row">
+        <div class="subject-label"><b>Subject:</b> Thesis Manuscript</div>
+
+        <div class="file-pill" *ngIf="g.fileName">
+          <mat-icon>attach_file</mat-icon>
+          <a *ngIf="g.fileUrl; else noLink" [href]="g.fileUrl" target="_blank" rel="noopener">
+            {{ g.fileName }}
+          </a>
+          <ng-template #noLink>{{ g.fileName }}</ng-template>
+
+          <div class="upload-bar">
+            <div class="fill" [style.width.%]="g.fileProgress || 100"></div>
+          </div>
+
+          <small *ngIf="g.fileSizeText">{{ g.fileSizeText }}</small>
+        </div>
+      </div>
+
+      <!-- Remarks -->
+      <div class="remarks-block">
+        <label class="remarks-label">Comments/Remarks:</label>
+        <mat-form-field appearance="outline" class="remarks-field">
+          <textarea matInput [(ngModel)]="remarks" rows="6"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="actions">
+        <button mat-raised-button color="primary" (click)="openApproveDialog()">
+          <mat-icon>check</mat-icon> Approve
+        </button>
+
+        <!-- Reject now opens the For Revision dialog -->
+        <button mat-raised-button color="warn" (click)="openRejectDialog()">
+          <mat-icon>close</mat-icon> Reject
+        </button>
+      </div>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty">Unable to find the group. (Wrong ID or JSON not loaded.)</div>
+    </ng-template>
+  </div>
+</div>
+
+<!-- APPROVE: YES/NO -->
+<ng-template #dlgApprove>
+  <h2 mat-dialog-title>Approve this submission?</h2>
+  <mat-dialog-content>
+    This will mark the group as <b>Approved</b>. Continue?
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" [mat-dialog-close]="true">
+      Yes, approve
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- FOR REVISION: REASONS + COMMENT (triggered by Reject button) -->
+<ng-template #dlgRevision let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Reason for Rejection</h2>
+
+  <mat-dialog-content class="dialog-body">
+    <div class="dialog-section">
+      <div class="section-title">Select reasons</div>
+      <div class="reasons-grid">
+        <mat-checkbox
+          *ngFor="let reason of revisionOptions"
+          [checked]="selectedRevisionReasons.has(reason)"
+          (change)="toggleRevisionReason(reason, $event.checked)">
+          {{ reason }}
+        </mat-checkbox>
+      </div>
+    </div>
+
+    <div class="dialog-section">
+      <div class="section-title">Comments to the group</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea
+          matInput
+          [(ngModel)]="revisionComment"
+          placeholder="Add comments here"
+          rows="5"></textarea>
+      </mat-form-field>
+      <small class="hint">
+        Tip: Your comment here is sent together with any reasons you selected.
+      </small>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="resetRevisionDialog(); dialogRef.close()">Cancel</button>
+    <button mat-raised-button color="accent" (click)="confirmRevision(dialogRef)">
+      Reject
+    </button>
+  </mat-dialog-actions>
+</ng-template>

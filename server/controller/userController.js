@@ -3,6 +3,27 @@ import crypto from 'crypto'
 import pool from '../data/database.js'
 import { transporter } from '../config/mailer.js'
 import { generatePassword } from '../utils/passwordGenerator.js'
+import fs from 'fs'
+import path from 'path'
+
+// Helper function to read HTML template and replace placeholders
+const getVerificationTemplate = (templateName, data = {}) => {
+  try {
+    const templatePath = path.join(process.cwd(), 'client/src/app/components/verify-message', `${templateName}.html`);
+    let html = fs.readFileSync(templatePath, 'utf8');
+    
+    // Replace placeholders with actual data
+    Object.keys(data).forEach(key => {
+      const placeholder = new RegExp(`{{${key}}}`, 'g');
+      html = html.replace(placeholder, data[key] || '');
+    });
+    
+    return html;
+  } catch (error) {
+    console.error(`Error reading template ${templateName}:`, error);
+    return '<html><body><h1>Error loading template</h1></body></html>';
+  }
+};
 
 // Helper function to get role_id by role name
 const getRoleId = async (roleName) => {
@@ -43,16 +64,25 @@ const getRoleId = async (roleName) => {
   }
 }
 
-// Helper function to get department_id by department name
-const getDepartmentId = async (departmentName) => {
+// Helper function to get department_id by department code or name
+const getDepartmentId = async (departmentInput) => {
   try {
-    const [rows] = await pool.execute(
-      'SELECT department_id FROM departments WHERE department_name = ? LIMIT 1',
-      [departmentName]
+    // First try to find by department_code (what frontend sends)
+    let [rows] = await pool.execute(
+      'SELECT department_id FROM departments WHERE department_code = ? LIMIT 1',
+      [departmentInput]
     )
     
+    // If not found by code, try by name
     if (rows.length === 0) {
-      throw new Error(`Department '${departmentName}' not found. Please select from existing departments.`)
+      [rows] = await pool.execute(
+        'SELECT department_id FROM departments WHERE department_name = ? LIMIT 1',
+        [departmentInput]
+      )
+    }
+    
+    if (rows.length === 0) {
+      throw new Error(`Department '${departmentInput}' not found. Please select from existing departments.`)
     }
     
     return rows[0].department_id
@@ -65,36 +95,16 @@ const getDepartmentId = async (departmentName) => {
 // Helper function to get course_id by course code
 const getCourseId = async (courseCode) => {
   try {
-    // First, try to find existing course
     const [rows] = await pool.execute(
       'SELECT course_id FROM courses WHERE course_code = ? LIMIT 1',
       [courseCode]
     )
     
-    if (rows.length > 0) {
-      return rows[0].course_id
+    if (rows.length === 0) {
+      throw new Error(`Course '${courseCode}' not found. Please select from existing courses.`)
     }
     
-    // If course doesn't exist, create it with UNIQUE constraint handling
-    try {
-      const [result] = await pool.execute(
-        'INSERT INTO courses (course_code) VALUES (?)',
-        [courseCode]
-      )
-      return result.insertId
-    } catch (insertError) {
-      // If insert fails due to duplicate (race condition), try to get the existing one
-      if (insertError.code === 'ER_DUP_ENTRY') {
-        const [existingRows] = await pool.execute(
-          'SELECT course_id FROM courses WHERE course_code = ? LIMIT 1',
-          [courseCode]
-        )
-        if (existingRows.length > 0) {
-          return existingRows[0].course_id
-        }
-      }
-      throw insertError
-    }
+    return rows[0].course_id
   } catch (error) {
     console.error('Error getting course_id:', error)
     throw error
@@ -137,7 +147,7 @@ const signupUser = async (req, res) => {
     const lastname = req.body.lastname ?? req.body.Lastname ?? req.body.lastName
     const rawEmail = req.body.email ?? req.body.Email
     const password = req.body.password ?? req.body.Password
-    const studentID = req.body.studentID ?? req.body.StudentID ?? req.body.studentNum
+    const studentID = req.body.studentID ?? req.body.StudentID ?? req.body.studentNum ?? req.body.student_id
     const course = req.body.course ?? req.body.Course
     const department = req.body.department ?? req.body.Department
     const status = req.body.status ?? req.body.Status ?? req.body.role
@@ -197,8 +207,8 @@ const signupUser = async (req, res) => {
 
     try {
       await pool.execute(
-        'INSERT INTO users_pending (firstname, lastname, email, hashpass, course, department, status, token, expiresat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [firstname, lastname, email, hashedPassword, course, department, status, token, expiresAt]
+        'INSERT INTO users_pending (firstname, lastname, email, hashpass, student_id, course, department, status, token, expiresat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [firstname, lastname, email, hashedPassword, studentID, course, department, status, token, expiresAt]
       )
     } catch (e) {
       return res.status(500).json({ error: 'Server is not configured for email verification. Please create users_pending table.' })
@@ -293,17 +303,21 @@ const loginUser = async (req, res) => {
 // Verify student email
 const verifyStudentEmail = async (req, res) => {
   const { token, email } = req.query
-  if (!token || !email) return res.status(400).json({ error: 'Invalid verification link' })
+  if (!token || !email) {
+    return res.status(400).send(getVerificationTemplate('verify-invalid'))
+  }
   try {
     const [rows] = await pool.execute(
       'SELECT * FROM users_pending WHERE LOWER(email) = ? AND token = ? LIMIT 1',
       [String(email).toLowerCase(), token]
     )
-    if (!rows.length) return res.status(400).json({ error: 'Invalid or used verification link' })
+    if (!rows.length) {
+      return res.status(400).send(getVerificationTemplate('verify-used'))
+    }
     const pending = rows[0]
     if (pending.expiresat && new Date(pending.expiresat) < new Date()) {
       await pool.execute('DELETE FROM users_pending WHERE user_id = ?', [pending.user_id])
-      return res.status(400).json({ error: 'Verification link expired' })
+      return res.status(400).send(getVerificationTemplate('verify-expired'))
     }
 
     const [exists] = await pool.execute('SELECT user_id FROM users_info WHERE LOWER(email) = ? LIMIT 1', [String(email).toLowerCase()])
@@ -342,7 +356,18 @@ const verifyStudentEmail = async (req, res) => {
     }
 
     await pool.execute('DELETE FROM users_pending WHERE user_id = ?', [pending.user_id])
-    res.json({ message: 'Email verified. Your account has been created. You can log in now.' })
+    
+    // Send a beautiful HTML response using template
+    const successData = {
+      firstname: pending.firstname,
+      lastname: pending.lastname,
+      email: pending.email,
+      status: pending.status,
+      department: pending.department,
+      course: pending.course
+    };
+    
+    res.send(getVerificationTemplate('verify-success', successData))
   } catch (e) {
     console.error('verify-student error:', e)
     res.status(500).json({ error: 'Failed to verify' })

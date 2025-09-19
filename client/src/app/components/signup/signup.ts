@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
+import { ToastModule } from 'primeng/toast';
 import { passwordMismatchValidator } from '../../shared/password-mismatch.directive';
 import { Auth } from '../../service/auth';
 import { signupPostData } from '../../interface/auth';
@@ -24,7 +25,9 @@ import { MatSelectModule } from '@angular/material/select';
     RouterLink,
     AutoCompleteModule,
     MatSelectModule,
+    ToastModule,
   ],
+  providers: [MessageService],
   templateUrl: './signup.html',
   styleUrls: ['./signup.css'] 
 })
@@ -141,11 +144,11 @@ export class Signup {
   signupForm = new FormGroup({
     firstName: new FormControl('', [
       Validators.required,
-      Validators.pattern(/^[a-zA-Z0-9]*$/)
+      Validators.pattern(/^[a-zA-Z\s\.]*$/) // Allow letters, spaces, and periods
     ]),
     lastName: new FormControl('', [
       Validators.required,
-      Validators.pattern(/^[a-zA-Z0-9]*$/)
+      Validators.pattern(/^[a-zA-Z\s\.]*$/) // Allow letters, spaces, and periods
     ]),
     email: new FormControl('', [
       Validators.required,
@@ -168,30 +171,46 @@ export class Signup {
     this.signupForm.get('course')?.setValue(''); 
   }
 
+
   // Submit handler
   onSignup() {
     if (this.signupForm.valid) {
-      const postData = { ...this.signupForm.value };
-      delete postData.confirmPassword; // don’t send confirmPassword to API
+      const formValue = this.signupForm.value;
+      
+      // Map frontend field names to backend field names
+      const postData = {
+        firstname: formValue.firstName!,
+        lastname: formValue.lastName!,
+        email: formValue.email!,
+        student_id: formValue.studentNum!,
+        password: formValue.password!,
+        department: formValue.department!,
+        course: formValue.course!,
+        status: 'Student' // Set status based on role
+      };
 
-      this.signupService.signupUser(postData as signupPostData).subscribe({
-        next: (response) => {
+      this.signupService.signupUser(postData).subscribe({
+        next: (response: any) => {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: 'Congrats! You’ve signed up successfully.',
+            detail: response.message || 'Congrats! You\'ve signed up successfully.',
           });
           this.router.navigate(['login']);
-          console.log(response);
         },
         error: (err) => {
-          console.error(err);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Something went wrong',
+            detail: err.error?.error || 'Something went wrong',
           });
         },
+      });
+    } else {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validation Error',
+        detail: 'Please fill in all required fields correctly',
       });
     }
   }

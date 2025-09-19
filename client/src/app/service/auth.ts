@@ -7,16 +7,18 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class Auth {
-  private baseUrl = 'http://localhost:3000'
+  private baseUrl = 'http://localhost:5050'
   constructor(private http: HttpClient) {}
 
   signupUser(postData: signupPostData) {
     return this.http.post(`${this.baseUrl}/users`, postData);
   }
 
-  getUserDetails(email: string, password: string): Observable<User[]> {
-    return this.http.get<User[]> 
-    (`${this.baseUrl}/users?email=${email}&password=${password}`);
+  loginUser(email: string, password: string): Observable<{message: string, user: User}> {
+    return this.http.post<{message: string, user: User}>(`${this.baseUrl}/auth/login`, {
+      email,
+      password
+    });
   }
   
 }

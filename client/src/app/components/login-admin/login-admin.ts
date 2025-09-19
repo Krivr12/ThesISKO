@@ -30,7 +30,7 @@ export class LoginAdmin {
   onLogin() {
     const {email, password} = this.login;
     this.authService.loginUser(email, password).subscribe({
-      next: (response) => {
+      next: (response: {message: string, user: any}) => {
         if (response.user) {
           const user = response.user;
           // Store complete user data
@@ -48,7 +48,7 @@ export class LoginAdmin {
           });
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Login error:', error);
         this.messageService.add({
           severity: 'error',

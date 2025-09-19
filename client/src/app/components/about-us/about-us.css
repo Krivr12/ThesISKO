@@ -1,242 +1,178 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-:host {
-  display: block;
-  font-family: 'Inter', Arial, sans-serif;
-  color: #333;
-}
-
 .page-wrapper {
   display: flex;
   flex-direction: column;
+  align-items: center;   
+  justify-content: center;
   width: 100%;
 }
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #800000;
+  display: flex;
+  flex-direction: column;
+}
+
+section {
+  width: 100%;
+  display: block;
+}
+/* ======================= HERO ======================= */
 
 .hero {
   position: relative;
-  width: 100%;
-  min-height: 90vh;
+  min-height: 900px;  
+  width: 100%;            
   display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #800000;
+  flex-direction: column;
+  justify-content: center; 
+  padding-left: 5%;         
   color: white;
   overflow: hidden;
-  box-sizing: border-box;
 }
 
-.hero-content {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 1400px;
-  padding: 50px 0;
-  gap: 40px;
-}
+
 
 .hero .bgimg {
-  display: none;
+  position: absolute;
+  bottom: 0;
+  right: 20;
+  height: 100%;      
+  width: auto;
+  max-width: none;    
+  object-fit: cover;  
+  z-index: -1;
+  opacity: 0.6;
 }
 
-.text-content {
-  flex: 1;
-  min-width: 300px;
-  max-width: 600px;
-}
 
 .hero h1 {
   font-size: 75px;
   font-weight: 900;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem; 
   line-height: 100%;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
-  max-width: none;
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
 }
 
 .hero h1 .break {
   display: block;
-  white-space: nowrap;
+  white-space: nowrap; 
 }
+
 
 .hero p {
   font-size: 1.1rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.5rem; 
   line-height: 1.6;
   color: #f2f2f2;
-  max-width: 600px;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+  max-width: 700px;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
 }
 
 .search-container {
   display: flex;
   align-items: center;
-  background: #6a0000;
+  background: white;
   border-radius: 8px;
   overflow: hidden;
   height: 70px;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  margin-top: 1rem;
+  max-width: 1000px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  margin-top: 1rem; 
 }
 
-.search-container .search-input {
-  flex: 2;
+.search-container input {
+  flex: 1;
   padding: 0.75rem 1rem;
   border: none;
   outline: none;
   font-size: 1rem;
-  background-color: #6a0000;
-  color: white;
 }
 
-.search-container .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.search-button {
-  flex: 1;
-  background: #ffd966;
+.search-container button {
+  background: #ffd966; 
   border: none;
   padding: 0.75rem 2rem;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
   height: 70px;
-  min-width: 150px;
-  color: #800000;
-  border-radius: 0 8px 8px 0;
+  width: 250px;
 }
 
-.search-button:hover {
+:host ::ng-deep .search .p-button:hover {
   background-color: #ffcc33 !important;
 }
 
-.image-gallery {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  flex-shrink: 0;
-  min-width: 300px;
-}
 
-.image-placeholder {
-  background-color: #e0e0e0;
-  border-radius: 12px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  background-size: cover;
-  background-position: center;
-}
-
-.main-image {
-  width: 300px;
-  height: 400px;
-  background-image: url('https://placehold.co/300x400/cccccc/000000?text=Main+Thesis');
-}
-
-.side-images {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.top-image {
-  width: 150px;
-  height: 180px;
-  background-image: url('https://placehold.co/150x180/aaaaaa/000000?text=Student+1');
-}
-
-.bottom-image {
-  width: 150px;
-  height: 180px;
-  background-image: url('https://placehold.co/150x180/bbbbbb/000000?text=Student+2');
-}
-
-/* Mission and Goals Section */
+/* =================== MISSION & GOALS =================== */
 .mission-and-goals {
   background-color: #fff;
-  padding: 80px 0;
+  padding: clamp(48px, 7vw, 80px) 0;
   color: #333;
 }
 
 .content-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 clamp(16px, 3vw, 20px);
 }
 
 .main-title {
-  font-size: 3.5rem;
-  font-weight: bold;
+  font-size: clamp(28px, 6vw, 56px);
+  font-weight: 800;
   color: #800000;
-  margin-bottom: 50px;
+  margin-bottom: clamp(16px, 3vw, 24px);
 }
 
 .mission-section {
   display: flex;
   align-items: center;
-  gap: 50px;
-  margin-bottom: 80px;
+  gap: clamp(20px, 5vw, 50px);
 }
 
-.mission-text {
-  flex: 1;
-}
+.mission-text { flex: 1; }
+
+.mission-description { text-align: justify; }
 
 .sub-title {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 700;
   color: #800000;
   margin-bottom: 10px;
 }
 
 .mission-description {
-  font-size: 1rem;
+  font-size: clamp(14px, 1.6vw, 16px);
   line-height: 1.6;
   color: #616161;
 }
 
-.mission-image {
-  width: 400px;
-  height: 200px;
-  background-image: url('https://i.ibb.co/6P01R6F/mission-image.png');
-  background-size: cover;
-  background-position: center;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
 .strategic-goals-title {
   text-align: center;
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: clamp(22px, 3.4vw, 32px);
+  font-weight: 800;
   color: #800000;
-  margin-bottom: 40px;
+  margin: clamp(24px, 5vw, 40px) 0;
 }
 
 .pillars-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(16px, 4vw, 40px);
 }
 
 .pillar-title {
-  font-size: 1.25rem;
-  font-weight: bold;
+  font-size: clamp(16px, 2.2vw, 20px);
+  font-weight: 700;
   color: #800000;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
-.goal-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
+.goal-list { list-style: none; padding: 0; margin: 0; }
 .goal-list li {
   margin-bottom: 10px;
   font-size: 1rem;
@@ -244,25 +180,25 @@
   color: #616161;
 }
 
-/* Officials and Staffs Section */
+/* ============ OFFICIALS & STAFFS ============ */
 .officials-and-staffs {
   background-color: #800000;
-  padding: 80px 20px;
+  padding: clamp(48px, 7vw, 80px) 20px;
   text-align: center;
-  color: white;
+  color: #fff;
 }
 
 .officials-and-staffs h1 {
-  font-size: 3.5rem;
-  font-weight: bold;
-  margin-bottom: 50px;
+  font-size: clamp(28px, 6vw, 56px);
+  font-weight: 800;
+  margin-bottom: clamp(24px, 5vw, 50px);
 }
 
 .staff-cards {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 80px;
+  gap: clamp(24px, 6vw, 80px);
   margin-bottom: 40px;
 }
 
@@ -274,82 +210,55 @@
 }
 
 .profile-image-container {
-  width: 200px;
-  height: 200px;
+  width: clamp(120px, 16vw, 200px);
+  height: clamp(120px, 16vw, 200px);
   border-radius: 50%;
   overflow: hidden;
   border: 4px solid #ffd966;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   margin-bottom: 20px;
 }
 
+/* background-image avatar (fills; may crop) */
 .profile-image {
   width: 100%;
   height: 100%;
   background-size: cover;
   background-position: center;
-}
-
-.john-doe {
-  background-image: url('https://i.ibb.co/3Wq2LzK/john-doe.png');
-}
-
-.stacy-white {
-  background-image: url('https://i.ibb.co/h7B2D2V/stacy-white.png');
-}
-
-.steven-santos {
-  background-image: url('https://i.ibb.co/0t5g9qV/steven-santos.png');
+  border-radius: 50%;
 }
 
 .staff-info h3 {
-  font-size: 1.25rem;
-  font-weight: bold;
+  font-size: clamp(16px, 2.4vw, 20px);
+  font-weight: 700;
   margin-bottom: 5px;
 }
 
 .staff-info p {
-  font-size: 1rem;
+  font-size: clamp(14px, 1.8vw, 16px);
   font-style: italic;
   margin-bottom: 0;
 }
 
-.view-team-button {
-  background-color: #ffd966;
-  color: #800000;
-  border: none;
-  padding: 15px 40px;
-  font-size: 1.25rem;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.view-team-button:hover {
-  background-color: #ffcc33;
-}
-
-/* Contact Section */
+/* =================== CONTACT =================== */
 .contact-section {
   background-color: #fff;
-  padding: 80px 20px;
+  padding: clamp(48px, 7vw, 80px) 20px;
+  
 }
 
 .contact-section h1 {
-  font-size: 3.5rem;
-  font-weight: bold;
+  font-size: clamp(28px, 6vw, 56px);
+  font-weight: 800;
   color: #800000;
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: clamp(24px, 5vw, 50px);
   letter-spacing: 1px;
+  margin-top: 0;
   line-height: 1;
 }
 
-.contact-form {
-  max-width: 900px;
-  margin: 0 auto;
-}
+.contact-form { max-width: 900px; margin: 0 auto; }
 
 .form-group-grid {
   display: grid;
@@ -361,23 +270,11 @@
     'subject submit';
 }
 
-.form-group:nth-of-type(1) {
-  grid-area: name;
-}
-.form-group:nth-of-type(2) {
-  grid-area: email;
-}
-.form-group:nth-of-type(3) {
-  grid-area: subject;
-}
-.form-group:nth-of-type(4) {
-  grid-area: message;
-  height: 100%;
-}
-.form-group:nth-of-type(5) {
-  grid-area: submit;
-  align-self: flex-end;
-}
+.form-group:nth-of-type(1) { grid-area: name; }
+.form-group:nth-of-type(2) { grid-area: email; }
+.form-group:nth-of-type(3) { grid-area: subject; }
+.form-group:nth-of-type(4) { grid-area: message; height: 100%; }
+.form-group:nth-of-type(5) { grid-area: submit; align-self: flex-end; }
 
 label {
   font-size: 1rem;
@@ -398,10 +295,7 @@ textarea {
   outline: none;
 }
 
-textarea {
-  resize: none;
-  height: 100%;
-}
+textarea { resize: none; height: 100%; }
 
 .submit-button {
   width: 100%;
@@ -413,107 +307,51 @@ textarea {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color .3s ease;
 }
+.submit-button:hover { background-color: #ffcc33; }
 
-.submit-button:hover {
-  background-color: #ffcc33;
-}
-
-/* Responsive adjustments */
+/* =================== BREAKPOINTS =================== */
 @media (max-width: 1200px) {
   .hero-content {
     flex-direction: column;
-    padding: 50px 20px;
     align-items: center;
   }
-  .text-content {
-    text-align: center;
-  }
-  .search-container {
-    justify-content: center;
-    max-width: 100%;
-  }
-  .image-gallery {
-    margin-top: 40px;
-  }
-  .hero h1 {
-    font-size: 60px;
-  }
+  .text-content { text-align: center; }
+  .search-container { justify-content: center; max-width: 100%; }
+  .image-gallery { margin-top: 24px; }
 }
 
 @media (max-width: 768px) {
-  .hero {
-    min-height: auto;
-    padding-top: 50px;
-    padding-bottom: 50px;
-  }
-  .hero h1 {
-    font-size: 48px;
-    margin-bottom: 1rem;
-  }
-  .hero p {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-  }
+  .hero { min-height: auto; }
   .search-container {
     flex-direction: column;
     height: auto;
     border-radius: 8px;
     max-width: 90%;
   }
-  .search-container .search-input {
+  .search-container > input {
     width: 100%;
-    padding: 1rem;
-    border-radius: 8px 8px 0 0;
-    text-align: center;
-  }
-  .search-button {
-    width: 100%;
-    border-radius: 0 0 8px 8px;
+    padding: 16px;
     height: 60px;
   }
-  .image-gallery {
-    flex-direction: column;
-    gap: 15px;
-  }
-  .main-image {
-    width: 250px;
-    height: 330px;
-  }
-  .top-image, .bottom-image {
-    width: 120px;
-    height: 140px;
-  }
-  .mission-section {
-    flex-direction: column;
-    text-align: center;
-  }
-  .mission-image {
+  .search-container button {
     width: 100%;
-    height: 200px;
+    height: 60px;
   }
+  .image-gallery { flex-direction: column; gap: 15px; }
+  .mission-section { flex-direction: column; text-align: center; }
   .form-group-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto;
-  }
-  .form-group:nth-of-type(2) {
-    grid-row: auto;
-  }
-  .form-group:nth-of-type(4) {
-    align-self: flex-start;
+    grid-template-areas:
+      'name'
+      'email'
+      'subject'
+      'message'
+      'submit';
   }
 }
 
 @media (max-width: 480px) {
-  .hero h1 {
-    font-size: 36px;
-  }
-  .hero p {
-    max-width: 100%;
-  }
-  .search-container {
-    width: 100%;
-    max-width: none;
-  }
+  .search-container { max-width: none; width: 100%; }
 }

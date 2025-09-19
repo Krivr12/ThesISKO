@@ -1,199 +1,198 @@
 * {
-    color: #800000;
-    background-color: white s;
+  color: #800000;
+  background-color: white s;
 }
 
 .background {
-    background-color: white;
-    display: flex;
-    height: 100vh;   
+  background-color: white;
+  display: flex;
+  height: 100vh;   
 }
 
 .leftside {
-    flex: 1; 
-    height: 100%;
+  flex: 1; 
+  height: 100%;
 }
 
 .leftside img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .leftside .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    background-color: rgba(128, 0, 0, 0.3); 
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background-color: rgba(128, 0, 0, 0.3); 
 }
 
 .rightside {
-    flex: 1;
-    display: flex;
-    align-items: center; 
-    justify-content: center; 
-    background-color: white; 
-  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center; 
+  justify-content: center; 
+  background-color: white; 
+position: relative;
 }
 
 .login-header {
-    font-size: 50px;
-    font-weight: 900;
-    color: #800000;
-    margin-bottom: -1px;
-    margin-left: 2rem;
-    text-align: left;
-  }
-
-  .signupForm {
-    background-color: white !important;
-    padding: 2rem;
-    border-radius: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 600px;
-    color:#800000;
-    box-sizing: border-box;
+  font-size: 50px;
+  font-weight: 900;
+  color: #800000;
+  margin-bottom: -1px;
+  margin-left: 2rem;
+  text-align: left;
 }
 
-  
+.signupForm {
+  background-color: white !important;
+  padding: 2rem;
+  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  color:#800000;
+  box-sizing: border-box;
+}
+
+
 .field label {
-    display: block;
-    margin-bottom: 0.5rem;
-    margin-top: 0.5rem;
-    font-weight: 400;
-    font-size: 1rem;
-    color: #0b0202;
-    width: 100%;
-  }
+  display: block;
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  font-weight: 400;
+  font-size: 1rem;
+  color: #0b0202;
+  width: 100%;
+}
 
 .field {
-    margin-bottom: 0.5rem; 
-    width: 100%; 
-    max-width: 480px;
+  margin-bottom: 0.5rem; 
+  width: 100%; 
+  max-width: 480px;
 }
 
 .p-error {
-    display: block;        
-    margin-top: 0.25rem;  
-    color: #800000;         
-    font-size: 0.85rem;    
+  display: block;        
+  margin-top: 0.25rem;  
+  color: #800000;         
+  font-size: 0.85rem;    
 }
 
 .p-inputtext {
-    background-color: white !important; 
-    border: 1px solid #800000 !important;    
-    color: rgb(0, 0, 0);                             
-    padding: 0.5rem;
-    width: 100%;
-    height: 50px; 
-    border-radius: 10px;
+  background-color: white !important; 
+  border: 1px solid #800000 !important;    
+  color: rgb(0, 0, 0);                             
+  padding: 0.5rem;
+  width: 100%;
+  height: 50px; 
+  border-radius: 10px;
 }
 
 
 .p-inputtext:focus {
-    border-color: #a00000 !important;
-    box-shadow: none !important;
+  border-color: #a00000 !important;
+  box-shadow: none !important;
 }
 
 /*passwords*/
 :host ::ng-deep .p-password input {
-    background-color: white !important; 
-    border: 1px solid #800000 !important;      
-    color: black !important;    
-    width: 480px !important;
-    height: 50px; 
-    border-radius: 10px;             
+  background-color: white !important; 
+  border: 1px solid #800000 !important;      
+  color: black !important;    
+  width: 480px !important;
+  height: 50px; 
+  border-radius: 10px;             
 }
 
 
 :host ::ng-deep .p-password input:focus {
-    background-color: white !important; 
-    border-color: #a00000 !important;          
-    box-shadow: none !important;              
+  background-color: white !important; 
+  border-color: #a00000 !important;          
+  box-shadow: none !important;              
 }
 
 .p-inputtext,
 :host ::ng-deep .p-password input {
-    width: 100% !important;
-    height: 50px; 
-    border-radius: 10px;
-    padding: 0.5rem;
-    box-sizing: border-box;
+  width: 100% !important;
+  height: 50px; 
+  border-radius: 10px;
+  padding: 0.5rem;
+  box-sizing: border-box;
 }
 
 
 :host ::ng-deep .p-button {
-    width: 480px !important;
-    height: 50px; 
-    border-radius: 10px;
-    font-weight: bold;
-    font-size: 1rem;
-    text-align: center;
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
+  width: 480px !important;
+  height: 50px; 
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 :host ::ng-deep .p-button {
-    width: 480px !important;
-    height: 50px; 
-    border-radius: 10px;
-    font-weight: bold;
-    font-size: 1rem;
-    text-align: center;
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
- background-color: #800000 !important;
-    border: none !important;
-    color: white !important;
-    font-weight: bold;
-    border-radius: 10px;
-    height: 55px;
-  }
- 
-  :host ::ng-deep .p-button:hover {
-    background-color: #a00000 !important;
-  }
-  
+  width: 480px !important;
+  height: 50px; 
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+background-color: #800000 !important;
+  border: none !important;
+  color: white !important;
+  font-weight: bold;
+  border-radius: 10px;
+  height: 55px;
+}
+
+:host ::ng-deep .p-button:hover {
+  background-color: #a00000 !important;
+}
+
 
 .mt-2 {
-    margin-top: 3rem; 
-    margin-left: -15rem;      
-    font-size: 1rem;         
-    color: #000000;          
-    text-align: left !important;      
-  }
-  .mt-2 a {
-    text-decoration: underline;
-    font-weight: bold;
-    color: #800000;
-  }
+  margin-top: 3rem; 
+  margin-left: -15rem;      
+  font-size: 1rem;         
+  color: #000000;          
+  text-align: left !important;      
+}
+.mt-2 a {
+  text-decoration: underline;
+  font-weight: bold;
+  color: #800000;
+}
 
-  .p-inputtext::placeholder {
-    color: #450808;           
-    font-size: 0.95rem;
-  }
+.p-inputtext::placeholder {
+  color: #450808;           
+  font-size: 0.95rem;
+}
 
-  .form-row {
-    display: flex;
-    gap: 16px;
-    width: 100%;
-  }
-  
-  .form-row .field {
-    flex: 1;
-    max-width: 480px; /* keep your previous width */
-  }
-  
-  .department-field {
-    flex: 2;
-  }
-  
-  .course-field {
-    flex: 1;
-  }
-  
+.form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.form-row .field {
+  flex: 1;
+  max-width: 480px; /* keep your previous width */
+}
+
+.department-field {
+  flex: 2;
+}
+
+.course-field {
+  flex: 1;
+}

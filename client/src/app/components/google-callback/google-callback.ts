@@ -65,18 +65,13 @@ export class GoogleCallbackComponent implements OnInit {
   }
 
   private navigateByRole(role: string) {
-    switch(role?.toLowerCase()) {
-      case 'admin':
-        this.router.navigate(['/admin-dashboard']);
-        break;
-      case 'faculty':
-        this.router.navigate(['/faculty-home']);
-        break;
-      case 'student':
-      case 'guest':
-      default:
-        this.router.navigate(['/home']);
-        break;
+    // Google OAuth should ONLY handle guest users
+    if (role?.toLowerCase() === 'guest') {
+      this.router.navigate(['/home']); // Guest goes to home
+    } else {
+      // If somehow a non-guest tries to use Google OAuth, redirect to login
+      console.warn('Google OAuth attempted by non-guest user. Redirecting to login.');
+      this.router.navigate(['/login']);
     }
   }
 
@@ -93,8 +88,14 @@ export class GoogleCallbackComponent implements OnInit {
         sessionStorage.setItem('role', data.user.Status || 'guest');
         sessionStorage.setItem('email', data.user.Email);
         
-        // Redirect to home page
-        this.router.navigate(['/home']);
+        // Only allow guests to proceed with Google OAuth
+        const userRole = data.user.Status || 'guest';
+        if (userRole.toLowerCase() === 'guest') {
+          this.router.navigate(['/home']);
+        } else {
+          console.warn('Non-guest user attempted Google OAuth. Redirecting to login.');
+          this.router.navigate(['/login']);
+        }
       } else {
         // Authentication failed, redirect to login
         this.router.navigate(['/login']);

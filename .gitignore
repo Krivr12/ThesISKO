@@ -34,3 +34,7 @@ out/
 
 # Ignore Thesisko folder
 /Thesisko/
+
+#Ignore .angular/
+.angular/
+
