@@ -66,7 +66,6 @@ router.post("/upload-multiple", upload.array("files", 10), async (req, res) => {
       const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/submission/${file.originalname}`;
       uploadedFiles.push({ filename: file.originalname, url: fileUrl });
 
-      
 
     }
 
@@ -76,6 +75,7 @@ router.post("/upload-multiple", upload.array("files", 10), async (req, res) => {
     res.status(500).json({ error: "❌ Upload failed" });
   }
 });
+
 
 // Faculty/Admin view file (signed URL for frontend)
 router.get("/view/:filename", async (req, res) => {

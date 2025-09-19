@@ -6,6 +6,9 @@ import s3Routes from "./routes/s3Routes.js"; // import S3 routes
 import s3SearchRoutes from "./routes/s3Search.js"; // import separate search route
 
 
+import dotenv from "dotenv";
+dotenv.config({ path: "server/config.env" });
+
 const PORT = process.env.PORT || 5050;
 const app = express();
 

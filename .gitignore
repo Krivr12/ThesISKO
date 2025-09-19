@@ -33,3 +33,4 @@ out/
 *.swo
 
 # S3 Access Key
+server/config.env
