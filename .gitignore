@@ -34,6 +34,3 @@ out/
 
 # Ignore Thesisko folder
 /Thesisko/
-# S3 Access Key
-
-server/config.env
