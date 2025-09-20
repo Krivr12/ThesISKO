@@ -1,10 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import { HttpClientModule } from '@angular/common/http';
+import { NavigationGuardService } from './service/navigation-guard.service';
 
 @Component({
   selector: 'app-root',
@@ -19,4 +20,7 @@ import { HttpClientModule } from '@angular/common/http';
 })
 export class App {
   protected readonly title = signal('Azalea');
+  
+  // Initialize navigation guard service
+  private navigationGuard = inject(NavigationGuardService);
 }

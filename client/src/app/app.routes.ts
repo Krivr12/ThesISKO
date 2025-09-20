@@ -15,6 +15,8 @@ import { PanelistApprovalPage } from './facultySide/panelist-approval-page/panel
 import { ForPanel } from './facultySide/for-panel/for-panel';
 import { ForFIC } from './facultySide/for-fic/for-fic';
 import { FICHistoryPage } from './facultySide/fichistory-page/fichistory-page';
+import { GoogleCallbackComponent } from './components/google-callback/google-callback';
+import { authGuard, roleGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
    // login
@@ -23,28 +25,29 @@ export const routes: Routes = [
     {path: 'login-admin', component: LoginAdmin},
     {path: 'login', component: Login},
     {path: 'signup', component: Signup},
+    {path: 'google-callback', component: GoogleCallbackComponent},
 
-    // repository
-    {path: 'home', component: Home},
-    {path: 'about-us', component: AboutUs},
-    {path: 'search-thesis', component: SearchThesis},
-    {path: 'search-result', component: SearchResult},
-    {path: 'submission', component: Submission},
-    {path: 'thank-you', component: ThankYou},
+    // repository - protected by role guard
+    {path: 'home', component: Home, canActivate: [roleGuard]},
+    {path: 'about-us', component: AboutUs, canActivate: [roleGuard]},
+    {path: 'search-thesis', component: SearchThesis, canActivate: [roleGuard]},
+    {path: 'search-result', component: SearchResult, canActivate: [roleGuard]},
+    {path: 'submission', component: Submission, canActivate: [roleGuard]},
+    {path: 'thank-you', component: ThankYou, canActivate: [roleGuard]},
     {path: '', redirectTo: 'signup-choose', pathMatch: 'full'},
 
 
-    //faculty side
-    {path: 'faculty-home', component: FacultyHome},
+    //faculty side - protected by role guard
+    {path: 'faculty-home', component: FacultyHome, canActivate: [roleGuard]},
 
-    {path: 'fichistory-page', component: FICHistoryPage},
-    {path: 'fichistory-page/:id', component: FICHistoryPage},
+    {path: 'fichistory-page', component: FICHistoryPage, canActivate: [roleGuard]},
+    {path: 'fichistory-page/:id', component: FICHistoryPage, canActivate: [roleGuard]},
     { path: 'fichistory-page/:id', redirectTo: 'fichistory-page/:id', pathMatch: 'full' },
-    {path: 'for-fic', component: ForFIC},
+    {path: 'for-fic', component: ForFIC, canActivate: [roleGuard]},
 
-    {path: 'for-panel', component: ForPanel},
-    {path: 'panelist-approval-page', component: PanelistApprovalPage},
-    { path: 'panelist-approval-page/:id', component: PanelistApprovalPage },
+    {path: 'for-panel', component: ForPanel, canActivate: [roleGuard]},
+    {path: 'panelist-approval-page', component: PanelistApprovalPage, canActivate: [roleGuard]},
+    { path: 'panelist-approval-page/:id', component: PanelistApprovalPage, canActivate: [roleGuard] },
     { path: 'panelis-approval-page/:id', redirectTo: 'panelist-approval-page/:id', pathMatch: 'full' },
 
 

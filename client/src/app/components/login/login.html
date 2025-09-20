@@ -70,7 +70,7 @@
                 <hr />
             </div>
 
-            <p-button class="gglbtn" styleClass="w-full" [disabled]="loginForm.invalid" type="button">
+            <p-button class="gglbtn" styleClass="w-full" (click)="loginWithGoogle()" type="button">
                 <ng-template pTemplate="content">
                   <img src="googleLogo.png" alt="Google Logo" style="height: 20px; margin-right: 8px; vertical-align: middle;">
                   Login with Google

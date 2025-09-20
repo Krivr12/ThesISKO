@@ -5,24 +5,148 @@ import { transporter } from '../config/mailer.js'
 import { generatePassword } from '../utils/passwordGenerator.js'
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
-// Helper function to read HTML template and replace placeholders
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// Helper function to get HTML template with data replacement
 const getVerificationTemplate = (templateName, data = {}) => {
-  try {
-    const templatePath = path.join(process.cwd(), 'client/src/app/components/verify-message', `${templateName}.html`);
-    let html = fs.readFileSync(templatePath, 'utf8');
-    
-    // Replace placeholders with actual data
-    Object.keys(data).forEach(key => {
-      const placeholder = new RegExp(`{{${key}}}`, 'g');
-      html = html.replace(placeholder, data[key] || '');
-    });
-    
-    return html;
-  } catch (error) {
-    console.error(`Error reading template ${templateName}:`, error);
-    return '<html><body><h1>Error loading template</h1></body></html>';
+  console.log(`Getting verification template: ${templateName}`);
+  console.log('Template data:', data);
+  
+  // Define all templates inline for reliability
+  const templates = {
+    'verify-success': `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email Verified - ThesISKO</title>
+      </head>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #800000 0%, #a00000 100%); min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); padding: 60px 40px; text-align: center; max-width: 500px; width: 100%;">
+          <div style="width: 80px; height: 80px; background: #ffd966; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; font-size: 40px; color: #800000; font-weight: bold;">✓</div>
+          <h1 style="color: #333; margin-bottom: 20px; font-size: 2.5em; font-weight: 300;">Email Verified!</h1>
+          <div style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
+            Congratulations! Your email has been successfully verified.
+          </div>
+          <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0; border-left: 4px solid #ffd966;">
+            <p style="margin: 5px 0; color: #555;"><strong>Name:</strong> ${data.firstname || ''} ${data.lastname || ''}</p>
+            <p style="margin: 5px 0; color: #555;"><strong>Email:</strong> ${data.email || ''}</p>
+            <p style="margin: 5px 0; color: #555;"><strong>Status:</strong> ${data.status || ''}</p>
+            <p style="margin: 5px 0; color: #555;"><strong>Department:</strong> ${data.department || ''}</p>
+            <p style="margin: 5px 0; color: #555;"><strong>Course:</strong> ${data.course || ''}</p>
+          </div>
+          <p style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
+            Your account has been created and you can now log in to access ThesISKO.
+          </p>
+          <a href="http://localhost:4200/login" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4); transition: transform 0.3s ease;">
+            Go to Login Page
+          </a>
+          <div style="margin-top: 30px; color: #999; font-size: 0.9em;">
+            <p>Thank you for joining ThesISKO!</p>
+            <p>If you have any questions, please contact our support team.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    'verify-invalid': `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Invalid Link - ThesISKO</title>
+      </head>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #800000 0%, #a00000 100%); min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); padding: 60px 40px; text-align: center; max-width: 500px; width: 100%;">
+          <div style="width: 80px; height: 80px; background: #ff6b6b; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; font-size: 40px; color: white; font-weight: bold;">✗</div>
+          <h1 style="color: #333; margin-bottom: 20px; font-size: 2.5em; font-weight: 300;">Invalid Verification Link</h1>
+          <div style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
+            The verification link you clicked is invalid or malformed. Please check the link and try again.
+          </div>
+          <a href="http://localhost:4200/signup" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
+            Sign Up Again
+          </a>
+        </div>
+      </body>
+      </html>
+    `,
+    'verify-expired': `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Link Expired - ThesISKO</title>
+      </head>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #800000 0%, #a00000 100%); min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); padding: 60px 40px; text-align: center; max-width: 500px; width: 100%;">
+          <div style="width: 80px; height: 80px; background: #ff9800; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; font-size: 40px; color: white; font-weight: bold;">⏰</div>
+          <h1 style="color: #333; margin-bottom: 20px; font-size: 2.5em; font-weight: 300;">Link Expired</h1>
+          <div style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
+            This verification link has expired. Please request a new verification email to complete your registration.
+          </div>
+          <a href="http://localhost:4200/signup" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
+            Sign Up Again
+          </a>
+        </div>
+      </body>
+      </html>
+    `,
+    'verify-used': `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Already Verified - ThesISKO</title>
+      </head>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #800000 0%, #a00000 100%); min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); padding: 60px 40px; text-align: center; max-width: 500px; width: 100%;">
+          <div style="width: 80px; height: 80px; background: #2196f3; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; font-size: 40px; color: white; font-weight: bold;">ℹ</div>
+          <h1 style="color: #333; margin-bottom: 20px; font-size: 2.5em; font-weight: 300;">Already Verified</h1>
+          <div style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
+            This email has already been verified. You can now log in to your account.
+          </div>
+          <a href="http://localhost:4200/login" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
+            Go to Login
+          </a>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  let html = templates[templateName];
+  
+  if (!html) {
+    console.error(`Template ${templateName} not found`);
+    return `
+      <!DOCTYPE html>
+      <html>
+      <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+        <h1 style="color: #800000;">ThesISKO</h1>
+        <h2>Email Verification</h2>
+        <p>Unknown template: ${templateName}</p>
+        <a href="http://localhost:4200/login" style="background: #ffd966; color: #800000; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Login</a>
+      </body>
+      </html>
+    `;
   }
+
+  // Replace placeholders with actual data
+  Object.keys(data).forEach(key => {
+    const placeholder = new RegExp(`\\$\\{data\\.${key} \\|\\| ''\\}`, 'g');
+    html = html.replace(placeholder, data[key] || '');
+  });
+
+  console.log(`Successfully generated template for: ${templateName}`);
+  return html;
 };
 
 // Helper function to get role_id by role name

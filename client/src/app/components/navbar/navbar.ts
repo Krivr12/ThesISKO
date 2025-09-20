@@ -15,7 +15,12 @@ export interface AuthUser {
   displayName?: string;
   username?: string;
   email?: string;
+  Email?: string;
   photoURL?: string;
+  AvatarUrl?: string;
+  Status?: string;
+  Firstname?: string;
+  Lastname?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -31,6 +36,7 @@ export class AuthService {
     this.userSubject.next(user);
     if (this.hasStorage) {
       localStorage.setItem('user', JSON.stringify(user));
+      sessionStorage.setItem('user', JSON.stringify(user));
     }
   }
 
@@ -38,6 +44,7 @@ export class AuthService {
     this.userSubject.next(null);
     if (this.hasStorage) {
       localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
     }
     // also clear tokens/cookies here if you use them
   }
@@ -49,7 +56,10 @@ export class AuthService {
   private restoreUser(): AuthUser | null {
     try {
       if (!this.hasStorage) return null;
-      const raw = localStorage.getItem('user');
+      // Check both localStorage and sessionStorage
+      const localRaw = localStorage.getItem('user');
+      const sessionRaw = sessionStorage.getItem('user');
+      const raw = localRaw || sessionRaw;
       return raw ? (JSON.parse(raw) as AuthUser) : null;
     } catch {
       return null;
@@ -78,17 +88,61 @@ export class Navbar implements OnInit {
     this.profileItems = [
       { label: 'Sign out', icon: 'pi pi-sign-out', command: () => this.logout() },
     ];
+    // Sync with sessionStorage on init
+    this.syncWithSessionStorage();
+  }
+
+  private syncWithSessionStorage() {
+    if (typeof window !== 'undefined' && !!window.localStorage) {
+      const sessionUser = sessionStorage.getItem('user');
+      if (sessionUser && !this.auth.currentUser) {
+        try {
+          const user = JSON.parse(sessionUser) as AuthUser;
+          this.auth.setUser(user);
+        } catch (e) {
+          console.error('Error parsing session user:', e);
+        }
+      }
+    }
   }
 
   logout() {
     this.auth.logout();
-    this.router.navigate(['/home']);
+    // Clear guest mode
+    sessionStorage.removeItem('guestMode');
+    this.router.navigate(['/signup-choose']);
   }
 
   /** Decide which image to use: user photo or default asset */
   avatarFor(u: AuthUser | null | undefined): string {
-    const src = u?.photoURL?.trim();
+    if (!u) return this.defaultAvatar;
+    
+    // For guest users (Google OAuth), prioritize AvatarUrl from database
+    if (u.Status?.toLowerCase() === 'guest' && u.AvatarUrl?.trim()) {
+      return u.AvatarUrl.trim();
+    }
+    
+    // For other users or fallback, use photoURL or default
+    const src = u.photoURL?.trim() || u.AvatarUrl?.trim();
     return src && src.length > 0 ? src : this.defaultAvatar;
+  }
+
+  /** Check if in guest mode */
+  isGuestMode(): boolean {
+    return sessionStorage.getItem('guestMode') === 'true';
+  }
+
+  /** Get display name for user */
+  getDisplayName(u: AuthUser | null | undefined): string {
+    if (!u) return 'User';
+    
+    // For users with firstname/lastname (from database)
+    if (u.Firstname && u.Lastname) {
+      return `${u.Firstname} ${u.Lastname}`;
+    }
+    
+    // For Google users or fallback
+    return u.displayName || u.username || u.email?.split('@')[0] || 'User';
   }
 
   /** Optional: initials helper if you ever want a text avatar fallback */

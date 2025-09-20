@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../navbar/navbar';
 
 @Component({
   selector: 'app-google-callback',
@@ -26,6 +27,8 @@ import { Router } from '@angular/router';
   `]
 })
 export class GoogleCallbackComponent implements OnInit {
+  private authService = inject(AuthService);
+  
   constructor(private router: Router) {}
 
   ngOnInit() {
@@ -50,6 +53,16 @@ export class GoogleCallbackComponent implements OnInit {
           sessionStorage.setItem('user', JSON.stringify(user));
           sessionStorage.setItem('role', user.Status || 'guest');
           sessionStorage.setItem('email', user.Email);
+          
+          // Update AuthService with user data
+          this.authService.setUser({
+            id: user.StudentID || user.user_id || user.id,
+            email: user.Email,
+            Status: user.Status || 'guest',
+            Firstname: user.Firstname,
+            Lastname: user.Lastname,
+            AvatarUrl: user.AvatarUrl
+          });
           
           // Navigate based on user role
           this.navigateByRole(user.Status || 'guest');
@@ -87,6 +100,16 @@ export class GoogleCallbackComponent implements OnInit {
         sessionStorage.setItem('user', JSON.stringify(data.user));
         sessionStorage.setItem('role', data.user.Status || 'guest');
         sessionStorage.setItem('email', data.user.Email);
+        
+        // Update AuthService with user data
+        this.authService.setUser({
+          id: data.user.StudentID || data.user.user_id || data.user.id,
+          email: data.user.Email,
+          Status: data.user.Status || 'guest',
+          Firstname: data.user.Firstname,
+          Lastname: data.user.Lastname,
+          AvatarUrl: data.user.AvatarUrl
+        });
         
         // Only allow guests to proceed with Google OAuth
         const userRole = data.user.Status || 'guest';

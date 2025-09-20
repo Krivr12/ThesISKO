@@ -10,21 +10,20 @@
   </ng-template>
 
   <ng-template #end>
-    <!-- If signed in, show user chip; else show Login -->
-    <ng-container *ngIf="user$ | async as user; else loginTpl">
-      <div class="user-chip" (click)="profileMenu.toggle($event)">
-        <!-- Avatar uses user photo if present; else default asset image -->
+    <!-- If signed in and not in guest mode, show user chip; else show Login -->
+    <ng-container *ngIf="!isGuestMode() && (user$ | async) as user; else loginTpl">
+      <div class="user-profile-card" (click)="profileMenu.toggle($event)">
         <p-avatar
           [image]="avatarFor(user)"
-          size="large"
-          shape="circle">
+          size="normal"
+          shape="circle"
+          class="user-avatar">
         </p-avatar>
-
-        <span class="username" [title]="user.email">
-          {{ user.email || user.displayName || user.username }}
-        </span>
-
-        <i class="pi pi-chevron-down"></i>
+        <div class="user-info">
+          <div class="user-name">{{ getDisplayName(user) }}</div>
+          <div class="user-email">{{ user.email || user.Email }}</div>
+        </div>
+        <i class="pi pi-chevron-down dropdown-icon"></i>
       </div>
 
       <p-menu #profileMenu [popup]="true" [model]="profileItems"></p-menu>

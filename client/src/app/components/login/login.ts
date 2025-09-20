@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../service/auth';
 import { MessageService } from 'primeng/api';
+import { AuthService } from '../navbar/navbar';
 
 @Component({
   selector: 'app-login',
@@ -28,6 +29,7 @@ login = {
 }
 
 private authService = inject(Auth);
+private navAuthService = inject(AuthService);
 private router = inject(Router);
 private messageService = inject(MessageService);
 onLogin() {
@@ -36,13 +38,31 @@ onLogin() {
     next: (response: {message: string, user: any}) => {
       if (response.user) {
         const user = response.user;
+        // Clear guest mode when user logs in
+        sessionStorage.removeItem('guestMode');
+        
         // Store complete user data
         sessionStorage.setItem('email', email);
         sessionStorage.setItem('user', JSON.stringify(user));
         sessionStorage.setItem('role', user.Status || 'student');
         
-        // Navigate to home
-        this.router.navigate(['home']);
+        // Update AuthService with user data
+        this.navAuthService.setUser({
+          id: user.StudentID || user.user_id || user.id,
+          email: user.Email || email,
+          Status: user.Status,
+          Firstname: user.Firstname,
+          Lastname: user.Lastname,
+          AvatarUrl: user.AvatarUrl
+        });
+        
+        // Navigate based on role
+        const userRole = user.Status?.toLowerCase();
+        if (userRole === 'faculty') {
+          this.router.navigate(['/faculty-home']);
+        } else {
+          this.router.navigate(['/home']);
+        }
       } else {
         this.messageService.add({
           severity: 'error',
@@ -63,5 +83,7 @@ onLogin() {
 }
 
 loginWithGoogle() {
+  // Redirect to Google OAuth endpoint
+  window.location.href = 'http://localhost:5050/auth/google';
 }
 }
