@@ -4,10 +4,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --configuration=production",
+    "build": "npx ng build --configuration=production",
     "watch": "node src/set-config.js && ng build --watch --configuration development",
     "test": "ng test",
-    "generate-config": "node src/set-config.js"
+    "generate-config": "node src/set-config.js",
+    "dev": "ng build --configuration=production"
   },
   "prettier": {
     "overrides": [
