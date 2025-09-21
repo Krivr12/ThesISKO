@@ -204,3 +204,160 @@ table {
 .mat-mdc-header-cell {
   padding: 8px 16px; /* consistent padding */
 }
+
+
+.controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  width: 100%;  
+}
+.spacer { flex: 1 1 auto; }   /* pushes everything after it to the far right */
+
+
+.controls-bar mat-form-field {
+  flex: 0 0 220px;        /* or whatever width you prefer */
+  min-width: 200px;
+}
+.controls-bar .addButton {
+  margin-left: auto;      /* pushes it to the far right */
+  flex: 0 0 auto;         /* prevent it from stretching */
+}
+
+/* maroon style */
+.addButton.mat-mdc-raised-button {
+  background-color: #800000 !important;
+  color: #fff !important;
+}
+
+
+/* Optional: hover/focus */
+.addButton.mat-mdc-raised-button:hover {
+  filter: brightness(1.05);
+}
+.addButton.mat-mdc-raised-button:focus-visible {
+  outline: 2px solid #ffd966;
+  outline-offset: 2px;
+}
+
+
+.w-100 { width: 100%; } 
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } 
+.section-title { font-weight: 700; margin: 10px 0 6px; color: #800000; display: flex; align-items: center; gap: 8px; } 
+.members-title .ml-auto { margin-left: auto; } 
+.member-row { border: 1px solid #e3e3e3; border-radius: 8px; padding: 10px; margin: 10px 0; } 
+.row-end { display: flex; justify-content: flex-end; } .muted { color: #6b6b6b; font-style: italic; margin: 6px 0 12px; }
+
+\/* ---------- Dialog container ---------- */
+.add-group-dialog .mat-mdc-dialog-surface {
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0;                         /* remove default padding */
+  background: #fff;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.35),      /* deep shadow */
+    0 0 0 3px rgba(0,129,255,.25);    /* subtle blue glow like in the shot */
+}
+
+/* ---------- Header ---------- */
+.ag-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #800000;                /* maroon */
+  color: #f5d76e;                     /* gold */
+  padding: 14px 18px;
+}
+.ag-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+.ag-close {
+  background: transparent;
+  border: 0;
+  color: #f5d76e;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------- Body & layout ---------- */
+.ag-body {
+  padding: 22px 26px 10px;
+}
+.ag-form { display: block; }
+.ag-section-title {
+  font-weight: 700;
+  color: #800000;
+  margin: 8px 0 10px;
+}
+.ag-members-head { display: flex; align-items: center; gap: 8px; }
+.ag-muted { color: #6b6b6b; font-style: italic; margin: 6px 0 12px; }
+
+.ag-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.ag-field { width: 100%; }
+.ag-member { margin: 10px 0; }
+
+.ag-divider { border: 0; border-top: 1px solid #e9e9e9; margin: 16px 0; }
+.ag-divider--soft { border-top-color: #eeeeee; }
+
+/* ---------- Angular Material form-field theming ---------- */
+.add-group-dialog .mat-mdc-form-field .mdc-notched-outline__leading,
+.add-group-dialog .mat-mdc-form-field .mdc-notched-outline__trailing,
+.add-group-dialog .mat-mdc-form-field .mdc-notched-outline__notch {
+  border-color: #800000;              /* outline color */
+}
+.add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing,
+.add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch {
+  border-color: #800000;              /* keep maroon on focus */
+}
+.add-group-dialog .mat-mdc-form-field .mdc-text-field--outlined .mdc-floating-label,
+.add-group-dialog .mat-mdc-form-field .mat-mdc-floating-label {
+  color: #800000;
+}
+.add-group-dialog .mat-mdc-input-element::placeholder { color: #b7b7b7; }
+
+/* remove extra bottom space some fields add */
+.add-group-dialog .mat-mdc-form-field-infix { padding: 12px 0; }
+
+/* ---------- Actions / buttons ---------- */
+.ag-actions {
+  padding: 0 26px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center !important; 
+  gap: 12px;
+}
+.ag-flex-spacer { flex: none; }
+
+/* pill buttons to match screenshot */
+.ag-pill {
+  height: 56px;
+  padding: 0 28px;
+  border-radius: 9999px;
+  font-weight: 700;
+  border: 2px solid transparent;
+}
+.ag-pill--primary {
+  background: #800000;
+  color: #f5d76e;
+}
+.ag-pill--primary:hover { filter: brightness(0.95); }
+.ag-pill--outline {
+  background: #fff;
+  color: #800000;
+  border-color: #800000;
+}
+.ag-pill--outline:hover {
+  background: rgba(128,0,0,.06);
+}
+
+/* "Remove" link row alignment */
+.ag-row-end { display: flex; justify-content: flex-end; }

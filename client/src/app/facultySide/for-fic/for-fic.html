@@ -7,6 +7,9 @@
               <!-- Controls -->
               <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                 <!-- Department Buttons -->
+                <button mat-raised-button color="accent" (click)="viewAll()">
+                  View All
+                </button>                
                 <button mat-raised-button color="primary" (click)="filterByDepartment('IT')">
                   View IT
                 </button>
@@ -23,8 +26,104 @@
                     </mat-option>
                   </mat-select>
                 </mat-form-field>
+
+
+                <span class="spacer"></span>  
+                <button mat-raised-button color="accent" class="addButton" (click)="openAddDialog()">
+                  Add Group
+                </button>
+                
+                <ng-template #addGroupDialog let-dialogRef="dialogRef">
+                  <div class="ag-header">
+                    <h3 class="ag-title">Add Group</h3>
+                    <button type="button" class="ag-close" (click)="dialogRef.close()" aria-label="Close">
+                      ✕
+                    </button>
+                  </div>
+                
+                  <mat-dialog-content class="ag-body">
+                    <form #addForm="ngForm" class="ag-form" (keydown.enter)="$event.preventDefault()">
+                      <!-- Leader -->
+                      <div class="ag-section-title">Leader</div>
+                
+                      <div class="ag-grid-2">
+                        <mat-form-field appearance="outline" class="ag-field">
+                          <mat-label>Firstname</mat-label>
+                          <input matInput [(ngModel)]="leader.firstName" name="leaderFirst" placeholder="Firstname*" required />
+                        </mat-form-field>
+                
+                        <mat-form-field appearance="outline" class="ag-field">
+                          <mat-label>Lastname</mat-label>
+                          <input matInput [(ngModel)]="leader.lastName" name="leaderLast" placeholder="Lastname*" required />
+                        </mat-form-field>
+                      </div>
+                
+                      <mat-form-field appearance="outline" class="ag-field">
+                        <mat-label>Email</mat-label>
+                        <input matInput type="email" [(ngModel)]="leader.email" name="leaderEmail" placeholder="Email*" required />
+                      </mat-form-field>
+                
+                      <hr class="ag-divider" />
+                
+                      <!-- Members -->
+                      <div class="ag-section-title ag-members-head">
+                        Members
+                     
+                      </div>
+                
+                      <div *ngIf="members.length === 0" class="ag-muted">
+                        No members added. This will be saved as an individual thesis.
+                      </div>
+                
+                      <div *ngFor="let m of members; let i = index" class="ag-member">
+                        <div class="ag-grid-2">
+                          <mat-form-field appearance="outline" class="ag-field">
+                            <mat-label>Firstname</mat-label>
+                            <input matInput [(ngModel)]="m.firstName" [name]="'memberFirst_'+i" placeholder="Firstname*" required />
+                          </mat-form-field>
+                
+                          <mat-form-field appearance="outline" class="ag-field">
+                            <mat-label>Lastname</mat-label>
+                            <input matInput [(ngModel)]="m.lastName" [name]="'memberLast_'+i" placeholder="Lastname*" required />
+                          </mat-form-field>
+                        </div>
+                
+                        <mat-form-field appearance="outline" class="ag-field">
+                          <mat-label>Email</mat-label>
+                          <input matInput type="email" [(ngModel)]="m.email" [name]="'memberEmail_'+i" placeholder="Email*" required />
+                        </mat-form-field>
+                
+                        <div class="ag-row-end">
+                          <button type="button" mat-button color="warn" (click)="removeMemberRow(i)">Remove</button>
+                        </div>
+                
+                        <hr class="ag-divider ag-divider--soft" *ngIf="i !== members.length - 1" />
+                      </div>
+                    </form>
+                  </mat-dialog-content>
+                
+                  <mat-dialog-actions align="start" class="ag-actions">
+                    <button class="ag-pill ag-pill--primary" [disabled]="!isFormValid()" (click)="saveNewGroup(dialogRef)">
+                      Create Group
+                    </button>
+                
+                    <button class="ag-pill ag-pill--outline" type="button" (click)="addMemberRow()">
+                      Add Members
+                    </button>
+                
+                    <span class="ag-flex-spacer"></span>
+                
+                  </mat-dialog-actions>
+                </ng-template>
+                
+                
+                
+                
               </div>
       
+            
+            
+            
               <!-- Table -->
               <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 full-width-table">
       
