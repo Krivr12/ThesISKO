@@ -16,7 +16,7 @@ const app = express();
 // ✅ Restrict CORS to your Angular app only
 const allowedOrigins = [
   "http://localhost:4200",   // Angular local dev
-  "https://your-production-domain.com" // replace with your real prod domain
+  "https://thesisko.vercel.app" // replace with your real prod domain
 ];
 
 app.use(cors({
