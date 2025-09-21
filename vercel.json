@@ -22,5 +22,8 @@
       "src": "/(.*)",
       "dest": "client/dist/Azalea/$1"
     }
-  ]
+  ],
+  "env": {
+    "NODE_VERSION": "18"
+  }
 }
