@@ -5,7 +5,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { Router, RouterLink } from '@angular/router';
-import { Auth } from '../../service/auth';
+import { Auth } from '../../service/auth.service';
 import { MessageService } from 'primeng/api';
 
 @Component({

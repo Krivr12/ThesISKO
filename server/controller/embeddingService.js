@@ -1,6 +1,6 @@
 // embeddingService.js
 import { pipeline } from "@xenova/transformers";
-import RepoMongodb from "../RepoMongodb/connection.js";
+import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 let embedder = null;
 
 /**
