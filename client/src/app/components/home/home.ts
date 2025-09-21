@@ -32,6 +32,7 @@ interface UpdateItem {
     DatePipe,
     FormsModule,
     ButtonModule,
+    RouterLink,
 
   ],
   providers: [DatePipe],
@@ -69,7 +70,8 @@ export class Home implements OnInit {
   goSearch() {
     const q = (this.homeQuery || '').trim();
     this.router.navigate(['/search-thesis'], {
-      queryParams: { q }   // Results page can read this via ActivatedRoute
+      queryParams: { q: q || null } // remove param pag empty
     });
   }
+  
 }
