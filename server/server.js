@@ -1,5 +1,9 @@
 import express from "express";
 import cors from "cors";
+import records from "./routes/records.js";
+import group_progress from "./routes/group_progress.js"
+import s3Routes from "./routes/s3Routes.js"; // import S3 routes
+import s3SearchRoutes from "./routes/s3Search.js"; // import separate search route
 import dotenv from "dotenv";
 
 dotenv.config({ path: "server/config.env" });
