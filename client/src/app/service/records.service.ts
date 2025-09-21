@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface UpdateItem {
   title: string;
@@ -14,7 +15,7 @@ export interface UpdateItem {
   providedIn: 'root'
 })
 export class RecordsService {
-  private apiUrl = 'http://localhost:5050/records'; // 👈 adjust if your server runs elsewhere
+  private apiUrl = environment.recordsApiUrl; // 👈 adjust if your server runs elsewhere
 
   constructor(private http: HttpClient) {}
 

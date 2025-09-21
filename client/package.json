@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "start": "node src/set-config.js && ng serve",
+    "build": "node src/set-config.js && ng build",
+    "watch": "node src/set-config.js && ng build --watch --configuration development",
+    "test": "ng test",
+    "generate-config": "node src/set-config.js"
   },
   "prettier": {
     "overrides": [
@@ -40,6 +41,8 @@
     "@angular/cli": "^20.1.3",
     "@angular/compiler-cli": "^20.1.0",
     "@types/jasmine": "~5.1.0",
+    "dotenv": "^17.2.2",
+    "esbuild": "^0.25.9",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

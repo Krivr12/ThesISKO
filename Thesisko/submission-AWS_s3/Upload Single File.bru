@@ -1,0 +1,15 @@
+meta {
+  name: Upload Single File
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:5050/s3/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(F:\school docs\Evangelista_SAM_Act1.pdf)
+}
