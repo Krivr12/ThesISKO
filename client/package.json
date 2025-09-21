@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
+    "start": "node src/set-config.js && ng serve",
+    "build": "node src/set-config.js && ng build",
+    "watch": "node src/set-config.js && ng build --watch --configuration development",
     "test": "ng test",
-    "postbuild": "node set-config.js"
+    "generate-config": "node src/set-config.js"
   },
   "prettier": {
     "overrides": [
