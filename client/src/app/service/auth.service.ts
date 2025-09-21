@@ -1,5 +1,5 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { signupPostData, User } from '../interface/auth';
 import { Observable } from 'rxjs';
 
@@ -7,7 +7,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class Auth {
-  private baseUrl = 'http://localhost:3000'
+  private baseUrl = (window as any).__env.authApiUrl;
+
   constructor(private http: HttpClient) {}
 
   signupUser(postData: signupPostData) {
@@ -15,8 +16,6 @@ export class Auth {
   }
 
   getUserDetails(email: string, password: string): Observable<User[]> {
-    return this.http.get<User[]> 
-    (`${this.baseUrl}/users?email=${email}&password=${password}`);
+    return this.http.get<User[]>(`${this.baseUrl}/users?email=${email}&password=${password}`);
   }
-  
 }
