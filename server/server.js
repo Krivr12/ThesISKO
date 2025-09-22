@@ -6,6 +6,7 @@ import s3Routes from "./routes/s3Routes.js"; // import S3 routes
 import s3SearchRoutes from "./routes/s3Search.js"; // import separate search route
 import dotenv from "dotenv";
 
+const PORT = process.env.PORT || 5050;
 dotenv.config({ path: "server/config.env" });
 
 const app = express();
@@ -39,6 +40,13 @@ app.use("/group_progress", group_progress);
 app.use("/s3", s3Routes); 
 app.use("/s3", s3SearchRoutes); 
 
+
+
+app.listen(PORT, () => {
+  console.log(`✅ Server listening on port ${PORT}`);
+});
+//node --env-file=config.env server.js    
 // ❌ REMOVE app.listen()
 // ✅ Export the app for Vercel
 export default app;
+
