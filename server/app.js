@@ -6,6 +6,8 @@ import group_progress from "./routes/group_progress.js"
 import s3Routes from "./routes/s3Routes.js"; // import S3 routes
 import s3SearchRoutes from "./routes/s3Search.js"; // import separate search route
 import blocks from "./routes/blocks.js"
+import groups from "./routes/groups.js"
+import programs from "./routes/programs.js"
 
 dotenv.config({ path: "config.env" });
 
@@ -39,6 +41,8 @@ app.use("/group_progress", group_progress);
 app.use("/s3", s3Routes); 
 app.use("/s3", s3SearchRoutes); 
 app.use("/blocks", blocks);
+app.use("/groups", groups);
+app.use("/programs", programs);
 
 // ❌ REMOVE app.listen()
 // ✅ Export the app for Vercel

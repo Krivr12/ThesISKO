@@ -1,8 +1,27 @@
 import express from "express";
-import RepoMongodb from "../RepoMongodb/connection.js";
+import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 
 const router = express.Router();
 const collection = RepoMongodb.collection("groups");
+
+// -------------------- Helper: Deep Merge --------------------
+function deepMerge(target, source) {
+  for (const key in source) {
+    if (Array.isArray(source[key])) {
+      // Merge arrays instead of replacing
+      target[key] = [...(target[key] || []), ...source[key]];
+    } else if (
+      source[key] &&
+      typeof source[key] === "object" &&
+      !Array.isArray(source[key])
+    ) {
+      target[key] = deepMerge(target[key] || {}, source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
 
 // -------------------- Routes --------------------
 
@@ -39,7 +58,7 @@ router.post("/", async (req, res) => {
     const { block_id, title, leader, members } = req.body;
 
     if (!block_id || !leader?.email) {
-      return res.status(400).json({ error: "block_id and leader are required" });
+      return res.status(400).json({ error: "block_id and leader.email are required" });
     }
 
     // Count how many groups already exist for this block
@@ -67,8 +86,8 @@ router.post("/", async (req, res) => {
     const result = await collection.insertOne(newGroup);
 
     res.status(201).json({
-      insertedId: result.insertedId,
-      group_id,
+      message: "Group created successfully",
+      group: newGroup,
     });
   } catch (err) {
     console.error(err);
@@ -92,11 +111,11 @@ router.put("/:group_id", async (req, res) => {
     if (req.body.leader) updateFields.leader = req.body.leader;
     if (req.body.members) updateFields.members = req.body.members;
 
-    if (req.body.milestones) {
-      updateFields.milestones = {
-        ...existingDoc.milestones,   // keep existing milestone structure
-        ...req.body.milestones       // override only provided fields
-      };
+    if (req.body.milestones && typeof req.body.milestones === "object") {
+      updateFields.milestones = deepMerge(
+        { ...existingDoc.milestones },
+        req.body.milestones
+      );
     }
 
     if (req.body.progress) {
@@ -113,21 +132,18 @@ router.put("/:group_id", async (req, res) => {
 
     updateFields.updated_at = new Date();
 
-    const result = await collection.updateOne(
-      { group_id },
-      { $set: updateFields }
-    );
+    await collection.updateOne({ group_id }, { $set: updateFields });
+    const updatedDoc = await collection.findOne({ group_id });
 
     res.json({
       message: "Group updated successfully",
-      modifiedCount: result.modifiedCount,
+      group: updatedDoc,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error updating group" });
   }
 });
-
 
 // DELETE a group by group_id
 router.delete("/:group_id", async (req, res) => {
@@ -140,6 +156,7 @@ router.delete("/:group_id", async (req, res) => {
 
     res.status(200).json({
       message: `Group ${req.params.group_id} deleted successfully`,
+      deletedId: req.params.group_id,
     });
   } catch (err) {
     console.error(err);

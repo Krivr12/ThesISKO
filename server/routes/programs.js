@@ -1,6 +1,5 @@
 import express from "express";
-import RepoMongodb from "../RepoMongodb/connection.js";
-import { ObjectId } from "mongodb";
+import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 
 const router = express.Router();
 const collection = RepoMongodb.collection("programs"); // collection name
@@ -11,10 +10,10 @@ const collection = RepoMongodb.collection("programs"); // collection name
 router.get("/", async (req, res) => {
   try {
     const results = await collection.find({}).limit(50).toArray();
-    res.status(200).json(results);
+    res.status(200).json({ success: true, data: results });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error fetching programs" });
+    res.status(500).json({ success: false, message: "Error fetching programs" });
   }
 });
 
@@ -24,13 +23,13 @@ router.get("/:program_id", async (req, res) => {
     const result = await collection.findOne({ program_id: req.params.program_id });
 
     if (!result) {
-      return res.status(404).json({ error: "Program not found" });
+      return res.status(404).json({ success: false, message: "Program not found" });
     }
 
-    res.status(200).json(result);
+    res.status(200).json({ success: true, data: result });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error fetching program" });
+    res.status(500).json({ success: false, message: "Error fetching program" });
   }
 });
 
@@ -40,7 +39,13 @@ router.post("/", async (req, res) => {
     const { program_id, department, program, chairperson_id } = req.body;
 
     if (!program_id || !department || !program || !chairperson_id) {
-      return res.status(400).json({ error: "All fields are required" });
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    // Prevent duplicate program_id
+    const existing = await collection.findOne({ program_id });
+    if (existing) {
+      return res.status(409).json({ success: false, message: "Program ID already exists" });
     }
 
     const newProgram = {
@@ -55,12 +60,13 @@ router.post("/", async (req, res) => {
     const result = await collection.insertOne(newProgram);
 
     res.status(201).json({
-      insertedId: result.insertedId,
-      program_id,
+      success: true,
+      message: "Program created successfully",
+      data: { insertedId: result.insertedId, program_id },
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error adding program" });
+    res.status(500).json({ success: false, message: "Error adding program" });
   }
 });
 
@@ -68,14 +74,15 @@ router.post("/", async (req, res) => {
 router.put("/:program_id", async (req, res) => {
   try {
     const { program_id } = req.params;
+    const { department, program, chairperson_id } = req.body;
 
     const updateFields = {};
-    if (req.body.department) updateFields.department = req.body.department;
-    if (req.body.program) updateFields.program = req.body.program;
-    if (req.body.chairperson_id) updateFields.chairperson_id = req.body.chairperson_id;
+    if (department?.trim()) updateFields.department = department;
+    if (program?.trim()) updateFields.program = program;
+    if (chairperson_id?.trim()) updateFields.chairperson_id = chairperson_id;
 
     if (Object.keys(updateFields).length === 0) {
-      return res.status(400).json({ error: "No fields to update" });
+      return res.status(400).json({ success: false, message: "No valid fields to update" });
     }
 
     updateFields.updated_at = new Date();
@@ -86,16 +93,17 @@ router.put("/:program_id", async (req, res) => {
     );
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({ error: "Program not found" });
+      return res.status(404).json({ success: false, message: "Program not found" });
     }
 
     res.json({
+      success: true,
       message: "Program updated successfully",
-      modifiedCount: result.modifiedCount,
+      data: { modifiedCount: result.modifiedCount },
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error updating program" });
+    res.status(500).json({ success: false, message: "Error updating program" });
   }
 });
 
@@ -105,15 +113,16 @@ router.delete("/:program_id", async (req, res) => {
     const result = await collection.deleteOne({ program_id: req.params.program_id });
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({ error: "Program not found" });
+      return res.status(404).json({ success: false, message: "Program not found" });
     }
 
     res.status(200).json({
-      message: Program ${req.params.program_id} deleted successfully,
+      success: true,
+      message: `Program ${req.params.program_id} deleted successfully`,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error deleting program" });
+    res.status(500).json({ success: false, message: "Error deleting program" });
   }
 });
 
