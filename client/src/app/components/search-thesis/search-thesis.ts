@@ -97,7 +97,7 @@ export class SearchThesis implements OnInit {
       return;
     }
 
-    this.http.post<{ results: any[] }>('http://localhost:5050/records/search', {
+    this.http.post<{ results: any[] }>('https://thesisko-server.vercel.app/records/search', {
       query: this.searchQuery,
       topK: 10
     }).subscribe({
@@ -218,7 +218,7 @@ export class SearchThesis implements OnInit {
   }
 
   viewThesis(thesis: Thesis): void {
-    this.http.post<Thesis[]>('http://localhost:5050/records/theses/by-ids', {
+    this.http.post<Thesis[]>('https://thesisko-server.vercel.app/records/theses/by-ids', {
       ids: [thesis._id]
     }).subscribe({
       next: (res) => {
