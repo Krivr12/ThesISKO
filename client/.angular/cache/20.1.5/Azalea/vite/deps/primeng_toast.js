@@ -9,6 +9,12 @@ import {
   TimesIcon
 } from "./chunk-LGGH466I.js";
 import {
+  BaseComponent
+} from "./chunk-B6TDCF7D.js";
+import {
+  BaseStyle
+} from "./chunk-GXVHADCZ.js";
+import {
   animate,
   animateChild,
   query,
@@ -17,12 +23,6 @@ import {
   transition,
   trigger
 } from "./chunk-FIT3ROIU.js";
-import {
-  BaseComponent
-} from "./chunk-B6TDCF7D.js";
-import {
-  BaseStyle
-} from "./chunk-GXVHADCZ.js";
 import {
   Kt,
   MessageService,

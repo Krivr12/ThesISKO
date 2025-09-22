@@ -1,0 +1,121 @@
+<div class="page-layout">
+    <app-admin-sidebar></app-admin-sidebar>
+    <main class="main-content">
+        <!-- Main View -->
+        <div class="list-view-container">
+            <header class="page-header">
+                <h1 class="page-title">Chairpersons</h1>
+                <div class="header-actions">
+                    <button class="add-chairperson-btn" (click)="openAddChairpersonModal()">Add Faculty</button>
+                </div>
+            </header>
+
+            <!-- Chairpersons Table -->
+            <div class="chairpersons-table">
+                <div class="table-header">
+                    <div class="header-item sortable" (click)="onSort('lastName')">
+                        Faculty Name
+                        <span class="sort-arrow" *ngIf="sortColumn === 'lastName'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('email')">
+                        Email
+                        <span class="sort-arrow" *ngIf="sortColumn === 'email'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('facultyNumber')">
+                        Faculty Number
+                        <span class="sort-arrow" *ngIf="sortColumn === 'facultyNumber'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item">
+                        Actions
+                    </div>
+                </div>
+                
+                <div class="table-row" *ngFor="let chairperson of paginatedChairpersons; let i = index">
+                    <div class="row-item">
+                        <strong>Dr. {{ getFullName(chairperson) }}</strong>
+                    </div>
+                    <div class="row-item">{{ chairperson.email }}</div>
+                    <div class="row-item">{{ chairperson.facultyNumber }}</div>
+                    <div class="row-item">
+                        <button class="edit-btn" (click)="openEditChairpersonModal(i + ((currentPage - 1) * itemsPerPage))">
+                            Edit Faculty
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paginator -->
+            <div class="paginator">
+                <button class="paginator-nav" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                    &lt; Previous
+                </button>
+                <div class="paginator-pages">
+                    <ng-container *ngFor="let page of pages">
+                        <span *ngIf="page === '...'" class="paginator-item ellipsis">...</span>
+                        <button *ngIf="page !== '...'" 
+                                class="paginator-item" 
+                                [class.active]="currentPage === page"
+                                (click)="goToPage(page)">
+                            {{ page }}
+                        </button>
+                    </ng-container>
+                </div>
+                <button class="paginator-nav" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+                    Next &gt;
+                </button>
+            </div>
+        </div>
+
+        <!-- Add/Edit Chairperson Modal -->
+        <div class="modal-overlay" *ngIf="isAddChairpersonModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">{{ isEditMode ? 'Edit Faculty' : 'Add Faculty' }}</h3>
+                    <button class="modal-close-btn" (click)="closeAddChairpersonModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <form class="chairperson-form">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-input" 
+                                   placeholder="Juan"
+                                   [(ngModel)]="newChairperson.firstName" 
+                                   name="firstName">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-input" 
+                                   placeholder="Dela Cruz"
+                                   [(ngModel)]="newChairperson.lastName" 
+                                   name="lastName">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" 
+                                   placeholder="jdelacruz@pup.edu.ph"
+                                   [(ngModel)]="newChairperson.email" 
+                                   name="email">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Faculty Number</label>
+                            <input type="text" class="form-input" 
+                                   placeholder="FA00001MN2025"
+                                   [(ngModel)]="newChairperson.facultyNumber" 
+                                   name="facultyNumber">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" 
+                            (click)="saveChairperson()"
+                            [disabled]="!isFormValid()">
+                        {{ isEditMode ? 'Update' : 'Add' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

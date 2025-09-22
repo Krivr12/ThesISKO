@@ -1,0 +1,133 @@
+<div class="page-layout">
+    <app-admin-sidebar></app-admin-sidebar>
+    <main class="main-content">
+        <!-- Main View -->
+        <div class="list-view-container">
+            <header class="page-header">
+                <h1 class="page-title">Departments</h1>
+                <div class="header-actions">
+                    <button class="add-department-btn" (click)="openAddDepartmentModal()">Add Department</button>
+                </div>
+            </header>
+
+            <!-- College Filter -->
+            <div class="filter-section">
+                <div class="college-filter">
+                    
+                    <div class="filter-buttons">
+                        <button [class.active]="currentCollege === 'CCIS'" (click)="setCollegeFilter('CCIS')">CCIS</button>
+                        <!-- Commented out other colleges for future use -->
+                        <!-- <button [class.active]="currentCollege === 'COC'" (click)="setCollegeFilter('COC')">COC</button> -->
+                        <!-- <button [class.active]="currentCollege === 'CE'" (click)="setCollegeFilter('CE')">CE</button> -->
+                        <button [class.active]="currentCollege === 'all'" (click)="setCollegeFilter('all')">All Colleges</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Departments Table -->
+            <div class="departments-table">
+                <div class="table-header">
+                    <div class="header-item sortable" (click)="onSort('program')">
+                        Department
+                        <span class="sort-arrow" *ngIf="sortColumn === 'program'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('college')">
+                        College
+                        <span class="sort-arrow" *ngIf="sortColumn === 'college'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('documentCount')">
+                        Total Number of Documents
+                        <span class="sort-arrow" *ngIf="sortColumn === 'documentCount'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                </div>
+                
+                <div class="table-row" *ngFor="let dept of paginatedDepartments">
+                    <div class="row-item">{{ dept.program }}</div>
+                    <div class="row-item">{{ dept.college }}</div>
+                    <div class="row-item">{{ dept.documentCount }}</div>
+                </div>
+            </div>
+
+            <!-- Paginator (Reused from documents) -->
+            <div class="paginator">
+                <button class="paginator-nav" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                    &lt; Previous
+                </button>
+                <div class="paginator-pages">
+                    <ng-container *ngFor="let page of pages">
+                        <span *ngIf="page === '...'" class="paginator-item ellipsis">...</span>
+                        <button *ngIf="page !== '...'" 
+                                class="paginator-item" 
+                                [class.active]="currentPage === page"
+                                (click)="goToPage(page)">
+                            {{ page }}
+                        </button>
+                    </ng-container>
+                </div>
+                <button class="paginator-nav" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+                    Next &gt;
+                </button>
+            </div>
+        </div>
+
+        <!-- Add Department Modal -->
+        <div class="modal-overlay" *ngIf="isAddDepartmentModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Add Department</h3>
+                    <button class="modal-close-btn" (click)="closeAddDepartmentModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <form class="department-form">
+                        <div class="form-group">
+                            <label class="form-label">Program</label>
+                            <input type="text" class="form-input" 
+                                   placeholder="Bachelor of Science in Information Technology"
+                                   [(ngModel)]="newDepartment.program" 
+                                   name="program">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Program Code</label>
+                            <input type="text" class="form-input" 
+                                   placeholder="BSIT"
+                                   [(ngModel)]="newDepartment.programCode" 
+                                   name="programCode">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">College</label>
+                            <input type="text" class="form-input" 
+                                   placeholder="CCIS"
+                                   [(ngModel)]="newDepartment.college" 
+                                   name="college"
+                                   value="CCIS">
+                            <!-- Commented out dropdown for future use -->
+                            <!--
+                            <select class="form-select" [(ngModel)]="newDepartment.college" name="college">
+                                <option value="">Select College</option>
+                                <option value="CCIS">CCIS</option>
+                                <option value="COC">COC</option>
+                                <option value="COE">CE</option>
+                            </select>
+                            -->
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Chairperson</label>
+                            <input type="text" class="form-input" 
+                                   placeholder="FA0001MN2025"
+                                   [(ngModel)]="newDepartment.chairperson" 
+                                   name="chairperson">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" 
+                            (click)="addDepartment()"
+                            [disabled]="!isFormValid()">Add</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

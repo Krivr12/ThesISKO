@@ -8,6 +8,10 @@ import { SearchResult } from './components/search-result/search-result';
 import { Submission } from './components/submission/submission';
 import { ThankYou } from './components/thank-you/thank-you';
 import { LoginModal } from './components/login-modal/login-modal';
+import { AdminDashboard } from './components/admin-dashboard/admin-dashboard';
+import { AdminDocuments } from './components/admin-documents/admin-documents';
+import { AdminDepartments } from './components/admin-departments/admin-departments';
+import { AdminChairpersons } from './components/admin-chairpersons/admin-chairpersons';
 
 export const routes: Routes = [
     {path: 'login', component: Login},
@@ -19,5 +23,9 @@ export const routes: Routes = [
     {path: 'submission', component: Submission},
     {path: 'thank-you', component: ThankYou},
     {path: 'login-modal', component: LoginModal},
+    {path: 'admin-dashboard', component: AdminDashboard},
+    {path: 'admin-documents', component: AdminDocuments},
+    {path: 'admin-departments', component: AdminDepartments},
+    {path: 'admin-chairpersons', component: AdminChairpersons},
     {path: '', redirectTo: 'home', pathMatch: 'full'}
 ];
