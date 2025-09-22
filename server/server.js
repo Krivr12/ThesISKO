@@ -45,8 +45,11 @@ app.use("/s3", s3SearchRoutes);
 app.listen(PORT, () => {
   console.log(`✅ Server listening on port ${PORT}`);
 });
+
+export default app;
+
+
 //node --env-file=config.env server.js    
 // ❌ REMOVE app.listen()
 // ✅ Export the app for Vercel
-export default app;
 
