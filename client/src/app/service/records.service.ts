@@ -14,7 +14,7 @@ export interface UpdateItem {
   providedIn: 'root'
 })
 export class RecordsService {
-  private apiUrl = 'http://localhost:5050/records'; // 👈 adjust if your server runs elsewhere
+  private apiUrl = 'https://thesisko-server.vercel.app/records'; // 👈 adjust if your server runs elsewhere
 
   constructor(private http: HttpClient) {}
 
