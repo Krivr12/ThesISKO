@@ -6,13 +6,13 @@ import s3Routes from "./routes/s3Routes.js"; // import S3 routes
 import s3SearchRoutes from "./routes/s3Search.js"; // import separate search route
 import dotenv from "dotenv";
 
-dotenv.config({ path: "server/config.env" });
+dotenv.config({ path: "config.env" });
 
 const app = express();
 
 // ✅ Load allowed origins from env
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
   : [];
 
 app.use(
