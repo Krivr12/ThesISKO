@@ -69,7 +69,7 @@ export class SearchThesis implements OnInit {
   }
 
   private fetchAllRecords(): void {
-    this.http.get<Thesis[]>('http://localhost:5050/records').subscribe({
+    this.http.get<Thesis[]>('https://thesisko-server.vercel.app/records').subscribe({
       next: (data) => {
         this.allTheses = data;
 
