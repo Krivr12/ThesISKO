@@ -1,10 +1,11 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
 import records from "./routes/records.js";
 import group_progress from "./routes/group_progress.js"
 import s3Routes from "./routes/s3Routes.js"; // import S3 routes
 import s3SearchRoutes from "./routes/s3Search.js"; // import separate search route
-import dotenv from "dotenv";
+import blocks from "./routes/blocks.js"
 
 dotenv.config({ path: "config.env" });
 
@@ -37,6 +38,7 @@ app.use("/records", records);
 app.use("/group_progress", group_progress);
 app.use("/s3", s3Routes); 
 app.use("/s3", s3SearchRoutes); 
+app.use("/blocks", blocks);
 
 // ❌ REMOVE app.listen()
 // ✅ Export the app for Vercel
