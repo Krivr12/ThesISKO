@@ -5,6 +5,8 @@ import { Navbar } from "../navbar/navbar";
 import { Router } from '@angular/router';
 import { SubmissionService } from '../../service/submission.service';
 import { UploadService } from '../../service/upload.service';
+import { HttpEvent, HttpEventType } from '@angular/common/http';
+
 
 
 
@@ -380,35 +382,45 @@ confirmStep4Upload(isConfirmed: boolean) {
     this.viewState.set(nextState);
     return;
   }
+  
+ if (currentState === 'step4_confirming') {
+  this.submissionService.uploadMultipleFiles(this.files()).subscribe({
+    next: (progress: number) => {
+      console.log("Progress:", progress);
+      if (progress === 100) {
+        console.log("Upload complete!");
+        this.viewState.set('step4_submitted');
+        this.statusHistory.set([{ text: 'Submitted', type: 'default' }]);
+      }
+    },
+    error: (err) => {
+      console.error("Upload error:", err);
+    }
+  });
 
-  if (currentState === 'step4_confirming') {
-    this.viewState.set('step4_submitted');
-    this.statusHistory.set([{ text: 'Submitted', type: 'default' }]);
-    this.simulateStep4ReviewProcess();
-  } else if (currentState === 'step4_revisionConfirming') {
-    this.viewState.set('step4_revisionSubmitted');
-    this.statusHistory.update(history => [...history, { text: 'Revision Submitted', type: 'warning' }]);
-    this.simulateStep4FinalApproval();
-  }
+} else if (currentState === 'step4_revisionConfirming') {
+  this.submissionService.uploadMultipleFiles(this.files()).subscribe({
+    next: (progress: number) => {
+      console.log("Revision progress:", progress);
+      if (progress === 100) {
+        console.log("Revision upload complete!");
+        this.viewState.set('step4_revisionSubmitted');
+        this.statusHistory.update(history => [...history, { text: 'Revision Submitted', type: 'warning' }]);
+      }
+    },
+    error: (err) => {
+      console.error("Revision upload error:", err);
+    }
+  });
 }
 
-private simulateStep4ReviewProcess() {
-  setTimeout(() => {
-    this.statusHistory.update(history => [...history, { text: 'Pending Review', type: 'default' }]);
-  }, 2000);
 
-  setTimeout(() => {
-    this.statusHistory.update(history => [...history, { text: 'Rejected - Incomplete', type: 'error' }]);
-    this.viewState.set('step4_needsRevision');
-  }, 4000);
-}
 
-private simulateStep4FinalApproval() {
-  setTimeout(() => {
-    this.statusHistory.update(history => [...history, { text: 'Approved', type: 'success' }]);
-    this.viewState.set('step4_approved');
-  }, 3000);
+
 }
+  
+
+
 
   // step 5 methods
 updateGroupNumber(number: number) {
