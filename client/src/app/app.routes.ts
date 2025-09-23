@@ -22,6 +22,13 @@ import { Departments } from './superAdmin/departments/departments';
 import { Documents } from './superAdmin/documents/documents';
 import { ForPanellanding } from './facultySide/for-panellanding/for-panellanding';
 import { ForFICLanding } from './facultySide/for-ficlanding/for-ficlanding';
+import { DocumentsVerify } from './superAdmin/documents-verify/documents-verify';
+import { AdminDashboard} from './admin/admin-dashboard/admin-dashboard';
+import { AdminBlock } from './admin/admin-block/admin-block';
+import { AdminFaculties } from './admin/admin-faculties/admin-faculties';
+import { AdminTemplate } from './admin/admin-template/admin-template';
+import { AdminDocuments } from './admin/admin-documents/admin-documents';
+import { AdminRequest } from './admin/admin-request/admin-request';
 
 export const routes: Routes = [
    // login
@@ -57,12 +64,26 @@ export const routes: Routes = [
     { path: 'panelist-approval-page/:id', component: PanelistApprovalPage },
     { path: 'panelis-approval-page/:id', redirectTo: 'panelist-approval-page/:id', pathMatch: 'full' },
 
-    //superadmin
+    //superadmin ni Yasmine
     {path: 'super-admin-nav-bar', component: SuperAdminNavBar},
 
     {path: 'chairperson', component: Chairperson},
     {path: 'dashboard', component: Dashboard},
-    {path: 'department', component: Departments},
+    {path: 'departments', component: Departments},
+    
     {path: 'documents', component: Documents},
+    {path: 'documents-verify', component: Documents},
+    { path: 'documents-verify/:id', component: DocumentsVerify },
+    { path: 'documents-verify/:id', redirectTo: 'documents-verify/:id', pathMatch: 'full' },
+
+    //admin
+    {path: 'admin-block', component: AdminBlock},
+    {path: 'admin-dashboard', component: AdminDashboard},
+    {path: 'admin-documents', component: AdminDocuments},
+    {path: 'admin-faculties', component: AdminFaculties},
+    {path: 'admin-request', component: AdminRequest},
+    {path: 'admin-template', component: AdminTemplate},
+
+
 
 ];

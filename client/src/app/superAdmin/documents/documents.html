@@ -1,1 +1,57 @@
-<p>documents works!</p>
+<div class="container">
+    <app-super-admin-nav-bar></app-super-admin-nav-bar>
+  
+    <mat-sidenav-container class="container" style="height: 100vh;">
+      <mat-sidenav-content class="content">
+        <div class="page">
+          <!-- Return button -->
+          <button type="button" mat-button class="return" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Return
+          </button>
+  
+          <!-- Card -->
+          <div class="rectangle-container">
+            <div class="controls"></div>
+  
+            <!-- Table -->
+            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 full-width-table">
+              <!-- Title -->
+              <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef>Title</th>
+                <td mat-cell *matCellDef="let e">{{ e.title }}</td>
+              </ng-container>
+  
+              <!-- Submitted -->
+              <ng-container matColumnDef="submissionDate">
+                <th mat-header-cell *matHeaderCellDef>Submitted</th>
+                <td mat-cell *matCellDef="let e">{{ e.submitted_at | date:'yyyy-MM-dd HH:mm' }}</td>
+              </ng-container>
+  
+              <!-- Group ID -->
+              <ng-container matColumnDef="group_id">
+                <th mat-header-cell *matHeaderCellDef>Group ID</th>
+                <td mat-cell *matCellDef="let e">{{ e.group_id }}</td>
+              </ng-container>
+  
+              <!-- Verify -->
+              <ng-container matColumnDef="forApproval">
+                <th mat-header-cell *matHeaderCellDef>Verify</th>
+                <td mat-cell *matCellDef="let e">
+                  <button mat-raised-button color="primary" (click)="goToApproval(e.group_id)">
+                    VERIFY
+                  </button>
+                </td>
+              </ng-container>
+  
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+  
+            <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
+          </div>
+        </div>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  </div>
+  

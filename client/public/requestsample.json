@@ -1,0 +1,98 @@
+[
+    {
+      "requestor_name": "Olive Bautista",
+      "date": "2025-09-24",
+      "time": "03:15",
+      "selected_chapter": "all",
+      "purpose": "Capstone literature review and methodology cross-check",
+      "email": "olive.bautista@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Bea Zamora",
+      "date": "2025-09-23",
+      "time": "14:20",
+      "selected_chapter": "1",
+      "purpose": "Topic approval and background study drafting",
+      "email": "bea.zamora@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Rica Torres",
+      "date": "2025-09-23",
+      "time": "09:05",
+      "selected_chapter": "2",
+      "purpose": "Related works matrix and gap analysis",
+      "email": "rica.torres@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Owen Garcia",
+      "date": "2025-09-22",
+      "time": "16:42",
+      "selected_chapter": "3",
+      "purpose": "Methodology refinement and Gantt chart alignment",
+      "email": "owen.garcia@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Kim Mingyu",
+      "date": "2025-09-22",
+      "time": "11:30",
+      "selected_chapter": "4",
+      "purpose": "Results interpretation draft",
+      "email": "mingyu.kim@pup.edu.ph"
+    },
+    {
+      "requestor_name": "Ryan Garcia",
+      "date": "2025-09-21",
+      "time": "10:10",
+      "selected_chapter": "5",
+      "purpose": "Conclusion and recommendations review",
+      "email": "ryan.garcia@pup.edu.ph"
+    },
+    {
+      "requestor_name": "Yasmine San Gabriel",
+      "date": "2025-09-21",
+      "time": "08:55",
+      "selected_chapter": "1",
+      "purpose": "Problem statement and scope validation",
+      "email": "yasmine.sangabriel@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Christopher Dela Cruz",
+      "date": "2025-09-20",
+      "time": "15:00",
+      "selected_chapter": "2",
+      "purpose": "Citation checks for RRL",
+      "email": "christopher.delacruz@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Aira Santos",
+      "date": "2025-09-20",
+      "time": "12:18",
+      "selected_chapter": "3",
+      "purpose": "Instrument validation planning",
+      "email": "aira.santos@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Jomar Reyes",
+      "date": "2025-09-19",
+      "time": "17:45",
+      "selected_chapter": "4",
+      "purpose": "Preliminary results sanity check",
+      "email": "jomar.reyes@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Liza Cruz",
+      "date": "2025-09-19",
+      "time": "09:40",
+      "selected_chapter": "5",
+      "purpose": "Abstract drafting based on conclusions",
+      "email": "liza.cruz@students.pup.edu.ph"
+    },
+    {
+      "requestor_name": "Paolo Mendoza",
+      "date": "2025-09-18",
+      "time": "13:25",
+      "selected_chapter": "all",
+      "purpose": "Complete manuscript audit before submission",
+      "email": "paolo.mendoza@students.pup.edu.ph"
+    }
+  ]
