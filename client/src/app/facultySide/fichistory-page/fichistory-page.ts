@@ -5,6 +5,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Sidenavbar } from '../sidenavbar/sidenavbar';
+import { MatIconModule } from '@angular/material/icon';
 
 type Status = 'Approved' | 'Not Approved' | 'Pending';
 
@@ -31,7 +32,7 @@ export interface HistoryItem {
 @Component({
   selector: 'app-fichistory-page',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, Sidenavbar],
+  imports: [CommonModule, HttpClientModule, Sidenavbar, MatIconModule],
   templateUrl: './fichistory-page.html',
   styleUrls: ['./fichistory-page.css']
 })
@@ -61,13 +62,13 @@ export class FICHistoryPage implements OnInit {
   private bootstrapData(): void {
     const gid = this.groupId;
 
-    // ✅ Load only from groups.json
+    
     const group$ = this.http.get<GroupMeta[]>(this.GROUPS_URL).pipe(
       map((list: GroupMeta[] = []) => {
         const found = list.find(g => String(g.group_id) === String(gid));
-        return found ?? null; // no fallback; rely solely on groups.json
+        return found ?? null; 
       }),
-      catchError(() => of(null)) // if the file is missing or unreadable
+      catchError(() => of(null)) 
     );
 
     const panelists$ = this.http
@@ -92,7 +93,7 @@ export class FICHistoryPage implements OnInit {
         })
       )
       .subscribe(({ group, panelists, history }) => {
-        this.group = group;            // can be null if not found in groups.json
+        this.group = group;            
         this.panelists = panelists;
         this.history = history;
         this.loading = false;
@@ -121,7 +122,6 @@ export class FICHistoryPage implements OnInit {
 
   goBack(): void { this.location.back(); }
 
-  // mocks for now
   private mockPanelists(): Panelist[] {
     return [
       { name: 'Nino Escueta', status: 'Not Approved' },

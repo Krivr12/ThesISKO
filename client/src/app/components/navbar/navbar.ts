@@ -68,7 +68,7 @@ export class Navbar implements OnInit {
   user$!: Observable<AuthUser | null>;
   profileItems: MenuItem[] = [];
   /** Default fallback image in assets */
-  defaultAvatar = 'assets/profile.jpg';
+  defaultAvatar = 'profile.png';
 
   constructor(private auth: AuthService, private router: Router) {
     this.user$ = this.auth.user$; // assign in ctor to avoid DI timing issues

@@ -24,23 +24,55 @@
         <p><b>Members’ Emails:</b> {{ g.member_emails?.length ? g.member_emails.join(', ') : '—' }}</p>
       </div>
 
-      <div class="subject-row">
-        <div class="subject-label"><b>Subject:</b> Thesis Manuscript</div>
 
-        <div class="file-pill" *ngIf="g.fileName">
-          <mat-icon>attach_file</mat-icon>
-          <a *ngIf="g.fileUrl; else noLink" [href]="g.fileUrl" target="_blank" rel="noopener">
-            {{ g.fileName }}
-          </a>
-          <ng-template #noLink>{{ g.fileName }}</ng-template>
+<div class="subject-row">
+  <div class="subject-label"><b>Subject:</b> Thesis Manuscript</div>
 
-          <div class="upload-bar">
-            <div class="fill" [style.width.%]="g.fileProgress || 100"></div>
-          </div>
+  <div class="file-pill" *ngIf="g.fileName">
+    <mat-icon>attach_file</mat-icon>
 
-          <small *ngIf="g.fileSizeText">{{ g.fileSizeText }}</small>
-        </div>
-      </div>
+    <a *ngIf="g.fileUrl; else noLink" [href]="g.fileUrl" target="_blank" rel="noopener">
+      {{ g.fileName }}
+    </a>
+    <ng-template #noLink>{{ g.fileName }}</ng-template>
+
+    <!-- NEW: Preview button -->
+    <button
+      mat-stroked-button
+      class="ml-8"
+      *ngIf="g.fileUrl"
+      (click)="openFilePreview(g.fileUrl, 'sample.pdf')">
+      <mat-icon>visibility</mat-icon>
+      Preview
+    </button>
+
+    <div class="upload-bar">
+      <div class="fill" [style.width.%]="g.fileProgress || 100"></div>
+    </div>
+
+    <small *ngIf="g.fileSizeText">{{ g.fileSizeText }}</small>
+  </div>
+</div>
+
+<!-- ======== Dialog Template (stays in the same file) ======== -->
+<ng-template #pdfDialog let-dialogRef="dialogRef">
+  <div class="viewer-header">
+    <div class="title">
+      <span>{{ previewTitle }}</span>
+      <small *ngIf="previewFileName">• {{ previewFileName }}</small>
+    </div>
+    <button mat-icon-button aria-label="Close" (click)="dialogRef.close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="viewer-body">
+    <!-- PDF in iframe (works for any public or pre-signed S3 URL) -->
+    <iframe class="pdf-frame" [src]="previewSafeUrl" title="PDF preview"></iframe>
+  </div>
+</ng-template>
+
+      
 
       <!-- Remarks -->
       <div class="remarks-block">

@@ -1,175 +1,86 @@
-html, body { height: 100%; }
-body { margin: 0; }                /* remove browser default 8px margin */
+/* Base layout */
+html, body { height: 100%; margin: 0; }
+.container { display: flex; height: 100vh; width: 100%; }
+app-sidenavbar { width: 200px; flex-shrink: 0; }
 
-/* Make the whole page split: navbar on the left, content on the right */
-.container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-}
-
-/* Sidebar (your <app-navbar>) */
-app-sidenavbar {
-  width: 200px;
-  flex-shrink: 0;
-}
-
-
-/* Main content (table area) */
+/* Content area — no extra padding; .page handles spacing */
 mat-sidenav-content.content {
-  flex: 1;                   /* take the rest of the width */
-  padding: 1rem;
-  overflow: auto;            /* scroll if content is big */
-  background: #f9f9f9;       /* optional: light background */
-}
-
-/* Rectangle container for table */
-.rectangle-container {
-  width: 95%;
-  margin: 0 auto;
-  padding: 16px;
-  background: #fff;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.sidenav-container { height: 100vh; }
-
-.sidenav {
-  width: 200px;
-  background-color: #800000;
-  padding: 1rem;                   /* keep compact; adjust as you like */
-}
-
-.logo { margin-bottom: 1rem; color: white; font-weight: bold; }
-
-.nav-links a {
-  display: block;
-  margin: 0.5rem 0;                /* remove the extra margin-top duplication */
-  color: white;
-}
-
-/* kill the gray gap */
-mat-sidenav-content.content {
+  flex: 1;
+  overflow: auto;
+  background: #f9f9f9;
   padding: 0 !important;
   margin: 0 !important;
+  display: block;
+}
+
+/* One centered column for Return + card */
+.page {
+  max-width: 1200px;
+  width: 100%;
+  margin: 24px auto;
+  padding: 0 16px;          /* aligns Return and card left edges */
+  box-sizing: border-box;
+}
+
+/* Return button */
+button.return {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin: 0 0 12px;
+  color: #800000;
+  text-decoration: none;
+}
+button.return:hover,
+button.return:focus { text-decoration: none; }
+
+/* Card */
+.rectangle-container {
+  background: #fff;
+  border: 2px solid #800000; /* theme color */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin: 0;                /* sits right under the Return button */
+}
+
+/* Controls row */
+.controls-bar {
   display: flex;
-  justify-content: center; /* centers horizontally */
-  align-items: flex-start; /* sticks to top */
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.controls-bar mat-form-field {
+  min-width: 200px;
+  flex: 0 0 220px;
+}
+.spacer { flex: 1 1 auto; }
+.addButton { flex: 0 0 auto; }
+
+/* Add button color (maroon) */
+.addButton.mat-mdc-raised-button {
+  background-color: #800000 !important;
+  color: #fff !important;
+}
+.addButton.mat-mdc-raised-button:hover { filter: brightness(1.05); }
+.addButton.mat-mdc-raised-button:focus-visible {
+  outline: 2px solid #ffd966;
+  outline-offset: 2px;
 }
 
-/* ensure your table area doesn’t add its own margin */
-.table-container, table, .mat-elevation-z8 { margin: 0; }
-
-
-table {
-  margin: 0;
-}
-
+/* Table layout */
+table { width: 100%; margin: 0; }
 .mat-mdc-table { table-layout: fixed; width: 100%; }
-
-/* 2) Fallback: disable MDC pseudo row separators */
 .mat-mdc-header-row::after,
-.mat-mdc-row::after {
-  display: none !important;
-}
-
-/* …and draw your own continuous borders */
+.mat-mdc-row::after { display: none !important; }
 .mat-mdc-header-cell,
-.mat-mdc-cell {
-  border-bottom: 1px solid rgba(0,0,0,0.12);
-}
+.mat-mdc-cell { padding: 8px 16px; border-bottom: 1px solid rgba(0,0,0,0.12); }
 
-
-.status-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;   /* prevents shrinking */
-}
-
-.status-text {
-  flex-grow: 1;     /* takes the remaining space */
-}
-
-.status-cell button {
-  margin-left: auto;  /* pushes VIEW to the far right */
-}
-
-
-.status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.status-dot.ongoing { background: gold; }
-.status-dot.rejected { background: red; }
-.status-dot.approved { background: green; }
-
-/* push VIEW to the right within the cell */
-.status-cell .spacer { margin-left: auto; }
-
-/* Optional: steady widths so header/body stay aligned */
+/* Column widths for stable alignment */
 .mat-column-status { width: 260px; }
-.mat-column-forApproval { width: 140px; }
+.mat-column-forApproval { width: 140px; text-align: center; }
 
-
-.mat-mdc-table { table-layout: fixed; width: 100%; }
-
-.status-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.status-cell .spacer {
-  margin-left: auto;  /* pushes VIEW all the way to the right */
-}
-
-
-
-/* Push VIEW to the right edge of the cell */
-.status-cell .ml-auto { margin-left: auto; }
-
-/* Optional fixed widths for consistent alignment */
-.mat-column-status { width: 260px; }
-.mat-column-forApproval { width: 140px; }
-
-
-.status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.status-dot.ongoing { background: gold; }
-.status-dot.rejected { background: red; }
-.status-dot.approved { background: green; }
-
-/* push VIEW to the right within the cell */
-.status-cell .spacer { margin-left: auto; }
-
-/* Optional: steady widths so header/body stay aligned */
-.mat-column-status { width: 260px; }
-.mat-column-forApproval { width: 140px; }
-
-.status-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;   /* prevent line breaks */
-  overflow: hidden;      /* just in case */
-}
-
-.status-cell .status-text {
-  flex: 0 1 auto;
-  min-width: 0;          /* avoids flex text pushing layout */
-}
-
-/* keep dot and buttons from stretching */
-.status-dot,
-.status-cell button {
-  flex: 0 0 auto;
-}
 /*dito naayos yung sa status cell*/
 .mat-mdc-cell.mat-column-status,
 .mat-cell.mat-column-status {
@@ -180,119 +91,56 @@ table {
   padding: 16px;           
 }
 
-.rectangle-container {
-  width: 95%;
-  margin: 10px auto;   /* smaller margin */
-  padding: 15px;       /* reduce padding inside */
-  background: #fff;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.mat-column-status {
-  width: 250px; /* Adjust until it looks good */
-  text-align: left;
-}
-
-.mat-column-forApproval {
-  width: 120px;
-  text-align: center;
-}
-
-.mat-mdc-cell,
-.mat-mdc-header-cell {
-  padding: 8px 16px; /* consistent padding */
-}
-
-
-.controls-bar {
+/* Status cell */
+.status-cell {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  width: 100%;  
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
 }
-.spacer { flex: 1 1 auto; }   /* pushes everything after it to the far right */
-
-
-.controls-bar mat-form-field {
-  flex: 0 0 220px;        /* or whatever width you prefer */
-  min-width: 200px;
+.status-text { flex: 0 1 auto; min-width: 0; }
+.status-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  display: inline-block; flex: 0 0 auto;
 }
-.controls-bar .addButton {
-  margin-left: auto;      /* pushes it to the far right */
-  flex: 0 0 auto;         /* prevent it from stretching */
-}
+.status-dot.ongoing { background: gold; }
+.status-dot.rejected { background: red; }
+.status-dot.approved { background: green; }
 
-/* maroon style */
-.addButton.mat-mdc-raised-button {
-  background-color: #800000 !important;
-  color: #fff !important;
-}
+/* Verify cell */
+.for-approval-cell { text-align: center; }
 
-
-/* Optional: hover/focus */
-.addButton.mat-mdc-raised-button:hover {
-  filter: brightness(1.05);
-}
-.addButton.mat-mdc-raised-button:focus-visible {
-  outline: 2px solid #ffd966;
-  outline-offset: 2px;
-}
-
-
-.w-100 { width: 100%; } 
-.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } 
-.section-title { font-weight: 700; margin: 10px 0 6px; color: #800000; display: flex; align-items: center; gap: 8px; } 
-.members-title .ml-auto { margin-left: auto; } 
-.member-row { border: 1px solid #e3e3e3; border-radius: 8px; padding: 10px; margin: 10px 0; } 
-.row-end { display: flex; justify-content: flex-end; } .muted { color: #6b6b6b; font-style: italic; margin: 6px 0 12px; }
-
-\/* ---------- Dialog container ---------- */
+/* -------- Dialog styling (requires panelClass) -------- */
 .add-group-dialog .mat-mdc-dialog-surface {
   border-radius: 16px;
   overflow: hidden;
-  padding: 0;                         /* remove default padding */
+  padding: 0;
   background: #fff;
   box-shadow:
-    0 20px 60px rgba(0,0,0,.35),      /* deep shadow */
-    0 0 0 3px rgba(0,129,255,.25);    /* subtle blue glow like in the shot */
+    0 20px 60px rgba(0,0,0,.35),
+    0 0 0 3px rgba(0,129,255,.25);
 }
 
-/* ---------- Header ---------- */
+/* Header */
 .ag-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #800000;                /* maroon */
-  color: #f5d76e;                     /* gold */
+  background: #800000;
+  color: #f5d76e;
   padding: 14px 18px;
 }
-.ag-title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-}
+.ag-title { margin: 0; font-size: 22px; font-weight: 700; }
 .ag-close {
-  background: transparent;
-  border: 0;
-  color: #f5d76e;
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
+  background: transparent; border: 0; color: #f5d76e;
+  font-size: 20px; line-height: 1; cursor: pointer;
 }
 
-/* ---------- Body & layout ---------- */
-.ag-body {
-  padding: 22px 26px 10px;
-}
+/* Body */
+.ag-body { padding: 22px 26px 10px; }
 .ag-form { display: block; }
-.ag-section-title {
-  font-weight: 700;
-  color: #800000;
-  margin: 8px 0 10px;
-}
+.ag-section-title { font-weight: 700; color: #800000; margin: 8px 0 10px; }
 .ag-members-head { display: flex; align-items: center; gap: 8px; }
 .ag-muted { color: #6b6b6b; font-style: italic; margin: 6px 0 12px; }
 
@@ -307,57 +155,34 @@ table {
 .ag-divider { border: 0; border-top: 1px solid #e9e9e9; margin: 16px 0; }
 .ag-divider--soft { border-top-color: #eeeeee; }
 
-/* ---------- Angular Material form-field theming ---------- */
+/* Form-field theming */
 .add-group-dialog .mat-mdc-form-field .mdc-notched-outline__leading,
 .add-group-dialog .mat-mdc-form-field .mdc-notched-outline__trailing,
-.add-group-dialog .mat-mdc-form-field .mdc-notched-outline__notch {
-  border-color: #800000;              /* outline color */
-}
+.add-group-dialog .mat-mdc-form-field .mdc-notched-outline__notch { border-color: #800000; }
 .add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
 .add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing,
-.add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch {
-  border-color: #800000;              /* keep maroon on focus */
-}
-.add-group-dialog .mat-mdc-form-field .mdc-text-field--outlined .mdc-floating-label,
-.add-group-dialog .mat-mdc-form-field .mat-mdc-floating-label {
-  color: #800000;
-}
+.add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch { border-color: #800000; }
+.add-group-dialog .mat-mdc-form-field .mdc-floating-label,
+.add-group-dialog .mat-mdc-form-field .mat-mdc-floating-label { color: #800000; }
 .add-group-dialog .mat-mdc-input-element::placeholder { color: #b7b7b7; }
-
-/* remove extra bottom space some fields add */
 .add-group-dialog .mat-mdc-form-field-infix { padding: 12px 0; }
 
-/* ---------- Actions / buttons ---------- */
+/* Actions */
 .ag-actions {
   padding: 0 26px 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center !important; 
+  display: flex; align-items: center; justify-content: center !important;
   gap: 12px;
 }
 .ag-flex-spacer { flex: none; }
 
-/* pill buttons to match screenshot */
 .ag-pill {
-  height: 56px;
-  padding: 0 28px;
-  border-radius: 9999px;
-  font-weight: 700;
-  border: 2px solid transparent;
+  height: 56px; padding: 0 28px; border-radius: 9999px;
+  font-weight: 700; border: 2px solid transparent;
 }
-.ag-pill--primary {
-  background: #800000;
-  color: #f5d76e;
-}
+.ag-pill--primary { background: #800000; color: #f5d76e; }
 .ag-pill--primary:hover { filter: brightness(0.95); }
-.ag-pill--outline {
-  background: #fff;
-  color: #800000;
-  border-color: #800000;
-}
-.ag-pill--outline:hover {
-  background: rgba(128,0,0,.06);
-}
+.ag-pill--outline { background: #fff; color: #800000; border-color: #800000; }
+.ag-pill--outline:hover { background: rgba(128,0,0,.06); }
 
-/* "Remove" link row alignment */
+/* Remove row alignment */
 .ag-row-end { display: flex; justify-content: flex-end; }

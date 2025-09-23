@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 /* Angular Material (standalone) */
@@ -18,6 +18,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 
+import { Location } from '@angular/common';
+
 /* Your shared components */
 import { Sidenavbar } from '../sidenavbar/sidenavbar';
 
@@ -25,6 +27,8 @@ import { Sidenavbar } from '../sidenavbar/sidenavbar';
 import { parseGroupId } from '../../shared/utils/group-id';
 
 /* --- Data types --- */
+type Program = 'BSIT' | 'BSCS';
+
 interface GroupRow {
   group_id: string;
   title: string;
@@ -39,7 +43,7 @@ interface GroupRow {
 
   // derived
   schoolYear: string;
-  course: 'BSIT' | 'BSCS';
+  course: Program;
   courseShort: 'IT' | 'CS';
   year: string;
   section: string;
@@ -62,12 +66,15 @@ type Person = { firstName: string; lastName: string; email: string; };
   styleUrl: './for-fic.css'
 })
 export class ForFIC implements OnInit, AfterViewInit {
+  /* URL-driven program filter */
+  program: Program | null = null; // ?program=BSIT or ?program=BSCS
+
   /* Table data */
-  groups: GroupRow[] = [];
+  groups: GroupRow[] = [];                 // source for current (already program-filtered) list
+  private allLoadedGroups: GroupRow[] = []; // raw list from JSON before program filter (kept for safety if needed)
   dataSource = new MatTableDataSource<GroupRow>([]);
 
   /* Filters / dropdowns */
-  selectedDepartment: 'IT' | 'CS' | null = null;
   selectedSection: string | null = null;
   sections: string[] = [];
 
@@ -88,15 +95,21 @@ export class ForFIC implements OnInit, AfterViewInit {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private dialog: MatDialog
+    private route: ActivatedRoute,
+    private dialog: MatDialog,
+    private location: Location,
   ) {}
 
   /* ---------- Lifecycle ---------- */
   ngOnInit(): void {
-    this.http.get<any>('/groups.json').subscribe(raw => {
-      const arr: any[] = Array.isArray(raw) ? raw : (raw?.groups ?? []);
+    // read program from query param (?program=BSIT|BSCS)
+    const raw = (this.route.snapshot.queryParamMap.get('program') || '').toUpperCase();
+    this.program = (raw === 'BSIT' || raw === 'BSCS') ? (raw as Program) : null;
 
-      this.groups = arr.map((it) => {
+    this.http.get<any>('/groups.json').subscribe(rawData => {
+      const arr: any[] = Array.isArray(rawData) ? rawData : (rawData?.groups ?? []);
+
+      this.allLoadedGroups = arr.map((it) => {
         const gid = it.group_id ?? it.groupId ?? '';
         const p = parseGroupId(gid);
 
@@ -104,9 +117,10 @@ export class ForFIC implements OnInit, AfterViewInit {
         const normalizedStatus =
           (statusSrc[0]?.toUpperCase() ?? '') + statusSrc.slice(1).toLowerCase();
 
-        const course: 'BSIT' | 'BSCS' =
+        // derive program from parsed id; default to BSIT if unclear
+        const derivedCourse: Program =
           (p.course === 'BSIT' || p.course === 'BSCS') ? p.course : 'BSIT';
-        const courseShort: 'IT' | 'CS' = course === 'BSIT' ? 'IT' : 'CS';
+        const courseShort: 'IT' | 'CS' = derivedCourse === 'BSIT' ? 'IT' : 'CS';
 
         return {
           group_id: gid,
@@ -123,7 +137,7 @@ export class ForFIC implements OnInit, AfterViewInit {
 
           // derived
           schoolYear: p.schoolYear,
-          course,
+          course: derivedCourse,
           courseShort,
           year: p.year,
           section: p.section,
@@ -131,11 +145,20 @@ export class ForFIC implements OnInit, AfterViewInit {
         } satisfies GroupRow;
       });
 
-      this.dataSource.data = this.groups;
+      // Apply program filter immediately (BSIT-only or BSCS-only)
+      const programFiltered = this.program
+        ? this.allLoadedGroups.filter(g => g.course === this.program)
+        : this.allLoadedGroups;
 
-      this.sections = Array.from(new Set(this.groups.map(g => g.sectionKey)))
+      this.groups = programFiltered;
+
+      // Build section list from program-filtered data
+      this.sections = Array.from(new Set(programFiltered.map(g => g.sectionKey)))
         .filter(Boolean)
         .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+      // Initialize table with section filter (if any)
+      this.applySectionFilter();
 
       // proper sorting for date & group id
       this.dataSource.sortingDataAccessor = (item: GroupRow, prop: string) => {
@@ -146,6 +169,12 @@ export class ForFIC implements OnInit, AfterViewInit {
     });
   }
 
+  goBack(): void {
+   
+      this.router.navigate(['/faculty-home']); // or the list route you prefer
+    }
+  
+
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
@@ -154,30 +183,25 @@ export class ForFIC implements OnInit, AfterViewInit {
   /* ---------- Navigation ---------- */
   goToApproval(groupId: string): void {
     const group = this.groups.find(g => String(g.group_id) === String(groupId));
-    this.router.navigate(['/fichistory-page', groupId], { state: { group } });
+    this.router.navigate(
+      ['/fichistory-page', groupId],
+      { state: { group }, queryParams: this.program ? { program: this.program } : undefined }
+    );
   }
 
-  /* ---------- Filters ---------- */
-  viewAll(): void {
-    this.selectedDepartment = null;
+  /* ---------- Section filter only ---------- */
+  viewAllSections(): void {
     this.selectedSection = null;
-    this.dataSource.data = this.groups;
-    if (this.paginator) this.paginator.firstPage();
-  }
-
-  filterByDepartment(dept: 'IT' | 'CS'): void {
-    this.selectedDepartment = dept;
-    this.applyFilters();
+    this.applySectionFilter();
   }
 
   filterBySection(section: string): void {
     this.selectedSection = section;
-    this.applyFilters();
+    this.applySectionFilter();
   }
 
-  applyFilters(): void {
+  private applySectionFilter(): void {
     const filtered = this.groups.filter(g =>
-      (!this.selectedDepartment || g.courseShort === this.selectedDepartment) &&
       (!this.selectedSection || g.sectionKey === this.selectedSection)
     );
     this.dataSource.data = filtered;
@@ -189,8 +213,9 @@ export class ForFIC implements OnInit, AfterViewInit {
     this.leader = { firstName: '', lastName: '', email: '' };
     this.members = [];
     this.dialog.open(this.addGroupDialog, {
-      panelClass: 'add-group-clean',
-      width: '720px'   
+      panelClass: 'add-group-dialog',
+      width: '720px',
+      autoFocus: false
     });
   }
 
@@ -229,29 +254,6 @@ export class ForFIC implements OnInit, AfterViewInit {
     const memberNames = this.members.map(m => `${m.firstName.trim()} ${m.lastName.trim()}`.trim());
     const memberEmails = this.members.map(m => m.email.trim());
 
-    const course =
-      this.selectedDepartment === 'IT' ? 'BSIT' :
-      this.selectedDepartment === 'CS' ? 'BSCS' : 'BSIT';
-
-    const newRow: GroupRow = {
-      group_id: `TEMP-${Date.now()}`,
-      title: '',
-      leader: leaderFull,
-      submitted_at: new Date(),
-      status: 'Ongoing',
-      members: memberNames,
-      leader_email: this.leader.email.trim(),
-      member_emails: memberEmails,
-      schoolYear: '',
-      course,
-      courseShort: course === 'BSIT' ? 'IT' : 'CS',
-      year: '',
-      section: '',
-      sectionKey: ''
-    };
-
-    this.groups = [newRow, ...this.groups];
-    this.viewAll(); // show everything after adding
-    ref.close();
+    // New rows inherit the active program; default B
   }
 }

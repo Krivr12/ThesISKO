@@ -15,6 +15,13 @@ import { PanelistApprovalPage } from './facultySide/panelist-approval-page/panel
 import { ForPanel } from './facultySide/for-panel/for-panel';
 import { ForFIC } from './facultySide/for-fic/for-fic';
 import { FICHistoryPage } from './facultySide/fichistory-page/fichistory-page';
+import { SuperAdminNavBar } from './superAdmin/super-admin-nav-bar/super-admin-nav-bar';
+import { Chairperson } from './superAdmin/chairperson/chairperson';
+import { Dashboard } from './superAdmin/dashboard/dashboard';
+import { Departments } from './superAdmin/departments/departments';
+import { Documents } from './superAdmin/documents/documents';
+import { ForPanellanding } from './facultySide/for-panellanding/for-panellanding';
+import { ForFICLanding } from './facultySide/for-ficlanding/for-ficlanding';
 
 export const routes: Routes = [
    // login
@@ -41,11 +48,21 @@ export const routes: Routes = [
     {path: 'fichistory-page/:id', component: FICHistoryPage},
     { path: 'fichistory-page/:id', redirectTo: 'fichistory-page/:id', pathMatch: 'full' },
     {path: 'for-fic', component: ForFIC},
+    {path: 'for-ficlanding', component: ForFICLanding},
 
     {path: 'for-panel', component: ForPanel},
+    {path: 'for-panellanding', component: ForPanellanding},
+
     {path: 'panelist-approval-page', component: PanelistApprovalPage},
     { path: 'panelist-approval-page/:id', component: PanelistApprovalPage },
     { path: 'panelis-approval-page/:id', redirectTo: 'panelist-approval-page/:id', pathMatch: 'full' },
 
+    //superadmin
+    {path: 'super-admin-nav-bar', component: SuperAdminNavBar},
+
+    {path: 'chairperson', component: Chairperson},
+    {path: 'dashboard', component: Dashboard},
+    {path: 'department', component: Departments},
+    {path: 'documents', component: Documents},
 
 ];

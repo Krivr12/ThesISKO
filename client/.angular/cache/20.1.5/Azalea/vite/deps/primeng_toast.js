@@ -9,15 +9,6 @@ import {
   TimesIcon
 } from "./chunk-TDUS37IN.js";
 import {
-  animate,
-  animateChild,
-  query,
-  state,
-  style,
-  transition,
-  trigger
-} from "./chunk-FIT3ROIU.js";
-import {
   BaseComponent
 } from "./chunk-O4FISIXC.js";
 import {
@@ -31,6 +22,15 @@ import {
   a,
   s3 as s
 } from "./chunk-32SD3NQV.js";
+import {
+  animate,
+  animateChild,
+  query,
+  state,
+  style,
+  transition,
+  trigger
+} from "./chunk-FIT3ROIU.js";
 import {
   CommonModule,
   NgClass,

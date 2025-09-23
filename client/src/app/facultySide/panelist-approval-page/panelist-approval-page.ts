@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { Sidenavbar } from '../sidenavbar/sidenavbar';
 import { parseGroupId } from '../../shared/utils/group-id';
@@ -70,6 +71,11 @@ export class PanelistApprovalPage implements OnInit {
   // Dialog template refs
   @ViewChild('dlgApprove') dlgApproveTpl!: TemplateRef<any>;
   @ViewChild('dlgRevision') dlgRevisionTpl!: TemplateRef<any>;
+  @ViewChild('pdfDialog') pdfDialog!: TemplateRef<any>;
+
+  previewTitle = 'Preview Document';
+  previewFileName?: string;
+  previewSafeUrl!: SafeResourceUrl;
 
   // “For Revision” dialog state (used by Reject button)
   revisionOptions: string[] = [
@@ -87,7 +93,8 @@ export class PanelistApprovalPage implements OnInit {
     private router: Router,
     private location: Location,
     private http: HttpClient,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+     private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -161,13 +168,7 @@ export class PanelistApprovalPage implements OnInit {
     };
   }
 
-  goBack() {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      this.location.back();
-    } else {
-      this.router.navigate(['/home']);
-    }
-  }
+  goBack(): void { this.location.back(); }
 
   /* ===== Dialog Openers ===== */
   openApproveDialog() {
@@ -219,5 +220,18 @@ export class PanelistApprovalPage implements OnInit {
     console.log('DECISION:', decision, 'GROUP:', this.group, 'PAYLOAD:', payload);
     // TODO: call your backend here
     // Optionally: navigate back or show a toast/snackbar
+  }
+
+  openFilePreview(fileUrl: string, fileName?: string) {
+    if (!fileUrl) return;
+    this.previewTitle = 'Preview Document';
+    this.previewFileName = fileName;
+    this.previewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+
+    this.dialog.open(this.pdfDialog, {
+      panelClass: 'file-viewer-dialog',
+      width: '90vw',
+      maxWidth: '95vw'
+    });
   }
 }

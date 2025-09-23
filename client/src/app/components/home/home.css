@@ -109,6 +109,7 @@ section {
 
 
 /*carousel side*/
+
 .carousel-container {
   text-align: center;
   background: #fff;
@@ -198,13 +199,6 @@ section {
   :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 12px; }
   .carousel-box { padding: 12px; }
 }
-
-
-
-
-
-
-
 
 
 
