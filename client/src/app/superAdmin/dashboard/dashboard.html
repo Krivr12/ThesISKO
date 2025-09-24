@@ -1,0 +1,109 @@
+<div class="dashboard-layout">
+    <!-- The sidebar component -->
+    <app-super-admin-nav-bar></app-super-admin-nav-bar>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="welcome-banner">
+                <h1 class="welcome-title">Welcome back, {{ userName }}!</h1>
+            </div>
+            <div class="relative">
+                <select class="date-select">
+                    <option>This Month</option>
+                    <option>Last Month</option>
+                    <option>This Year</option>
+                </select>
+                <div class="select-arrow">
+                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 class="stat-title">Total Number of Thesis</h3>
+                <p class="stat-value">{{ stats.totalThesis }}</p>
+                <div class="stat-change">
+                    <span class="percentage-badge positive">↑ 13.5%</span>
+                    <span class="change-text">vs. last month</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-title">Total Number of Users</h3>
+                <p class="stat-value">{{ stats.totalUsers }}</p>
+                <div class="stat-change">
+                    <span class="percentage-badge positive">↑ 4.7%</span>
+                    <span class="change-text">vs. last month</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-title">Total Requests</h3>
+                <p class="stat-value">{{ stats.totalRequests }}</p>
+                <div class="stat-change">
+                    <span class="percentage-badge positive">↑ 4.7%</span>
+                    <span class="change-text">vs. last month</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-title">Total Downloads</h3>
+                <p class="stat-value">{{ stats.totalDownloads }}</p>
+                <div class="stat-change">
+                    <span class="percentage-badge positive">↑ 4.7%</span>
+                    <span class="change-text">vs. last month</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chart and Extra Card -->
+        <div class="chart-grid">
+            <div class="chart-container stat-card">
+                <h3 class="stat-title">Total Number of User</h3>
+                <canvas #userChart></canvas>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-title">Registered Non-PUP User</h3>
+                <p class="stat-value">{{ stats.registeredNonPUP }}</p>
+                <div class="stat-change">
+                    <span class="percentage-badge positive">↑ 4.7%</span>
+                    <span class="change-text">vs. last month</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Lists -->
+        <div class="lists-grid">
+            <div class="stat-card">
+                <h3 class="list-title">Top Accessed Keywords</h3>
+                <div class="list-header">
+                    <span class="header-text">Keywords</span>
+                    <span class="header-text">No. of Access</span>
+                </div>
+                <div class="list-content">
+                    <div *ngFor="let keyword of topKeywords; let i = index" class="list-item">
+                        <span class="item-number">{{ i + 1 }}.</span>
+                        <span class="item-name">{{ keyword.name }}</span>
+                        <span class="item-value">{{ keyword.access }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3 class="list-title">Documents per Department</h3>
+                <div class="list-header">
+                    <span class="header-text">Department</span>
+                    <span class="header-text">Total Documents</span>
+                </div>
+                <div class="list-content">
+                     <div *ngFor="let dept of docsPerDepartment; let i = index" class="list-item">
+                        <span class="item-number">{{ i + 1 }}.</span>
+                        <span class="item-name">{{ dept.name }}</span>
+                        <span class="item-value">{{ dept.total }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

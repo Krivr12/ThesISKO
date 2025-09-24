@@ -22,6 +22,7 @@ export interface AuthUser {
   Status?: string;
   Firstname?: string;
   Lastname?: string;
+  role_id?: number;
 }
 
 @Injectable({ providedIn: 'root' })

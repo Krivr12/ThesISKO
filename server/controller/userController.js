@@ -388,6 +388,7 @@ const loginUser = async (req, res) => {
         ui.lastname AS Lastname,
         ui.email AS Email,
         ui.password_hash AS Password,
+        ui.role_id,
         r.role_name AS Status,
         c.course_code AS Course,
         d.department_name AS Department,
@@ -407,8 +408,8 @@ const loginUser = async (req, res) => {
     }
 
     const user = users[0]
-
     const isValidPassword = await bcrypt.compare(password, user.Password)
+    
     if (isValidPassword) {
       const { Password: _ignored, ...userWithoutPassword } = user
       

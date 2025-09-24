@@ -93,6 +93,7 @@ function determineActionType(req) {
   // Authentication actions with role-specific prefixes
   if (url.includes('/auth/login')) {
     if (userRole.toLowerCase() === 'admin') return 'admin_login';
+    if (userRole.toLowerCase() === 'superadmin') return 'superadmin_login';
     if (userRole.toLowerCase() === 'faculty') {
       // Check if FIC or Panelist (you may need to add more specific role detection)
       return 'fic_login'; // Default to FIC, can be enhanced with more specific role detection
@@ -102,6 +103,7 @@ function determineActionType(req) {
   
   if (url.includes('/auth/logout')) {
     if (userRole.toLowerCase() === 'admin') return 'admin_logout';
+    if (userRole.toLowerCase() === 'superadmin') return 'superadmin_logout';
     if (userRole.toLowerCase() === 'faculty') return 'fic_logout'; // Can be enhanced for panelist
     return isGuest ? 'guest_logout' : 'student_logout';
   }
@@ -149,16 +151,18 @@ function determineActionType(req) {
   }
 
   // Admin actions
-  if (url.includes('/admin')) {
-    if (url.includes('/faculty') && method === 'POST') return 'admin_create_faculty';
-    if (url.includes('/capstone/approve')) return 'admin_approve_capstone';
-    if (url.includes('/capstone/reject')) return 'admin_reject_capstone';
-    if (url.includes('/request/approve')) return 'admin_approve_request';
-    if (url.includes('/request/reject')) return 'admin_reject_request';
-    if (method === 'GET') return 'admin_view';
-    if (method === 'POST') return 'admin_action';
-    if (method === 'PUT') return 'admin_update';
-    if (method === 'DELETE') return 'admin_delete';
+  if (url.includes('/admin') || url.includes('/superadmin')) {
+    const rolePrefix = userRole.toLowerCase() === 'superadmin' ? 'superadmin' : 'admin';
+    
+    if (url.includes('/faculty') && method === 'POST') return `${rolePrefix}_create_faculty`;
+    if (url.includes('/capstone/approve')) return `${rolePrefix}_approve_capstone`;
+    if (url.includes('/capstone/reject')) return `${rolePrefix}_reject_capstone`;
+    if (url.includes('/request/approve')) return `${rolePrefix}_approve_request`;
+    if (url.includes('/request/reject')) return `${rolePrefix}_reject_request`;
+    if (method === 'GET') return `${rolePrefix}_view`;
+    if (method === 'POST') return `${rolePrefix}_action`;
+    if (method === 'PUT') return `${rolePrefix}_update`;
+    if (method === 'DELETE') return `${rolePrefix}_delete`;
   }
 
   // User profile actions
@@ -167,13 +171,7 @@ function determineActionType(req) {
     if (method === 'PUT') return 'update_profile';
   }
 
-  // Admin actions
-  if (url.includes('/admin')) {
-    if (method === 'GET') return 'admin_view';
-    if (method === 'POST') return 'admin_action';
-    if (method === 'PUT') return 'admin_update';
-    if (method === 'DELETE') return 'admin_delete';
-  }
+  // Duplicate admin section removed - handled above
 
   // Faculty actions
   if (url.includes('/faculty')) {
@@ -268,6 +266,30 @@ function createActionDescription(req, actionType) {
       return `Admin ${userEmail} approved a request`;
     case 'admin_reject_request':
       return `Admin ${userEmail} rejected a request`;
+    
+    // SuperAdmin activities
+    case 'superadmin_login':
+      return `SuperAdmin ${userEmail} logged into the system`;
+    case 'superadmin_logout':
+      return `SuperAdmin ${userEmail} logged out of the system`;
+    case 'superadmin_create_faculty':
+      return `SuperAdmin ${userEmail} created a new faculty account`;
+    case 'superadmin_approve_capstone':
+      return `SuperAdmin ${userEmail} approved a capstone project`;
+    case 'superadmin_reject_capstone':
+      return `SuperAdmin ${userEmail} rejected a capstone project`;
+    case 'superadmin_approve_request':
+      return `SuperAdmin ${userEmail} approved a request`;
+    case 'superadmin_reject_request':
+      return `SuperAdmin ${userEmail} rejected a request`;
+    case 'superadmin_view':
+      return `SuperAdmin ${userEmail} accessed admin interface`;
+    case 'superadmin_action':
+      return `SuperAdmin ${userEmail} performed an action`;
+    case 'superadmin_update':
+      return `SuperAdmin ${userEmail} updated system data`;
+    case 'superadmin_delete':
+      return `SuperAdmin ${userEmail} deleted system data`;
     
     // General activities
     case 'search_thesis':

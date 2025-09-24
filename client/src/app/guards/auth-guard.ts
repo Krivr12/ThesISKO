@@ -24,10 +24,6 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
   const currentPath = state.url;
   
-  console.log('RoleGuard: Checking access to:', currentPath);
-  console.log('RoleGuard: Current user:', currentUser);
-  console.log('RoleGuard: Guest mode:', isGuestMode);
-  
   // Define guest-accessible paths (no login required)
   const guestAccessiblePaths = ['/home', '/about-us', '/search-thesis', '/search-result'];
   const isGuestAccessible = guestAccessiblePaths.some(path => currentPath.startsWith(path));
@@ -56,11 +52,24 @@ export const roleGuard: CanActivateFn = (route, state) => {
     'guest': ['/home', '/about-us', '/search-thesis', '/search-result'],
     'student': ['/home', '/about-us', '/search-thesis', '/search-result', '/submission', '/thank-you'],
     'faculty': ['/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page'],
-    'admin': [] // Admin can access everything
+    'admin': ['/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page'] // Admin uses faculty paths for now
   };
   
-  // Admin can access everything
-  if (userRole === 'admin') {
+  // Admin role handling with role_id specific routing
+  if (userRole === 'admin' || userRole === 'superadmin') {
+    const roleId = currentUser.role_id;
+    
+    // SuperAdmin (role_id = 5) can access superAdmin routes
+    if (roleId === 5) {
+      const isSuperAdminRoute = currentPath.startsWith('/superAdmin/');
+      if (isSuperAdminRoute) {
+        return true;
+      }
+      // Allow superAdmin to access other areas too if needed
+      return true;
+    }
+    
+    // Other admin users use the faculty interface
     return true;
   }
   

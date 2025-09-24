@@ -317,3 +317,38 @@ mat-form-field.w-100 textarea[matInput] {
 .citation-option:last-child {
   border-radius: 0 0 4px 4px;
 }
+
+/* Copy Protection Styles */
+.protected-content {
+  /* Disable text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* Disable highlighting */
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Disable drag and drop */
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  
+  /* Prevent image saving on right-click */
+  pointer-events: auto;
+}
+
+/* Ensure citation buttons remain functional */
+.citation-dropdown,
+.citation-button,
+.citation-options,
+.citation-option,
+.request-button {
+  -webkit-user-select: auto !important;
+  -moz-user-select: auto !important;
+  -ms-user-select: auto !important;
+  user-select: auto !important;
+  pointer-events: auto !important;
+}
+

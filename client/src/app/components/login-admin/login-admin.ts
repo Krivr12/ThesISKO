@@ -35,6 +35,17 @@ export class LoginAdmin {
       next: (response: {message: string, user: any}) => {
         if (response.user) {
           const user = response.user;
+          
+          // Check if user has admin/superadmin privileges (role_id 4 or 5)
+          if (user.role_id !== 4 && user.role_id !== 5) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Access Denied',
+              detail: 'You do not have admin privileges to access this area.',
+            });
+            return;
+          }
+          
           // Clear guest mode when user logs in
           sessionStorage.removeItem('guestMode');
           
@@ -50,11 +61,18 @@ export class LoginAdmin {
             Status: user.Status,
             Firstname: user.Firstname,
             Lastname: user.Lastname,
-            AvatarUrl: user.AvatarUrl
+            AvatarUrl: user.AvatarUrl,
+            role_id: user.role_id
           });
           
-          // Navigate to admin dashboard (you can change this route)
-          this.router.navigate(['/admin-dashboard']);
+          // Check role_id and redirect accordingly
+          if (user.role_id === 5) {
+            // SuperAdmin with role_id = 5 goes to superAdmin dashboard
+            this.router.navigate(['/superAdmin/dashboard']);
+          } else if (user.role_id === 4) {
+            // Admin with role_id = 4 goes to faculty home
+            this.router.navigate(['/faculty-home']);
+          }
         } else {
           this.messageService.add({
             severity: 'error',

@@ -19,6 +19,15 @@ import { GoogleCallbackComponent } from './components/google-callback/google-cal
 import { authGuard, roleGuard } from './guards/auth-guard';
 import { submissionGuard } from './guards/submission-guard';
 
+// SuperAdmin components
+import { Dashboard } from './superAdmin/dashboard/dashboard';
+import { Chairperson } from './superAdmin/chairperson/chairperson';
+import { Departments } from './superAdmin/departments/departments';
+import { Documents } from './superAdmin/documents/documents';
+import { DocumentsIssues } from './superAdmin/documents-issues/documents-issues';
+import { DocumentsVerify } from './superAdmin/documents-verify/documents-verify';
+
+
 export const routes: Routes = [
    // login
     {path: 'signup-choose', component: SignupChoose},
@@ -51,5 +60,12 @@ export const routes: Routes = [
     { path: 'panelist-approval-page/:id', component: PanelistApprovalPage, canActivate: [roleGuard] },
     { path: 'panelis-approval-page/:id', redirectTo: 'panelist-approval-page/:id', pathMatch: 'full' },
 
+    // SuperAdmin routes - protected by role guard
+    {path: 'superAdmin/dashboard', component: Dashboard, canActivate: [roleGuard]},
+    {path: 'superAdmin/chairperson', component: Chairperson, canActivate: [roleGuard]},
+    {path: 'superAdmin/departments', component: Departments, canActivate: [roleGuard]},
+    {path: 'superAdmin/documents', component: Documents, canActivate: [roleGuard]},
+    {path: 'superAdmin/documents-issues', component: DocumentsIssues, canActivate: [roleGuard]},
+    {path: 'superAdmin/documents-verify', component: DocumentsVerify, canActivate: [roleGuard]},
 
 ];

@@ -88,16 +88,34 @@
 
 
 
-    <div class="main-title">
+    <div class="main-title protected-content" 
+         (contextmenu)="preventAction($event)"
+         (selectstart)="preventAction($event)"
+         (copy)="preventAction($event)"
+         (cut)="preventAction($event)"
+         (paste)="preventAction($event)"
+         (dragstart)="preventAction($event)">
       <h1>{{ thesis.title }}</h1>
     </div>
 
-    <div class="section">
+    <div class="section protected-content"
+         (contextmenu)="preventAction($event)"
+         (selectstart)="preventAction($event)"
+         (copy)="preventAction($event)"
+         (cut)="preventAction($event)"
+         (paste)="preventAction($event)"
+         (dragstart)="preventAction($event)">
       <h2 class="section-title">Abstract</h2>
       <p class="section-text">{{ thesis.abstract }}</p>
     </div>
 
-    <div class="details-grid">
+    <div class="details-grid protected-content"
+         (contextmenu)="preventAction($event)"
+         (selectstart)="preventAction($event)"
+         (copy)="preventAction($event)"
+         (cut)="preventAction($event)"
+         (paste)="preventAction($event)"
+         (dragstart)="preventAction($event)">
       <div class="details-column">
         <div class="detail-item">
           <p class="detail-label">Date of Publication</p>

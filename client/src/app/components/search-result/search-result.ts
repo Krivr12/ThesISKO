@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { Component, TemplateRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -39,6 +39,28 @@ export class SearchResult {
     } else {
       // fallback if no thesis passed (direct link/refresh)
       this.router.navigate(['/search-thesis']);
+    }
+  }
+
+  // Prevent copy/paste actions on thesis content
+  preventAction(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+
+  // Block keyboard shortcuts for copying (basic protection only)
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    // Block Ctrl+A (Select All), Ctrl+C (Copy), Ctrl+V (Paste), Ctrl+X (Cut)
+    if (event.ctrlKey && ['a', 'c', 'v', 'x'].includes(event.key.toLowerCase())) {
+      // Check if the event target is within protected content
+      const target = event.target as HTMLElement;
+      if (target && target.closest('.protected-content')) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
     }
   }
 
