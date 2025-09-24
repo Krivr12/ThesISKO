@@ -152,3 +152,19 @@ h2 {
   .user-profile-card:hover .dropdown-icon {
     color: white;
   }
+
+  /* Disabled Submit Button Styles */
+  :host ::ng-deep .disabled-button {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+
+  :host ::ng-deep .disabled-button:hover {
+    background-color: #800000 !important;
+    transform: none !important;
+  }
+
+  :host ::ng-deep .disabled-button .p-button-label {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }

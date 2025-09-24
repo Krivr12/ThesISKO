@@ -42,6 +42,21 @@ router.get('/me', getCurrentUser);
 // Logout
 router.post('/logout', logoutUser);
 
+// Debug endpoint for Google OAuth configuration
+router.get('/google/debug', (req, res) => {
+  res.json({
+    googleConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+    clientId: process.env.GOOGLE_CLIENT_ID ? `${process.env.GOOGLE_CLIENT_ID.substring(0, 10)}...` : 'Missing',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Missing',
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL,
+    serverPort: process.env.PORT || 5050,
+    hasSession: !!req.session,
+    sessionId: req.sessionID,
+    user: req.user || null,
+    sessionUser: req.session?.user || null
+  });
+});
+
 // Test email route
 router.post('/test-email', async (req, res) => {
   try {

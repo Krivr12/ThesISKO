@@ -5,6 +5,7 @@ import { Navbar } from '../navbar/navbar';
 import { Footer } from "../footer/footer";
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { ActivityLoggerService } from '../../service/activity-logger.service';
 
 interface Thesis {
   _id: string;
@@ -30,7 +31,8 @@ export class SearchThesis implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private http: HttpClient
+    private http: HttpClient,
+    private activityLogger: ActivityLoggerService
   ) {}
 
   // Pagination
@@ -62,6 +64,9 @@ export class SearchThesis implements OnInit {
   availableYears = signal<number[]>([]);
 
   ngOnInit(): void {
+    // Log page view
+    this.activityLogger.logPageView('Search Thesis', '/search-thesis').subscribe();
+
     // Single source of truth: URL query param `q`
     this.route.queryParamMap.subscribe(params => {
       const q = (params.get('q') || '').trim();
@@ -105,6 +110,9 @@ export class SearchThesis implements OnInit {
   }
 
   private doSemanticSearch(q: string): void {
+    // Log search activity
+    this.activityLogger.logSearch(q, 'thesis').subscribe();
+
     this.http.post<{ results: any[] }>('http://localhost:5050/records/search', {
       query: q,
       topK: 20
@@ -122,9 +130,40 @@ export class SearchThesis implements OnInit {
           program: r.program ?? '',
           document_type: r.document_type ?? ''
         }));
+        
+        // Log search results
+        this.activityLogger.logActivity({
+          actionType: 'search_results',
+          actionDescription: `Search for "${q}" returned ${res.results.length} results`,
+          resourceType: 'search',
+          resourceId: q,
+          additionalData: {
+            search_query: q,
+            results_count: res.results.length,
+            search_type: 'semantic',
+            timestamp: new Date().toISOString()
+          }
+        }).subscribe();
+
         this.applyFilters();
       },
-      error: (err) => console.error("❌ Semantic search error:", err)
+      error: (err) => {
+        console.error("❌ Semantic search error:", err);
+        
+        // Log search error
+        this.activityLogger.logActivity({
+          actionType: 'search_error',
+          actionDescription: `Search error for query: "${q}"`,
+          resourceType: 'search',
+          resourceId: q,
+          additionalData: {
+            search_query: q,
+            error_message: err.message || 'Unknown error',
+            search_type: 'semantic',
+            timestamp: new Date().toISOString()
+          }
+        }).subscribe();
+      }
     });
   }
 
@@ -221,6 +260,9 @@ export class SearchThesis implements OnInit {
   }
 
   viewThesis(thesis: Thesis): void {
+    // Log thesis view activity
+    this.activityLogger.logThesisInteraction(thesis._id, 'view', thesis.title).subscribe();
+
     this.http.post<Thesis[]>('http://localhost:5050/records/theses/by-ids', {
       ids: [thesis._id]
     }).subscribe({

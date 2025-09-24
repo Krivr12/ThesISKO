@@ -411,6 +411,17 @@ const loginUser = async (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.Password)
     if (isValidPassword) {
       const { Password: _ignored, ...userWithoutPassword } = user
+      
+      // Store user data in server session for activity logging
+      req.session.user = {
+        id: userWithoutPassword.StudentID,
+        user_id: userWithoutPassword.StudentID,
+        email: userWithoutPassword.Email,
+        Status: userWithoutPassword.Status,
+        Firstname: userWithoutPassword.Firstname,
+        Lastname: userWithoutPassword.Lastname
+      };
+      
       res.json({
         message: 'Login successful',
         user: userWithoutPassword

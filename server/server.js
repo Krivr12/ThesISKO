@@ -4,6 +4,7 @@ import session from "express-session";
 import passport from "passport";
 import helmet from "helmet";
 import "./config/passport.js";
+import { activityLoggingMiddleware } from "./middleware/activityMiddleware.js";
 
 // Import routes
 import records from "./routes/records.js";
@@ -11,6 +12,7 @@ import group_progress from "./routes/group_progress.js";
 import users from "./routes/users.js";
 import auth from "./routes/auth.js";
 import admin from "./routes/admin.js";
+import activity from "./routes/activity.js";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -58,12 +60,16 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Activity logging middleware (after session setup)
+app.use(activityLoggingMiddleware);
+
 // Routes
 app.use("/records", records);
 app.use("/group_progress", group_progress);
 app.use("/users", users);
 app.use("/auth", auth);
 app.use("/admin", admin);
+app.use("/activity", activity);
 
 // Direct verification route (for email links)
 app.get("/verify-student", async (req, res) => {
@@ -78,10 +84,19 @@ app.get("/verify-student", async (req, res) => {
 
 // Health check endpoint
 app.get("/health", (req, res) => {
+  // Debug: Log session info
+  console.log('Session Debug:', {
+    sessionID: req.sessionID,
+    hasSession: !!req.session,
+    sessionUser: req.session?.user,
+    sessionData: req.session
+  });
+  
   res.json({ 
     status: "OK", 
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    sessionID: req.sessionID
   });
 });
 

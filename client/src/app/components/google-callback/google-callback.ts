@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../navbar/navbar';
+import { ActivityLoggerService } from '../../service/activity-logger.service';
 
 @Component({
   selector: 'app-google-callback',
@@ -28,6 +29,7 @@ import { AuthService } from '../navbar/navbar';
 })
 export class GoogleCallbackComponent implements OnInit {
   private authService = inject(AuthService);
+  private activityLogger = inject(ActivityLoggerService);
   
   constructor(private router: Router) {}
 
@@ -49,6 +51,9 @@ export class GoogleCallbackComponent implements OnInit {
         const user = response.user;
         
         if (user) {
+          // Clear any existing guest mode flag since user is now authenticated
+          sessionStorage.removeItem('guestMode');
+          
           // Store user data in session storage
           sessionStorage.setItem('user', JSON.stringify(user));
           sessionStorage.setItem('role', user.Status || 'guest');
@@ -62,6 +67,14 @@ export class GoogleCallbackComponent implements OnInit {
             Firstname: user.Firstname,
             Lastname: user.Lastname,
             AvatarUrl: user.AvatarUrl
+          });
+          
+          console.log('Google OAuth: User authenticated and navbar should update', user);
+          
+          // Log the Google OAuth login activity
+          this.activityLogger.logGuestGoogleSignin().subscribe({
+            next: () => console.log('Google OAuth login activity logged'),
+            error: (err) => console.warn('Failed to log Google OAuth activity:', err)
           });
           
           // Navigate based on user role
@@ -96,6 +109,9 @@ export class GoogleCallbackComponent implements OnInit {
     .then(response => response.json())
     .then(data => {
       if (data.authenticated && data.user) {
+        // Clear any existing guest mode flag since user is now authenticated
+        sessionStorage.removeItem('guestMode');
+        
         // Store user data in session storage
         sessionStorage.setItem('user', JSON.stringify(data.user));
         sessionStorage.setItem('role', data.user.Status || 'guest');
@@ -110,6 +126,8 @@ export class GoogleCallbackComponent implements OnInit {
           Lastname: data.user.Lastname,
           AvatarUrl: data.user.AvatarUrl
         });
+        
+        console.log('Google OAuth API: User authenticated and navbar should update', data.user);
         
         // Only allow guests to proceed with Google OAuth
         const userRole = data.user.Status || 'guest';

@@ -17,6 +17,7 @@ import { ForFIC } from './facultySide/for-fic/for-fic';
 import { FICHistoryPage } from './facultySide/fichistory-page/fichistory-page';
 import { GoogleCallbackComponent } from './components/google-callback/google-callback';
 import { authGuard, roleGuard } from './guards/auth-guard';
+import { submissionGuard } from './guards/submission-guard';
 
 export const routes: Routes = [
    // login
@@ -32,7 +33,7 @@ export const routes: Routes = [
     {path: 'about-us', component: AboutUs, canActivate: [roleGuard]},
     {path: 'search-thesis', component: SearchThesis, canActivate: [roleGuard]},
     {path: 'search-result', component: SearchResult, canActivate: [roleGuard]},
-    {path: 'submission', component: Submission, canActivate: [roleGuard]},
+    {path: 'submission', component: Submission, canActivate: [submissionGuard]},
     {path: 'thank-you', component: ThankYou, canActivate: [roleGuard]},
     {path: '', redirectTo: 'signup-choose', pathMatch: 'full'},
 

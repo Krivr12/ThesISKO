@@ -27,6 +27,8 @@ import { Navbar } from "../navbar/navbar";
 })
 export class SearchResult {
   thesis: any; // Store thesis passed from router
+  citationCopied = false; // Track if citation was just copied
+  copiedFormat = ''; // Track which format was copied (APA/MLA)
 
   constructor(private router: Router,
     private dialog: MatDialog, private http: HttpClient
@@ -130,6 +132,245 @@ export class SearchResult {
 
   onReturnClick(): void {
     this.router.navigate(['/search-thesis']);
+  }
+
+  generateCitation(format: 'apa' | 'mla'): void {
+    console.log(`🔥 ${format.toUpperCase()} CITATION CLICKED!`);
+    console.log('generateCitation called', { thesis: this.thesis, citationCopied: this.citationCopied, format });
+    
+    if (!this.thesis || this.citationCopied) {
+      console.log('❌ Returning early:', { hasThesis: !!this.thesis, citationCopied: this.citationCopied });
+      return;
+    }
+
+    if (format === 'apa') {
+      this.copiedFormat = 'APA';
+      this.generateAPACitation();
+    } else if (format === 'mla') {
+      this.copiedFormat = 'MLA';
+      this.generateMLACitation();
+    }
+  }
+
+  private generateAPACitation(): void {
+
+    // Convert authors to APA format: "Last, F. M., Last, F. M., & Last, F. M."
+    console.log('Authors data:', this.thesis.authors, typeof this.thesis.authors);
+    
+    let authorsRaw: string[];
+    if (typeof this.thesis.authors === 'string') {
+      authorsRaw = this.thesis.authors.split(',');
+    } else if (Array.isArray(this.thesis.authors)) {
+      authorsRaw = this.thesis.authors;
+    } else {
+      authorsRaw = ['Unknown Author'];
+    }
+    const authorsFormatted = authorsRaw.map((author: string) => {
+      const parts = author.trim().split(' ');
+      const lastName = parts.pop(); // last word is last name
+      const initials = parts.map(n => n.charAt(0).toUpperCase() + '.').join(' ');
+      return `${lastName}, ${initials}`;
+    });
+
+    let authorsAPA = '';
+    if (authorsFormatted.length === 1) {
+      authorsAPA = authorsFormatted[0];
+    } else if (authorsFormatted.length === 2) {
+      authorsAPA = authorsFormatted.join(' & ');
+    } else {
+      authorsAPA = authorsFormatted.slice(0, -1).join(', ') + ', & ' + authorsFormatted.slice(-1);
+    }
+
+    // Year (APA needs only year, not full date)
+    const year = this.thesis.submitted_at
+      ? new Date(this.thesis.submitted_at).getFullYear()
+      : 'n.d.';
+
+    // Title in sentence case (only first word + proper nouns capitalized)
+    const title = this.thesis.title
+      ? this.thesis.title.charAt(0).toUpperCase() +
+        this.thesis.title.slice(1).toLowerCase()
+      : 'Untitled';
+
+    // Thesis type
+    const thesisType = this.thesis.document_type || 'Thesis';
+
+    const university = 'Polytechnic University of the Philippines';
+
+    // APA 7th edition format
+    const apaCitation = `${authorsAPA} (${year}). ${title} [${thesisType}, ${university}].`;
+
+    // Copy to clipboard with fallback
+    console.log('Generated APA citation:', apaCitation);
+    
+    // Check if clipboard API is available
+    if (navigator.clipboard && window.isSecureContext) {
+      // Modern clipboard API
+      navigator.clipboard.writeText(apaCitation).then(() => {
+        console.log('✅ Successfully copied to clipboard');
+        this.citationCopied = true;
+        setTimeout(() => {
+          this.citationCopied = false;
+          this.copiedFormat = '';
+          console.log('Reset citationCopied to false');
+        }, 2000);
+      }).catch(err => {
+        console.error('❌ Clipboard API failed:', err);
+        this.fallbackCopyTextToClipboard(apaCitation);
+      });
+    } else {
+      // Fallback for older browsers or non-secure contexts
+      console.log('📋 Using fallback copy method');
+      this.fallbackCopyTextToClipboard(apaCitation);
+    }
+  }
+
+  private generateMLACitation(): void {
+    // Convert authors to MLA format: "Last, First M., et al." or "Last, First M."
+    console.log('Authors data:', this.thesis.authors, typeof this.thesis.authors);
+    
+    let authorsRaw: string[];
+    if (typeof this.thesis.authors === 'string') {
+      authorsRaw = this.thesis.authors.split(',');
+    } else if (Array.isArray(this.thesis.authors)) {
+      authorsRaw = this.thesis.authors;
+    } else {
+      authorsRaw = ['Unknown Author'];
+    }
+    
+    // MLA author formatting
+    let authorsMLA = '';
+    if (authorsRaw.length === 1) {
+      // Single author: Last, First
+      const parts = authorsRaw[0].trim().split(' ');
+      const lastName = parts.pop() || '';
+      const firstName = parts.join(' ');
+      authorsMLA = `${lastName}, ${firstName}`;
+    } else if (authorsRaw.length === 2) {
+      // Two authors: Last1, First1, and Last2 First2
+      const author1Parts = authorsRaw[0].trim().split(' ');
+      const lastName1 = author1Parts.pop() || '';
+      const firstName1 = author1Parts.join(' ');
+      
+      const author2Parts = authorsRaw[1].trim().split(' ');
+      const lastName2 = author2Parts.pop() || '';
+      const firstName2 = author2Parts.join(' ');
+      
+      authorsMLA = `${lastName1}, ${firstName1}, and ${firstName2} ${lastName2}`;
+    } else if (authorsRaw.length === 3) {
+      // Three authors: Last1, First1, Last2 First2, and Last3 First3
+      const author1Parts = authorsRaw[0].trim().split(' ');
+      const lastName1 = author1Parts.pop() || '';
+      const firstName1 = author1Parts.join(' ');
+      
+      const author2Parts = authorsRaw[1].trim().split(' ');
+      const lastName2 = author2Parts.pop() || '';
+      const firstName2 = author2Parts.join(' ');
+      
+      const author3Parts = authorsRaw[2].trim().split(' ');
+      const lastName3 = author3Parts.pop() || '';
+      const firstName3 = author3Parts.join(' ');
+      
+      authorsMLA = `${lastName1}, ${firstName1}, ${firstName2} ${lastName2}, and ${firstName3} ${lastName3}`;
+    } else if (authorsRaw.length > 3) {
+      // More than 3 authors: Last1, First1, et al.
+      const firstAuthor = authorsRaw[0].trim().split(' ');
+      const lastName = firstAuthor.pop() || '';
+      const firstName = firstAuthor.join(' ');
+      authorsMLA = `${lastName}, ${firstName}, et al.`;
+    }
+
+    // Year
+    const year = this.thesis.submitted_at
+      ? new Date(this.thesis.submitted_at).getFullYear()
+      : 'n.d.';
+
+    // Title in title case for MLA (capitalize each major word)
+    const title = this.thesis.title 
+      ? this.toTitleCase(this.thesis.title)
+      : 'Untitled';
+
+    const university = 'Polytechnic University of the Philippines';
+    const thesisType = this.thesis.document_type || 'Thesis';
+
+    // MLA 8th edition format: Author. *Title in Italics.* Year, Institution, Type.
+    // Remove any trailing period from authorsMLA to avoid double periods
+    const mlaCitation = `${authorsMLA.replace(/\.$/, '')}. *${title}.* ${year}, ${university}, ${thesisType}.`;
+
+    // Copy to clipboard with fallback
+    console.log('Generated MLA citation:', mlaCitation);
+    
+    // Check if clipboard API is available
+    if (navigator.clipboard && window.isSecureContext) {
+      // Modern clipboard API
+      navigator.clipboard.writeText(mlaCitation).then(() => {
+        console.log('✅ Successfully copied to clipboard');
+        this.citationCopied = true;
+        setTimeout(() => {
+          this.citationCopied = false;
+          this.copiedFormat = '';
+          console.log('Reset citationCopied to false');
+        }, 2000);
+      }).catch(err => {
+        console.error('❌ Clipboard API failed:', err);
+        this.fallbackCopyTextToClipboard(mlaCitation);
+      });
+    } else {
+      // Fallback for older browsers or non-secure contexts
+      console.log('📋 Using fallback copy method');
+      this.fallbackCopyTextToClipboard(mlaCitation);
+    }
+  }
+
+  fallbackCopyTextToClipboard(text: string): void {
+    // Create temporary textarea element
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    
+    // Avoid scrolling to bottom
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.position = 'fixed';
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        console.log('✅ Fallback copy successful');
+        this.citationCopied = true;
+        setTimeout(() => {
+          this.citationCopied = false;
+          this.copiedFormat = '';
+          console.log('Reset citationCopied to false');
+        }, 2000);
+      } else {
+        console.error('❌ Fallback copy failed');
+        alert(`APA Citation (copy manually):\n\n${text}`);
+      }
+    } catch (err) {
+      console.error('❌ Fallback copy error:', err);
+      alert(`APA Citation (copy manually):\n\n${text}`);
+    }
+    
+    document.body.removeChild(textArea);
+  }
+
+  private toTitleCase(str: string): string {
+    // Words that should stay lowercase in titles (except when first word)
+    const articles = ['a', 'an', 'the'];
+    const prepositions = ['in', 'on', 'at', 'by', 'for', 'with', 'without', 'to', 'from', 'up', 'down', 'of', 'and', 'or', 'but'];
+    const exceptions = [...articles, ...prepositions];
+    
+    return str.toLowerCase().split(' ').map((word, index) => {
+      // Always capitalize first word, or if not in exceptions list
+      if (index === 0 || !exceptions.includes(word)) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return word;
+    }).join(' ');
   }
 }
 

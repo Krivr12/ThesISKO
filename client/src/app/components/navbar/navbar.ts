@@ -1,7 +1,8 @@
-import { Component, OnInit, Injectable } from '@angular/core';
+import { Component, OnInit, Injectable, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { ActivityLoggerService } from '../../service/activity-logger.service';
 
 /* PrimeNG */
 import { ToolbarModule } from 'primeng/toolbar';
@@ -79,6 +80,8 @@ export class Navbar implements OnInit {
   profileItems: MenuItem[] = [];
   /** Default fallback image in assets */
   defaultAvatar = 'assets/profile.jpg';
+  
+  private activityLogger = inject(ActivityLoggerService);
 
   constructor(private auth: AuthService, private router: Router) {
     this.user$ = this.auth.user$; // assign in ctor to avoid DI timing issues
@@ -90,6 +93,13 @@ export class Navbar implements OnInit {
     ];
     // Sync with sessionStorage on init
     this.syncWithSessionStorage();
+    
+    // Debug: Log user state changes
+    this.user$.subscribe(user => {
+      console.log('Navbar: User state changed:', user);
+      console.log('Navbar: Guest mode:', this.isGuestMode());
+      console.log('Navbar: Session user:', sessionStorage.getItem('user'));
+    });
   }
 
   private syncWithSessionStorage() {
@@ -130,6 +140,69 @@ export class Navbar implements OnInit {
   /** Check if in guest mode */
   isGuestMode(): boolean {
     return sessionStorage.getItem('guestMode') === 'true';
+  }
+
+  /** Check if current user is a guest user */
+  isGuestUser(): boolean {
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) return false;
+    
+    // Check if user status is 'guest' (case insensitive)
+    return currentUser.Status?.toLowerCase() === 'guest';
+  }
+
+  /** Navigate to About Us page */
+  navigateToAbout(): void {
+    console.log('About button clicked - navigating to /about-us');
+    console.log('Current user:', this.auth.currentUser);
+    console.log('User role:', this.auth.currentUser?.Status);
+    
+    this.router.navigate(['/about-us']).then(success => {
+      if (success) {
+        console.log('Navigation to /about-us successful');
+      } else {
+        console.error('Navigation to /about-us failed');
+      }
+    }).catch(error => {
+      console.error('Navigation error:', error);
+    });
+  }
+
+  /** Navigate to Search page */
+  navigateToSearch(): void {
+    console.log('Search button clicked - navigating to /search-thesis');
+    console.log('Current user:', this.auth.currentUser);
+    console.log('User role:', this.auth.currentUser?.Status);
+    
+    // Log navigation activity
+    this.activityLogger.logNavigation(window.location.pathname, '/search-thesis', 'navbar_click').subscribe();
+    
+    this.router.navigate(['/search-thesis']).then(success => {
+      if (success) {
+        console.log('Navigation to /search-thesis successful');
+      } else {
+        console.error('Navigation to /search-thesis failed');
+      }
+    }).catch(error => {
+      console.error('Navigation error:', error);
+    });
+  }
+
+  /** Navigate to Home page */
+  navigateToHome(): void {
+    console.log('Home button clicked - navigating to /home');
+    console.log('Current user:', this.auth.currentUser);
+    console.log('User role:', this.auth.currentUser?.Status);
+    
+    this.router.navigate(['/home']).then(success => {
+      if (success) {
+        console.log('Navigation to /home successful');
+      } else {
+        console.error('Navigation to /home failed');
+      }
+    }).catch(error => {
+      console.error('Navigation error:', error);
+    });
   }
 
   /** Get display name for user */

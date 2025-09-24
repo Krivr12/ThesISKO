@@ -7,6 +7,27 @@
       </button>
     
       <div class="actions">
+        <div class="citation-dropdown"
+             [class.copied]="citationCopied">
+          <button
+            mat-stroked-button
+            color="primary"
+            class="citation-button"
+            [class.copied]="citationCopied">
+            <span *ngIf="!citationCopied">Copy Citation</span>
+            <span *ngIf="citationCopied">{{copiedFormat}} Copied</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          
+          <div class="citation-options">
+            <button class="citation-option" (click)="generateCitation('apa')">
+              APA
+            </button>
+            <button class="citation-option" (click)="generateCitation('mla')">
+              MLA
+            </button>
+          </div>
+        </div>
         <button
           mat-stroked-button
           color="primary"

@@ -24,6 +24,10 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
   const currentPath = state.url;
   
+  console.log('RoleGuard: Checking access to:', currentPath);
+  console.log('RoleGuard: Current user:', currentUser);
+  console.log('RoleGuard: Guest mode:', isGuestMode);
+  
   // Define guest-accessible paths (no login required)
   const guestAccessiblePaths = ['/home', '/about-us', '/search-thesis', '/search-result'];
   const isGuestAccessible = guestAccessiblePaths.some(path => currentPath.startsWith(path));
