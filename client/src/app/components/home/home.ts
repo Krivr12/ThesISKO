@@ -72,4 +72,35 @@ export class Home implements OnInit {
       queryParams: { q }   // Results page can read this via ActivatedRoute
     });
   }
+
+  navigateToSubmission() {
+    console.log('Submit Work button clicked');
+    
+    // Check if user is authenticated
+    const currentUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+    
+    if (!currentUser) {
+      console.log('User not authenticated - redirecting to login page');
+      this.router.navigate(['/login']).then(success => {
+        if (success) {
+          console.log('Navigation to /login successful');
+        } else {
+          console.error('Navigation to /login failed');
+        }
+      }).catch(error => {
+        console.error('Navigation error:', error);
+      });
+    } else {
+      console.log('User authenticated - navigating to /submission');
+      this.router.navigate(['/submission']).then(success => {
+        if (success) {
+          console.log('Navigation to /submission successful');
+        } else {
+          console.error('Navigation to /submission failed');
+        }
+      }).catch(error => {
+        console.error('Navigation error:', error);
+      });
+    }
+  }
 }

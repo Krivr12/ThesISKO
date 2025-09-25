@@ -1,0 +1,155 @@
+/* ============ Layout ============ */
+.layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    background: #fff;
+  }
+  
+  app-admin-side-bar {
+    width: 240px;            /* adjust to your sidebar width */
+    flex-shrink: 0;
+  }
+  
+  .content {
+    flex: 1;
+    padding: 50px;           /* inner page padding */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* ============ Toolbar ============ */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .spacer {
+    flex: 1 1 auto;
+  }
+  
+  button.return {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: #800000;
+  }
+  
+  /* Optional page title at the far right */
+  .page-title {
+    font-weight: 600;
+    opacity: .8;
+  }
+  
+  /* ============ Table panel ============ */
+  .rectangle {
+    border: 2px solid #800000;
+    border-radius: 12px;
+    background: #fff;
+    /* ← 40px both sides as requested */
+    box-shadow: 0 4px 10px rgba(0,0,0,.06);
+    overflow: auto;          /* horizontal scroll if needed on small screens */
+  }
+  
+  /* Remove default outer spacing around the table */
+  .no-table-margin {
+    margin: 0 !important;
+  }
+  
+  /* Ensure full width on desktop */
+  .full-width-table {
+    width: 100%;
+    min-width: 720px;        /* keep columns readable; adjust as needed */
+  }
+  
+  /* ============ Mat Table tweaks ============ */
+  table.mat-mdc-table th.mat-mdc-header-cell,
+  table.mat-mdc-table td.mat-mdc-cell,
+  table.mat-mdc-table td.mat-mdc-footer-cell {
+    padding: 14px 12px;
+    vertical-align: middle;
+    font-size: 14px;
+  }
+  
+  /* Header look */
+  th.mat-mdc-header-cell {
+    font-weight: 700;
+    color: #3a3a3a;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  
+  /* Row hover */
+  .mdc-data-table__row:hover td {
+    background: #fafafa;
+  }
+  
+  /* Sort header color */
+  .mat-sort-header-container {
+    color: inherit; /* keeps your header color */
+  }
+  
+  /* Optional: column sizing (tweak as you like) */
+  .mat-column-requestor { width: 22%; }
+  .mat-column-time      { width: 18%; }
+  .mat-column-chapters  { width: 18%; }
+  .mat-column-purpose   { width: 30%; }
+  .mat-column-actions   { width: 12%; text-align: right; }
+  
+  /* Right-align actions cell content */
+  td.mat-mdc-cell.mat-column-actions {
+    text-align: right;
+  }
+  
+  /* ============ Link-style action button ============ */
+  .link-btn {
+    --link-color: #1a73e8;
+    min-width: 0;
+    padding: 0;
+    height: auto;
+    line-height: 1.2;
+    background: transparent;
+    color: var(--link-color);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    border-radius: 4px; /* for focus ring */
+  }
+  
+  .link-btn:hover {
+    filter: brightness(0.9);
+    background: transparent; /* keep it flat */
+  }
+  
+  .link-btn:disabled,
+  .link-btn[disabled] {
+    color: #7e7e7e;
+    text-decoration: none;
+    cursor: default;
+  }
+  
+  /* Keyboard focus ring for accessibility */
+  .link-btn:focus-visible {
+    outline: 2px solid #99c2ff;
+    outline-offset: 2px;
+  }
+  
+  /* ============ Paginator spacing ============ */
+  .mat-mdc-paginator {
+    border-top: 1px solid #eee;
+    margin-top: 8px;
+  }
+  
+  /* ============ Responsive ============ */
+  @media (max-width: 1024px) {
+    .content { padding: 28px; }
+    .rectangle { padding: 16px 24px; }
+  }
+  
+  @media (max-width: 720px) {
+    .toolbar { gap: 8px; }
+    .content { padding: 16px; }
+    .rectangle { padding: 12px 16px; }
+    .full-width-table { min-width: 640px; } /* allow horizontal scroll */
+  }
+  

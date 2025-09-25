@@ -70,8 +70,8 @@ export class LoginAdmin {
             // SuperAdmin with role_id = 5 goes to superAdmin dashboard
             this.router.navigate(['/superAdmin/dashboard']);
           } else if (user.role_id === 4) {
-            // Admin with role_id = 4 goes to faculty home
-            this.router.navigate(['/faculty-home']);
+            // Admin with role_id = 4 goes to admin dashboard
+            this.router.navigate(['/admin-dashboard']);
           }
         } else {
           this.messageService.add({

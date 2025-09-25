@@ -169,6 +169,23 @@ export class Navbar implements OnInit {
     });
   }
 
+  /** Navigate to Login page */
+  navigateToLogin(): void {
+    console.log('Login button clicked - navigating to /login');
+    console.log('Current user:', this.auth.currentUser);
+    console.log('Guest mode:', sessionStorage.getItem('guestMode'));
+    
+    this.router.navigate(['/login']).then(success => {
+      if (success) {
+        console.log('Navigation to /login successful');
+      } else {
+        console.error('Navigation to /login failed');
+      }
+    }).catch(error => {
+      console.error('Navigation error:', error);
+    });
+  }
+
   /** Navigate to Search page */
   navigateToSearch(): void {
     console.log('Search button clicked - navigating to /search-thesis');

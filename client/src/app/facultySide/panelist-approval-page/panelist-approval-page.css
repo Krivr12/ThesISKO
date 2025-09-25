@@ -6,7 +6,7 @@
   
   /* Sidebar (your <app-navbar>) */
   app-sidenavbar {
-    width: 200px;
+    width: 240px;
     flex-shrink: 0;
   }
 

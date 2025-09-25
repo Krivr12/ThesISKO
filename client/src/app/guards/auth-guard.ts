@@ -28,19 +28,30 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const guestAccessiblePaths = ['/home', '/about-us', '/search-thesis', '/search-result'];
   const isGuestAccessible = guestAccessiblePaths.some(path => currentPath.startsWith(path));
   
-  // Allow guest mode access to guest-accessible paths
-  if (isGuestMode && isGuestAccessible) {
+  // Allow unauthenticated users to access login/signup pages
+  const publicPaths = ['/login', '/login-faculty', '/login-admin', '/signup', '/signup-choose', '/google-callback'];
+  const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
+  
+  // Allow guest mode access to guest-accessible paths AND public paths (login/signup)
+  if (isGuestMode && (isGuestAccessible || isPublicPath)) {
     return true;
   }
   
-  // For non-guest-accessible paths in guest mode, redirect to login
-  if (isGuestMode && !isGuestAccessible) {
+  // For non-guest-accessible and non-public paths in guest mode, redirect to login
+  if (isGuestMode && !isGuestAccessible && !isPublicPath) {
     router.navigate(['/login']);
     return false;
   }
   
   // Regular authentication check for logged-in users
   if (!currentUser) {
+    if (isPublicPath) {
+      return true; // Allow access to login/signup pages
+    }
+    // Allow unauthenticated users to access guest-accessible paths
+    if (isGuestAccessible) {
+      return true;
+    }
     router.navigate(['/signup-choose']);
     return false;
   }
@@ -48,11 +59,11 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const userRole = currentUser.Status?.toLowerCase();
   
   // Define allowed paths for each role
-  const allowedPaths = {
+const allowedPaths = {
     'guest': ['/home', '/about-us', '/search-thesis', '/search-result'],
     'student': ['/home', '/about-us', '/search-thesis', '/search-result', '/submission', '/thank-you'],
     'faculty': ['/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page'],
-    'admin': ['/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page'] // Admin uses faculty paths for now
+    'admin': ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template', '/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page']
   };
   
   // Admin role handling with role_id specific routing
@@ -67,6 +78,51 @@ export const roleGuard: CanActivateFn = (route, state) => {
       }
       // Allow superAdmin to access other areas too if needed
       return true;
+    }
+    
+    // Admin (role_id = 4) can access admin routes
+    if (roleId === 4) {
+      const isAdminRoute = currentPath.startsWith('/admin-');
+      if (isAdminRoute) {
+        return true;
+      }
+      
+      // Check if trying to access allowed admin paths from the allowedPaths array
+      const adminAllowedPaths = allowedPaths['admin'] || [];
+      const isAllowedAdminPath = adminAllowedPaths.some(path => currentPath.startsWith(path));
+      
+      if (isAllowedAdminPath) {
+        return true;
+      }
+      
+      // Define restricted routes that should trigger logout popup for admin users
+      const restrictedForAdmin = [
+        '/login', '/login-faculty', '/login-admin', 
+        '/signup', '/signup-choose',
+        '/home', '/about-us', '/search-thesis', '/search-result', '/submission',
+        '/superAdmin/'
+      ];
+      
+      const isRestrictedRoute = restrictedForAdmin.some(path => currentPath.startsWith(path));
+      
+      if (!isRestrictedRoute) {
+        return true; // Allow access to routes not explicitly restricted
+      }
+      
+      // Show logout confirmation for unauthorized access
+      const confirmed = confirm(
+        `You are trying to access a restricted area outside your admin permissions.\n\nThis will log you out. Do you want to continue?`
+      );
+      
+      if (confirmed) {
+        authService.logout();
+        router.navigate(['/signup-choose']);
+        return false;
+      } else {
+        // Navigate back to admin dashboard
+        router.navigate(['/admin-dashboard']);
+        return false;
+      }
     }
     
     // Other admin users use the faculty interface

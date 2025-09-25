@@ -27,14 +27,22 @@ import { Documents } from './superAdmin/documents/documents';
 import { DocumentsIssues } from './superAdmin/documents-issues/documents-issues';
 import { DocumentsVerify } from './superAdmin/documents-verify/documents-verify';
 
+// Admin components
+import { AdminDashboard } from './admin/admin-dashboard/admin-dashboard';
+import { AdminDocuments } from './admin/admin-documents/admin-documents';
+import { AdminBlock } from './admin/admin-block/admin-block';
+import { AdminFaculties } from './admin/admin-faculties/admin-faculties';
+import { AdminRequest } from './admin/admin-request/admin-request';
+import { AdminTemplate } from './admin/admin-template/admin-template';
+
 
 export const routes: Routes = [
-   // login
-    {path: 'signup-choose', component: SignupChoose},
-    {path: 'login-faculty', component: LoginFaculty},
-    {path: 'login-admin', component: LoginAdmin},
-    {path: 'login', component: Login},
-    {path: 'signup', component: Signup},
+   // login - now protected by role guard to check admin restrictions
+    {path: 'signup-choose', component: SignupChoose, canActivate: [roleGuard]},
+    {path: 'login-faculty', component: LoginFaculty, canActivate: [roleGuard]},
+    {path: 'login-admin', component: LoginAdmin, canActivate: [roleGuard]},
+    {path: 'login', component: Login, canActivate: [roleGuard]},
+    {path: 'signup', component: Signup, canActivate: [roleGuard]},
     {path: 'google-callback', component: GoogleCallbackComponent},
 
     // repository - protected by role guard
@@ -59,6 +67,14 @@ export const routes: Routes = [
     {path: 'panelist-approval-page', component: PanelistApprovalPage, canActivate: [roleGuard]},
     { path: 'panelist-approval-page/:id', component: PanelistApprovalPage, canActivate: [roleGuard] },
     { path: 'panelis-approval-page/:id', redirectTo: 'panelist-approval-page/:id', pathMatch: 'full' },
+
+    // Admin routes - protected by role guard
+    {path: 'admin-dashboard', component: AdminDashboard, canActivate: [roleGuard]},
+    {path: 'admin-documents', component: AdminDocuments, canActivate: [roleGuard]},
+    {path: 'admin-block', component: AdminBlock, canActivate: [roleGuard]},
+    {path: 'admin-faculties', component: AdminFaculties, canActivate: [roleGuard]},
+    {path: 'admin-request', component: AdminRequest, canActivate: [roleGuard]},
+    {path: 'admin-template', component: AdminTemplate, canActivate: [roleGuard]},
 
     // SuperAdmin routes - protected by role guard
     {path: 'superAdmin/dashboard', component: Dashboard, canActivate: [roleGuard]},

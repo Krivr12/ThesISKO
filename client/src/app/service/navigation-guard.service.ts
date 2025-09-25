@@ -41,11 +41,62 @@ export class NavigationGuardService {
       'guest': ['/home', '/about-us', '/search-thesis', '/search-result'],
       'student': ['/home', '/about-us', '/search-thesis', '/search-result', '/submission', '/thank-you'],
       'faculty': ['/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page'],
-      'admin': [] // Admin can access everything
+      'admin': ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template', '/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page']
     };
 
-    // Admin can access everything
-    if (userRole === 'admin') return;
+    // Special handling for admin users with role_id check
+    if (userRole === 'admin' || userRole === 'superadmin') {
+      const roleId = currentUser.role_id;
+      
+      // SuperAdmin (role_id = 5) can access everything
+      if (roleId === 5) {
+        return;
+      }
+      
+      // Admin (role_id = 4) has restricted access
+      if (roleId === 4) {
+        const isAdminRoute = currentPath.startsWith('/admin-');
+        const adminAllowedPaths = allowedPaths['admin'] || [];
+        const isAllowedAdminPath = adminAllowedPaths.some(path => currentPath.startsWith(path));
+        
+        if (isAdminRoute || isAllowedAdminPath) {
+          return; // Allow access
+        }
+        
+        // Define restricted routes that should trigger logout popup for admin users
+        const restrictedForAdmin = [
+          '/login', '/login-faculty', '/login-admin', 
+          '/signup', '/signup-choose',
+          '/home', '/about-us', '/search-thesis', '/search-result', '/submission',
+          '/superAdmin/'
+        ];
+        
+        const isRestrictedRoute = restrictedForAdmin.some(path => currentPath.startsWith(path));
+        
+        if (!isRestrictedRoute) {
+          return; // Allow access to routes not explicitly restricted
+        }
+        
+        // Show logout confirmation for unauthorized access
+        event?.preventDefault();
+        
+        const confirmed = confirm(
+          `You are trying to access a restricted area outside your admin permissions.\n\nThis will log you out. Do you want to continue?`
+        );
+        
+        if (confirmed) {
+          this.authService.logout();
+          this.router.navigate(['/signup-choose']);
+        } else {
+          // Navigate back to admin dashboard
+          this.router.navigate(['/admin-dashboard']);
+        }
+        return;
+      }
+      
+      // Other admin users can access everything
+      return;
+    }
 
     // Check if current path is allowed for user role
     const userAllowedPaths = allowedPaths[userRole as keyof typeof allowedPaths] || [];

@@ -1,0 +1,29 @@
+/* Layout + space from the navbar */
+.layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: white;
+}
+
+app-admin-side-bar {
+  width: 240px;
+  flex-shrink: 0;
+}
+
+/* Inner page padding */
+.content {
+  flex: 1;
+  padding: 50px;
+}
+
+h1 {
+  color: #800000;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+p {
+  color: #666;
+  line-height: 1.6;
+}

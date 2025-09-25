@@ -1,5 +1,5 @@
 
-app-sidenavbar { width:200px; flex-shrink:0; }
+app-sidenavbar { width:240px; flex-shrink:0; }
 .layout { display:flex; gap:16px; min-height:100vh; background:#fff; }
 
 .rectangle{

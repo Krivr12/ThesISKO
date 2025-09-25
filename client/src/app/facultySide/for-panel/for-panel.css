@@ -10,7 +10,7 @@ body { margin: 0; }                /* remove browser default 8px margin */
 
 /* Sidebar (your <app-navbar>) */
 app-sidenavbar {
-  width: 200px;
+  width: 240px;
   flex-shrink: 0;
 }
 
@@ -37,7 +37,7 @@ mat-sidenav-content.content {
 .sidenav-container { height: 100vh; }
 
 .sidenav {
-  width: 200px;
+  width: 240px;
   background-color: #800000;
   padding: 1rem;                   /* keep compact; adjust as you like */
 }

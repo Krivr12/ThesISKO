@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationStart } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -99,6 +99,16 @@ export class FacultyHome implements OnInit, AfterViewInit {
       .subscribe((event: NavigationStart) => {
         // Check if trying to navigate outside faculty side and not already logging out
         if (this.isOutsideFacultySide(event.url) && !this.isLoggingOut) {
+          // Check if logout was initiated from sidebar to avoid duplicate confirmations
+          const sidebarLogoutInitiated = sessionStorage.getItem('sidebarLogoutInitiated');
+          
+          if (sidebarLogoutInitiated === 'true') {
+            // Logout was initiated from sidebar, allow navigation without confirmation
+            this.isLoggingOut = true;
+            this.isLogoutInProgress = true;
+            return;
+          }
+          
           // Prevent the navigation by replacing current state
           history.replaceState(null, '', window.location.href);
           
@@ -248,11 +258,6 @@ export class FacultyHome implements OnInit, AfterViewInit {
   }
 
 
-  @HostListener('window:beforeunload', ['$event'])
-  beforeUnloadHandler(event: BeforeUnloadEvent) {
-    // This handles browser refresh/close
-    return false;
-  }
 
 
   private checkAuthStatus(): void {
@@ -302,6 +307,16 @@ export class FacultyHome implements OnInit, AfterViewInit {
   private checkCurrentRoute(): void {
     // Check if the current URL is outside faculty side
     if (this.isOutsideFacultySide(window.location.pathname)) {
+      // Check if logout was initiated from sidebar to avoid duplicate confirmations
+      const sidebarLogoutInitiated = sessionStorage.getItem('sidebarLogoutInitiated');
+      
+      if (sidebarLogoutInitiated === 'true') {
+        // Logout was initiated from sidebar, proceed without confirmation
+        this.isLoggingOut = true;
+        this.isLogoutInProgress = true;
+        return;
+      }
+      
       const confirmed = window.confirm('Do you want to logout?');
       
       if (confirmed) {
