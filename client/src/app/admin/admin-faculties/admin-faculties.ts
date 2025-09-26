@@ -32,7 +32,6 @@ interface Faculty {
   faculty_number: string;
 }
 
-
 @Component({
   selector: 'app-admin-faculties',
   imports: [ AdminSideBar, CommonModule, RouterModule, HttpClientModule,

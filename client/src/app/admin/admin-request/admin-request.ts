@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -12,6 +12,9 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
 
 import { AdminSideBar } from '../admin-side-bar/admin-side-bar';
 
@@ -22,43 +25,45 @@ interface RequestItem {
   selected_chapter: string; // "1" | "2" | "3" | "4" | "5" | "all"
   purpose: string;
   email: string;
-  verified?: boolean;       // UI-only
+  title?: string;
+ 
 }
+
 @Component({
   selector: 'app-admin-request',
-  imports: [AdminSideBar, CommonModule, RouterModule, HttpClientModule,
+  standalone: true,
+  imports: [
+    AdminSideBar, CommonModule, RouterModule, HttpClientModule,
     MatSidenavModule, MatToolbarModule, MatButtonModule, MatIconModule,
-    MatTableModule, MatPaginatorModule, MatSortModule, MatInputModule],
+    MatTableModule, MatPaginatorModule, MatSortModule, MatInputModule,
+    MatDialogModule, MatFormFieldModule, FormsModule
+  ],
   templateUrl: './admin-request.html',
   styleUrl: './admin-request.css'
 })
 export class AdminRequest implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['requestor', 'time', 'chapters', 'purpose', 'actions'];
+  displayedColumns: string[] = ['requestor', 'time', 'title', 'chapters', 'purpose', 'actions'];
   dataSource = new MatTableDataSource<RequestItem>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('verifyDialog') verifyTpl!: TemplateRef<any>;
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {}
+  verifyNote = '';
+  private dialog = inject(MatDialog);
+
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit(): void {
-    // Place request_samples.json under /assets/ (or adjust path if different)
     this.http.get<RequestItem[]>('requestsample.json').subscribe({
-      next: rows => { this.dataSource.data = rows ?? []; },
-      error: err => {
-        console.error('Failed to load request samples:', err);
-        this.dataSource.data = [];
-      }
+      next: rows => this.dataSource.data = rows ?? [],
+      error: () => this.dataSource.data = []
     });
 
-    // Optional: custom filter to search across multiple fields if you later add a search box
-    this.dataSource.filterPredicate = (data: RequestItem, filter: string) => {
-      const value = (data.requestor_name + ' ' + data.purpose + ' ' + data.selected_chapter + ' ' + data.date + ' ' + data.time).toLowerCase();
-      return value.includes(filter);
-    };
+    this.dataSource.filterPredicate = (d, f) => (
+      [d.requestor_name, d.purpose, d.title, d.selected_chapter, d.date, d.time]
+        .filter(Boolean).join(' ').toLowerCase()
+    ).includes(f);
   }
 
   ngAfterViewInit(): void {
@@ -71,19 +76,46 @@ export class AdminRequest implements OnInit, AfterViewInit {
   }
 
   formatChapters(sel: string): string {
-    if (!sel) return '';
+    if (!sel) return '—';
     return sel === 'all' ? 'All Chapters' : `Chapter ${sel}`;
   }
 
-  verify(row: RequestItem): void {
-    // Front-end only: mark as verified and (optionally) send to API here
-    row.verified = true;
-    // Example: console.log or call a service to persist verification
-    console.log('Verified request from:', row.requestor_name, row.date, row.time);
+  private computeMissingFields(row: RequestItem): string[] {
+    const req: Array<keyof RequestItem> = ['requestor_name','date','time','selected_chapter','purpose','email','title'];
+    const label: Record<string,string> = {
+      requestor_name:'Requestor', date:'Date', time:'Time',
+      selected_chapter:'Chapters', purpose:'Purpose', email:'Email', title:'Title'
+    };
+    return req.filter(k => !(row as any)[k] || String((row as any)[k]).trim()==='')
+              .map(k => label[k as string]);
   }
 
-  /** Optional: hook if you add a search box */
+  openVerifyDialog(row: RequestItem): void {
+    this.verifyNote = '';
+    const missingFields = this.computeMissingFields(row);
+
+    this.dialog.open(this.verifyTpl, {
+      panelClass: 'thesisko-dialog',              // <<< important
+      width: 'min(1100px, 96vw)',
+      maxWidth: '96vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      restoreFocus: false,
+      data: { row, missingFields }
+    }).afterClosed().subscribe(res => {
+     
+    });
+  }
+
+  approveRequest(): void {
+    
+  }
+
+  rejectRequest(): void {
+   
+  }
+
   applyFilter(value: string) {
-    this.dataSource.filter = value.trim().toLowerCase();
+    this.dataSource.filter = (value || '').trim().toLowerCase();
   }
 }

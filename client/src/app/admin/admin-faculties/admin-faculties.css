@@ -9,7 +9,7 @@
   }
   
   /* Match the actual tag in your HTML */
-  app-super-admin-nav-bar {
+  app-admin-side-bar {
     width: 200px;
     flex-shrink: 0;
   }
@@ -26,7 +26,7 @@
     flex: 1 1 auto;              /* ← makes Add button go to the far right */
   }
   
-  /* Inner page padding (keep if you also want inner breathing room) */
+  /*Inner page padding (keep if you also want inner breathing room) */
   .content {
     flex: 1;
     padding: 50px;               /* top/right/bottom/left = 50px */

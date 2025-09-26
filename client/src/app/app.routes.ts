@@ -30,6 +30,7 @@ import { AdminTemplate } from './admin/admin-template/admin-template';
 import { AdminDocuments } from './admin/admin-documents/admin-documents';
 import { AdminRequest } from './admin/admin-request/admin-request';
 
+
 export const routes: Routes = [
    // login
     {path: 'signup-choose', component: SignupChoose},
@@ -82,6 +83,7 @@ export const routes: Routes = [
     {path: 'admin-documents', component: AdminDocuments},
     {path: 'admin-faculties', component: AdminFaculties},
     {path: 'admin-request', component: AdminRequest},
+   
     {path: 'admin-template', component: AdminTemplate},
 
 
