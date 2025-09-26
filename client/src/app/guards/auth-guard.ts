@@ -60,8 +60,8 @@ export const roleGuard: CanActivateFn = (route, state) => {
   
   // Define allowed paths for each role
 const allowedPaths = {
-    'guest': ['/home', '/about-us', '/search-thesis', '/search-result'],
-    'student': ['/home', '/about-us', '/search-thesis', '/search-result', '/submission', '/thank-you'],
+    'guest': ['/home', '/about-us', '/search-thesis', '/search-result', '/guest-profile'],
+    'student': ['/home', '/about-us', '/search-thesis', '/search-result', '/submission', '/thank-you', '/student-profile'],
     'faculty': ['/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page'],
     'admin': ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template', '/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page']
   };

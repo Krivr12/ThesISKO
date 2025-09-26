@@ -9,6 +9,8 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
 import { MenuModule } from 'primeng/menu';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 import { MenuItem } from 'primeng/api';
 
 export interface AuthUser {
@@ -72,7 +74,8 @@ export class AuthService {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, ToolbarModule, ButtonModule, AvatarModule, MenuModule],
+  imports: [CommonModule, RouterModule, ToolbarModule, ButtonModule, AvatarModule, MenuModule, ConfirmDialogModule],
+  providers: [ConfirmationService],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css'],
 })
@@ -84,14 +87,16 @@ export class Navbar implements OnInit {
   
   private activityLogger = inject(ActivityLoggerService);
 
-  constructor(private auth: AuthService, private router: Router) {
+  constructor(private auth: AuthService, private router: Router, private confirmationService: ConfirmationService) {
     this.user$ = this.auth.user$; // assign in ctor to avoid DI timing issues
   }
 
   ngOnInit() {
-    this.profileItems = [
-      { label: 'Sign out', icon: 'pi pi-sign-out', command: () => this.logout() },
-    ];
+    // Initialize profile items based on user role
+    this.user$.subscribe(user => {
+      this.updateProfileItems(user);
+    });
+    
     // Sync with sessionStorage on init
     this.syncWithSessionStorage();
     
@@ -118,10 +123,83 @@ export class Navbar implements OnInit {
   }
 
   logout() {
-    this.auth.logout();
-    // Clear guest mode
-    sessionStorage.removeItem('guestMode');
-    this.router.navigate(['/signup-choose']);
+    const currentUser = this.auth.currentUser;
+    const userRole = currentUser?.Status?.toLowerCase();
+    const isGuest = userRole === 'guest';
+    
+    this.confirmationService.confirm({
+      message: isGuest 
+        ? 'Are you sure you want to sign out? You will need to sign in again to access your account.'
+        : 'Are you sure you want to sign out?',
+      header: 'Confirm Sign Out',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Yes, Sign Out',
+      rejectLabel: 'Cancel',
+      accept: () => {
+        this.auth.logout();
+        // Clear guest mode
+        sessionStorage.removeItem('guestMode');
+        
+        // Navigate all users to signup-choose after logout
+        this.router.navigate(['/signup-choose']);
+      }
+    });
+  }
+
+  /** Update profile menu items based on user role */
+  private updateProfileItems(user: AuthUser | null) {
+    if (!user) {
+      this.profileItems = [];
+      return;
+    }
+
+    this.profileItems = [];
+
+    // Add "Edit Information" for students and guests
+    if (user.Status?.toLowerCase() === 'student' || user.Status?.toLowerCase() === 'guest') {
+      this.profileItems.push({
+        label: 'Edit Information',
+        icon: 'pi pi-user-edit',
+        command: () => this.navigateToProfile()
+      });
+    }
+
+    // Always add "Sign out"
+    this.profileItems.push({
+      label: 'Sign out',
+      icon: 'pi pi-sign-out',
+      command: () => this.logout()
+    });
+  }
+
+  /** Navigate to profile page based on user role */
+  navigateToProfile() {
+    const currentUser = this.auth.currentUser;
+    const userRole = currentUser?.Status?.toLowerCase();
+    
+    if (userRole === 'guest') {
+      console.log('Edit Information clicked - navigating to /guest-profile');
+      this.router.navigate(['/guest-profile']).then(success => {
+        if (success) {
+          console.log('Navigation to /guest-profile successful');
+        } else {
+          console.error('Navigation to /guest-profile failed');
+        }
+      }).catch(error => {
+        console.error('Navigation error:', error);
+      });
+    } else if (userRole === 'student') {
+      console.log('Edit Information clicked - navigating to /student-profile');
+      this.router.navigate(['/student-profile']).then(success => {
+        if (success) {
+          console.log('Navigation to /student-profile successful');
+        } else {
+          console.error('Navigation to /student-profile failed');
+        }
+      }).catch(error => {
+        console.error('Navigation error:', error);
+      });
+    }
   }
 
   /** Decide which image to use: user photo or default asset */

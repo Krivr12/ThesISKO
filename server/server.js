@@ -66,7 +66,7 @@ app.use(activityLoggingMiddleware);
 // Routes
 app.use("/records", records);
 app.use("/group_progress", group_progress);
-app.use("/users", users);
+app.use("/api/users", users);
 app.use("/auth", auth);
 app.use("/admin", admin);
 app.use("/activity", activity);

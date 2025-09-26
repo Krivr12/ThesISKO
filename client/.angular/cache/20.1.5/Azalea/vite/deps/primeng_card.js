@@ -1,16 +1,16 @@
 import {
   BaseComponent
-} from "./chunk-O4FISIXC.js";
+} from "./chunk-A2QWKLUI.js";
 import {
   BaseStyle
-} from "./chunk-QOZZYQIB.js";
+} from "./chunk-3YD4YC3K.js";
 import {
   Footer,
   Header,
   PrimeTemplate,
   SharedModule,
   k2 as k
-} from "./chunk-32SD3NQV.js";
+} from "./chunk-RJN5PYET.js";
 import {
   CommonModule,
   NgIf,
@@ -56,8 +56,8 @@ import {
   ɵɵtext,
   ɵɵtextInterpolate
 } from "./chunk-DMSQSH77.js";
-import "./chunk-YVXMBCE5.js";
 import "./chunk-G6ECYYJH.js";
+import "./chunk-YVXMBCE5.js";
 import "./chunk-RTGP7ALM.js";
 import "./chunk-WDMUDEB6.js";
 

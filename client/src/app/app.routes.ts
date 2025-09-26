@@ -8,6 +8,8 @@ import { SearchResult } from './components/search-result/search-result';
 import { Submission } from './components/submission/submission';
 import { ThankYou } from './components/thank-you/thank-you';
 import { SignupChoose } from './components/signup-choose/signup-choose';
+import { StudentProfile } from './components/student-profile/student-profile';
+import { GuestProfile } from './components/guest-profile/guest-profile';
 import { FacultyHome } from './facultySide/faculty-home/faculty-home';
 import { LoginFaculty } from './components/login-faculty/login-faculty';
 import { LoginAdmin } from './components/login-admin/login-admin';
@@ -52,6 +54,8 @@ export const routes: Routes = [
     {path: 'search-result', component: SearchResult, canActivate: [roleGuard]},
     {path: 'submission', component: Submission, canActivate: [submissionGuard]},
     {path: 'thank-you', component: ThankYou, canActivate: [roleGuard]},
+    {path: 'student-profile', component: StudentProfile, canActivate: [roleGuard]},
+    {path: 'guest-profile', component: GuestProfile, canActivate: [roleGuard]},
     {path: '', redirectTo: 'signup-choose', pathMatch: 'full'},
 
 

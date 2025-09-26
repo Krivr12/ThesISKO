@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import pool from '../data/database.js'
 import { transporter } from '../config/mailer.js'
 import { generatePassword } from '../utils/passwordGenerator.js'
+import ActivityLogger from '../utils/activityLogger.js'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -625,10 +626,186 @@ const adminCreateFaculty = async (req, res) => {
   }
 };
 
+// Get single user by ID
+const getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    const [users] = await pool.execute(`
+      SELECT 
+        ui.user_id AS StudentID,
+        ui.firstname AS Firstname,
+        ui.lastname AS Lastname,
+        ui.email AS Email,
+        ui.role_id,
+        r.role_name AS Status,
+        c.course_code AS Course,
+        d.department_name AS Department,
+        ui.student_id,
+        ui.faculty_id,
+        ui.admin_id,
+        ui.group_id,
+        ui.block_id,
+        ui.avatar_url AS AvatarUrl
+      FROM users_info ui
+      LEFT JOIN roles r ON ui.role_id = r.role_id
+      LEFT JOIN courses c ON ui.course_id = c.course_id
+      LEFT JOIN departments d ON ui.department_id = d.department_id
+      WHERE ui.user_id = ? LIMIT 1
+    `, [userId]);
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = users[0];
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Error fetching user data' });
+  }
+};
+
+// Update user information
+const updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const {
+      firstname,
+      lastname,
+      student_id,
+      currentPassword,
+      newPassword
+    } = req.body;
+
+    // Validate required fields
+    if (!firstname || !lastname) {
+      return res.status(400).json({
+        error: 'First name and last name are required'
+      });
+    }
+
+    // If password change is requested, validate current password
+    let hashedNewPassword = null;
+    if (newPassword && currentPassword) {
+      // Get user's current password hash
+      const [userResult] = await pool.execute(
+        'SELECT password_hash FROM users_info WHERE user_id = ? LIMIT 1',
+        [userId]
+      );
+
+      if (userResult.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const user = userResult[0];
+      
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({
+          error: 'Current password is incorrect'
+        });
+      }
+
+      // Validate new password length
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          error: 'New password must be at least 6 characters long'
+        });
+      }
+
+      // Hash the new password
+      hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    }
+
+    // Update user information
+    let updateQuery = `
+      UPDATE users_info 
+      SET 
+        firstname = ?,
+        lastname = ?
+    `;
+    
+    let updateParams = [firstname, lastname];
+    
+    // Only update student_id if it's provided (for student users)
+    if (student_id !== undefined && student_id !== null) {
+      updateQuery += `, student_id = ?`;
+      updateParams.push(student_id);
+    }
+    
+    if (hashedNewPassword) {
+      updateQuery += `, password_hash = ?`;
+      updateParams.push(hashedNewPassword);
+    }
+    
+    updateQuery += ` WHERE user_id = ?`;
+    updateParams.push(userId);
+
+    const [result] = await pool.execute(updateQuery, updateParams);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // If password was changed, invalidate all user tokens for security
+    if (hashedNewPassword) {
+      try {
+        // Clear all tokens for this user (sessions, reset tokens, etc.)
+        await pool.execute(
+          'DELETE FROM users_tokens WHERE user_id = ?',
+          [userId]
+        );
+        console.log(`Cleared all tokens for user ${userId} after password change`);
+
+        // Log the password change activity
+        await ActivityLogger.logActivity({
+          userId: parseInt(userId),
+          sessionId: req.sessionID || 'unknown',
+          actionType: 'student_password_change',
+          actionDescription: `Student changed their password`,
+          resourceType: 'user',
+          resourceId: userId.toString(),
+          ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+          userAgent: req.get('User-Agent') || 'unknown',
+          requestMethod: req.method,
+          requestUrl: req.originalUrl || req.url,
+          requestBody: { action: 'password_change' }, // Don't log actual passwords
+          responseStatus: 200,
+          additionalData: {
+            tokensCleared: true,
+            timestamp: new Date().toISOString()
+          }
+        });
+      } catch (tokenError) {
+        console.error('Error clearing user tokens or logging activity:', tokenError);
+        // Don't fail the request if token cleanup fails, just log it
+      }
+    }
+
+    res.json({
+      message: hashedNewPassword 
+        ? 'Profile and password updated successfully. Please log in again for security.' 
+        : 'User information updated successfully',
+      user_id: userId,
+      passwordChanged: !!hashedNewPassword
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ 
+      error: 'Error updating user information',
+      details: error.message 
+    });
+  }
+};
+
 export {
   getAllUsers,
   signupUser,
   loginUser,
   verifyStudentEmail,
-  adminCreateFaculty
+  adminCreateFaculty,
+  getUserById,
+  updateUser
 }

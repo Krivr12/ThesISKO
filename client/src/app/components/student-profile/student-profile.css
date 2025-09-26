@@ -1,0 +1,516 @@
+/* Global override for this component - ensure all inputs use maroon text */
+:host {
+  color: #800000;
+}
+
+:host input {
+  color: #800000 !important;
+}
+
+:host ::ng-deep input {
+  color: #800000 !important;
+}
+
+:host ::ng-deep .p-inputtext {
+  color: #800000 !important;
+}
+
+.profile-container {
+  min-height: calc(100vh - 140px);
+  background-color: #800000;
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.profile-content {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.profile-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: white;
+}
+
+.profile-card :deep(.p-card-header) {
+  background: #800000;
+  color: white;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 1.5rem;
+  border-radius: 12px 12px 0 0;
+}
+
+.profile-card :deep(.p-card-body) {
+  padding: 2rem;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.form-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #800000;
+}
+
+.form-section h3 {
+  margin: 0 0 1.5rem 0;
+  color: #800000;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field label {
+  font-weight: 600;
+  color: #800000;
+  font-size: 0.9rem;
+}
+
+.form-field input[pInputText] {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #800000;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  padding: 0.5rem;
+  color: #800000;
+  background-color: white;
+}
+
+.form-field input[pInputText]:focus {
+  border-color: #a00000;
+  box-shadow: none;
+}
+
+.form-field mat-form-field {
+  width: 100%;
+}
+
+.form-field :deep(.mat-mdc-form-field) {
+  width: 100%;
+}
+
+.form-field :deep(.mat-mdc-form-field .mat-mdc-form-field-focus-overlay) {
+  background-color: rgba(128, 0, 0, 0.04);
+}
+
+.form-field input[readonly] {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+/* Password field styling */
+.form-field :deep(.p-password) {
+  width: 100%;
+}
+
+.form-field :deep(.p-password .p-inputtext) {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #800000;
+  border-radius: 10px;
+  padding: 0.5rem;
+  padding-right: 2.5rem;
+  transition: all 0.3s ease;
+  color: #800000;
+  background-color: white;
+}
+
+.form-field :deep(.p-password .p-inputtext:focus) {
+  border-color: #a00000;
+  box-shadow: none;
+  color: #800000;
+}
+
+.form-field :deep(.p-password.ng-invalid .p-inputtext) {
+  border-color: #800000;
+  color: #800000;
+}
+
+/* Ensure all password input states use maroon text */
+.form-field :deep(.p-password input) {
+  color: #800000 !important;
+  background-color: white !important;
+}
+
+.form-field :deep(.p-password input:focus) {
+  color: #800000 !important;
+}
+
+.form-field :deep(.p-password input:hover) {
+  color: #800000 !important;
+}
+
+/* More specific overrides for password fields */
+:host ::ng-deep .p-password input {
+  color: #800000 !important;
+  background-color: white !important;
+}
+
+:host ::ng-deep .p-password .p-inputtext {
+  color: #800000 !important;
+  background-color: white !important;
+}
+
+:host ::ng-deep .p-password input[type="password"] {
+  color: #800000 !important;
+}
+
+:host ::ng-deep .p-password input[type="text"] {
+  color: #800000 !important;
+}
+
+/* Target PrimeNG password component directly */
+p-password input {
+  color: #800000 !important;
+}
+
+p-password .p-inputtext {
+  color: #800000 !important;
+}
+
+.form-field :deep(.p-password .p-password-toggle) {
+  color: #800000;
+  right: 8px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.form-field :deep(.p-password .p-password-toggle:hover) {
+  color: #a00000;
+}
+
+/* Adjust password input wrapper to position toggle button correctly */
+.form-field :deep(.p-password) {
+  position: relative;
+}
+
+.form-field :deep(.p-password .p-inputwrapper) {
+  position: relative;
+}
+
+/* Toggle button positioning is handled above */
+
+/* Placeholder styling */
+.form-field input[pInputText]::placeholder {
+  color: #999;
+  opacity: 1;
+}
+
+.form-field :deep(.p-password .p-inputtext::placeholder) {
+  color: #999;
+  opacity: 1;
+}
+
+.form-field .ng-invalid {
+  border-color: #800000;
+}
+
+.error-message {
+  color: #800000;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.info-message {
+  color: #6c757d;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.password-info {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #fff8e1;
+  border-left: 4px solid #ffd966;
+  border-radius: 4px;
+}
+
+.password-info .info-message {
+  color: #80000088;
+  font-size: 0.85rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.password-info .pi-info-circle {
+  font-size: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e1e5e9;
+}
+
+.cancel-button :deep(.p-button) {
+  background: white;
+  border: 2px solid #800000;
+  color: #800000;
+  padding: 0.75rem 2rem;
+  font-weight: bold;
+  border-radius: 10px;
+}
+
+.cancel-button :deep(.p-button:hover) {
+  background: #f9f9f9;
+  border-color: #a00000;
+  color: #a00000;
+}
+
+.save-button :deep(.p-button:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .profile-card :deep(.p-card-body) {
+    padding: 1.5rem;
+  }
+  
+  .form-section {
+    padding: 1rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .form-actions :deep(.p-button) {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 0.5rem;
+  }
+  
+  .profile-card :deep(.p-card-header) {
+    font-size: 1.2rem;
+    padding: 1rem;
+  }
+  
+  .profile-card :deep(.p-card-body) {
+    padding: 1rem;
+  }
+  
+  .form-section {
+    padding: 0.75rem;
+  }
+  
+  .form-section h3 {
+    font-size: 1.1rem;
+  }
+}
+
+/* Custom Material select styling */
+:deep(.mat-mdc-form-field-appearance-fill .mat-mdc-form-field-flex) {
+  border-radius: 6px 6px 0 0;
+}
+
+:deep(.mat-mdc-select-panel) {
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.mat-mdc-option:hover) {
+  background: #800000;
+  color: white;
+}
+
+/* Loading state */
+:deep(.p-button-loading .p-button-icon) {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Confirmation Dialog Styling - Force Override PrimeNG Defaults */
+::ng-deep .p-confirm-dialog,
+::ng-deep .p-dialog.p-confirm-dialog,
+:host ::ng-deep .p-confirm-dialog {
+  border-radius: 15px !important;
+  border: 3px solid #800000 !important;
+  box-shadow: 0 10px 30px rgba(128, 0, 0, 0.3) !important;
+  overflow: hidden !important;
+}
+
+::ng-deep .p-confirm-dialog .p-dialog-header,
+::ng-deep .p-dialog.p-confirm-dialog .p-dialog-header,
+:host ::ng-deep .p-confirm-dialog .p-dialog-header {
+  background: #800000 !important;
+  background-color: #800000 !important;
+  color: white !important;
+  border-radius: 0 !important;
+  padding: 1.5rem 2rem !important;
+  border-bottom: 2px solid #ffd966 !important;
+}
+
+::ng-deep .p-confirm-dialog .p-dialog-title,
+::ng-deep .p-dialog.p-confirm-dialog .p-dialog-title,
+:host ::ng-deep .p-confirm-dialog .p-dialog-title {
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+}
+
+::ng-deep .p-confirm-dialog .p-dialog-content,
+::ng-deep .p-dialog.p-confirm-dialog .p-dialog-content,
+:host ::ng-deep .p-confirm-dialog .p-dialog-content {
+  padding: 2rem !important;
+  background: white !important;
+  background-color: white !important;
+}
+
+::ng-deep .p-confirm-dialog .p-confirm-dialog-icon,
+::ng-deep .p-dialog.p-confirm-dialog .p-confirm-dialog-icon,
+:host ::ng-deep .p-confirm-dialog .p-confirm-dialog-icon {
+  color: #800000 !important;
+  font-size: 3rem !important;
+}
+
+::ng-deep .p-confirm-dialog .p-confirm-dialog-message,
+::ng-deep .p-dialog.p-confirm-dialog .p-confirm-dialog-message,
+:host ::ng-deep .p-confirm-dialog .p-confirm-dialog-message {
+  color: #800000 !important;
+  font-weight: 500 !important;
+  font-size: 1.1rem !important;
+  margin-left: 1rem !important;
+  line-height: 1.5 !important;
+}
+
+::ng-deep .p-confirm-dialog .p-dialog-footer,
+::ng-deep .p-dialog.p-confirm-dialog .p-dialog-footer,
+:host ::ng-deep .p-confirm-dialog .p-dialog-footer {
+  background: #f8f9fa !important;
+  background-color: #f8f9fa !important;
+  padding: 1.5rem 2rem !important;
+  border-top: 1px solid #e0e0e0 !important;
+  display: flex !important;
+  gap: 1rem !important;
+  justify-content: flex-end !important;
+}
+
+/* Accept Button - Force Yellow/Gold Theme */
+::ng-deep .p-confirm-dialog .p-button.p-confirm-dialog-accept,
+::ng-deep .p-confirm-dialog .p-confirm-dialog-accept.p-button,
+::ng-deep .p-confirm-dialog .p-confirm-dialog-accept,
+::ng-deep .p-dialog.p-confirm-dialog .p-button.p-confirm-dialog-accept,
+:host ::ng-deep .p-confirm-dialog .p-button.p-confirm-dialog-accept {
+  background: #ffd966 !important;
+  background-color: #ffd966 !important;
+  border: 2px solid #ffd966 !important;
+  border-color: #ffd966 !important;
+  color: #800000 !important;
+  font-weight: 700 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 15px rgba(255, 217, 102, 0.4) !important;
+}
+
+::ng-deep .p-confirm-dialog .p-button.p-confirm-dialog-accept:hover,
+::ng-deep .p-confirm-dialog .p-confirm-dialog-accept.p-button:hover,
+::ng-deep .p-confirm-dialog .p-confirm-dialog-accept:hover,
+::ng-deep .p-dialog.p-confirm-dialog .p-button.p-confirm-dialog-accept:hover,
+:host ::ng-deep .p-confirm-dialog .p-button.p-confirm-dialog-accept:hover {
+  background: #ffcc33 !important;
+  background-color: #ffcc33 !important;
+  border-color: #ffcc33 !important;
+  color: #800000 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(255, 217, 102, 0.6) !important;
+}
+
+/* Reject Button - Force Maroon Theme */
+::ng-deep .p-confirm-dialog .p-button.p-confirm-dialog-reject,
+::ng-deep .p-confirm-dialog .p-confirm-dialog-reject.p-button,
+::ng-deep .p-confirm-dialog .p-confirm-dialog-reject,
+::ng-deep .p-dialog.p-confirm-dialog .p-button.p-confirm-dialog-reject,
+:host ::ng-deep .p-confirm-dialog .p-button.p-confirm-dialog-reject {
+  background: white !important;
+  background-color: white !important;
+  border: 2px solid #800000 !important;
+  border-color: #800000 !important;
+  color: #800000 !important;
+  font-weight: 600 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 10px !important;
+}
+
+::ng-deep .p-confirm-dialog .p-button.p-confirm-dialog-reject:hover,
+::ng-deep .p-confirm-dialog .p-confirm-dialog-reject.p-button:hover,
+::ng-deep .p-confirm-dialog .p-confirm-dialog-reject:hover,
+::ng-deep .p-dialog.p-confirm-dialog .p-button.p-confirm-dialog-reject:hover,
+:host ::ng-deep .p-confirm-dialog .p-button.p-confirm-dialog-reject:hover {
+  background: #f8f9fa !important;
+  background-color: #f8f9fa !important;
+  border-color: #a00000 !important;
+  color: #a00000 !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Remove any default PrimeNG button styling */
+::ng-deep .p-confirm-dialog .p-button {
+  transition: all 0.3s ease !important;
+}
+
+::ng-deep .p-confirm-dialog .p-button.p-button-success {
+  background: #ffd966 !important;
+  border-color: #ffd966 !important;
+  color: #800000 !important;
+}
+
+/* Confirmation Dialog Overlay */
+::ng-deep .p-component-overlay,
+::ng-deep .p-dialog-mask,
+:host ::ng-deep .p-component-overlay {
+  background: rgba(128, 0, 0, 0.4) !important;
+  background-color: rgba(128, 0, 0, 0.4) !important;
+}
