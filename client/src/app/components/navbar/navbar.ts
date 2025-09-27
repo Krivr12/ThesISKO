@@ -1,6 +1,7 @@
 import { Component, OnInit, Injectable, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ActivityLoggerService } from '../../service/activity-logger.service';
 
@@ -29,45 +30,61 @@ export interface AuthUser {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private get hasStorage() {
-    return typeof window !== 'undefined' && !!window.localStorage;
+  private userSubject = new BehaviorSubject<AuthUser | null>(null);
+  user$ = this.userSubject.asObservable();
+  private http = inject(HttpClient);
+
+  constructor() {
+    // Initialize user state from server on service creation
+    this.initializeUser();
   }
 
-  private userSubject = new BehaviorSubject<AuthUser | null>(this.restoreUser());
-  user$ = this.userSubject.asObservable();
+  private async initializeUser() {
+    try {
+      const response = await this.http.get<{user: AuthUser}>('http://localhost:5050/auth/me', {
+        withCredentials: true
+      }).toPromise();
+      
+      if (response?.user) {
+        this.userSubject.next(response.user);
+      }
+    } catch (error) {
+      // User not authenticated, keep null state
+      console.log('No authenticated user found');
+    }
+  }
 
   setUser(user: AuthUser) {
     this.userSubject.next(user);
-    if (this.hasStorage) {
-      localStorage.setItem('user', JSON.stringify(user));
-      sessionStorage.setItem('user', JSON.stringify(user));
-    }
   }
 
-  logout() {
-    this.userSubject.next(null);
-    if (this.hasStorage) {
-      localStorage.removeItem('user');
-      sessionStorage.removeItem('user');
+  async logout() {
+    try {
+      // Call backend logout endpoint to clear HttpOnly cookie
+      await this.http.post('http://localhost:5050/auth/logout', {}, {
+        withCredentials: true
+      }).toPromise();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Always clear local state
+      this.userSubject.next(null);
+      // Clear any remaining session storage for guest mode
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('guestMode');
+        sessionStorage.removeItem('user');
+        localStorage.removeItem('user');
+      }
     }
-    // also clear tokens/cookies here if you use them
   }
 
   get currentUser() {
     return this.userSubject.value;
   }
 
-  private restoreUser(): AuthUser | null {
-    try {
-      if (!this.hasStorage) return null;
-      // Check both localStorage and sessionStorage
-      const localRaw = localStorage.getItem('user');
-      const sessionRaw = sessionStorage.getItem('user');
-      const raw = localRaw || sessionRaw;
-      return raw ? (JSON.parse(raw) as AuthUser) : null;
-    } catch {
-      return null;
-    }
+  // Method to refresh user data from server
+  async refreshUser() {
+    await this.initializeUser();
   }
 }
 
@@ -95,32 +112,11 @@ export class Navbar implements OnInit {
     // Initialize profile items based on user role
     this.user$.subscribe(user => {
       this.updateProfileItems(user);
-    });
-    
-    // Sync with sessionStorage on init
-    this.syncWithSessionStorage();
-    
-    // Debug: Log user state changes
-    this.user$.subscribe(user => {
       console.log('Navbar: User state changed:', user);
       console.log('Navbar: Guest mode:', this.isGuestMode());
-      console.log('Navbar: Session user:', sessionStorage.getItem('user'));
     });
   }
 
-  private syncWithSessionStorage() {
-    if (typeof window !== 'undefined' && !!window.localStorage) {
-      const sessionUser = sessionStorage.getItem('user');
-      if (sessionUser && !this.auth.currentUser) {
-        try {
-          const user = JSON.parse(sessionUser) as AuthUser;
-          this.auth.setUser(user);
-        } catch (e) {
-          console.error('Error parsing session user:', e);
-        }
-      }
-    }
-  }
 
   logout() {
     const currentUser = this.auth.currentUser;
@@ -135,8 +131,8 @@ export class Navbar implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Yes, Sign Out',
       rejectLabel: 'Cancel',
-      accept: () => {
-        this.auth.logout();
+      accept: async () => {
+        await this.auth.logout();
         // Clear guest mode
         sessionStorage.removeItem('guestMode');
         

@@ -37,19 +37,15 @@ export class LoginFaculty {
           // Clear guest mode when user logs in
           sessionStorage.removeItem('guestMode');
           
-          // Store complete user data
-          sessionStorage.setItem('email', email);
-          sessionStorage.setItem('user', JSON.stringify(user));
-          sessionStorage.setItem('role', user.Status || 'faculty');
-          
-          // Update AuthService with user data
+          // Update AuthService with user data (cookie is set by server)
           this.navAuthService.setUser({
             id: user.StudentID || user.user_id || user.id,
             email: user.Email || email,
             Status: user.Status,
             Firstname: user.Firstname,
             Lastname: user.Lastname,
-            AvatarUrl: user.AvatarUrl
+            AvatarUrl: user.AvatarUrl,
+            role_id: user.role_id
           });
           
           // Navigate to faculty home

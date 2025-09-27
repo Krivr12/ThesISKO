@@ -424,6 +424,22 @@ const loginUser = async (req, res) => {
         Lastname: userWithoutPassword.Lastname
       };
       
+      // Set HttpOnly cookie with user data
+      res.cookie('auth_user', JSON.stringify({
+        id: userWithoutPassword.StudentID,
+        email: userWithoutPassword.Email,
+        Status: userWithoutPassword.Status,
+        Firstname: userWithoutPassword.Firstname,
+        Lastname: userWithoutPassword.Lastname,
+        AvatarUrl: userWithoutPassword.AvatarUrl,
+        role_id: userWithoutPassword.role_id
+      }), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      });
+      
       res.json({
         message: 'Login successful',
         user: userWithoutPassword
@@ -436,6 +452,52 @@ const loginUser = async (req, res) => {
     res.status(500).json({ error: 'Error during login' })
   }
 }
+
+// Logout user
+const logoutUser = async (req, res) => {
+  try {
+    // Clear the HttpOnly cookie
+    res.clearCookie('auth_user', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    });
+    
+    // Destroy session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+        return res.status(500).json({ error: 'Error during logout' });
+      }
+      res.json({ message: 'Logout successful' });
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Error during logout' });
+  }
+};
+
+// Get current user from cookie
+const getCurrentUser = async (req, res) => {
+  try {
+    const authCookie = req.cookies.auth_user;
+    
+    if (!authCookie) {
+      return res.status(401).json({ error: 'No authentication cookie found' });
+    }
+    
+    try {
+      const user = JSON.parse(authCookie);
+      res.json({ user });
+    } catch (parseError) {
+      console.error('Error parsing auth cookie:', parseError);
+      res.status(401).json({ error: 'Invalid authentication cookie' });
+    }
+  } catch (error) {
+    console.error('Get current user error:', error);
+    res.status(500).json({ error: 'Error getting current user' });
+  }
+};
 
 // Verify student email
 const verifyStudentEmail = async (req, res) => {
@@ -804,6 +866,8 @@ export {
   getAllUsers,
   signupUser,
   loginUser,
+  logoutUser,
+  getCurrentUser,
   verifyStudentEmail,
   adminCreateFaculty,
   getUserById,

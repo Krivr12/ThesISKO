@@ -2,11 +2,9 @@ import express from 'express';
 import passport from 'passport';
 import { 
   googleAuthSuccess, 
-  googleAuthFailure, 
-  getCurrentUser, 
-  logoutUser 
+  googleAuthFailure
 } from '../controller/authController.js';
-import { loginUser } from '../controller/userController.js';
+import { loginUser, getCurrentUser, logoutUser } from '../controller/userController.js';
 import { transporter } from '../config/mailer.js';
 
 const router = express.Router();

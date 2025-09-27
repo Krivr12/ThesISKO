@@ -18,6 +18,8 @@ export class Auth {
     return this.http.post<{message: string, user: User}>(`${this.baseUrl}/auth/login`, {
       email,
       password
+    }, {
+      withCredentials: true // Enable cookies
     });
   }
   

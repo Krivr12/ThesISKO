@@ -3,6 +3,7 @@ import cors from "cors";
 import session from "express-session";
 import passport from "passport";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import "./config/passport.js";
 import { activityLoggingMiddleware } from "./middleware/activityMiddleware.js";
 
@@ -44,6 +45,7 @@ app.use(cors({
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Session configuration
 app.use(session({
