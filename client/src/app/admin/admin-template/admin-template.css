@@ -1,0 +1,61 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    background: #fff;
+  }
+  
+  app-admin-side-bar {
+    width: 200px;            /* adjust to your sidebar width */
+    flex-shrink: 0;
+  }
+  
+  .content {
+    flex: 1;
+    padding: 50px;           /* inner page padding */
+    display: flex;
+    flex-direction: column;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+  
+
+  button.return {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: #800000;
+  }
+
+  .rectangle {
+    border: 2px solid #800000;
+    border-radius: 12px;
+    background: #fff;
+    /* ← 40px both sides as requested */
+    box-shadow: 0 4px 10px rgba(0,0,0,.06);
+    overflow: auto;          /* horizontal scroll if needed on small screens */
+  }
+  
+  /* Remove default outer spacing around the table */
+  .no-table-margin {
+    margin: 0 !important;
+  }
+  
+  /* Ensure full width on desktop */
+  .full-width-table {
+    width: 100%;
+    min-width: 720px;        /* keep columns readable; adjust as needed */
+  }
+
+
+
+
+  
