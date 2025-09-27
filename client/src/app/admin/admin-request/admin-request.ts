@@ -22,6 +22,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminSideBar } from '../admin-side-bar/admin-side-bar';
 
 interface RequestItem {
+  request_id?: string; 
   requestor_name: string;
   date: string;             // "YYYY-MM-DD"
   time: string;             // "HH:mm"
@@ -101,6 +102,7 @@ export class AdminRequest implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild('verifyDialog') verifyTpl!: TemplateRef<any>;
+  @ViewChild('confirmDialog') confirmTpl!: TemplateRef<any>;
 
   verifyNote = '';
 
@@ -176,15 +178,56 @@ export class AdminRequest implements OnInit, AfterViewInit {
       data: { row: enriched, ...pdf }
     }).afterClosed().subscribe(() => {});
   }
-
-  approveRequest(): void {
-    // TODO: call API to approve, include any verifyNote if needed
+  approveRequest(row: RequestItem): void {
+    // TODO: tawag sa API (approve) bago o pagkatapos ng optimistic UI
+    this.removeRow(row);
+    this.dialog.closeAll();
+  }
+  
+  rejectRequest(row: RequestItem): void {
+    // TODO: tawag sa API (reject) bago o pagkatapos ng optimistic UI
+    this.removeRow(row);
+    this.dialog.closeAll();
+  }
+  
+  /** Tanggalin ang row sa table (by id kung meron; otherwise by shallow compare/fingerprint) */
+  private removeRow(target: RequestItem): void {
+    const hasId = !!target.request_id;
+    const key = (r: RequestItem) =>
+      (r.request_id ?? `${r.requestor_name}||${r.email}||${r.title}||${r.date} ${r.time}||${r.selected_chapter}`);
+  
+    const newData = this.dataSource.data.filter(r => key(r) !== key(target));
+    this.dataSource.data = newData;           // re-assign triggers table update
+    // (optional) this.dataSource._updateChangeSubscription(); // usually not needed if reassigning
   }
 
-  rejectRequest(): void {
-    // TODO: call API to reject, include any verifyNote if needed
+  confirmApprove(row: RequestItem): void {
+    this.dialog.open(this.confirmTpl, {
+      panelClass: 'thesisko-dialog',
+      data: {
+        title: 'Approve Request',
+        message: 'Are you sure you want to approve this request?',
+        okText: 'Approve',
+        kind: 'approve'
+      }
+    }).afterClosed().subscribe((ok: boolean) => {
+      if (ok) this.approveRequest(row);
+    });
   }
-
+  
+  confirmReject(row: RequestItem): void {
+    this.dialog.open(this.confirmTpl, {
+      panelClass: 'thesisko-dialog',
+      data: {
+        title: 'Reject Request',
+        message: 'Are you sure you want to reject this request?',
+        okText: 'Reject',
+        kind: 'reject'
+      }
+    }).afterClosed().subscribe((ok: boolean) => {
+      if (ok) this.rejectRequest(row);
+    });
+  }
   /** ===================== Helpers ===================== */
 
   /** Build a normalized, loose key for matching titles */
@@ -363,4 +406,6 @@ export class AdminRequest implements OnInit, AfterViewInit {
       return url;
     }
   }
+
+
 }

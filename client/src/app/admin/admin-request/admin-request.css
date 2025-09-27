@@ -158,7 +158,7 @@
     border-bottom:1px solid #800000;
     padding-bottom: 12px; /* ← adds space above the border */
   }
-  
+
   .ag-header {
     display: flex;
     align-items: center;
@@ -198,4 +198,5 @@
   align-items: start;
 }
 
+.btn.acceptOrReject { background:#800000; color:#fff; }
 

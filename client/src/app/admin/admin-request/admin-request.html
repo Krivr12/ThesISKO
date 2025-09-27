@@ -134,9 +134,32 @@
 
   <mat-dialog-actions align="end">
     <div class="actions">
+      <button class="btn primary" (click)="confirmApprove(data.row)">Approve Request</button>
+      <button class="btn ghost"  (click)="confirmReject(data.row)">Reject Request</button>
+    </div>
+  </mat-dialog-actions>
+  
+  
+</ng-template>
 
-    <button class="btn primary" (click)="approveRequest()">Approve Request</button>
-    <button class="btn ghost"  (click)="rejectRequest()">Reject Request</button>
-  </div>
+<!-- Reusable confirm dialog -->
+<ng-template #confirmDialog let-dialogRef="dialogRef" let-data>
+  <h2 mat-dialog-title>{{ data.title }}</h2>
+
+  <mat-dialog-content>
+    <p style="margin:0;">
+      {{ data.message }}
+    </p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close(false)">Cancel</button>
+    <button 
+      mat-flat-button
+      [color]="data.kind === 'approve' ? 'primary' : 'warn'"
+      (click)="dialogRef.close(true)">
+      {{ data.okText }}
+    </button>
   </mat-dialog-actions>
 </ng-template>
+
