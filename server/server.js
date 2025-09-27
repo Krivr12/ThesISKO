@@ -10,6 +10,7 @@ import { activityLoggingMiddleware } from "./middleware/activityMiddleware.js";
 // Import routes
 import records from "./routes/records.js";
 import group_progress from "./routes/group_progress.js";
+import groups from "./routes/groups.js";
 import users from "./routes/users.js";
 import auth from "./routes/auth.js";
 import admin from "./routes/admin.js";
@@ -68,6 +69,7 @@ app.use(activityLoggingMiddleware);
 // Routes
 app.use("/records", records);
 app.use("/group_progress", group_progress);
+app.use("/groups", groups);
 app.use("/api/users", users);
 app.use("/auth", auth);
 app.use("/admin", admin);
