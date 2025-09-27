@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef, inject } from '@angular/core';
+import {
+  Component, OnInit, ViewChild, AfterViewInit, TemplateRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -15,6 +17,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { AdminSideBar } from '../admin-side-bar/admin-side-bar';
 
@@ -26,7 +29,57 @@ interface RequestItem {
   purpose: string;
   email: string;
   title?: string;
- 
+
+  // Enriched fields from groups.json
+  group_id?: string;
+  block_id?: string;
+  course?: string;
+  program?: string;
+  status?: string;
+  abstract?: string;
+  leader?: string;
+  members?: string[];
+  leader_email?: string;
+  member_emails?: string[];
+  panelist?: string;
+  facultyid?: string;
+  faculty_in_charge?: string;
+  file_type?: string;
+
+  // Optional date-ish fields
+  publication_date?: string;
+  date_published?: string;
+  pub_date?: string;
+
+  // Optional PDF fields (any one of these can be present)
+  pdfLink?: string; pdf_link?: string; pdfUrl?: string; pdf_url?: string;
+  fileURL?: string; file_url?: string; pdf?: string;
+}
+
+/** Shape expected from groups.json */
+interface GroupEntry {
+  group_id?: string;
+  block_id?: string;
+  course?: string;
+  program?: string;
+  status?: string;
+  title: string;
+  abstract?: string;
+  leader?: string;
+  members?: string[];
+  leader_email?: string;
+  member_emails?: string[];
+  panelist?: string;
+  facultyid?: string;
+  faculty_in_charge?: string;
+  file_type?: string;
+
+  publication_date?: string;
+  date_published?: string;
+  pub_date?: string;
+
+  pdfLink?: string; pdf_link?: string; pdfUrl?: string; pdf_url?: string;
+  fileURL?: string; file_url?: string; pdf?: string;
 }
 
 @Component({
@@ -36,7 +89,7 @@ interface RequestItem {
     AdminSideBar, CommonModule, RouterModule, HttpClientModule,
     MatSidenavModule, MatToolbarModule, MatButtonModule, MatIconModule,
     MatTableModule, MatPaginatorModule, MatSortModule, MatInputModule,
-    MatDialogModule, MatFormFieldModule, FormsModule
+    MatDialogModule, MatFormFieldModule, FormsModule,
   ],
   templateUrl: './admin-request.html',
   styleUrl: './admin-request.css'
@@ -50,20 +103,42 @@ export class AdminRequest implements OnInit, AfterViewInit {
   @ViewChild('verifyDialog') verifyTpl!: TemplateRef<any>;
 
   verifyNote = '';
-  private dialog = inject(MatDialog);
 
-  constructor(private http: HttpClient, private router: Router) {}
+  /** Cached groups + title index for fast lookup */
+  private groups: GroupEntry[] = [];
+  private titleIndex = new Map<string, GroupEntry[]>(); // normalizedTitle -> entries[]
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private sanitizer: DomSanitizer,
+    private dialog: MatDialog,
+  ) {}
 
   ngOnInit(): void {
+    // Load requests for the table
     this.http.get<RequestItem[]>('requestsample.json').subscribe({
       next: rows => this.dataSource.data = rows ?? [],
       error: () => this.dataSource.data = []
     });
 
+    // Load groups once, then index by normalized title
+    this.http.get<GroupEntry[]>('groups.json').subscribe({
+      next: (rows) => {
+        this.groups = rows ?? [];
+        this.buildTitleIndex(this.groups);
+      },
+      error: () => {
+        this.groups = [];
+        this.titleIndex.clear();
+      }
+    });
+
+    // Case-insensitive filter across a few fields
     this.dataSource.filterPredicate = (d, f) => (
       [d.requestor_name, d.purpose, d.title, d.selected_chapter, d.date, d.time]
         .filter(Boolean).join(' ').toLowerCase()
-    ).includes(f);
+    ).includes((f || '').toLowerCase());
   }
 
   ngAfterViewInit(): void {
@@ -80,42 +155,212 @@ export class AdminRequest implements OnInit, AfterViewInit {
     return sel === 'all' ? 'All Chapters' : `Chapter ${sel}`;
   }
 
-  private computeMissingFields(row: RequestItem): string[] {
-    const req: Array<keyof RequestItem> = ['requestor_name','date','time','selected_chapter','purpose','email','title'];
-    const label: Record<string,string> = {
-      requestor_name:'Requestor', date:'Date', time:'Time',
-      selected_chapter:'Chapters', purpose:'Purpose', email:'Email', title:'Title'
-    };
-    return req.filter(k => !(row as any)[k] || String((row as any)[k]).trim()==='')
-              .map(k => label[k as string]);
-  }
-
+  /** CLICK: Open Request dialog */
   openVerifyDialog(row: RequestItem): void {
     this.verifyNote = '';
-    const missingFields = this.computeMissingFields(row);
 
+    // 1) Enrich the request row with metadata from groups.json by title (+ requestor heuristic)
+    const enriched = this.mergeWithBestGroup(row);
+
+    // 2) Build PDF info for dialog
+    const pdf = this.buildPdfData(enriched);
+
+    // 3) Open dialog with merged data
     this.dialog.open(this.verifyTpl, {
-      panelClass: 'thesisko-dialog',              // <<< important
+      panelClass: 'thesisko-dialog',
       width: 'min(1100px, 96vw)',
       maxWidth: '96vw',
       maxHeight: '90vh',
       autoFocus: false,
       restoreFocus: false,
-      data: { row, missingFields }
-    }).afterClosed().subscribe(res => {
-     
-    });
+      data: { row: enriched, ...pdf }
+    }).afterClosed().subscribe(() => {});
   }
 
   approveRequest(): void {
-    
+    // TODO: call API to approve, include any verifyNote if needed
   }
 
   rejectRequest(): void {
-   
+    // TODO: call API to reject, include any verifyNote if needed
   }
 
-  applyFilter(value: string) {
-    this.dataSource.filter = (value || '').trim().toLowerCase();
+  /** ===================== Helpers ===================== */
+
+  /** Build a normalized, loose key for matching titles */
+  private normTitle(s: string | undefined | null): string {
+    if (!s) return '';
+    return s
+      .toLowerCase()
+      .replace(/[\s\-_]+/g, ' ')
+      .replace(/[^\p{L}\p{N}\s]/gu, '')
+      .trim();
+  }
+
+  /** Build index: normalizedTitle -> [GroupEntry, ...] */
+  private buildTitleIndex(groups: GroupEntry[]) {
+    this.titleIndex.clear();
+    for (const g of groups) {
+      const key = this.normTitle(g.title);
+      if (!key) continue;
+      const bucket = this.titleIndex.get(key);
+      if (bucket) bucket.push(g);
+      else this.titleIndex.set(key, [g]);
+    }
+  }
+
+  /** Choose the best group by (1) exact title, then (2) requestor involvement */
+  private pickBestCandidate(title: string, reqName?: string, reqEmail?: string): GroupEntry | undefined {
+    const key = this.normTitle(title);
+    const candidates = (key && this.titleIndex.get(key)) ? [...this.titleIndex.get(key)!] : [];
+
+    if (!candidates.length) {
+      // loose fallback: contains
+      const all = this.groups.filter(g => this.normTitle(g.title).includes(key));
+      candidates.push(...all);
+    }
+    if (!candidates.length) return undefined;
+
+    // If only one, done
+    if (candidates.length === 1) return candidates[0];
+
+    // Score by involvement of requestor (name/email) in leader/members/panelist/faculty
+    const nReqName = (reqName || '').toLowerCase().trim();
+    const nReqEmail = (reqEmail || '').toLowerCase().trim();
+
+    const score = (g: GroupEntry): number => {
+      let s = 0;
+
+      const inStr = (hay?: string) =>
+        !!hay && nReqName && hay.toLowerCase().includes(nReqName);
+
+      const eqEmail = (hay?: string) =>
+        !!hay && nReqEmail && hay.toLowerCase() === nReqEmail;
+
+      // Leader name / email
+      if (inStr(g.leader)) s += 5;
+      if (eqEmail(g.leader_email)) s += 6;
+
+      // Members
+      if (g.members?.some(m => inStr(m))) s += 4;
+      if (g.member_emails?.some(e => e && nReqEmail && e.toLowerCase() === nReqEmail)) s += 5;
+
+      // Panelist / Faculty
+      if (inStr(g.panelist)) s += 2;
+      if (inStr(g.faculty_in_charge)) s += 2;
+
+      // Exact (case-insensitive) title equality gets a small boost
+      if ((g.title || '').toLowerCase() === (title || '').toLowerCase()) s += 1;
+
+      return s;
+      };
+
+    candidates.sort((a, b) => score(b) - score(a));
+    return candidates[0];
+  }
+
+  /** Merge request row with the best group match (by title + involvement) */
+  private mergeWithBestGroup(row: RequestItem): RequestItem {
+    const title = row.title || '';
+    const match = this.pickBestCandidate(title, row.requestor_name, row.email);
+    if (!match) return row;
+
+    // Date precedence (group date fields or keep original)
+    const mergedPubDate =
+      match.publication_date || match.date_published || match.pub_date ||
+      row.publication_date || row.date_published || row.pub_date;
+
+    // Prefer program->course fallback
+    const mergedProgram = match.program || match.course || row.program || row.course;
+
+    // Merge (group fills in blanks and adds metadata)
+    const merged: RequestItem = {
+      ...row,
+
+      // Core metadata
+      group_id: row.group_id ?? match.group_id,
+      block_id: row.block_id ?? match.block_id,
+      course: row.course ?? (match.course || mergedProgram),
+      program: row.program ?? (match.program || mergedProgram),
+      status: row.status ?? match.status,
+      abstract: row.abstract ?? match.abstract,
+      leader: row.leader ?? match.leader,
+      members: row.members ?? match.members,
+      leader_email: row.leader_email ?? match.leader_email,
+      member_emails: row.member_emails ?? match.member_emails,
+      panelist: row.panelist ?? match.panelist,
+      facultyid: row.facultyid ?? match.facultyid,
+      faculty_in_charge: row.faculty_in_charge ?? match.faculty_in_charge,
+      file_type: row.file_type ?? match.file_type,
+
+      // Dates
+      publication_date: mergedPubDate ?? row.publication_date,
+      date_published: mergedPubDate ?? row.date_published,
+      pub_date: mergedPubDate ?? row.pub_date,
+
+      // PDF / File links
+      pdfLink: row.pdfLink ?? match.pdfLink,
+      pdf_link: row.pdf_link ?? match.pdf_link,
+      pdfUrl: row.pdfUrl ?? match.pdfUrl,
+      pdf_url: row.pdf_url ?? match.pdf_url,
+      fileURL: row.fileURL ?? match.fileURL,
+      file_url: row.file_url ?? match.file_url,
+      pdf: row.pdf ?? match.pdf,
+    };
+
+    // If groups use only pdf_url, make sure it is surfaced
+    if (!merged.pdfLink && !merged.pdfUrl && !merged.fileURL && !merged.file_url && !merged.pdf && match.pdf_url) {
+      merged.pdf_url = match.pdf_url;
+    }
+
+    return merged;
+  }
+
+  private buildPdfData(row: RequestItem): {
+    pdfHref: string | null;
+    pdfDisplayName: string;
+    pdfSafeUrl: SafeResourceUrl | null;
+  } {
+    const raw =
+      (row as any)?.pdfLink ||
+      (row as any)?.pdf_link ||
+      (row as any)?.pdfUrl ||
+      (row as any)?.pdf_url ||
+      (row as any)?.fileURL ||
+      (row as any)?.file_url ||
+      (row as any)?.pdf ||
+      null;
+
+    if (typeof raw === 'string' && raw.trim()) {
+      const href = this.ensureProtocol(raw.trim());
+      return {
+        pdfHref: href,
+        pdfDisplayName: this.readableName(href),
+        pdfSafeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(href),
+      };
+    }
+    return { pdfHref: null, pdfDisplayName: 'Open PDF', pdfSafeUrl: null };
+  }
+
+  toList(value: unknown): string {
+    if (Array.isArray(value)) return value.length ? value.join(', ') : '—';
+    if (typeof value === 'string') return value.trim() || '—';
+    return '—';
+  }
+
+  private ensureProtocol(url: string): string {
+    if (/^https?:\/\//i.test(url)) return url;
+    return `https://${url}`;
+  }
+
+  private readableName(url: string): string {
+    try {
+      const u = new URL(url);
+      const last = u.pathname.split('/').filter(Boolean).pop();
+      if (last) return decodeURIComponent(last);
+      return u.host;
+    } catch {
+      return url;
+    }
   }
 }

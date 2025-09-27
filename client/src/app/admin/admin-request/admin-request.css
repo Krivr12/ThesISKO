@@ -154,9 +154,11 @@
   }
   
 
-  .requestor {
+  .kv-grid-2cols {
     border-bottom:1px solid #800000;
+    padding-bottom: 12px; /* ← adds space above the border */
   }
+  
   .ag-header {
     display: flex;
     align-items: center;
@@ -180,8 +182,20 @@
     min-width:260px; cursor:pointer; transition:opacity .2s ease, background-color .2s ease;
   }
 
-  .btn.primary{ background:#800000; color:#fff; }
+.btn.primary{ background:#800000; color:#fff; }
 .btn.primary:hover{ opacity:.9; }
 .btn.ghost{ background:#fff; border:2px solid #800000; color:#800000; }
 .btn.ghost:hover{ background:#fde9e9; }
 .btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+
+/* Two columns of label/value pairs: [label value] [label value] */
+.kv-grid-2cols {
+  display: grid;
+  grid-template-columns: 220px 1fr 220px 1fr; /* 4 cols = 2 pairs per row */
+  column-gap: 12px;
+  row-gap: 8px;
+  align-items: start;
+}
+
+
