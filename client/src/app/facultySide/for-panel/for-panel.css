@@ -33,22 +33,14 @@ button.return {
 button.return:hover,
 button.return:focus { text-decoration: none; }
 
-/* Card */
-.rectangle-container {
-  background: #fff;
-  border: 2px solid #800000;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  padding: 16px;
-  margin: 0;               /* aligned with Return button */
-}
+
 
 /* Controls row */
 .controls {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1rem;
+  padding: 1rem;
 }
 .section-filter { min-width: 200px; }
 
@@ -97,3 +89,75 @@ table { width: 100%; }
 /* Optional: clean typography for the app sidebar (if needed) */
 .nav-links a { color: white; display: block; margin: .5rem 0; }
 .logo { color: white; font-weight: bold; margin-bottom: 1rem; }
+
+
+/* ========== PAGINATOR: CENTER & NO BACKGROUND ========== */
+.paginator {
+  display: flex;
+  justify-content: center;   /* centers the paginator */
+  padding: 2px 0;
+  margin-top: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
+
+:host ::ng-deep .paginator .mat-mdc-paginator {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  color: #800000;
+}
+
+/* Optional: make the select & inputs flat/transparent too */
+:host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+:host ::ng-deep .paginator .mdc-notched-outline__leading,
+:host ::ng-deep .paginator .mdc-notched-outline__trailing,
+:host ::ng-deep .paginator .mdc-notched-outline__notch {
+  border: 0 !important;
+  color: #800000;
+}
+:host ::ng-deep .paginator .mat-mdc-select-trigger,
+:host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
+.documents-table {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+table.mat-mdc-table th.mat-mdc-header-cell,
+  table.mat-mdc-table td.mat-mdc-cell,
+  table.mat-mdc-table td.mat-mdc-footer-cell {
+    padding: 14px 12px;
+    vertical-align: middle;
+    font-size: 14px;border-bottom: 1px solid #eee;
+    background-color: #fff;color: #800000;
+  }
+  
+  /* Header look */
+  th.mat-mdc-header-cell {
+    font-weight: 700;
+    color: #800000;
+    border-bottom: 2px solid #f0f0f0;
+    background-color: #fff;
+    
+  }
+  
+  /* Row hover */
+  .mdc-data-table__row:hover td {
+    background: #fafafa;
+    background-color: #fff;
+  }
+  
+  .mat-column-groupId { width: 15%; }
+  .mat-column-title      { width: 25%; }
+  .mat-column-forApproval      { width: 10%; }
+  .mat-column-submissionDate  { width: 15%; }
+  .mat-column-leader   { width: 15%; }
+  .mat-column-status   { width: 10%; }

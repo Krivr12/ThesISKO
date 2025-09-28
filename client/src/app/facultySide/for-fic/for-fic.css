@@ -64,12 +64,13 @@
    .controls-bar {
      display: flex;
      align-items: center;
-     gap: 1rem;
-     margin-bottom: 6px;  
+     gap: 1rem; 
+     margin-bottom: 4px;
    }
    .controls-bar mat-form-field {
      min-width: 200px;
      flex: 0 0 220px;
+     margin: 0;      
      
    }
    .spacer { flex: 1 1 auto; }
@@ -593,4 +594,16 @@
      box-shadow: none !important;
      color: #800000;
    }
+
+   :host ::ng-deep .controls .mat-mdc-form-field-infix {
+    padding: 6px 0;                    /* smaller than default */
+  }
+  :host ::ng-deep .controls .mat-mdc-form-field-subscript-wrapper {
+    display: none;                     /* hide hint/error reserve space */
+  }
+  
+  /* Ensure the table doesn’t add its own top gap */
+  .documents-table table {
+    margin-top: 0;
+  }
       

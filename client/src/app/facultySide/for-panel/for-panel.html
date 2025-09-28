@@ -12,7 +12,7 @@
         </button>
 
         <!-- Card -->
-        <div class="rectangle-container">
+        <div class="documents-table ">
           <!-- Controls -->
           <div class="controls">
             <mat-form-field appearance="outline" class="section-filter">
@@ -24,7 +24,7 @@
               </mat-select>
             </mat-form-field>
           </div>
-
+        
           <!-- Table -->
           <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 full-width-table">
 
@@ -93,8 +93,9 @@
           </table>
 
           <!-- Paginator -->
-          <mat-paginator [pageSize]="5" [pageSizeOptions]="[5,10,20]"></mat-paginator>
+          
         </div>
+        <mat-paginator class="paginator" [pageSize]="5" [pageSizeOptions]="[5,10,20]"></mat-paginator>
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
