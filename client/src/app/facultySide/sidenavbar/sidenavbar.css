@@ -30,7 +30,7 @@
   .logout{
     color: white;
     margin-top: clamp(24px, 8vh, 96px);
-    margin-left: 10px;
+    
     background-color: #800000;
     border: none !important;
     
