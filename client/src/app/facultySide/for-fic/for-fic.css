@@ -1,188 +1,596 @@
-/* Base layout */
-html, body { height: 100%; margin: 0; }
-.container { display: flex; height: 100vh; width: 100%; }
-app-sidenavbar { width: 200px; flex-shrink: 0; }
-
-/* Content area — no extra padding; .page handles spacing */
-mat-sidenav-content.content {
-  flex: 1;
-  overflow: auto;
-  background: #f9f9f9;
-  padding: 0 !important;
-  margin: 0 !important;
-  display: block;
-}
-
-/* One centered column for Return + card */
-.page {
-  max-width: 1200px;
-  width: 100%;
-  margin: 24px auto;
-  padding: 0 16px;          /* aligns Return and card left edges */
-  box-sizing: border-box;
-}
-
-/* Return button */
-button.return {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-  margin: 0 0 12px;
-  color: #800000;
-  text-decoration: none;
-}
-button.return:hover,
-button.return:focus { text-decoration: none; }
-
-/* Card */
-.rectangle-container {
-  background: #fff;
-  border: 2px solid #800000; /* theme color */
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  padding: 16px;
-  margin: 0;                /* sits right under the Return button */
-}
-
-/* Controls row */
-.controls-bar {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.controls-bar mat-form-field {
-  min-width: 200px;
-  flex: 0 0 220px;
-}
-.spacer { flex: 1 1 auto; }
-.addButton { flex: 0 0 auto; }
-
-/* Add button color (maroon) */
-.addButton.mat-mdc-raised-button {
-  background-color: #800000 !important;
-  color: #fff !important;
-}
-.addButton.mat-mdc-raised-button:hover { filter: brightness(1.05); }
-.addButton.mat-mdc-raised-button:focus-visible {
-  outline: 2px solid #ffd966;
-  outline-offset: 2px;
-}
-
-/* Table layout */
-table { width: 100%; margin: 0; }
-.mat-mdc-table { table-layout: fixed; width: 100%; }
-.mat-mdc-header-row::after,
-.mat-mdc-row::after { display: none !important; }
-.mat-mdc-header-cell,
-.mat-mdc-cell { padding: 8px 16px; border-bottom: 1px solid rgba(0,0,0,0.12); }
-
-/* Column widths for stable alignment */
-.mat-column-status { width: 260px; }
-.mat-column-forApproval { width: 140px; text-align: center; }
-
-/*dito naayos yung sa status cell*/
-.mat-mdc-cell.mat-column-status,
-.mat-cell.mat-column-status {
-  display: table-cell !important;
-  overflow: visible;        
-  white-space: normal;
-  vertical-align: middle;
-  padding: 16px;           
-}
-
-/* Status cell */
-.status-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.status-text { flex: 0 1 auto; min-width: 0; }
-.status-dot {
-  width: 12px; height: 12px; border-radius: 50%;
-  display: inline-block; flex: 0 0 auto;
-}
-.status-dot.ongoing { background: gold; }
-.status-dot.rejected { background: red; }
-.status-dot.approved { background: green; }
-
-/* Verify cell */
-.for-approval-cell { text-align: center; }
-
-/* -------- Dialog styling (requires panelClass) -------- */
-.add-group-dialog .mat-mdc-dialog-surface {
-  border-radius: 16px;
-  overflow: hidden;
-  padding: 0;
-  background: #fff;
-  box-shadow:
-    0 20px 60px rgba(0,0,0,.35),
-    0 0 0 3px rgba(0,129,255,.25);
-}
-
-/* Header */
-.ag-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #800000;
-  color: #f5d76e;
-  padding: 14px 18px;
-}
-.ag-title { margin: 0; font-size: 22px; font-weight: 700; }
-.ag-close {
-  background: transparent; border: 0; color: #f5d76e;
-  font-size: 20px; line-height: 1; cursor: pointer;
-}
-
-/* Body */
-.ag-body { padding: 22px 26px 10px; }
-.ag-form { display: block; }
-.ag-section-title { font-weight: 700; color: #800000; margin: 8px 0 10px; }
-.ag-members-head { display: flex; align-items: center; gap: 8px; }
-.ag-muted { color: #6b6b6b; font-style: italic; margin: 6px 0 12px; }
-
-.ag-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.ag-field { width: 100%; }
-.ag-member { margin: 10px 0; }
-
-.ag-divider { border: 0; border-top: 1px solid #e9e9e9; margin: 16px 0; }
-.ag-divider--soft { border-top-color: #eeeeee; }
-
-/* Form-field theming */
-.add-group-dialog .mat-mdc-form-field .mdc-notched-outline__leading,
-.add-group-dialog .mat-mdc-form-field .mdc-notched-outline__trailing,
-.add-group-dialog .mat-mdc-form-field .mdc-notched-outline__notch { border-color: #800000; }
-.add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
-.add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing,
-.add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch { border-color: #800000; }
-.add-group-dialog .mat-mdc-form-field .mdc-floating-label,
-.add-group-dialog .mat-mdc-form-field .mat-mdc-floating-label { color: #800000; }
-.add-group-dialog .mat-mdc-input-element::placeholder { color: #b7b7b7; }
-.add-group-dialog .mat-mdc-form-field-infix { padding: 12px 0; }
-
-/* Actions */
-.ag-actions {
-  padding: 0 26px 22px;
-  display: flex; align-items: center; justify-content: center !important;
-  gap: 12px;
-}
-.ag-flex-spacer { flex: none; }
-
-.ag-pill {
-  height: 56px; padding: 0 28px; border-radius: 9999px;
-  font-weight: 700; border: 2px solid transparent;
-}
-.ag-pill--primary { background: #800000; color: #f5d76e; }
-.ag-pill--primary:hover { filter: brightness(0.95); }
-.ag-pill--outline { background: #fff; color: #800000; border-color: #800000; }
-.ag-pill--outline:hover { background: rgba(128,0,0,.06); }
-
-/* Remove row alignment */
-.ag-row-end { display: flex; justify-content: flex-end; }
+/* =========================================================
+   0) BASE / RESET
+   - Full-height page and base container split (sidenav + content)
+   ========================================================= */
+   html, body { height: 100%; margin: 0; }
+   .container { display: flex; height: 100vh; width: 100%; }
+   app-sidenavbar { width: 200px; flex-shrink: 0; }
+   
+   /* =========================================================
+      1) CONTENT AREA
+      - Right-side content (inside <mat-sidenav-content>)
+      - Let the page scroll; spacing handled by .page
+      ========================================================= */
+   mat-sidenav-content.content {
+     flex: 1;
+     overflow: auto;
+     background: #f9f9f9;
+     padding: 0 !important;
+     margin: 0 !important;
+     display: block;
+   }
+   
+   /* =========================================================
+      2) PAGE WRAPPER
+      - Centers the main column (Return + card)
+      ========================================================= */
+   .page {
+     max-width: 1200px;
+     width: 100%;
+     margin: 24px auto;
+     padding: 0 16px;             /* aligns Return and card left edges */
+     box-sizing: border-box;
+   }
+   
+   /* =========================================================
+      3) RETURN BUTTON (top-left back action)
+      ========================================================= */
+   button.return {
+     display: inline-flex;
+     align-items: center;
+     gap: .35rem;
+     margin: 0 0 12px;
+     color: #800000;
+     text-decoration: none;
+   }
+   button.return:hover,
+   button.return:focus { text-decoration: none; }
+   
+   /* =========================================================
+      4) CARD / PANEL (rectangle around the table & controls)
+      ========================================================= */
+   .rectangle-container {
+     background: #fff;
+     border: 2px solid #800000;   /* theme color */
+     border-radius: 8px;
+     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+     padding: 16px;
+     margin: 0;                   /* sits right under the Return button */
+   }
+   
+   /* =========================================================
+      5) CONTROLS BAR (filters, search, Add button row)
+      ========================================================= */
+   .controls-bar {
+     display: flex;
+     align-items: center;
+     gap: 1rem;
+     margin-bottom: 6px;  
+   }
+   .controls-bar mat-form-field {
+     min-width: 200px;
+     flex: 0 0 220px;
+     
+   }
+   .spacer { flex: 1 1 auto; }
+   .addButton { flex: 0 0 auto; }
+   
+   /* Add button color (maroon) */
+   .addButton.mat-mdc-raised-button {
+     background-color: #800000 !important;
+     color: #fff !important;
+   }
+   .addButton.mat-mdc-raised-button:hover { filter: brightness(1.05); }
+   .addButton.mat-mdc-raised-button:focus-visible {
+     outline: 2px solid #ffd966;
+     outline-offset: 2px;
+   }
+   
+   /* =========================================================
+      6) TABLE BASE
+      - Fixed layout for stable column widths
+      - Cell paddings, borders, colors
+      ========================================================= */
+   table { width: 100%; margin: 0; }
+   .mat-mdc-table { table-layout: fixed; width: 100%; }
+   
+   /* Remove default MDC row pseudo lines */
+   .mat-mdc-header-row::after,
+   .mat-mdc-row::after { display: none !important; }
+   
+   /* Body & header cell paddings and base colors */
+   .table-mix, /* (helper hook if you want to group tables later) */
+   table.mat-mdc-table th.mat-mdc-header-cell,
+   table.mat-mdc-table td.mat-mdc-cell,
+   table.mat-mdc-table td.mat-mdc-footer-cell {
+     padding: 14px 12px;
+     vertical-align: middle;
+     font-size: 14px;
+     border-bottom: 1px solid #eee;  /* row divider color */
+     background-color: #fff;
+     color: #800000;                  /* text color */
+   }
+   
+   /* Header look (thicker bottom line & bold) */
+   th.mat-mdc-header-cell {
+     font-weight: 700;
+     color: #800000;
+     border-bottom: 2px solid #f0f0f0;
+     background-color: #fff;
+   }
+   
+   /* Hover effect for rows */
+   .mdc-data-table__row:hover td {
+     background: #fafafa;
+     background-color: #fff;          /* keep white if you prefer flat */
+   }
+   
+   /* =========================================================
+      7) COLUMN WIDTHS / ALIGNMENT
+      - Stabilize columns so ellipsis & layout behave
+      ========================================================= */
+   .mat-column-status      { width: 260px; }
+   .mat-column-forApproval { width: 140px; text-align: center; }
+   
+   /* Status cell: allow wrapping inside this column specifically */
+   .mat-mdc-cell.mat-column-status,
+   .mat-cell.mat-column-status {
+     display: table-cell !important;
+     overflow: visible;
+     white-space: normal;
+     vertical-align: middle;
+     padding: 16px;
+   }
+   
+   /* =========================================================
+      8) STATUS CELL CONTENT
+      - Little dot + text chip look
+      ========================================================= */
+   .status-cell {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     white-space: nowrap;
+     overflow: hidden;
+   }
+   .status-text { flex: 0 1 auto; min-width: 0; }
+   .status-dot {
+     width: 12px; height: 12px; border-radius: 50%;
+     display: inline-block; flex: 0 0 auto;
+   }
+   .status-dot.ongoing  { background: gold; }
+   .status-dot.rejected { background: red; }
+   .status-dot.approved { background: green; }
+   
+   /* Verify cell alignment */
+   .for-approval-cell { text-align: center; }
+   
+   /* =========================================================
+      9) DIALOG (ADD GROUP) — PANEL & SECTIONS
+      - Apply via panelClass: 'add-group-dialog'
+      ========================================================= */
+   .add-group-dialog .mat-mdc-dialog-surface {
+     border-radius: 16px;
+     overflow: hidden;
+     padding: 0;
+     background: #fff;
+     box-shadow:
+       0 20px 60px rgba(0,0,0,.35),
+       0 0 0 3px rgba(0,129,255,.25);
+   }
+   
+   /* Dialog header strip */
+   .ag-header {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     background: #800000;
+     color: #f5d76e;               /* gold */
+     padding: 14px 18px;
+   }
+   .ag-title { margin: 0; font-size: 22px; font-weight: 700; }
+   .ag-close {
+     background: transparent; border: 0; color: #f5d76e;
+     font-size: 20px; line-height: 1; cursor: pointer;
+   }
+   
+   /* Dialog body + form layout */
+   .ag-body { padding: 22px 26px 10px; }
+   .ag-form { display: block; }
+   .ag-section-title { font-weight: 700; color: #800000; margin: 8px 0 10px; }
+   .ag-members-head { display: flex; align-items: center; gap: 8px; }
+   .ag-muted { color: #6b6b6b; font-style: italic; margin: 6px 0 12px; }
+   
+   /* Two-column grid in dialog */
+   .ag-grid-2 {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 14px;
+   }
+   .ag-field  { width: 100%; }
+   .ag-member { margin: 10px 0; }
+   
+   /* Dividers */
+   .ag-divider        { border: 0; border-top: 1px solid #e9e9e9; margin: 16px 0; }
+   .ag-divider--soft  { border-top-color: #eeeeee; }
+   
+   /* =========================================================
+      10) DIALOG — FORM-FIELD THEME (maroon outline)
+      ========================================================= */
+   .add-group-dialog .mat-mdc-form-field .mdc-notched-outline__leading,
+   .add-group-dialog .mat-mdc-form-field .mdc-notched-outline__trailing,
+   .add-group-dialog .mat-mdc-form-field .mdc-notched-outline__notch { border-color: #800000; }
+   .add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+   .add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing,
+   .add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch { border-color: #800000; }
+   .add-group-dialog .mat-mdc-form-field .mdc-floating-label,
+   .add-group-dialog .mat-mdc-form-field .mat-mdc-floating-label { color: #800000; }
+   .add-group-dialog .mat-mdc-input-element::placeholder { color: #b7b7b7; }
+   .add-group-dialog .mat-mdc-form-field-infix { padding: 12px 0; }
+   
+   /* =========================================================
+      11) DIALOG — ACTIONS (centered primary/outline pills)
+      ========================================================= */
+   .ag-actions {
+     padding: 0 26px 22px;
+     display: flex; align-items: center; justify-content: center !important;
+     gap: 12px;
+   }
+   .ag-flex-spacer { flex: none; }
+   
+   .ag-pill {
+     height: 56px; padding: 0 28px; border-radius: 9999px;
+     font-weight: 700; border: 2px solid transparent;
+   }
+   .ag-pill--primary { background: #800000; color: #f5d76e; }
+   .ag-pill--primary:hover { filter: brightness(0.95); }
+   .ag-pill--outline { background: #fff; color: #800000; border-color: #800000; }
+   .ag-pill--outline:hover { background: rgba(128,0,0,.06); }
+   
+   /* Force flex align-right utility if needed */
+   .ag-row-end { display: flex; justify-content: flex-end; }
+   
+   /* =========================================================
+      12) TABLE CONTAINER SHELL (outer box around mat-table)
+      ========================================================= */
+   .documents-table {
+     background-color: #fff;
+     border: 1px solid #ddd;      /* outer border color */
+     border-radius: 8px;
+     overflow: hidden;
+     margin-bottom: 0;
+   }
+   
+   /* =========================================================
+      13) PAGINATOR (centered, transparent, maroon text)
+      ========================================================= */
+   .paginator {
+     display: flex;
+     justify-content: center;     /* centers the paginator */
+     padding: 2px 0;
+     margin-top: 0;
+     background: transparent !important;
+     box-shadow: none !important;
+     color: #800000;
+   }
+   
+   /* Pierce Angular Material styles inside the paginator */
+   :host ::ng-deep .paginator .mat-mdc-paginator {
+     background: transparent !important;
+     box-shadow: none !important;
+     border: 0 !important;
+     color: #800000;
+   }
+   
+   /* Make the select & inputs flat/transparent too */
+   :host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+   :host ::ng-deep .paginator .mdc-notched-outline__leading,
+   :host ::ng-deep .paginator .mdc-notched-outline__trailing,
+   :host ::ng-deep .paginator .mdc-notched-outline__notch {
+     border: 0 !important;
+     color: #800000;
+   }
+   :host ::ng-deep .paginator .mat-mdc-select-trigger,
+   :host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+     background: transparent !important;
+     box-shadow: none !important;
+     color: #800000;
+   }
+/* =========================================================
+   0) BASE / RESET
+   - Full-height page and base container split (sidenav + content)
+   ========================================================= */
+   html, body { height: 100%; margin: 0; }
+   .container { display: flex; height: 100vh; width: 100%; }
+   app-sidenavbar { width: 200px; flex-shrink: 0; }
+   
+   /* =========================================================
+      1) CONTENT AREA
+      - Right-side content (inside <mat-sidenav-content>)
+      - Let the page scroll; spacing handled by .page
+      ========================================================= */
+   mat-sidenav-content.content {
+     flex: 1;
+     overflow: auto;
+     background: #f9f9f9;
+     padding: 0 !important;
+     margin: 0 !important;
+     display: block;
+   }
+   
+   /* =========================================================
+      2) PAGE WRAPPER
+      - Centers the main column (Return + card)
+      ========================================================= */
+   .page {
+     max-width: 1200px;
+     width: 100%;
+     margin: 24px auto;
+     padding: 0 16px;             /* aligns Return and card left edges */
+     box-sizing: border-box;
+   }
+   
+   /* =========================================================
+      3) RETURN BUTTON (top-left back action)
+      ========================================================= */
+   button.return {
+     display: inline-flex;
+     align-items: center;
+     gap: .35rem;
+     margin: 0 0 12px;
+     color: #800000;
+     text-decoration: none;
+   }
+   button.return:hover,
+   button.return:focus { text-decoration: none; }
+   
+   /* =========================================================
+      4) CARD / PANEL (rectangle around the table & controls)
+      ========================================================= */
+   .rectangle-container {
+     background: #fff;
+     border: 2px solid #800000;   /* theme color */
+     border-radius: 8px;
+     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+     padding: 16px;
+     margin: 0;                   /* sits right under the Return button */
+   }
+   
+   /* =========================================================
+      5) CONTROLS BAR (filters, search, Add button row)
+      ========================================================= */
+   .controls-bar {
+     display: flex;
+     align-items: center;
+     gap: 1rem;
+     margin-bottom: 1rem;
+   }
+   .controls-bar mat-form-field {
+     min-width: 200px;
+     flex: 0 0 220px;
+   }
+   .spacer { flex: 1 1 auto; }
+   .addButton { flex: 0 0 auto; }
+   
+   /* Add button color (maroon) */
+   .addButton.mat-mdc-raised-button {
+     background-color: #800000 !important;
+     color: #fff !important;
+   }
+   .addButton.mat-mdc-raised-button:hover { filter: brightness(1.05); }
+   .addButton.mat-mdc-raised-button:focus-visible {
+     outline: 2px solid #ffd966;
+     outline-offset: 2px;
+   }
+   
+   /* =========================================================
+      6) TABLE BASE
+      - Fixed layout for stable column widths
+      - Cell paddings, borders, colors
+      ========================================================= */
+   table { width: 100%; margin: 0; }
+   .mat-mdc-table { table-layout: fixed; width: 100%; }
+   
+   /* Remove default MDC row pseudo lines */
+   .mat-mdc-header-row::after,
+   .mat-mdc-row::after { display: none !important; }
+   
+   /* Body & header cell paddings and base colors */
+   .table-mix, /* (helper hook if you want to group tables later) */
+   table.mat-mdc-table th.mat-mdc-header-cell,
+   table.mat-mdc-table td.mat-mdc-cell,
+   table.mat-mdc-table td.mat-mdc-footer-cell {
+     padding: 14px 12px;
+     vertical-align: middle;
+     font-size: 14px;
+     border-bottom: 1px solid #eee;  /* row divider color */
+     background-color: #fff;
+     color: #800000;                  /* text color */
+   }
+   
+   /* Header look (thicker bottom line & bold) */
+   th.mat-mdc-header-cell {
+     font-weight: 700;
+     color: #800000;
+     border-bottom: 2px solid #f0f0f0;
+     background-color: #fff;
+   }
+   
+   /* Hover effect for rows */
+   .mdc-data-table__row:hover td {
+     background: #fafafa;
+     background-color: #fff;          /* keep white if you prefer flat */
+   }
+   
+   /* =========================================================
+      7) COLUMN WIDTHS / ALIGNMENT
+      - Stabilize columns so ellipsis & layout behave
+      ========================================================= */
+   .mat-column-status      { width: 260px; }
+   .mat-column-forApproval { width: 140px; text-align: center; }
+   
+   /* Status cell: allow wrapping inside this column specifically */
+   .mat-mdc-cell.mat-column-status,
+   .mat-cell.mat-column-status {
+     display: table-cell !important;
+     overflow: visible;
+     white-space: normal;
+     vertical-align: middle;
+     padding: 16px;
+   }
+   
+   /* =========================================================
+      8) STATUS CELL CONTENT
+      - Little dot + text chip look
+      ========================================================= */
+   .status-cell {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     white-space: nowrap;
+     overflow: hidden;
+   }
+   .status-text { flex: 0 1 auto; min-width: 0; }
+   .status-dot {
+     width: 12px; height: 12px; border-radius: 50%;
+     display: inline-block; flex: 0 0 auto;
+   }
+   .status-dot.ongoing  { background: gold; }
+   .status-dot.rejected { background: red; }
+   .status-dot.approved { background: green; }
+   
+   /* Verify cell alignment */
+   .for-approval-cell { text-align: center; }
+   
+   /* =========================================================
+      9) DIALOG (ADD GROUP) — PANEL & SECTIONS
+      - Apply via panelClass: 'add-group-dialog'
+      ========================================================= */
+   .add-group-dialog .mat-mdc-dialog-surface {
+     border-radius: 16px;
+     overflow: hidden;
+     padding: 0;
+     background: #fff;
+     box-shadow:
+       0 20px 60px rgba(0,0,0,.35),
+       0 0 0 3px rgba(0,129,255,.25);
+   }
+   
+   /* Dialog header strip */
+   .ag-header {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     background: #800000;
+     color: #f5d76e;               /* gold */
+     padding: 14px 18px;
+   }
+   .ag-title { margin: 0; font-size: 22px; font-weight: 700; }
+   .ag-close {
+     background: transparent; border: 0; color: #f5d76e;
+     font-size: 20px; line-height: 1; cursor: pointer;
+   }
+   
+   /* Dialog body + form layout */
+   .ag-body { padding: 22px 26px 10px; }
+   .ag-form { display: block; }
+   .ag-section-title { font-weight: 700; color: #800000; margin: 8px 0 10px; }
+   .ag-members-head { display: flex; align-items: center; gap: 8px; }
+   .ag-muted { color: #6b6b6b; font-style: italic; margin: 6px 0 12px; }
+   
+   /* Two-column grid in dialog */
+   .ag-grid-2 {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 14px;
+   }
+   .ag-field  { width: 100%; }
+   .ag-member { margin: 10px 0; }
+   
+   /* Dividers */
+   .ag-divider        { border: 0; border-top: 1px solid #e9e9e9; margin: 16px 0; }
+   .ag-divider--soft  { border-top-color: #eeeeee; }
+   
+   /* =========================================================
+      10) DIALOG — FORM-FIELD THEME (maroon outline)
+      ========================================================= */
+   .add-group-dialog .mat-mdc-form-field .mdc-notched-outline__leading,
+   .add-group-dialog .mat-mdc-form-field .mdc-notched-outline__trailing,
+   .add-group-dialog .mat-mdc-form-field .mdc-notched-outline__notch { border-color: #800000; }
+   .add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+   .add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing,
+   .add-group-dialog .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch { border-color: #800000; }
+   .add-group-dialog .mat-mdc-form-field .mdc-floating-label,
+   .add-group-dialog .mat-mdc-form-field .mat-mdc-floating-label { color: #800000; }
+   .add-group-dialog .mat-mdc-input-element::placeholder { color: #b7b7b7; }
+   .add-group-dialog .mat-mdc-form-field-infix { padding: 12px 0; }
+   
+   /* =========================================================
+      11) DIALOG — ACTIONS (centered primary/outline pills)
+      ========================================================= */
+   .ag-actions {
+     padding: 0 26px 22px;
+     display: flex; align-items: center; justify-content: center !important;
+     gap: 12px;
+   }
+   .ag-flex-spacer { flex: none; }
+   
+   .ag-pill {
+     height: 56px; padding: 0 28px; border-radius: 9999px;
+     font-weight: 700; border: 2px solid transparent;
+   }
+   .ag-pill--primary { background: #800000; color: #f5d76e; }
+   .ag-pill--primary:hover { filter: brightness(0.95); }
+   .ag-pill--outline { background: #fff; color: #800000; border-color: #800000; }
+   .ag-pill--outline:hover { background: rgba(128,0,0,.06); }
+   
+   /* Force flex align-right utility if needed */
+   .ag-row-end { display: flex; justify-content: flex-end; }
+   
+   /* =========================================================
+      12) TABLE CONTAINER SHELL (outer box around mat-table)
+      ========================================================= */
+   .documents-table {
+     background-color: #fff;
+     border: 1px solid #ddd;      /* outer border color */
+     border-radius: 8px;
+     overflow: hidden;
+     margin-bottom: 0;
+   }
+   
+   /* =========================================================
+      13) PAGINATOR (centered, transparent, maroon text)
+      ========================================================= */
+   .paginator {
+     display: flex;
+     justify-content: center;     /* centers the paginator */
+     padding: 2px 0;
+     margin-top: 0;
+     background: transparent !important;
+     box-shadow: none !important;
+     color: #800000;
+   }
+   
+   /* Pierce Angular Material styles inside the paginator */
+   :host ::ng-deep .paginator .mat-mdc-paginator {
+     background: transparent !important;
+     box-shadow: none !important;
+     border: 0 !important;
+     color: #800000;
+   }
+   
+   /* Make the select & inputs flat/transparent too */
+   :host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+   :host ::ng-deep .paginator .mdc-notched-outline__leading,
+   :host ::ng-deep .paginator .mdc-notched-outline__trailing,
+   :host ::ng-deep .paginator .mdc-notched-outline__notch {
+     border: 0 !important;
+     color: #800000;
+   }
+   :host ::ng-deep .paginator .mat-mdc-select-trigger,
+   :host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+     background: transparent !important;
+     box-shadow: none !important;
+     color: #800000;
+   }
+      

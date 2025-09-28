@@ -13,7 +13,7 @@
         </button>
 
         <!-- Card -->
-        <div class="rectangle-container">
+        
           <!-- Controls -->
           <div class="controls-bar">
             <!-- Section Dropdown -->
@@ -115,6 +115,8 @@
             </ng-template>
           </div>
 
+          <div class="documents-table">
+
           <!-- Table -->
           <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 full-width-table">
             <!-- Group ID -->
@@ -163,8 +165,9 @@
           </table>
 
           <!-- Paginator -->
-          <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
-        </div> <!-- /rectangle-container -->
+         
+        </div> 
+        <mat-paginator class="paginator" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
       </div>   <!-- /page -->
     </mat-sidenav-content>
   </mat-sidenav-container>
