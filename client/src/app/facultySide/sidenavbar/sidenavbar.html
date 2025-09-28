@@ -9,9 +9,18 @@
           <a mat-button routerLink="/for-panellanding">Panelist Page</a>
         </div>
 
-        <a mat-button class="home" routerLink="/faculty-home">Logout</a>
-
-      </mat-sidenav>
       
-  </mat-sidenav-container>
+        <button mat-button class="logout" (click)="openLogoutDialog($event)">Logout</button>
+</mat-sidenav>
+</mat-sidenav-container>
+
+<!-- ===== Logout confirm dialog (inline template) ===== -->
+<ng-template #logoutConfirm let-dialogRef="dialogRef">
+<h2 mat-dialog-title>Log out?</h2>
+<mat-dialog-content>Are you sure you want to log out?</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button class="yes"(click)="dialogRef.close(false)">No</button>
+  <button mat-flat-button color="warn" (click)="dialogRef.close(true)">Yes</button>
+</mat-dialog-actions>
+</ng-template>
   

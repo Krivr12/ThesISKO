@@ -26,6 +26,16 @@
   .sidenav-container {
     height: 100vh;
   }
+
+  .logout{
+    color: white;
+    margin-top: clamp(24px, 8vh, 96px);
+    margin-left: 10px;
+    background-color: #800000;
+    border: none !important;
+    
+    
+  }
   
 /* Make buttons fill the sidenav width nicely (optional) */
 .sidenav .nav-links a.mat-mdc-button {
@@ -43,4 +53,9 @@
 /* Optional hover tweak */
 .sidenav .nav-links a.active-link:hover {
   filter: brightness(0.95);
+}
+
+/* make the warn button look maroon-ish if you prefer */
+.mat-mdc-unelevated-button.mat-warn {
+  background-color: #800000;
 }
