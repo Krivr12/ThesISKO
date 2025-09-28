@@ -53,6 +53,7 @@
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
+    margin-bottom: 0;
 }
 
 .table-header, .table-row {
@@ -466,3 +467,34 @@
     outline: none;
     border-color: #800000;
 }
+
+/* ========== PAGINATOR: CENTER & NO BACKGROUND ========== */
+.paginator {
+    display: flex;
+    justify-content: center;   /* centers the paginator */
+    padding: 2px 0;
+    margin-top: 0;
+    color: #800000;
+  }
+  
+  :host ::ng-deep .paginator .mat-mdc-paginator {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    color: #800000;
+  }
+  
+  /* Optional: make the select & inputs flat/transparent too */
+  :host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+  :host ::ng-deep .paginator .mdc-notched-outline__leading,
+  :host ::ng-deep .paginator .mdc-notched-outline__trailing,
+  :host ::ng-deep .paginator .mdc-notched-outline__notch {
+    border: 0 !important;
+    color: #800000;
+  }
+  :host ::ng-deep .paginator .mat-mdc-select-trigger,
+  :host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #800000;
+  }

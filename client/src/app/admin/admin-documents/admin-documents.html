@@ -43,25 +43,18 @@
                 </div>
             </div>
 
+            <!-- ito lang binago kooo -->
             <div class="paginator">
-                <button class="paginator-nav" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
-                    &lt; Previous
-                </button>
-                <div class="paginator-pages">
-                    <ng-container *ngFor="let page of pages">
-                        <span *ngIf="page === '...'" class="paginator-item ellipsis">...</span>
-                        <button *ngIf="page !== '...'" 
-                                class="paginator-item" 
-                                [class.active]="currentPage === page"
-                                (click)="goToPage(page)">
-                            {{ page }}
-                        </button>
-                    </ng-container>
-                </div>
-                <button class="paginator-nav" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
-                    Next &gt;
-                </button>
-            </div>
+                <mat-paginator
+                  [length]="filteredDocuments.length"
+                  [pageIndex]="currentPage - 1"
+                  [pageSize]="itemsPerPage"
+                  [pageSizeOptions]="[5, 10, 20]"
+                  (page)="onPage($event)"
+                  showFirstLastButtons>
+                </mat-paginator>
+              </div>
+              
         </div>
 
         <!-- Details View -->

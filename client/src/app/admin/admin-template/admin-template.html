@@ -13,14 +13,14 @@
   
         <button
           mat-raised-button
-          class="btn-maroon addButton"
+          class="addButton"
           (click)="openAddTemplateDialog()">
           Add Template
         </button>
       </div>
   
       <!-- ================== Templates Table ================== -->
-      <div class="rectangle">
+      <div class="documents-table">
         <table
           mat-table
           [dataSource]="dataSource"
@@ -52,8 +52,9 @@
           <tr mat-row *matRowDef="let row; columns: displayedColumns" class="template-row"></tr>
         </table>
   
-        <mat-paginator [pageSize]="9" [pageSizeOptions]="[5, 9, 15, 20]"></mat-paginator>
+        
       </div>
+      <mat-paginator class="paginator"  [pageSize]="9" [pageSizeOptions]="[5, 9, 15, 20]"></mat-paginator>
     </div>
   </div>
   

@@ -163,7 +163,7 @@
       </ng-template>
   
       <!-- ================== Table ================== -->
-      <div class="rectangle">
+      <div class="documents-table">
         <table
           mat-table
           [dataSource]="dataSource"
@@ -206,7 +206,7 @@
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
   
-        <mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
+        <mat-paginator class="paginator" [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
       </div>
     </div>
   </div>

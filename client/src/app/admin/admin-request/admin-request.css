@@ -9,6 +9,8 @@
   app-admin-side-bar {
     width: 200px;            /* adjust to your sidebar width */
     flex-shrink: 0;
+    position: fixed;
+
   }
   
   .content {
@@ -16,6 +18,7 @@
     padding: 50px;           /* inner page padding */
     display: flex;
     flex-direction: column;
+    margin-left: 200px;
   }
   
   /* ============ Toolbar ============ */
@@ -70,37 +73,40 @@
   table.mat-mdc-table td.mat-mdc-footer-cell {
     padding: 14px 12px;
     vertical-align: middle;
-    font-size: 14px;
+    font-size: 14px;border-bottom: 1px solid #eee;
+    background-color: #fff;color: #800000;
   }
   
   /* Header look */
   th.mat-mdc-header-cell {
     font-weight: 700;
-    color: #3a3a3a;
+    color: #800000;
     border-bottom: 2px solid #f0f0f0;
+    background-color: #fff;
+    
   }
   
   /* Row hover */
   .mdc-data-table__row:hover td {
     background: #fafafa;
+    background-color: #fff;
   }
   
   /* Sort header color */
   .mat-sort-header-container {
-    color: inherit; /* keeps your header color */
+    color: inherit; 
   }
   
   /* Optional: column sizing (tweak as you like) */
-  .mat-column-requestor { width: 22%; }
-  .mat-column-time      { width: 18%; }
-  .mat-column-chapters  { width: 18%; }
-  .mat-column-purpose   { width: 30%; }
-  .mat-column-actions   { width: 12%; text-align: right; }
+  .mat-column-requestor { width: 15%; }
+  .mat-column-time      { width: 15%; }
+  .mat-column-title      { width: 23%; }
+  .mat-column-chapters  { width: 10%; }
+  .mat-column-purpose   { width: 25%; }
+  .mat-column-actions   { width: 12%; }
   
-  /* Right-align actions cell content */
-  td.mat-mdc-cell.mat-column-actions {
-    text-align: right;
-  }
+ 
+  
   
   /* ============ Link-style action button ============ */
   .link-btn {
@@ -199,4 +205,43 @@
 }
 
 
+.documents-table {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+/* ========== PAGINATOR: CENTER & NO BACKGROUND ========== */
+.paginator {
+  display: flex;
+  justify-content: center;   /* centers the paginator */
+  padding: 2px 0;
+  margin-top: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
+
+:host ::ng-deep .paginator .mat-mdc-paginator {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  color: #800000;
+}
+
+/* Optional: make the select & inputs flat/transparent too */
+:host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+:host ::ng-deep .paginator .mdc-notched-outline__leading,
+:host ::ng-deep .paginator .mdc-notched-outline__trailing,
+:host ::ng-deep .paginator .mdc-notched-outline__notch {
+  border: 0 !important;
+  color: #800000;
+}
+:host ::ng-deep .paginator .mat-mdc-select-trigger,
+:host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
 
