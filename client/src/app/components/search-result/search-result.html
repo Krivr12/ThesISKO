@@ -1,13 +1,203 @@
 <app-navbar></app-navbar>
+
 <div class="container">
   <div class="content-card">
     <div class="card-header">
-      <div class="return-link" (click)="onReturnClick()">
-        &lt; Return
+      <button type="button" class="return-link" (click)="onReturnClick()">
+        &larr; Return
+      </button>
+
+      <div class="actions">
+        <button
+          mat-stroked-button
+          color="primary"
+          class="request-button"
+          (click)="$event.stopPropagation(); openRequestDialog()">
+          Request Manuscript
+        </button>
       </div>
-      <button class="request-button">Request for full access</button>
     </div>
 
+    <!-- ===================== STUDENT DIALOG ===================== -->
+    <ng-template #dlgRequestAccessStudent let-dialogRef="dialogRef">
+      <h2 mat-dialog-title>Request Manuscript</h2>
+
+      <mat-dialog-content class="dialog-body">
+        <!-- Email (read-only from auth) -->
+        <div class="dialog-section">
+          <div class="section-title">Your PUP email</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <input matInput [value]="currentUserEmail" readonly />
+            <mat-hint>Signed in via @iskolarngbayan.pup.edu.ph</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <!-- Program -->
+        <div class="dialog-section">
+          <div class="section-title">Program</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-select [(ngModel)]="studentProgram" placeholder="Select program" required>
+              <!-- Replace with your real list -->
+              <mat-option value="BSIT">BSIT</mat-option>
+              <mat-option value="BSCS">BSCS</mat-option>
+            </mat-select>
+            <mat-error *ngIf="!studentProgram">Program is required.</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Department -->
+        <div class="dialog-section">
+          <div class="section-title">Department</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-select [(ngModel)]="studentDepartment" placeholder="Select department" required>
+              <!-- Replace with your real list -->
+              <mat-option value="Department of Computer Science">Department of Computer Science</mat-option>
+              <mat-option value="Department of Information Technology">Department of Information Technology</mat-option>
+              <mat-option value="Department of Engineering">Department of Engineering</mat-option>
+            </mat-select>
+            <mat-error *ngIf="!studentDepartment">Department is required.</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Chapters -->
+        <div class="dialog-section">
+          <div class="section-title">Select chapters</div>
+          <div class="checkbox-grid">
+            <mat-checkbox
+              *ngFor="let c of requestOptions"
+              [checked]="selectedRequestChapters.has(c)"
+              (change)="toggleRequestChapter(c, $event.checked)">
+              {{ c }}
+            </mat-checkbox>
+          </div>
+          <small class="hint">Tip: Select “All” if you need the entire manuscript.</small>
+        </div>
+
+        <!-- Purpose -->
+        <div class="dialog-section">
+          <div class="section-title">Purpose of request</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <textarea
+              matInput
+              [(ngModel)]="requestPurpose"
+              placeholder="State your purpose"
+              rows="4"
+              required></textarea>
+            <mat-hint>Give a short but clear reason.</mat-hint>
+            <mat-error *ngIf="requestPurpose.trim().length < 8">Please enter at least 8 characters.</mat-error>
+          </mat-form-field>
+        </div>
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end">
+        <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
+        <button
+          mat-raised-button
+          color="accent"
+          [disabled]="!(studentFormValid && studentProgram && studentDepartment)"
+          (click)="confirmRequest(dialogRef)">
+          Send request
+        </button>
+      </mat-dialog-actions>
+    </ng-template>
+
+    <!-- ===================== GUEST DIALOG ======================= -->
+    <ng-template #dlgRequestAccessGuest let-dialogRef="dialogRef">
+      <h2 mat-dialog-title>Request Manuscript</h2>
+
+      <mat-dialog-content class="dialog-body">
+        <!-- Email -->
+        <div class="dialog-section">
+          <div class="section-title">Your email</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <input
+              matInput
+              [(ngModel)]="requestEmail"
+              type="email"
+              placeholder="name@gmail.com"
+              (ngModelChange)="touchGuestEmail = true"
+              required />
+            <mat-hint>Guests must request using Gmail.</mat-hint>
+            <mat-error *ngIf="touchGuestEmail && !isGmail(requestEmail)">
+              Please use a valid Gmail address.
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Country -->
+        <div class="dialog-section">
+          <div class="section-title">Country</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <input matInput [(ngModel)]="guestCountry" placeholder="e.g., Philippines" required />
+            <mat-error *ngIf="!guestCountry">Country is required.</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- School -->
+        <div class="dialog-section">
+          <div class="section-title">School</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <input matInput [(ngModel)]="guestSchool" placeholder="e.g., XYZ University" required />
+            <mat-error *ngIf="!guestSchool">School is required.</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- City -->
+        <div class="dialog-section">
+          <div class="section-title">City</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <input matInput [(ngModel)]="guestCity" placeholder="e.g., Manila" required />
+            <mat-error *ngIf="!guestCity">City is required.</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Chapters -->
+        <div class="dialog-section">
+          <div class="section-title">Select chapters</div>
+          <div class="checkbox-grid">
+            <mat-checkbox
+              *ngFor="let c of requestOptions"
+              [checked]="selectedRequestChapters.has(c)"
+              (change)="toggleRequestChapter(c, $event.checked)">
+              {{ c }}
+            </mat-checkbox>
+          </div>
+          <small class="hint">Tip: Select “All” if you need the entire manuscript.</small>
+        </div>
+
+        <!-- Purpose -->
+        <div class="dialog-section">
+          <div class="section-title">Purpose of request</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <textarea
+              matInput
+              [(ngModel)]="requestPurpose"
+              placeholder="State your purpose"
+              rows="4"
+              required></textarea>
+            <mat-error *ngIf="requestPurpose.trim().length < 8">Please enter at least 8 characters.</mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-divider></mat-divider>
+        <p class="policy-note">
+          Requests are reviewed by admin. You may be asked to verify your email.
+        </p>
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end">
+        <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
+        <button
+          mat-raised-button
+          color="accent"
+          [disabled]="!(guestFormValid && guestCountry && guestCity && guestSchool)"
+          (click)="confirmRequest(dialogRef)">
+          Send request
+        </button>
+      </mat-dialog-actions>
+    </ng-template>
+
+    <!-- ===================== THESIS DETAILS ===================== -->
     <div class="main-title">
       <h1>{{ thesis.title }}</h1>
     </div>
@@ -51,4 +241,5 @@
     </div>
   </div>
 </div>
+
 <app-footer></app-footer>

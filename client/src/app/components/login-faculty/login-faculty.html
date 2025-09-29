@@ -1,0 +1,72 @@
+<div  class = "background">
+    
+    <div class = "leftside">
+    <img 
+      src="puplagoon.jpg" 
+      alt="pup lagoon" 
+    />
+    <div class="overlay"></div>
+    </div>
+
+
+    <div class = "rightside">
+        <div class="form-container">
+            <h1 class="login-header">Faculty</h1>
+
+        <form #loginForm = "ngForm" (ngSubmit)="onLogin()" class="loginform">
+
+            <div class = 'field'>
+                <label for = "email"> Email </label>
+                <input type="text" pInputText 
+                [(ngModel)]="login.email"  
+                class="w-full"
+                id = "email"
+                name = "email"
+                #email = "ngModel"
+                required
+                placeholder="Enter email"
+                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                />
+                @if(email.invalid &&  (email.dirty || email.touched)) {
+                    <small class="block p-error">
+                        @if(email.hasError('required')) {
+                            <span> Email is required. </span>
+                        } @else if(email.hasError('pattern')) {
+                            <span> Email is Invalid. </span>
+                        }
+                    </small>
+                }
+            </div>
+
+            <div class = 'field'>
+                <label for = "password"> Password </label>
+                <p-password 
+                placeholder="Enter password"
+                [(ngModel)]="login.password" 
+                [feedback]="false" 
+                [toggleMask] = "true"
+                inputId="password"
+                name="password" 
+                #password = "ngModel"
+                inputStyleClass="w-full"
+                styleClass="w-full"
+                required/>
+                
+                @if(password.invalid &&  (password.dirty || password.touched)) {
+                    <small class="block p-error"> Password is required. </small>
+                }
+            </div>
+
+            <p-button class="loginbtn"
+            label = "LOGIN"
+            styleClass="w-full"
+            [disabled]="loginForm.invalid"
+            type = "submit">
+            </p-button>
+
+        </form>
+        </div>
+    </div>
+      
+  </div>
+  

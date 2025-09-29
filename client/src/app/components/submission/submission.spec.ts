@@ -21,4 +21,3 @@ describe('Submission', () => {
     expect(component).toBeTruthy();
   });
 });
-

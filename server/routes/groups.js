@@ -2,6 +2,7 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 import s3 from "../databaseConnections/AWS/s3_connection.js";
+import { generateEmbedding } from "../controller/embeddingService.js";
 import {
   S3Client,
   CopyObjectCommand,
@@ -649,7 +650,14 @@ router.post("/:group_id/repository", async (req, res) => {
 
     await moveFileBetweenBuckets(sourceBucket, destBucket, originalKey, newKey);
 
-    // 7. Build repository doc
+    // 7. Generate embedding (title + abstract)
+    const textToEmbed = `${group.title || ""} ${group.abstract || ""}`.trim();
+    let embedding = null;
+    if (textToEmbed.length > 0) {
+      embedding = await generateEmbedding(textToEmbed);
+    }
+
+    // 8. Build repository doc
     const recordDoc = {
       _id: new ObjectId(),
       document_id,
@@ -664,9 +672,10 @@ router.post("/:group_id/repository", async (req, res) => {
       department: program.department,
       created_at: new Date(),
       updated_at: new Date(),
+      abstract_embedding: embedding,
     };
 
-    // 8. Insert into records
+    // 9. Insert into records
     await recordsCollection.insertOne(recordDoc);
 
     res.json({

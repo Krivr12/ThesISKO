@@ -8,12 +8,11 @@ import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [
     RouterOutlet,
     ButtonModule,
   ToastModule,
-  MatToolbarModule, HttpClientModule ],
+  MatToolbarModule],
   providers: [MessageService],
   templateUrl: './app.html',
   styleUrl: './app.css'

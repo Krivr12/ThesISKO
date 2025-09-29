@@ -1,0 +1,50 @@
+<div class="layout">
+    <app-sidenavbar></app-sidenavbar>
+  
+    <div class="content">
+        
+
+      <div class="rectangle">
+        <h2 class="dept-title">Faculty-in-Charge Classes</h2>
+  
+        <table class="dept-table" role="table" aria-label="CCIS Department Programs">
+            <thead>
+                <tr>
+                  <th colspan="2" class="no-pad"></th>
+                </tr>
+              </thead>
+              
+          <tbody>
+                      <tr>
+                        <td>Bachelor of Science in Computer Science</td>
+                        <td class="action-col">
+                          <button class="btn"
+                                  [routerLink]="['/for-fic']"
+                                  [queryParams]="{ program: 'BSCS' }">
+                            View Classes
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>Bachelor of Science in Information Technology</td>
+                        <td class="action-col">
+                          <button class="btn"
+                                  [routerLink]="['/for-fic']"
+                                  [queryParams]="{ program: 'BSIT' }">
+                            View Classes
+                          </button>
+                        </td>
+                      </tr>
+
+          </tbody>
+        </table>
+
+        
+      </div>
+    </div>
+
+        
+
+    
+  

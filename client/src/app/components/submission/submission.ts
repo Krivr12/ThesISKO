@@ -3,10 +3,6 @@ import { CommonModule } from '@angular/common';
 import { Footer } from "../footer/footer";
 import { Navbar } from "../navbar/navbar";
 import { Router } from '@angular/router';
-import { SubmissionService } from '../../service/submission.service';
-import { UploadService } from '../../service/upload.service';
-
-
 
 // structure for status update
 interface Status {
@@ -65,7 +61,7 @@ type ViewState =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Submission {
-  constructor(private router: Router, private submissionService: SubmissionService, private uploadService: UploadService  ) {}
+  constructor(private router: Router) {}
   // --- STATE MANAGEMENT SIGNALS ---
 
   viewState = signal<ViewState>('initial');
@@ -180,25 +176,6 @@ export class Submission {
     }
   }
 
-  //Upload Function
-  private uploadToBackend(file: File) {
-  this.submissionService.uploadFile(file).subscribe({
-    next: (progress) => {
-      this.uploadProgress.set(progress); // show real progress
-    },
-    error: (err) => {
-      console.error('Upload failed', err);
-      this.uploadProgress.set(0);
-      this.viewState.set('fileSelected');
-    },
-    complete: () => {
-      this.viewState.set('submitted');
-      this.statusHistory.set([{ text: 'Submitted', type: 'default' }]);
-    }
-  });
-}
-
-
   // --- UI ACTION METHODS ---
 
   private submitFile() {
@@ -225,36 +202,35 @@ export class Submission {
   }
 
   confirmUpload(isConfirmed: boolean) {
-  const currentState = this.viewState();
+    const currentState = this.viewState();
 
-  if (!isConfirmed) {
-    this.file.set(null);
-    this.uploadProgress.set(0);
-    let nextState: ViewState = 'initial';
-    if (currentState === 'revisionConfirming') {
-      nextState = 'needsRevision';
-    } else if (currentState === 'step2_confirming') {
-      nextState = 'step2_initial';
+    if (!isConfirmed) {
+      this.file.set(null);
+      this.uploadProgress.set(0);
+      let nextState: ViewState = 'initial';
+      if (currentState === 'revisionConfirming') {
+        nextState = 'needsRevision';
+      } else if (currentState === 'step2_confirming') {
+        nextState = 'step2_initial';
+      }
+      this.viewState.set(nextState);
+      return;
     }
-    this.viewState.set(nextState);
-    return;
-  }
 
-  // --- send file to backend if present ---
-  if (this.file()) {
-    this.uploadToBackend(this.file()!);
+    if (currentState === 'confirming') {
+      this.viewState.set('submitted');
+      this.statusHistory.set([{ text: 'Submitted', type: 'default' }]);
+      this.simulateReviewProcess();
+    } else if (currentState === 'revisionConfirming') {
+      this.viewState.set('revisionSubmitted');
+      this.statusHistory.update(history => [...history, { text: 'Revision Submitted', type: 'warning' }]);
+      this.simulateFinalApproval();
+    } else if (currentState === 'step2_confirming') {
+      this.viewState.set('step2_submitted');
+      this.statusHistory.set([{ text: 'Submitted', type: 'default' }]);
+      this.simulateStep2Approval();
+    }
   }
-
-  // --- continue with your state changes ---
-  if (currentState === 'confirming') {
-    this.simulateReviewProcess();
-  } else if (currentState === 'revisionConfirming') {
-    this.simulateFinalApproval();
-  } else if (currentState === 'step2_confirming') {
-    this.simulateStep2Approval();
-  }
-}
-
   
   private goToNextStep() {
     this.currentStep.update(step => step + 1);

@@ -1,0 +1,69 @@
+.sidenav-container {
+    height: 100vh;
+  }
+  
+  .sidenav {
+    width: 200px;
+    background-color: #800000;
+    padding-top: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+   
+  }
+  
+  .logout{
+    color: white;
+    margin-top: clamp(24px, 8vh, 96px);
+    margin-left: 10px;
+    background-color: #800000;
+    border: none !important;
+    
+    
+  }
+
+  .logo {
+    margin-bottom: 5rem;
+    font-weight: bold;
+    color: white !important;
+    
+    
+  }
+
+  .logout.mat-mdc-button .mdc-button__label {
+    color: #fff !important;
+  }
+  
+  .nav-links a {
+    display: block;
+    margin: 0.5rem 0;
+    color: white;
+    margin-top: 10px;
+  }
+
+  .sidenav-container {
+    height: 100vh;
+  }
+  
+/* Make buttons fill the sidenav width nicely (optional) */
+.sidenav .nav-links a.mat-mdc-button {
+  width: 100%;
+  justify-content: flex-start;
+  border-radius: 8px;
+}
+
+/* Active (current page) state */
+.sidenav .nav-links a.active-link {
+  background: #ffeb3b;   /* yellow */
+  color: #212121;        /* readable text on yellow */
+}
+
+/* Optional hover tweak */
+.sidenav .nav-links a.active-link:hover {
+  filter: brightness(0.95);
+}
+
+/* make the warn button look maroon-ish if you prefer */
+.mat-mdc-unelevated-button.mat-warn {
+  background-color: #800000;
+}
+

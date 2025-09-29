@@ -1,0 +1,500 @@
+:host {
+    font-family: 'Inter', sans-serif;
+}
+
+.page-layout {
+    display: flex;
+    height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    background-color: #fff;
+    color: #800000;
+}
+
+/* Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #800000;
+}
+
+.filter-buttons button {
+    background-color: #fff;
+    border: 1px solid #800000;
+    color: #800000;
+    padding: 0.5rem 1.5rem;
+    border-radius: 99px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 1rem;
+    transition: all 0.2s ease;
+}
+
+.filter-buttons button.active,
+.filter-buttons button:hover {
+    background-color: #800000;
+    color: #fff;
+}
+
+/* Documents Table */
+.documents-table {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+.table-header, .table-row {
+    display: grid;
+    grid-template-columns: 3fr 2fr 2fr 1fr;
+    align-items: center;
+    padding: 1rem;
+}
+
+.table-header {
+    background-color: #f9f9f9;
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+    color: #800000;
+}
+
+.header-item.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sort-arrow {
+    margin-left: 8px;
+    font-size: 12px;
+}
+
+
+.table-row {
+    border-bottom: 1px solid #eee;
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.action-cell {
+    text-align: right;
+}
+
+.verify-btn {
+    background-color: #800000;
+    color: #FFE477;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.status-tag {
+    padding: 0.4rem 1rem;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+.status-tag.clickable {
+    cursor: pointer;
+}
+
+.status-tag.plagiarism,
+.status-tag.incomplete,
+.status-tag.incorrect,
+.status-tag.technical { 
+    background-color: #FFE477; 
+}
+.status-tag.approved { background-color: #5cb85c; }
+
+
+/* Paginator */
+.paginator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding: 0 1rem;
+    color: #800000;
+}
+
+.paginator-nav {
+    background: none;
+    border: none;
+    color: #800000;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.paginator-nav:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.paginator-pages {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.paginator-item {
+    background: none;
+    border: none;
+    color: #800000;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+}
+
+.paginator-item.active {
+    background-color: #FFE477;
+    color: #800000;
+}
+
+.paginator-item.ellipsis {
+    cursor: default;
+}
+
+
+/* Thesis Details */
+.details-view-container {
+    padding: 1rem;
+}
+
+.return-btn {
+    background: none;
+    border: none;
+    color: #800000;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 2rem;
+    padding: 0.5rem 0;
+}
+
+.return-btn:hover {
+    text-decoration: underline;
+}
+
+.details-section {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    align-items: start;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1.5rem;
+    gap: 1.5rem;
+}
+
+.details-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #800000;
+    margin: 0;
+    text-align: left;
+    padding-top: 0.25rem;
+}
+
+.section-content {
+    padding: 0;
+    margin: 0;
+}
+
+.section-content p {
+    margin: 0;
+    line-height: 1.6;
+    color: #374151;
+}
+
+/* Documents List */
+.documents-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.documents-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    background-color: #f9fafb;
+}
+
+.file-link {
+    color: #800000;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.file-link:hover {
+    background-color: #fef2f2;
+    text-decoration: underline;
+}
+
+/* Tags Container Styling */
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    background-color: #800000;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Authors Styling */
+.authors-list {
+    margin: 0;
+    padding: 0;
+}
+
+.authors-list p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Footer Actions */
+.details-footer {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e5e7eb;
+}
+
+.approve-btn, .reject-btn {
+    padding: 0.8rem 2rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.approve-btn {
+    background-color: #800000;
+    color: #FFE477;
+    border: 1px solid #800000;
+}
+
+.approve-btn:hover {
+    background-color: #910101;
+    border-color: #910101;
+}
+
+.reject-btn {
+    background-color: #fff;
+    color: #800000;
+    border: 1px solid #800000;
+}
+
+.reject-btn:hover {
+    background-color: #fef2f2;
+}
+
+/* Modals - Updated to match submission page design */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 500px;
+    width: calc(100% - 2rem);
+    transform: scale(1);
+    transition: all 0.3s;
+}
+
+.modal-header {
+    background-color: #800000;
+    color: white;
+    padding: 1.25rem;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.modal-close-btn:hover {
+    opacity: 1;
+}
+
+.modal-body {
+    color: #374151;
+    padding: 2rem;
+    text-align: center;
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0 2rem 2rem 2rem;
+}
+
+.modal-btn {
+    padding: 0.75rem 2.5rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.modal-btn.confirm-btn {
+    background-color: #800000;
+    color: white;
+}
+
+.modal-btn.confirm-btn:hover {
+    background-color: #910101;
+}
+
+.modal-btn.cancel-btn {
+    background-color: white;
+    color: #800000;
+    border: 2px solid #800000;
+    padding: calc(0.75rem - 2px) calc(2.5rem - 2px);
+}
+
+.modal-btn.cancel-btn:hover {
+    background-color: #fef2f2;
+}
+
+/* Reject Modal Specific Styles */
+.reject-modal .modal-body {
+    text-align: left;
+    padding: 2rem;
+}
+
+.reject-modal .rejection-form {
+    margin-top: 1rem;
+}
+
+.reject-modal .rejection-form label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.reject-modal .rejection-form input[type="checkbox"] {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.reject-modal .rejection-form textarea {
+    width: 100%;
+    height: 80px;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid #d1d5db;
+    margin-top: 1rem;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.reject-modal .rejection-form textarea:focus {
+    outline: none;
+    border-color: #800000;
+}
+
+/* ========== PAGINATOR: CENTER & NO BACKGROUND ========== */
+.paginator {
+    display: flex;
+    justify-content: center;   /* centers the paginator */
+    padding: 2px 0;
+    margin-top: 0;
+    color: #800000;
+  }
+  
+  :host ::ng-deep .paginator .mat-mdc-paginator {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    color: #800000;
+  }
+  
+  /* Optional: make the select & inputs flat/transparent too */
+  :host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+  :host ::ng-deep .paginator .mdc-notched-outline__leading,
+  :host ::ng-deep .paginator .mdc-notched-outline__trailing,
+  :host ::ng-deep .paginator .mdc-notched-outline__notch {
+    border: 0 !important;
+    color: #800000;
+  }
+  :host ::ng-deep .paginator .mat-mdc-select-trigger,
+  :host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #800000;
+  }

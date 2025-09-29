@@ -1,0 +1,182 @@
+<div class="layout">
+    <app-admin-side-bar> </app-admin-side-bar>
+  
+    <div class="content">
+      <!-- Toolbar row -->
+      <div class="toolbar">
+        <button type="button" mat-button class="return" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Return
+        </button>
+  
+        <span class="spacer"></span>
+  
+        <button
+          mat-raised-button
+          color="accent"
+          class="addButton"
+          (click)="openAddDialog()">
+          Add Block
+        </button>
+      </div>
+  
+      <!-- ================== Add Block Dialog ================== -->
+<ng-template #addFacultyDialog let-dialogRef="dialogRef">
+    <div class="ag-header">
+      <h3 class="ag-title">Add Block</h3>
+      <button type="button" class="ag-close" (click)="dialogRef.close()" aria-label="Close">✕</button>
+    </div>
+  
+    <mat-dialog-content class="ag-body">
+      <form #addForm="ngForm" class="ag-form" (keydown.enter)="$event.preventDefault()">
+        <!-- Academic Year -->
+        <div class="ag-field-label">Academic Year <small class="muted">(YYYY, e.g., 2425)</small></div>
+        <mat-form-field appearance="outline" class="ag-field">
+          <input
+            id="academic_year"
+            matInput
+            [(ngModel)]="newForm.academic_year"
+            name="academic_year"
+            placeholder="2425"
+            aria-label="Academic Year"
+            required />
+        </mat-form-field>
+  
+        <!-- Program -->
+        <div class="ag-field-label">Program <small class="muted">(e.g., IT, CS)</small></div>
+        <mat-form-field appearance="outline" class="ag-field">
+          <input
+            id="program"
+            matInput
+            [(ngModel)]="newForm.program"
+            name="program"
+            placeholder="IT"
+            aria-label="Program"
+            required />
+        </mat-form-field>
+  
+        <!-- Code -->
+        <div class="ag-field-label">Code <small class="muted">(e.g., 3A)</small></div>
+        <mat-form-field appearance="outline" class="ag-field">
+          <input
+            id="code"
+            matInput
+            [(ngModel)]="newForm.code"
+            name="code"
+            placeholder="3A"
+            aria-label="Code"
+            required />
+        </mat-form-field>
+  
+        <!-- Faculty-in-Charge -->
+        <div class="ag-field-label">Faculty-in-Charge</div>
+        <mat-form-field appearance="outline" class="ag-field">
+          <input
+            id="faculty_in_charge"
+            matInput
+            [(ngModel)]="newForm.faculty_in_charge"
+            name="faculty_in_charge"
+            placeholder="e.g., Ryan Garcia"
+            aria-label="Faculty-in-Charge"
+            required />
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+  
+    <div class="ag-actions">
+      <button
+        type="button"
+        mat-raised-button
+        class="addButton"
+        color="primary"
+        [disabled]="addForm.invalid"
+        (click)="confirmAdd(dialogRef)">
+        ADD
+      </button>
+    </div>
+  </ng-template>
+  
+  
+      <!-- ================== Edit Block Dialog ================== -->
+      <ng-template #editFacultyDialog let-dialogRef="dialogRef">
+        <div class="ag-header">
+          <h3 class="ag-title">Edit Block</h3>
+          <button type="button" class="ag-close" (click)="dialogRef.close()" aria-label="Close">✕</button>
+        </div>
+  
+        <mat-dialog-content class="ag-body">
+          <form #editForm="ngForm" class="ag-form" (keydown.enter)="$event.preventDefault()">
+            <!-- Block ID (read-only to keep the key stable) -->
+            <div class="ag-field-label">Block ID</div>
+            <mat-form-field appearance="outline" class="ag-field">
+              <input matInput [value]="editRow.block_id" name="edit_block_id" readonly />
+            </mat-form-field>
+  
+            <!-- Faculty-in-Charge -->
+            <div class="ag-field-label">Faculty-in-Charge</div>
+            <mat-form-field appearance="outline" class="ag-field">
+              <input
+                matInput
+                [(ngModel)]="editRow.faculty_in_charge"
+                name="edit_faculty_in_charge"
+                required />
+            </mat-form-field>
+          </form>
+        </mat-dialog-content>
+  
+        <div class="ag-actions">
+          <button
+            type="button"
+            mat-raised-button
+            color="primary"
+            class="addButton"
+            [disabled]="editForm.invalid"
+            (click)="dialogRef.close(editRow)">
+            SAVE CHANGES
+          </button>
+        </div>
+      </ng-template>
+  
+      <!-- ================== Table ================== -->
+      <div class="documents-table">
+        <table
+          mat-table
+          [dataSource]="dataSource"
+          matSort
+          class="mat-elevation-z8 full-width-table no-table-margin">
+  
+          <!-- Block ID -->
+          <ng-container matColumnDef="block_id">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Block ID</th>
+            <td mat-cell *matCellDef="let row">{{ row.block_id }}</td>
+          </ng-container>
+  
+          <!-- Faculty-in-Charge -->
+          <ng-container matColumnDef="faculty_in_charge">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Faculty-in-Charge</th>
+            <td mat-cell *matCellDef="let row">{{ row.faculty_in_charge }}</td>
+          </ng-container>
+  
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let row">
+              <button
+                mat-button
+                class="link-btn"
+                [disableRipple]="true"
+                (click)="openEditDialog(row)">
+                Edit Info
+              </button>
+            </td>
+          </ng-container>
+  
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+  
+        <mat-paginator class="paginator"  [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
+      </div>
+    </div>
+  </div>
+  

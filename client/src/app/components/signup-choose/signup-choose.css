@@ -1,0 +1,165 @@
+* {
+    color: #800000;
+    background-color: white; 
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
+  }
+  
+  .background {
+    background-color: white;
+    display: flex;
+    height: 100vh;
+  }
+  
+  .leftside {
+    flex: 1;
+    height: 100%;
+    position: relative; /* ensure overlay positions inside */
+  }
+  
+  .leftside img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .leftside .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;           /* cover full left side */
+    height: 100%;
+    background-color: rgba(128, 0, 0, 0.3);
+    pointer-events: none;
+  }
+  
+  /* rightside */
+  .rightside {
+    flex: 1;
+    display: flex;
+    justify-content: center;   /* <-- THIS centers .form-container horizontally */
+    align-items: flex-start;    /* stick to the top */
+    background-color: white;
+    place-items: center;        
+    position: relative;
+  }
+  
+  .form-container {
+    width: 520px;
+    max-width: calc(100% - 48px); /* responsive safety */
+    margin-top: 48px;             /* controlled top offset */
+    padding: 0 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;                    /* consistent spacing; replace random margins */
+  }
+  
+  
+  .header {
+    font-size: 40px;
+    font-weight: 700;
+    color: #800000;
+    margin: 0;                    /* remove extra margins */
+    text-align: center;
+  }
+  
+  .headerchoose {
+    font-size: 15px;
+    font-weight: 600;
+    color: grey;
+    margin: 0;                    /* remove extra margins */
+    text-align: center;
+  }
+  
+  /* PrimeNG button sizing/shape (let .form-container gap handle spacing) */
+  :host ::ng-deep .p-button {
+    width: 480px !important;
+    max-width: 100% !important;
+    height: 50px !important;
+    border-radius: 10px !important;
+    font-weight: bold !important;
+    font-size: 1rem !important;
+    text-align: center !important;
+    margin: 0 !important;         /* avoid jumpy spacing */
+  }
+  
+  /* Solid maroon variants */
+  :host ::ng-deep .studentButton .p-button,
+  :host ::ng-deep .facultyButton .p-button {
+    background-color: #800000 !important;
+    border: 2px solid #800000 !important;
+    color: white !important;
+    height: 55px !important;
+  }
+  
+  /* Outlined guest */
+  :host ::ng-deep .guestButton .p-button {
+    background-color: white !important;
+    border: 2px solid #800000 !important;  /* fixed invalid border */
+    color: #800000 !important;
+    height: 55px !important;
+  }
+  
+  /* Hover / focus */
+  :host ::ng-deep .facultyButton .p-button:hover,
+  :host ::ng-deep .studentButton .p-button:hover,
+  :host ::ng-deep .guestButton .p-button:hover {
+    filter: brightness(0.95);
+  }
+  
+  :host ::ng-deep .p-button:focus-visible {
+    outline: 3px solid rgba(128, 0, 0, 0.35) !important;
+    outline-offset: 2px !important;
+  }
+  
+  .divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    margin: 1rem 0;
+    gap: 1rem;
+  }
+  
+  .divider hr {
+    flex: 1;
+    border: none;
+    border-top: 1px solid #800000;
+    margin: 0;
+  }
+  
+  .divider span {
+    color: #800000;
+    font-weight: bold;
+  }
+  
+  .mt-2 {
+    font-size: 14px;
+    color: #1a1a1a;
+  }
+  
+  .mt-2 a {
+    color: #800000;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  
+  .mt-2 a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Responsive tweaks */
+  @media (max-width: 1024px) {
+    .background { flex-direction: column; }
+    .leftside { display: none; }
+    .rightside { align-items: flex-start; }
+    .form-container { margin-top: 32px; }
+  }
+  
+  @media (max-width: 480px) {
+    .header { font-size: 32px; }
+    .form-container { max-width: calc(100% - 32px); }
+  }
+  
