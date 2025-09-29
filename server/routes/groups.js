@@ -2,11 +2,68 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 import s3 from "../databaseConnections/AWS/s3_connection.js";
-import { HeadObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  CopyObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 
 const router = express.Router();
 const groupsCollection = RepoMongodb.collection("groups");
 const blocksCollection = RepoMongodb.collection("blocks"); // For dynamic panelist count
+const programsCollection = RepoMongodb.collection("programs");
+const recordsCollection = RepoMongodb.collection("records");
+
+
+// -------- Helper: Move file between S3 buckets --------
+async function moveFileBetweenBuckets(sourceBucket, destBucket, sourceKey, destKey) {
+  // Copy file
+  await s3.send(
+    new CopyObjectCommand({
+      CopySource: `${sourceBucket}/${sourceKey}`,
+      Bucket: destBucket,
+      Key: destKey,
+    })
+  );
+
+  // Delete original
+  await s3.send(
+    new DeleteObjectCommand({
+      Bucket: sourceBucket,
+      Key: sourceKey,
+    })
+  );
+}
+
+// -------- Helper: Generate Document ID --------
+async function generateDocumentId(program_id) {
+  const year = new Date().getFullYear();
+  const counterId = `${year}-${program_id}`; // ensures reset each year
+
+  const result = await RepoMongodb.collection("counters").findOneAndUpdate(
+    { _id: counterId },
+    { $inc: { seq: 1 } },
+    { upsert: true, returnDocument: "after" } // or returnOriginal: false in v3
+  );
+
+  let counterDoc = result.value;
+  
+  // Fallback: fetch manually if not returned
+  if (!counterDoc) {
+    counterDoc = await RepoMongodb.collection("counters").findOne({ _id: counterId });
+  }
+
+  if (!counterDoc) {
+    throw new Error(`Failed to fetch counter for ${counterId}`);
+  }
+
+  const nextNumber = counterDoc.seq.toString().padStart(4, "0");
+  return `${year}-${program_id}-${nextNumber}`;
+}
+
+
+
+
 
 // Helper: Deep merge objects
 function deepMerge(target, source) {
@@ -142,6 +199,9 @@ router.post("/", async (req, res) => {
       group_id,
       block_id,
       title: title || null,
+      abstract: abstract || null,
+      access_level: access_level || null,
+      tags: [],
       leader,
       members: Array.isArray(members) ? members : [],
       milestones: [
@@ -481,8 +541,11 @@ router.patch("/:group_id", async (req, res) => {
 
     const updateFields = {};
     if (req.body.title !== undefined) updateFields.title = req.body.title;
+     if (req.body.access_level !== undefined) updateFields.access_level = req.body.access_level;
     if (req.body.leader) updateFields.leader = req.body.leader;
     if (req.body.members) updateFields.members = req.body.members;
+    if (req.body.abstract !== undefined) updateFields.abstract = req.body.abstract;
+    if (req.body.tags && Array.isArray(req.body.tags)) updateFields.tags = req.body.tags;
 
     if (req.body.milestones && typeof req.body.milestones === "object") {
       updateFields.milestones = deepMerge(
@@ -534,6 +597,85 @@ router.delete("/:group_id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error deleting group" });
+  }
+});
+
+
+// -------- Route: Copy to Repository --------
+router.post("/:group_id/repository", async (req, res) => {
+  try {
+    const { group_id } = req.params;
+
+    // 1. Get group
+    const group = await groupsCollection.findOne({ group_id });
+    if (!group) return res.status(404).json({ error: "Group not found" });
+
+    // 2. Resolve block → program
+    const block = await blocksCollection.findOne({ block_id: group.block_id });
+    if (!block) return res.status(404).json({ error: "Block not found" });
+
+    const program = await programsCollection.findOne({ program_id: block.program_id });
+    if (!program) return res.status(404).json({ error: "Program not found" });
+
+    // 3. Authors
+    const authors = [];
+    if (group.leader) {
+      authors.push(`${group.leader.surname}, ${group.leader.firstname}`);
+    }
+    if (Array.isArray(group.members)) {
+      group.members.forEach((m) => {
+        if (m.surname && m.firstname) {
+          authors.push(`${m.surname}, ${m.firstname}`);
+        }
+      });
+    }
+
+    // 4. Manuscript file
+    const manuscript = group.milestones.find(m => m.type === "upload_manuscript");
+    if (!manuscript || !manuscript.s3_key?.length) {
+      return res.status(400).json({ error: "No manuscript found" });
+    }
+
+    const originalKey = manuscript.s3_key[0];
+    const fileName = originalKey.split("/").pop();
+
+    // 5. Generate document_id
+    const document_id = await generateDocumentId(block.program_id);
+
+    // 6. Move file to repository bucket
+    const sourceBucket = process.env.AWS_BUCKET_NAME;
+    const destBucket = process.env.REPOSITORY_BUCKET;
+    const newKey = `repository-files/${document_id}/${fileName}`;
+
+    await moveFileBetweenBuckets(sourceBucket, destBucket, originalKey, newKey);
+
+    // 7. Build repository doc
+    const recordDoc = {
+      _id: new ObjectId(),
+      document_id,
+      title: group.title || null,
+      abstract: group.abstract || null,
+      tags: Array.isArray(group.tags) ? group.tags : [],
+      access_level: group.access_level || "restricted",
+      authors,
+      file_key: newKey,
+      program_id: block.program_id,
+      program_name: program.program_name,
+      department: program.department,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    // 8. Insert into records
+    await recordsCollection.insertOne(recordDoc);
+
+    res.json({
+      message: "Record successfully created in repository",
+      record: recordDoc,
+    });
+  } catch (err) {
+    console.error("❌ Error copying to repository:", err);
+    res.status(500).json({ error: "Error copying to repository" });
   }
 });
 

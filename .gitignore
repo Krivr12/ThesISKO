@@ -36,3 +36,9 @@ out/
 /Thesisko/
 server/config.env
 .vercel
+
+
+# Angular & Vite cache
+client/.angular/cache/
+client/vite/
+client/*.tsbuildinfo

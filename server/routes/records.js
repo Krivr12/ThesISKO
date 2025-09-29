@@ -64,7 +64,7 @@ router.get("/:doc_id", async (req, res) => {
   }
 });
 
-// POST new record
+// POST new record (FOR TESTING ONLY NOT UPDATED ANYMORE)
 router.post("/", async (req, res) => {
   try {
     const year = new Date().getFullYear();
@@ -102,7 +102,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// POST bulk insert
+// POST bulk insert (FOR TESTING ONLY NOT UPDATED ANYMORE)
 router.post("/bulk", async (req, res) => {
   try {
     if (!Array.isArray(req.body)) {
