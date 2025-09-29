@@ -1,0 +1,88 @@
+{
+  "version": "1",
+  "type": "collection",
+  "name": "ThesISKO Document Requests",
+  "items": [
+    {
+      "name": "Create Request (Student)",
+      "type": "http-request",
+      "method": "POST",
+      "url": "http://localhost:5050/document-request",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "mode": "json",
+        "json": {
+          "docId": "DOC-001",
+          "userType": "student",
+          "requester": {
+            "email": "student@pup.edu.ph",
+            "dept": "Engineering",
+            "program": "BSIT"
+          },
+          "chaptersRequested": ["Chapter 1", "Chapter 2"],
+          "purpose": "For thesis reference"
+        }
+      }
+    },
+    {
+      "name": "Create Request (Guest)",
+      "type": "http-request",
+      "method": "POST",
+      "url": "http://localhost:5050/document-request",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "mode": "json",
+        "json": {
+          "docId": "DOC-002",
+          "userType": "guest",
+          "requester": {
+            "email": "guest@gmail.com",
+            "country": "Philippines",
+            "city": "Manila",
+            "school": "XYZ University"
+          },
+          "chaptersRequested": ["Chapter 3"],
+          "purpose": "Literature review support"
+        }
+      }
+    },
+    {
+      "name": "Dean Respond - Approve with PDF",
+      "type": "http-request",
+      "method": "POST",
+      "url": "http://localhost:5050/document-request/:id/respond",
+      "headers": {
+        "Content-Type": "multipart/form-data"
+      },
+      "body": {
+        "mode": "formdata",
+        "formdata": [
+          { "key": "status", "value": "approved", "type": "text" },
+          { "key": "deanRemarks", "value": "Approved for Chapter 1 only", "type": "text" },
+          { "key": "approvedChapters", "value": "Chapter 1", "type": "text" },
+          { "key": "pdf", "value": "./sample.pdf", "type": "file" }
+        ]
+      }
+    },
+    {
+      "name": "Dean Respond - Reject",
+      "type": "http-request",
+      "method": "POST",
+      "url": "http://localhost:5050/document-request/:id/respond",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "mode": "json",
+        "json": {
+          "status": "rejected",
+          "deanRemarks": "Request denied because the manuscript is restricted"
+        }
+      }
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import s3SearchRoutes from "./routes/s3Search.js"; // import separate search rou
 import blocks from "./routes/blocks.js"
 import groups from "./routes/groups.js"
 import programs from "./routes/programs.js"
+import requests from "./routes/requests.js"
 
 dotenv.config({ path: "config.env" });
 
@@ -37,12 +38,14 @@ app.use(express.json());
 
 // Routes
 app.use("/records", records);
+app.use("/programs", programs);
 app.use("/group_progress", group_progress);
 app.use("/s3", s3Routes); 
 app.use("/s3", s3SearchRoutes); 
 app.use("/blocks", blocks);
 app.use("/groups", groups);
-app.use("/programs", programs);
+app.use("/requests", requests)
+
 
 // ❌ REMOVE app.listen()
 // ✅ Export the app for Vercel
