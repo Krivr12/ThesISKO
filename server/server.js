@@ -5,6 +5,10 @@ import group_progress from "./routes/group_progress.js"
 import s3Routes from "./routes/s3Routes.js"; // import S3 routes
 import s3SearchRoutes from "./routes/s3Search.js"; // import separate search route
 import dotenv from "dotenv";
+import templateRoutes from "./routes/templateRoute.js"; 
+import mongoose from "mongoose";  
+
+
 
 const PORT = process.env.PORT || 5050;
 dotenv.config({ path: "server/config.env" });
@@ -31,6 +35,15 @@ app.use(
   })
 );
 
+// ✅ Connect to MongoDB
+mongoose
+  .connect("mongodb://127.0.0.1:27017/thesisdb", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
 
 app.use(express.json());
 
@@ -39,6 +52,7 @@ app.use("/records", records);
 app.use("/group_progress", group_progress);
 app.use("/s3", s3Routes); 
 app.use("/s3", s3SearchRoutes); 
+app.use("/api/templates", templateRoutes)
 
 
 
