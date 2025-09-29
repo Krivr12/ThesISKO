@@ -1,6 +1,7 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { AuthService } from '../components/navbar/navbar';
+import { AppConfirmationService } from '../service/confirmation.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
@@ -19,6 +20,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 export const roleGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const confirmationService = inject(AppConfirmationService);
   
   const currentUser = authService.currentUser;
   const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
@@ -31,6 +33,18 @@ export const roleGuard: CanActivateFn = (route, state) => {
   // Allow unauthenticated users to access login/signup pages
   const publicPaths = ['/login', '/login-faculty', '/login-admin', '/signup', '/signup-choose', '/google-callback'];
   const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
+  
+  // Debug logging for profile routes
+  if (currentPath.includes('profile')) {
+    console.log('RoleGuard Profile Debug:', { 
+      currentPath, 
+      currentUser: currentUser, 
+      userRole: currentUser?.Status?.toLowerCase(),
+      isGuestMode, 
+      isPublicPath, 
+      isGuestAccessible 
+    });
+  }
   
   // Allow guest mode access to guest-accessible paths AND public paths (login/signup)
   if (isGuestMode && (isGuestAccessible || isPublicPath)) {
@@ -63,7 +77,7 @@ const allowedPaths = {
     'guest': ['/home', '/about-us', '/search-thesis', '/search-result', '/guest-profile'],
     'student': ['/home', '/about-us', '/search-thesis', '/search-result', '/submission', '/thank-you', '/student-profile'],
     'faculty': ['/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page'],
-    'admin': ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template', '/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page']
+    'admin': ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template']
   };
   
   // Admin role handling with role_id specific routing
@@ -95,23 +109,10 @@ const allowedPaths = {
         return true;
       }
       
-      // Define restricted routes that should trigger logout popup for admin users
-      const restrictedForAdmin = [
-        '/login', '/login-faculty', '/login-admin', 
-        '/signup', '/signup-choose',
-        '/home', '/about-us', '/search-thesis', '/search-result', '/submission',
-        '/superAdmin/'
-      ];
-      
-      const isRestrictedRoute = restrictedForAdmin.some(path => currentPath.startsWith(path));
-      
-      if (!isRestrictedRoute) {
-        return true; // Allow access to routes not explicitly restricted
-      }
-      
-      // Show logout confirmation for unauthorized access
+      // Admin (role_id = 4) should only access admin routes
+      // If not an admin route or allowed admin path, deny access
       const confirmed = confirm(
-        `You are trying to access a restricted area outside your admin permissions.\n\nThis will log you out. Do you want to continue?`
+        `You are trying to access a restricted area outside your admin permissions.\n\nDo you want to continue?`
       );
       
       if (confirmed) {
@@ -136,26 +137,37 @@ const allowedPaths = {
   if (!isAllowed) {
     // Show confirmation dialog for students and guests
     if (userRole === 'student' || userRole === 'guest') {
-      const confirmed = confirm(
-        `You are trying to access a restricted area. This will log you out.\n\nDo you want to continue and logout?`
+      confirmationService.showRestrictedAreaConfirmation(
+        userRole,
+        () => {
+          // User confirmed - logout and redirect
+          authService.logout();
+          router.navigate(['/signup-choose']);
+        },
+        () => {
+          // User cancelled - navigate back to allowed area
+          const defaultPath = userAllowedPaths[0] || '/home';
+          router.navigate([defaultPath]);
+        }
       );
-      
-      if (confirmed) {
-        authService.logout();
-        router.navigate(['/signup-choose']);
-        return false;
-      } else {
-        // Stay on current page by navigating back to allowed area
-        const defaultPath = userAllowedPaths[0] || '/home';
-        router.navigate([defaultPath]);
-        return false;
-      }
+      return false; // Prevent navigation while showing modal
     }
     
-    // For faculty trying to access other areas, just redirect
+    // For faculty trying to access other areas, show confirmation dialog
     if (userRole === 'faculty') {
-      router.navigate(['/faculty-home']);
-      return false;
+      confirmationService.showRestrictedAreaConfirmation(
+        userRole,
+        () => {
+          // User confirmed - logout and redirect
+          authService.logout();
+          router.navigate(['/signup-choose']);
+        },
+        () => {
+          // User cancelled - navigate back to faculty home
+          router.navigate(['/faculty-home']);
+        }
+      );
+      return false; // Prevent navigation while showing modal
     }
     
     // Default: redirect to appropriate home

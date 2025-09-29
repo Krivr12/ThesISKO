@@ -17,6 +17,8 @@ import { PanelistApprovalPage } from './facultySide/panelist-approval-page/panel
 import { ForPanel } from './facultySide/for-panel/for-panel';
 import { ForFIC } from './facultySide/for-fic/for-fic';
 import { FICHistoryPage } from './facultySide/fichistory-page/fichistory-page';
+import { ForFICLanding } from './facultySide/for-ficlanding/for-ficlanding';
+import { ForPanellanding } from './facultySide/for-panellanding/for-panellanding';
 import { GoogleCallbackComponent } from './components/google-callback/google-callback';
 import { authGuard, roleGuard } from './guards/auth-guard';
 import { submissionGuard } from './guards/submission-guard';
@@ -40,7 +42,7 @@ import { AdminTemplate } from './admin/admin-template/admin-template';
 
 export const routes: Routes = [
    // login - now protected by role guard to check admin restrictions
-    {path: 'signup-choose', component: SignupChoose, canActivate: [roleGuard]},
+    {path: 'signup-choose', component: SignupChoose},
     {path: 'login-faculty', component: LoginFaculty, canActivate: [roleGuard]},
     {path: 'login-admin', component: LoginAdmin, canActivate: [roleGuard]},
     {path: 'login', component: Login, canActivate: [roleGuard]},
@@ -61,6 +63,8 @@ export const routes: Routes = [
 
     //faculty side - protected by role guard
     {path: 'faculty-home', component: FacultyHome, canActivate: [roleGuard]},
+    {path: 'for-ficlanding', component: ForFICLanding, canActivate: [roleGuard]},
+    {path: 'for-panellanding', component: ForPanellanding, canActivate: [roleGuard]},
 
     {path: 'fichistory-page', component: FICHistoryPage, canActivate: [roleGuard]},
     {path: 'fichistory-page/:id', component: FICHistoryPage, canActivate: [roleGuard]},
@@ -88,4 +92,6 @@ export const routes: Routes = [
     {path: 'superAdmin/documents-issues', component: DocumentsIssues, canActivate: [roleGuard]},
     {path: 'superAdmin/documents-verify', component: DocumentsVerify, canActivate: [roleGuard]},
 
+    // Fallback route for debugging
+    {path: '**', redirectTo: 'signup-choose'}
 ];

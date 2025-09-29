@@ -1,77 +1,164 @@
 <div class="layout">
-    <app-admin-side-bar> </app-admin-side-bar>
-  
-    <div class="content">
-      <!-- Toolbar row -->
-      <div class="toolbar">
-        <button type="button" mat-button class="return" (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-          Return
-        </button>
-  
-      </div>
-  
-      <!-- ================== Requests Table ================== -->
-      <div class="rectangle">
-        <table
-          mat-table
-          [dataSource]="dataSource"
-          matSort
-          class="mat-elevation-z8 full-width-table no-table-margin">
-  
-          <!-- Requestor -->
-          <ng-container matColumnDef="requestor">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Requestor</th>
-            <td mat-cell *matCellDef="let row">
-              {{ row.requestor_name }}
-            </td>
-          </ng-container>
-  
-          <!-- Time (Date + Time) -->
-          <ng-container matColumnDef="time">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Time</th>
-            <td mat-cell *matCellDef="let row">
-              {{ row.date }} {{ row.time }}
-            </td>
-          </ng-container>
-  
-          <!-- Chapters Requested -->
-          <ng-container matColumnDef="chapters">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Chapters</th>
-            <td mat-cell *matCellDef="let row">
-              {{ formatChapters(row.selected_chapter) }}
-            </td>
-          </ng-container>
-  
-          <!-- Purpose -->
-          <ng-container matColumnDef="purpose">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Purpose</th>
-            <td mat-cell *matCellDef="let row">
-              {{ row.purpose }}
-            </td>
-          </ng-container>
-  
-          <!-- Actions -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let row">
-              <button
-                mat-button
-                class="link-btn"
-                [disableRipple]="true"
-                [disabled]="row.verified"
-                (click)="verify(row)">
-                {{ row.verified ? 'Verified' : 'Verify' }}
-              </button>
-            </td>
-          </ng-container>
-  
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-        </table>
-  
-        <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
-      </div>
+  <app-admin-side-bar></app-admin-side-bar>
+
+  <div class="content">
+    <div class="toolbar">
+      <button type="button" mat-button class="return" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon> Return
+      </button>
+    </div>
+
+    <div class="rectangle">
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        class="mat-elevation-z8 full-width-table no-table-margin">
+
+        <!-- Requestor -->
+        <ng-container matColumnDef="requestor">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Requestor</th>
+          <td mat-cell *matCellDef="let row">{{ row.requestor_name }}</td>
+        </ng-container>
+
+        <!-- Time -->
+        <ng-container matColumnDef="time">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Time</th>
+          <td mat-cell *matCellDef="let row">{{ row.date }} {{ row.time }}</td>
+        </ng-container>
+
+        <!-- Title -->
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>File Requested</th>
+          <td mat-cell *matCellDef="let row">{{ row.title }}</td>
+        </ng-container>
+
+        <!-- Chapters -->
+        <ng-container matColumnDef="chapters">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Chapters</th>
+          <td mat-cell *matCellDef="let row">{{ formatChapters(row.selected_chapter) }}</td>
+        </ng-container>
+
+        <!-- Purpose -->
+        <ng-container matColumnDef="purpose">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Purpose</th>
+          <td mat-cell *matCellDef="let row">{{ row.purpose }}</td>
+        </ng-container>
+
+        <!-- Actions -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-button class="link-btn" [disableRipple]="true" (click)="openVerifyDialog(row)">
+              Open Request
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
     </div>
   </div>
+</div>
+
+<!-- Dialog Template -->
+<ng-template #verifyDialog let-dialogRef="dialogRef" let-data>
+  <div class="ag-header">
+    <h4 class="ag-title">Open Request</h4>
+    <button type="button" class="ag-close" (click)="dialogRef.close()" aria-label="Close">✕</button>
+  </div>
+
+  <mat-dialog-content class="ag-body">
+    <!-- Requestor details -->
+    <div class="kv-grid-2cols">
+      <div><b>Requested By</b></div>      <div>{{ data.row.requestor_name || '—' }}</div>
+      <div><b>Title</b></div>          <div>{{ data.row.title || '—' }}</div>
+
+      <div><b>Email</b></div>          <div>{{ data.row.email || '—' }}</div>
+      <div><b>Chapters</b></div>       <div>{{ formatChapters(data.row.selected_chapter || '') || '—' }}</div>
+
+      <div><b>Time</b></div>           <div>{{ data.row.date || '—' }} {{ data.row.time || '' }}</div>
+      <div><b>Purpose</b></div>        <div>{{ data.row.purpose || '—' }}</div>
+      
+      <div><b>School</b></div>        <div>{{ data.row.school || '—' }}</div>
+      <div><b>City</b></div>        <div>{{ data.row.city || '—' }}</div>
+
+      <div><b>Department</b></div>        <div>{{ data.row.school || '—' }}</div>
+      <div><b>Program</b></div>        <div>{{ data.row.program || '—' }}</div>
+
+
+
+    </div>
+
+    <!-- Requested metadata + PDF (from groups.json merge) -->
+    <div class="datarequested" style="margin-top:16px;">
+      <h3 class="section-title" style="margin:0 0 12px;font-weight:600;font-size:16px;">Requested Data</h3>
+
+      <div class="grid" style="display:grid;grid-template-columns:220px 1fr;gap:8px 12px;align-items:start;margin-bottom:12px;">
+       
+       
+        <div><b>Title</b></div>             <div>{{ data.row.title || '—' }}</div>
+        <div><b>Block ID</b></div>           <div>{{ data.row.block_id || '—' }}</div>
+        <div><b>Course</b></div>             <div>{{ data.row.course || '—' }}</div>
+        <div><b>Abstract</b></div>           <div>{{ data.row.abstract || '—' }}</div>
+        <div><b>Leader</b></div>             <div>{{ data.row.leader || '—' }}</div>
+        <div><b>Members</b></div>            <div>{{ toList(data.row.members) }}</div>
+        <div><b>Leader Email</b></div>       <div>{{ data.row.leader_email || '—' }}</div>
+        <div><b>Faculty In Charge</b></div>  <div>{{ data.row.faculty_in_charge || '—' }}</div>
+        <div><b>File Type</b></div>          <div>{{ data.row.file_type || '—' }}</div>
+
+        <!-- PDF / File -->
+        <div><b>PDF</b></div>
+        <div>
+          <ng-container *ngIf="data.pdfHref; else noPdf">
+            <a [href]="data.pdfHref" target="_blank" rel="noopener">
+              {{ data.pdfDisplayName }}
+            </a>
+            <span style="margin:0 6px;opacity:.6;">•</span>
+
+            <div style="margin-top:8px;" *ngIf="data.pdfSafeUrl">
+              <details>
+                <summary>Preview inline</summary>
+                <iframe title="PDF preview" [src]="data.pdfSafeUrl" style="width:100%;height:60vh;border:0;"></iframe>
+              </details>
+            </div>
+          </ng-container>
+          <ng-template #noPdf><em>—</em></ng-template>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <div class="actions">
+      <button class="btn primary" (click)="confirmApprove(data.row)">Approve Request</button>
+      <button class="btn ghost"  (click)="confirmReject(data.row)">Reject Request</button>
+    </div>
+  </mat-dialog-actions>
   
+  
+</ng-template>
+
+<!-- Reusable confirm dialog -->
+<ng-template #confirmDialog let-dialogRef="dialogRef" let-data>
+  <h2 mat-dialog-title>{{ data.title }}</h2>
+
+  <mat-dialog-content>
+    <p style="margin:0;">
+      {{ data.message }}
+    </p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close(false)">Cancel</button>
+    <button 
+      mat-flat-button
+      [color]="data.kind === 'approve' ? 'primary' : 'warn'"
+      (click)="dialogRef.close(true)">
+      {{ data.okText }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>

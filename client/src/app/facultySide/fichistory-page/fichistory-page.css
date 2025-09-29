@@ -1,116 +1,86 @@
-
-app-sidenavbar { width:240px; flex-shrink:0; }
+/* === Layout shell (same as approval page) === */
 .layout { display:flex; gap:16px; min-height:100vh; background:#fff; }
-
-.rectangle{
-  width:100%;
-  margin:0;
-  background:#fff;
-  border:2px solid #800000;          /* maroon frame */
-  border-radius:12px;
-  box-sizing:border-box;
-  overflow:hidden;
-  padding:18px 18px 24px;
-  margin-bottom:24px;
-}
-
-.FICpage{ max-width:980px; margin:0 auto; }
+app-sidenavbar { width:200px; flex-shrink:0; }
+.page { flex:1 1 auto; padding:12px 16px; }
 
 /* Back link */
 .return{
   border:0; background:transparent; color:#800000;
-  font-weight:700; margin:4px 0 12px; cursor:pointer;
+  font-weight:800; margin:4px 0 12px; cursor:pointer; display:inline-flex; gap:6px;
+  align-items: center;
 }
 
-/* —— Meta (rows with maroon rules, no card border) —— */
+.mat-icon-like{ font-weight:700; line-height:1; }
+
+/* Title (match approval .title) */
+.title{ color:#800000; margin:4px 0 12px; font-weight:800; }
+
+/* === Meta block: flat, maroon dividers like approval .meta === */
 .meta-card{
-  background:#fff;
-  border:0;
-  padding:0 2px;                    /* tight like screenshot */
+  background:#fff; border:0; padding:0 2px; max-width:980px; margin:0 auto;
 }
 .meta-card .row{
-  display:grid;
-  grid-template-columns:180px 1fr;
-  gap:10px 14px;
-  padding:12px 0;
-  border-bottom:1px solid #800000;  /* maroon dividers */
+  display:grid; grid-template-columns:180px 1fr;
+  gap:10px 14px; padding:12px 0;
+  border-bottom:1px solid #800000;
 }
 .meta-card .row:last-child{ border-bottom:0; }
+.meta-card .label{ color:#000; font-weight:700; }
+.meta-card .value{ color:#1e1e1e; line-height:1.35; }
 
-.meta-card .label{
-  color:#000; font-weight:700;      /* label left */
-}
-.meta-card .value{
-  color:#1e1e1e; line-height:1.35;
-}
 
-/* —— Panelists box —— */
-.panelist-card{ margin-top:18px; border:0; padding:0; }
-.panelist-header{ color:#000; font-weight:700; margin:0 0 10px; }
+/* Section headers reuse same typographic rhythm */
+.section-header{ color:#000; font-weight:700; margin:18px auto 10px; max-width:980px; }
 
+/* === Panelists: rounded maroon frame (matches approval cards) === */
+.panelist-card{ margin-top:8px; }
 .panelist-list{
-  border:1.5px solid #800000;       /* rounded rectangle like your shot */
-  border-radius:12px;
-  overflow:hidden;
-  background:#fff;
+  border:1.5px solid #800000; border-radius:12px; overflow:hidden; background:#fff;
+  max-width:980px; margin:0 auto;
 }
-
 .panelist-row{
-  display:grid;
-  grid-template-columns:1fr 220px;  /* wider status column */
-  gap:8px 12px;
-  padding:10px 14px;
-  border-bottom:1px solid #800000;  /* solid maroon row lines */
-  align-items:center;
+  display:grid; grid-template-columns:1fr 220px;
+  gap:8px 12px; padding:10px 14px;
+  border-bottom:1px solid #800000; align-items:center;
 }
 .panelist-row:last-child{ border-bottom:0; }
-
 .panelist-name{ color:#111; }
 
-/* link-style status on the right */
+/* Status styles: link-like by default; optional colors for state */
 .panelist-status{
-  color:#800000;
-  text-decoration: underline;
-  font-weight:700;
-  justify-self:start;               /* text sits near left of status column */
+  color:#800000; text-decoration: underline; font-weight:700; justify-self:start;
 }
+.panelist-status.approved{ color:#146c2e; text-decoration:none; }
+.panelist-status.pending{ color:#9a6a00; }
+.panelist-status.not-approved{ color:#a10000; }
 
-/* —— History —— */
-.history-card{ margin-top:22px; border:0; padding:0; }
-.history-title{ color:#000; font-weight:700; margin-bottom:10px; }
-
+/* === History: table inside rounded maroon frame (cohesive) === */
+.history-card{ margin-top:22px; }
+.table-frame{
+  border:1.5px solid #800000; border-radius:12px; overflow:hidden; background:#fff;
+  max-width:980px; margin:0 auto;
+}
 .history-table{
-  width:100%;
-  border-collapse:collapse;
-  border:1.5px solid #800000;       /* maroon rounded frame */
-  border-radius:12px;
-  overflow:hidden;
-  font-size:0.92rem;
+  width:100%; border-collapse:collapse; font-size:0.92rem;
 }
 .history-table thead th{
-  text-align:left;
-  padding:12px 14px;
-  border-bottom:1px solid #800000;  /* strong header rule */
-  background:#fff;                  /* flat like screenshot */
-  color:#800000;
-  font-weight:800;
+  text-align:left; padding:12px 14px; border-bottom:1px solid #800000;
+  background:#fff; color:#800000; font-weight:800;
 }
 .history-table tbody td{
-  padding:12px 14px;
-  border-bottom:1px solid #800000;  /* maroon row lines */
-  color:#202020;
+  padding:12px 14px; border-bottom:1px solid #800000; color:#202020;
 }
 .history-table tbody tr:last-child td{ border-bottom:0; }
 .caret{ opacity:.6; margin-left:6px; }
 
-/* —— Actions / buttons —— */
+/* === Actions (same button look as approval page) === */
 .actions{
   display:flex; gap:24px; align-items:center; justify-content:center;
   margin:24px auto 4px; max-width:980px;
 }
 .btn{
   padding:16px 28px; border-radius:12px; font-weight:700;
-  min-width:260px; cursor:pointer; transition:opacity .2s ease;
+  min-width:260px; cursor:pointer; transition:opacity .2s ease, background-color .2s ease;
 }
 .btn.primary{ background:#800000; color:#fff; }
 .btn.primary:hover{ opacity:.9; }
@@ -118,7 +88,9 @@ app-sidenavbar { width:240px; flex-shrink:0; }
 .btn.ghost:hover{ background:#fde9e9; }
 .btn:disabled{ opacity:.6; cursor:not-allowed; }
 
-/* —— Responsive —— */
+.loading{ color:#6b6b6b; padding:20px; }
+
+/* === Responsive === */
 @media (max-width:900px){
   .meta-card .row{ grid-template-columns:1fr; }
   .panelist-row{ grid-template-columns:1fr; }

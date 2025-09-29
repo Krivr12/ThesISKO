@@ -1,6 +1,7 @@
 CREATE TABLE group_members (
     group_id VARCHAR(20) NOT NULL,
-    user_id INT NOT NULL,             -- from users_info(user_id)
+    user_id INT NOT NULL,              -- from users_info(user_id)
+    name VARCHAR(100) NOT NULL,        -- store the student's full name
     label VARCHAR(50) DEFAULT 'Member',
     PRIMARY KEY (group_id, user_id),
     FOREIGN KEY (group_id) REFERENCES student_groups(group_id) ON DELETE CASCADE,

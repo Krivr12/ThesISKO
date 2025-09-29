@@ -1,12 +1,17 @@
-<div class="faculty-sidebar">
-    <h2 class="logo">ThesISKO</h2>
-  
-    <div class="nav-links">
-      <a class="nav-item" routerLink="/faculty-home" routerLinkActive="active">Home</a>
-      <a class="nav-item" routerLink="/for-fic" routerLinkActive="active">FIC Page</a>
-      <a class="nav-item" routerLink="/for-panel" routerLinkActive="active">Panelist Page</a>
-    </div>
+<mat-sidenav-container class="sidenav-container">
 
-    <a class="logout-btn" (click)="confirmLogout($event)">Logout</a>
-</div>
+    <mat-sidenav mode="side" opened class="sidenav">
+        <h2 class="logo">ThesISKO</h2>
+      
+        <div class="nav-links">
+          <a mat-button class="home" routerLink="/faculty-home">Home</a>
+          <a mat-button class="home" routerLink="/for-ficlanding">FIC Page</a>
+          <a mat-button routerLink="/for-panellanding">Panelist Page</a>
+        </div>
+
+        <a mat-button class="home" (click)="confirmLogout($event)">Logout</a>
+
+      </mat-sidenav>
+      
+  </mat-sidenav-container>
   

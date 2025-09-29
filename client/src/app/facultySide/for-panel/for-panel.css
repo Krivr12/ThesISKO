@@ -1,175 +1,61 @@
-html, body { height: 100%; }
-body { margin: 0; }                /* remove browser default 8px margin */
+/* Base */
+html, body { height: 100%; margin: 0; }
+.container { display: flex; height: 100vh; width: 100%; }
+app-sidenavbar { width: 200px; flex-shrink: 0; }
 
-/* Make the whole page split: navbar on the left, content on the right */
-.container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-}
-
-/* Sidebar (your <app-navbar>) */
-app-sidenavbar {
-  width: 240px;
-  flex-shrink: 0;
-}
-
-
-/* Main content (table area) */
+/* Main content */
 mat-sidenav-content.content {
-  flex: 1;                   /* take the rest of the width */
-  padding: 1rem;
-  overflow: auto;            /* scroll if content is big */
-  background: #f9f9f9;       /* optional: light background */
-}
-
-/* Rectangle container for table */
-.rectangle-container {
-  width: 95%;
-  margin: 0 auto;
-  padding: 16px;
-  background: #fff;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.sidenav-container { height: 100vh; }
-
-.sidenav {
-  width: 240px;
-  background-color: #800000;
-  padding: 1rem;                   /* keep compact; adjust as you like */
-}
-
-.logo { margin-bottom: 1rem; color: white; font-weight: bold; }
-
-.nav-links a {
-  display: block;
-  margin: 0.5rem 0;                /* remove the extra margin-top duplication */
-  color: white;
-}
-
-/* kill the gray gap */
-mat-sidenav-content.content {
-  padding: 0 !important;
-  margin: 0 !important;
-  display: flex;
-  justify-content: center; /* centers horizontally */
-  align-items: flex-start; /* sticks to top */
-}
-
-/* ensure your table area doesn’t add its own margin */
-.table-container, table, .mat-elevation-z8 { margin: 0; }
-
-
-table {
+  flex: 1;
+  overflow: auto;
+  background: #f9f9f9;
+  padding: 0;
   margin: 0;
 }
 
-.mat-mdc-table { table-layout: fixed; width: 100%; }
-
-/* 2) Fallback: disable MDC pseudo row separators */
-.mat-mdc-header-row::after,
-.mat-mdc-row::after {
-  display: none !important;
+/* One centered column for header + card */
+.page {
+  max-width: 1200px;
+  width: 100%;
+  margin: 24px auto;
+  padding: 0 16px;         /* same left inset for Return + card */
+  box-sizing: border-box;
 }
 
-/* …and draw your own continuous borders */
+/* Return button */
+button.return {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin: 0 0 12px;        /* sits right on top of the card */
+  color: #800000;
+  text-decoration: none;
+}
+button.return:hover,
+button.return:focus { text-decoration: none; }
+
+
+
+/* Controls row */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+.section-filter { min-width: 200px; }
+
+/* Table basics */
+table { width: 100%; }
+.mat-mdc-table { table-layout: fixed; width: 100%; }
 .mat-mdc-header-cell,
-.mat-mdc-cell {
-  border-bottom: 1px solid rgba(0,0,0,0.12);
-}
+.mat-mdc-cell { padding: 8px 16px; }
+.mat-mdc-header-row::after,
+.mat-mdc-row::after { display: none !important; }
 
-
-.status-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;   /* prevents shrinking */
-}
-
-.status-text {
-  flex-grow: 1;     /* takes the remaining space */
-}
-
-.status-cell button {
-  margin-left: auto;  /* pushes VIEW to the far right */
-}
-
-
-.status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.status-dot.ongoing { background: gold; }
-.status-dot.rejected { background: red; }
-.status-dot.approved { background: green; }
-
-/* push VIEW to the right within the cell */
-.status-cell .spacer { margin-left: auto; }
-
-/* Optional: steady widths so header/body stay aligned */
+/* Column widths for stable layout */
 .mat-column-status { width: 260px; }
-.mat-column-forApproval { width: 140px; }
+.mat-column-forApproval { width: 140px; text-align: center; }
 
-
-.mat-mdc-table { table-layout: fixed; width: 100%; }
-
-.status-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.status-cell .spacer {
-  margin-left: auto;  /* pushes VIEW all the way to the right */
-}
-
-
-
-/* Push VIEW to the right edge of the cell */
-.status-cell .ml-auto { margin-left: auto; }
-
-/* Optional fixed widths for consistent alignment */
-.mat-column-status { width: 260px; }
-.mat-column-forApproval { width: 140px; }
-
-
-.status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.status-dot.ongoing { background: gold; }
-.status-dot.rejected { background: red; }
-.status-dot.approved { background: green; }
-
-/* push VIEW to the right within the cell */
-.status-cell .spacer { margin-left: auto; }
-
-/* Optional: steady widths so header/body stay aligned */
-.mat-column-status { width: 260px; }
-.mat-column-forApproval { width: 140px; }
-
-.status-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;   /* prevent line breaks */
-  overflow: hidden;      /* just in case */
-}
-
-.status-cell .status-text {
-  flex: 0 1 auto;
-  min-width: 0;          /* avoids flex text pushing layout */
-}
-
-/* keep dot and buttons from stretching */
-.status-dot,
-.status-cell button {
-  flex: 0 0 auto;
-}
 /*dito naayos yung sa status cell*/
 .mat-mdc-cell.mat-column-status,
 .mat-cell.mat-column-status {
@@ -180,27 +66,98 @@ table {
   padding: 16px;           
 }
 
-.rectangle-container {
-  width: 95%;
-  margin: 10px auto;   /* smaller margin */
-  padding: 15px;       /* reduce padding inside */
-  background: #fff;
-  border: 2px solid #ccc;
+/* Status cell + dot */
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.status-text { flex: 0 1 auto; min-width: 0; }
+.status-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  display: inline-block; flex: 0 0 auto;
+}
+.status-dot.ongoing { background: gold; }
+.status-dot.rejected { background: red; }
+.status-dot.approved { background: green; }
+
+/* Verify button cell */
+.for-approval-cell { text-align: center; }
+
+/* Optional: clean typography for the app sidebar (if needed) */
+.nav-links a { color: white; display: block; margin: .5rem 0; }
+.logo { color: white; font-weight: bold; margin-bottom: 1rem; }
+
+
+/* ========== PAGINATOR: CENTER & NO BACKGROUND ========== */
+.paginator {
+  display: flex;
+  justify-content: center;   /* centers the paginator */
+  padding: 2px 0;
+  margin-top: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
+
+:host ::ng-deep .paginator .mat-mdc-paginator {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  color: #800000;
+}
+
+/* Optional: make the select & inputs flat/transparent too */
+:host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+:host ::ng-deep .paginator .mdc-notched-outline__leading,
+:host ::ng-deep .paginator .mdc-notched-outline__trailing,
+:host ::ng-deep .paginator .mdc-notched-outline__notch {
+  border: 0 !important;
+  color: #800000;
+}
+:host ::ng-deep .paginator .mat-mdc-select-trigger,
+:host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
+.documents-table {
+  background-color: #fff;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin-bottom: 0;
 }
 
-.mat-column-status {
-  width: 250px; /* Adjust until it looks good */
-  text-align: left;
-}
-
-.mat-column-forApproval {
-  width: 120px;
-  text-align: center;
-}
-
-.mat-mdc-cell,
-.mat-mdc-header-cell {
-  padding: 8px 16px; /* consistent padding */
-}
+table.mat-mdc-table th.mat-mdc-header-cell,
+  table.mat-mdc-table td.mat-mdc-cell,
+  table.mat-mdc-table td.mat-mdc-footer-cell {
+    padding: 14px 12px;
+    vertical-align: middle;
+    font-size: 14px;border-bottom: 1px solid #eee;
+    background-color: #fff;color: #800000;
+  }
+  
+  /* Header look */
+  th.mat-mdc-header-cell {
+    font-weight: 700;
+    color: #800000;
+    border-bottom: 2px solid #f0f0f0;
+    background-color: #fff;
+    
+  }
+  
+  /* Row hover */
+  .mdc-data-table__row:hover td {
+    background: #fafafa;
+    background-color: #fff;
+  }
+  
+  .mat-column-groupId { width: 15%; }
+  .mat-column-title      { width: 25%; }
+  .mat-column-forApproval      { width: 10%; }
+  .mat-column-submissionDate  { width: 15%; }
+  .mat-column-leader   { width: 15%; }
+  .mat-column-status   { width: 10%; }

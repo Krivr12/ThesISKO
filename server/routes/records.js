@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
 // GET latest 6 records
 router.get("/latest", async (req, res) => {
   try {
-    const results = await collection
+    const results = await getCollection()
       .find(
         {},
         {

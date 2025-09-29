@@ -3,7 +3,6 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ActivityLoggerService } from '../../service/activity-logger.service';
 
 /* PrimeNG */
 import { ToolbarModule } from 'primeng/toolbar';
@@ -25,7 +24,14 @@ export interface AuthUser {
   Status?: string;
   Firstname?: string;
   Lastname?: string;
+  Course?: string;
+  Department?: string;
   role_id?: number;
+  // Group account specific fields
+  group_id?: string;
+  account_type?: string;
+  leader_name?: string;
+  members?: any[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,10 +39,13 @@ export class AuthService {
   private userSubject = new BehaviorSubject<AuthUser | null>(null);
   user$ = this.userSubject.asObservable();
   private http = inject(HttpClient);
+  private browserCloseHandlerAdded = false;
 
   constructor() {
     // Initialize user state from server on service creation
     this.initializeUser();
+    // Set up browser close logout handler
+    this.setupBrowserCloseLogout();
   }
 
   private async initializeUser() {
@@ -48,14 +57,24 @@ export class AuthService {
       if (response?.user) {
         this.userSubject.next(response.user);
       }
-    } catch (error) {
-      // User not authenticated, keep null state
-      console.log('No authenticated user found');
+    } catch (error: any) {
+      // Handle different types of errors
+      if (error?.status === 401) {
+        // 401 is expected when no user is logged in - don't log as error
+        console.log('No authenticated user session found');
+      } else {
+        // Other errors might be network issues or server problems
+        console.warn('Auth check failed:', error?.message || error);
+      }
     }
   }
 
   setUser(user: AuthUser) {
     this.userSubject.next(user);
+    // Set session timestamp when user logs in
+    if (user && typeof window !== 'undefined') {
+      sessionStorage.setItem('loginTimestamp', Date.now().toString());
+    }
   }
 
   async logout() {
@@ -73,6 +92,9 @@ export class AuthService {
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('guestMode');
         sessionStorage.removeItem('user');
+        sessionStorage.removeItem('role');
+        sessionStorage.removeItem('loginTimestamp');
+        sessionStorage.removeItem('pageHiddenAt');
         localStorage.removeItem('user');
       }
     }
@@ -85,6 +107,74 @@ export class AuthService {
   // Method to refresh user data from server
   async refreshUser() {
     await this.initializeUser();
+  }
+
+  // Set up browser close logout handler
+  private setupBrowserCloseLogout() {
+    if (typeof window === 'undefined' || this.browserCloseHandlerAdded) {
+      return;
+    }
+
+    // Handle browser/tab close
+    window.addEventListener('beforeunload', (event) => {
+      // Only logout if user is authenticated
+      if (this.currentUser) {
+        // Use sendBeacon for reliable logout on page unload
+        this.logoutOnBrowserClose();
+      }
+    });
+
+    // Handle page visibility change (when tab becomes hidden)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && this.currentUser) {
+        // Store a timestamp when the page becomes hidden
+        sessionStorage.setItem('pageHiddenAt', Date.now().toString());
+      } else if (document.visibilityState === 'visible') {
+        // Check if we should logout when page becomes visible again
+        this.checkForStaleSession();
+      }
+    });
+
+    this.browserCloseHandlerAdded = true;
+  }
+
+  // Logout when browser is closing
+  private logoutOnBrowserClose() {
+    try {
+      // Use sendBeacon for reliable request during page unload
+      const logoutData = new Blob([JSON.stringify({ reason: 'browser_close' })], {
+        type: 'application/json'
+      });
+      navigator.sendBeacon('http://localhost:5050/auth/logout', logoutData);
+      
+      // Clear local state immediately
+      this.userSubject.next(null);
+      sessionStorage.clear();
+      localStorage.removeItem('user');
+      
+      console.log('Browser close logout initiated');
+    } catch (error) {
+      console.error('Error during browser close logout:', error);
+    }
+  }
+
+  // Check for stale sessions when page becomes visible
+  private checkForStaleSession() {
+    const pageHiddenAt = sessionStorage.getItem('pageHiddenAt');
+    if (pageHiddenAt) {
+      const hiddenTime = parseInt(pageHiddenAt);
+      const currentTime = Date.now();
+      const timeDiff = currentTime - hiddenTime;
+      
+      // If page was hidden for more than 30 minutes, logout
+      if (timeDiff > 30 * 60 * 1000) { // 30 minutes
+        console.log('Session expired due to inactivity');
+        this.logout();
+      }
+      
+      // Remove the timestamp
+      sessionStorage.removeItem('pageHiddenAt');
+    }
   }
 }
 
@@ -102,7 +192,6 @@ export class Navbar implements OnInit {
   /** Default fallback image in assets */
   defaultAvatar = 'assets/profile.jpg';
   
-  private activityLogger = inject(ActivityLoggerService);
 
   constructor(private auth: AuthService, private router: Router, private confirmationService: ConfirmationService) {
     this.user$ = this.auth.user$; // assign in ctor to avoid DI timing issues
@@ -173,6 +262,18 @@ export class Navbar implements OnInit {
     const currentUser = this.auth.currentUser;
     const userRole = currentUser?.Status?.toLowerCase();
     
+    // Debug logging
+    console.log('Edit Information clicked - Debug info:');
+    console.log('Current User:', currentUser);
+    console.log('User Role:', userRole);
+    console.log('Session Storage guestMode:', sessionStorage.getItem('guestMode'));
+    
+    if (!currentUser) {
+      console.error('No current user found, redirecting to login');
+      this.router.navigate(['/login']);
+      return;
+    }
+    
     if (userRole === 'guest') {
       console.log('Edit Information clicked - navigating to /guest-profile');
       this.router.navigate(['/guest-profile']).then(success => {
@@ -195,6 +296,9 @@ export class Navbar implements OnInit {
       }).catch(error => {
         console.error('Navigation error:', error);
       });
+    } else {
+      console.error('Unknown user role or no role found:', userRole);
+      console.log('Available user properties:', Object.keys(currentUser || {}));
     }
   }
 
@@ -266,8 +370,6 @@ export class Navbar implements OnInit {
     console.log('Current user:', this.auth.currentUser);
     console.log('User role:', this.auth.currentUser?.Status);
     
-    // Log navigation activity
-    this.activityLogger.logNavigation(window.location.pathname, '/search-thesis', 'navbar_click').subscribe();
     
     this.router.navigate(['/search-thesis']).then(success => {
       if (success) {
@@ -301,6 +403,11 @@ export class Navbar implements OnInit {
   getDisplayName(u: AuthUser | null | undefined): string {
     if (!u) return 'User';
     
+    // For group accounts, display the group ID
+    if (u.account_type === 'group' && u.group_id) {
+      return u.group_id;
+    }
+    
     // For users with firstname/lastname (from database)
     if (u.Firstname && u.Lastname) {
       return `${u.Firstname} ${u.Lastname}`;
@@ -308,6 +415,19 @@ export class Navbar implements OnInit {
     
     // For Google users or fallback
     return u.displayName || u.username || u.email?.split('@')[0] || 'User';
+  }
+
+  /** Get email to display for user */
+  getUserEmail(u: AuthUser | null | undefined): string {
+    if (!u) return '';
+    
+    // For group accounts, show "Group Account" instead of email
+    if (u.account_type === 'group') {
+      return 'Group Account';
+    }
+    
+    // For regular users, show email
+    return u.email || u.Email || '';
   }
 
   /** Optional: initials helper if you ever want a text avatar fallback */

@@ -1,20 +1,47 @@
+// Load environment variables FIRST before any other imports
+import dotenv from "dotenv";
+dotenv.config({ path: './config.env' });
+
+// Verify environment variables are loaded
+console.log('🔧 Environment Variables Loaded:');
+console.log('DB_HOST:', process.env.DB_HOST ? 'SET' : 'NOT SET');
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? 'SET' : 'NOT SET');
+console.log('SMTP_USER:', process.env.SMTP_USER ? 'SET' : 'NOT SET');
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET');
+console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET');
+
 import express from "express";
 import cors from "cors";
 import session from "express-session";
 import passport from "passport";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import "./config/passport.js";
-import { activityLoggingMiddleware } from "./middleware/activityMiddleware.js";
+// Check Google OAuth configuration before importing passport config
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  console.warn('⚠️ Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in config.env');
+} else {
+  console.log('✅ Google OAuth configured');
+}
 
-// Import routes
-import records from "./routes/records.js";
-import group_progress from "./routes/group_progress.js";
+import "./config/passport.js";
+
+// Import routes - conditionally import MongoDB-dependent routes
+let records, group_progress;
+try {
+  if (process.env.ATLAS_URI && (process.env.ATLAS_URI.startsWith('mongodb://') || process.env.ATLAS_URI.startsWith('mongodb+srv://'))) {
+    records = (await import("./routes/records.js")).default;
+    group_progress = (await import("./routes/group_progress.js")).default;
+    console.log('✅ MongoDB routes loaded');
+  } else {
+    console.log('⚠️ MongoDB not configured, skipping MongoDB-dependent routes');
+  }
+} catch (error) {
+  console.log('⚠️ Failed to load MongoDB routes:', error.message);
+}
 import groups from "./routes/groups.js";
 import users from "./routes/users.js";
 import auth from "./routes/auth.js";
 import admin from "./routes/admin.js";
-import activity from "./routes/activity.js";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -24,7 +51,8 @@ app.use(helmet());
 
 // ✅ Restrict CORS to your Angular app only
 const allowedOrigins = [
-  "http://localhost:4200",   // Angular local dev
+  "http://localhost:4200",   // Angular local dev (default)
+  "http://localhost:44740",  // Angular local dev (alternative port)
   "https://your-production-domain.com" // replace with your real prod domain
 ];
 
@@ -63,17 +91,14 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Activity logging middleware (after session setup)
-app.use(activityLoggingMiddleware);
 
 // Routes
-app.use("/records", records);
-app.use("/group_progress", group_progress);
+if (records) app.use("/records", records);
+if (group_progress) app.use("/group_progress", group_progress);
 app.use("/groups", groups);
 app.use("/api/users", users);
 app.use("/auth", auth);
 app.use("/admin", admin);
-app.use("/activity", activity);
 
 // Direct verification route (for email links)
 app.get("/verify-student", async (req, res) => {
@@ -113,6 +138,8 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server listening on port ${PORT}`);
+  console.log('🗄️ Database configuration: Supabase PostgreSQL');
+  console.log('🔗 Ready to accept connections...');
 });
 
 

@@ -1,8 +1,9 @@
 import { Component, signal, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import { HttpClientModule } from '@angular/common/http';
 import { NavigationGuardService } from './service/navigation-guard.service';
@@ -12,9 +13,10 @@ import { NavigationGuardService } from './service/navigation-guard.service';
   imports: [
     RouterOutlet,
     ButtonModule,
-  ToastModule,
-  MatToolbarModule],
-  providers: [MessageService],
+    ToastModule,
+    ConfirmDialogModule,
+    MatToolbarModule],
+  providers: [],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

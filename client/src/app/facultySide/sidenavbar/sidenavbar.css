@@ -1,82 +1,46 @@
-.faculty-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 240px;
-  height: 100vh;
-  background-color: #8B0000;
-  color: white;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  z-index: 1000;
+.sidenav-container {
+    height: 100vh;
+  }
+  
+  .sidenav {
+    width: 200px;
+    background-color: #800000;
+    padding-top: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .logo {
+    margin-bottom: 5rem;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .nav-links a {
+    display: block;
+    margin: 0.5rem 0;
+    color: white;
+    margin-top: 10px;
+  }
+
+  .sidenav-container {
+    height: 100vh;
+  }
+  
+/* Make buttons fill the sidenav width nicely (optional) */
+.sidenav .nav-links a.mat-mdc-button {
+  width: 100%;
+  justify-content: flex-start;
+  border-radius: 8px;
 }
 
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0;
-  color: white;
-  text-align: left;
-  padding: 40px 20px 24px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* Active (current page) state */
+.sidenav .nav-links a.active-link {
+  background: #ffeb3b;   /* yellow */
+  color: #212121;        /* readable text on yellow */
 }
 
-.nav-links {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding: 20px 0 8px 0;
-}
-
-.nav-item {
-  color: white !important;
-  text-align: left;
-  padding: 14px 40px !important;
-  border-radius: 0 !important;
-  transition: background-color 0.2s ease;
-  text-decoration: none !important;
-  width: 100% !important;
-  justify-content: flex-start !important;
-  font-size: 17px !important;
-  margin: 0 !important;
-  min-height: auto !important;
-  line-height: 1.4 !important;
-}
-
-.nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-.nav-item.active {
-  background-color: #F2D862 !important;
-  color: #8B0000 !important;
-  font-weight: 500;
-  border-radius: 15px !important;
-  margin: 0 20px !important;
-  padding: 14px 20px !important;
-  width: calc(100% - 40px) !important;
-  text-align: left !important;
-  justify-content: flex-start !important;
-  display: block !important;
-}
-
-.logout-btn {
-  color: white !important;
-  padding: 14px 40px !important;
-  border-radius: 0 !important;
-  margin-top: auto !important;
-  text-decoration: none !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 17px !important;
-  min-height: auto !important;
-  line-height: 1.4 !important;
-  text-align: left;
-  width: 100% !important;
-  justify-content: flex-start !important;
-  cursor: pointer;
-}
-
-.logout-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
+/* Optional hover tweak */
+.sidenav .nav-links a.active-link:hover {
+  filter: brightness(0.95);
 }

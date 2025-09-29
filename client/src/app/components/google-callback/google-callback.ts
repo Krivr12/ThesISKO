@@ -1,7 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../navbar/navbar';
-import { ActivityLoggerService } from '../../service/activity-logger.service';
 
 @Component({
   selector: 'app-google-callback',
@@ -29,7 +28,6 @@ import { ActivityLoggerService } from '../../service/activity-logger.service';
 })
 export class GoogleCallbackComponent implements OnInit {
   private authService = inject(AuthService);
-  private activityLogger = inject(ActivityLoggerService);
   
   constructor(private router: Router) {}
 
@@ -71,11 +69,6 @@ export class GoogleCallbackComponent implements OnInit {
           
           console.log('Google OAuth: User authenticated and navbar should update', user);
           
-          // Log the Google OAuth login activity
-          this.activityLogger.logGuestGoogleSignin().subscribe({
-            next: () => console.log('Google OAuth login activity logged'),
-            error: (err) => console.warn('Failed to log Google OAuth activity:', err)
-          });
           
           // Navigate based on user role
           this.navigateByRole(user.Status || 'guest');

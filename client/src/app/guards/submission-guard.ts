@@ -22,8 +22,8 @@ export const submissionGuard: CanActivateFn = (route, state) => {
     return false;
   }
   
-  // Allow students, faculty, and admin to access submission
-  const allowedRoles = ['student', 'faculty', 'admin'];
+  // Allow students, faculty, admin, and group accounts to access submission
+  const allowedRoles = ['student', 'faculty', 'admin', 'group'];
   const userRole = currentUser.Status?.toLowerCase();
   
   if (!allowedRoles.includes(userRole || '')) {
@@ -33,6 +33,13 @@ export const submissionGuard: CanActivateFn = (route, state) => {
   
   return true;
 };
+
+
+
+
+
+
+
 
 
 

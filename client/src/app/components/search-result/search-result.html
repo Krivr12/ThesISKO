@@ -40,11 +40,55 @@
     
 
 
-<!-- Dialog: Request full access -->
-<ng-template #dlgRequestAccess let-dialogRef="dialogRef">
-  <h2 mat-dialog-title>Request full access</h2>
+<!-- ===================== STUDENT DIALOG ===================== -->
+<ng-template #dlgRequestAccessStudent let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request Manuscript</h2>
 
   <mat-dialog-content class="dialog-body">
+    <!-- Email (read-only from auth) -->
+    <div class="dialog-section">
+      <div class="section-title">Your PUP email</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput [value]="currentUserEmail" readonly />
+        <mat-hint>Signed in via @iskolarngbayan.pup.edu.ph</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Program -->
+    <div class="dialog-section">
+      <div class="section-title">Program</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="studentProgram" placeholder="Select program" (selectionChange)="onProgramChange()">
+          <mat-option value="OPEN UNIVERSITY SYSTEM">OPEN UNIVERSITY SYSTEM</mat-option>
+          <mat-option value="COLLEGE OF ACCOUNTANCY AND FINANCE">COLLEGE OF ACCOUNTANCY AND FINANCE</mat-option>
+          <mat-option value="COLLEGE OF ARCHITECTURE, DESIGN AND THE BUILT ENVIRONMENT">COLLEGE OF ARCHITECTURE, DESIGN AND THE BUILT ENVIRONMENT</mat-option>
+          <mat-option value="COLLEGE OF ARTS AND LETTERS">COLLEGE OF ARTS AND LETTERS</mat-option>
+          <mat-option value="COLLEGE OF BUSINESS ADMINISTRATION">COLLEGE OF BUSINESS ADMINISTRATION</mat-option>
+          <mat-option value="COLLEGE OF COMMUNICATION">COLLEGE OF COMMUNICATION</mat-option>
+          <mat-option value="COLLEGE OF COMPUTER AND INFORMATION SCIENCES">COLLEGE OF COMPUTER AND INFORMATION SCIENCES</mat-option>
+          <mat-option value="COLLEGE OF EDUCATION">COLLEGE OF EDUCATION</mat-option>
+          <mat-option value="COLLEGE OF ENGINEERING">COLLEGE OF ENGINEERING</mat-option>
+          <mat-option value="COLLEGE OF HUMAN KINETICS">COLLEGE OF HUMAN KINETICS</mat-option>
+          <mat-option value="COLLEGE OF SOCIAL SCIENCES AND DEVELOPMENT">COLLEGE OF SOCIAL SCIENCES AND DEVELOPMENT</mat-option>
+          <mat-option value="COLLEGE OF SCIENCE">COLLEGE OF SCIENCE</mat-option>
+        </mat-select>
+        <mat-hint>Pre-selected from your account (can be changed)</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Department -->
+    <div class="dialog-section">
+      <div class="section-title">Department</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="studentDepartment" placeholder="Select department">
+          <mat-option *ngFor="let dept of getFilteredDepartmentOptions(); trackBy: trackDepartmentBy" [value]="dept.value">
+            {{dept.label}}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Filtered based on selected program (can be changed)</mat-hint>
+      </mat-form-field>
+    </div>
+
     <!-- Chapters -->
     <div class="dialog-section">
       <div class="section-title">Select chapters</div>
@@ -56,31 +100,128 @@
           {{ c }}
         </mat-checkbox>
       </div>
-      <small class="hint">Tip: Select “All” if you need the entire manuscript.</small>
+      <small class="hint">Tip: Select "All" if you need the entire manuscript.</small>
     </div>
 
     <!-- Purpose -->
     <div class="dialog-section">
       <div class="section-title">Purpose of request</div>
       <mat-form-field appearance="outline" class="w-100">
-        <textarea matInput [(ngModel)]="requestPurpose"
-                  placeholder="State your purpose"
-                  rows="4"></textarea>
-      </mat-form-field>
-    </div>
-
-    <!-- Email -->
-    <div class="dialog-section">
-      <div class="section-title">Your email</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput [(ngModel)]="requestEmail" type="email" placeholder="name@example.com" />
+        <textarea
+          matInput
+          [(ngModel)]="requestPurpose"
+          placeholder="State your purpose"
+          rows="4"
+          required></textarea>
+        <mat-hint>Give a short but clear reason.</mat-hint>
+        <mat-error *ngIf="requestPurpose.trim().length < 8">Please enter at least 8 characters.</mat-error>
       </mat-form-field>
     </div>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
     <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
-    <button mat-raised-button color="accent" [disabled]="!formValid" (click)="confirmRequest(dialogRef)">
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!studentFormValid"
+      (click)="confirmRequest(dialogRef)">
+      Send request
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== GUEST DIALOG ======================= -->
+<ng-template #dlgRequestAccessGuest let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request Manuscript</h2>
+
+  <mat-dialog-content class="dialog-body">
+    <!-- Email -->
+    <div class="dialog-section">
+      <div class="section-title">Your email</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input
+          matInput
+          [(ngModel)]="requestEmail"
+          type="email"
+          placeholder="name@gmail.com"
+          (ngModelChange)="touchGuestEmail = true"
+          required />
+        <mat-hint>Guests must request using Gmail.</mat-hint>
+        <mat-error *ngIf="touchGuestEmail && !isGmail(requestEmail)">
+          Please use a valid Gmail address.
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Country -->
+    <div class="dialog-section">
+      <div class="section-title">Country</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput [(ngModel)]="guestCountry" placeholder="e.g., Philippines" required />
+        <mat-error *ngIf="!guestCountry">Country is required.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- School -->
+    <div class="dialog-section">
+      <div class="section-title">School</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput [(ngModel)]="guestSchool" placeholder="e.g., XYZ University" required />
+        <mat-error *ngIf="!guestSchool">School is required.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- City -->
+    <div class="dialog-section">
+      <div class="section-title">City</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput [(ngModel)]="guestCity" placeholder="e.g., Manila" required />
+        <mat-error *ngIf="!guestCity">City is required.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Chapters -->
+    <div class="dialog-section">
+      <div class="section-title">Select chapters</div>
+      <div class="checkbox-grid">
+        <mat-checkbox
+          *ngFor="let c of requestOptions"
+          [checked]="selectedRequestChapters.has(c)"
+          (change)="toggleRequestChapter(c, $event.checked)">
+          {{ c }}
+        </mat-checkbox>
+      </div>
+      <small class="hint">Tip: Select "All" if you need the entire manuscript.</small>
+    </div>
+
+    <!-- Purpose -->
+    <div class="dialog-section">
+      <div class="section-title">Purpose of request</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea
+          matInput
+          [(ngModel)]="requestPurpose"
+          placeholder="State your purpose"
+          rows="4"
+          required></textarea>
+        <mat-error *ngIf="requestPurpose.trim().length < 8">Please enter at least 8 characters.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-divider></mat-divider>
+    <p class="policy-note">
+      Requests are reviewed by admin. You may be asked to verify your email.
+    </p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!(guestFormValid && guestCountry && guestCity && guestSchool)"
+      (click)="confirmRequest(dialogRef)">
       Send request
     </button>
   </mat-dialog-actions>

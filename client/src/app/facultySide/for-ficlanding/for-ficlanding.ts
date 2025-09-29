@@ -47,18 +47,15 @@ type Stats = {
 };
 
 @Component({
-  selector: 'app-faculty-home',
-  standalone: true,
-  imports: [
-    CommonModule, RouterModule, HttpClientModule,
+  selector: 'app-for-ficlanding',
+  imports: [ CommonModule, RouterModule, HttpClientModule,
     MatSidenavModule, MatToolbarModule, MatButtonModule, MatIconModule,
     MatTableModule, MatFormFieldModule, MatSelectModule, MatOptionModule,
-    MatPaginatorModule, MatSortModule, MatInputModule, Sidenavbar
-  ],
-  templateUrl: './faculty-home.html',
-  styleUrls: ['./faculty-home.css'],
+    MatPaginatorModule, MatSortModule, MatInputModule, Sidenavbar],
+  templateUrl: './for-ficlanding.html',
+  styleUrl: './for-ficlanding.css'
 })
-export class FacultyHome implements OnInit, AfterViewInit {
+export class ForFICLanding implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['group_id', 'title', 'leader', 'status'];
 
   dataSource = new MatTableDataSource<Group>([]);

@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild, HostListener } from '@angular/core';
+import { Component, TemplateRef, ViewChild, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,37 +9,468 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatOptionModule } from '@angular/material/core';
 
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { NgIf, NgFor, DatePipe } from '@angular/common'; // 👈 add these
 import { Footer } from "../footer/footer";
-import { Navbar } from "../navbar/navbar";
+import { Navbar, AuthService } from "../navbar/navbar";
+
+type UserRole = 'student' | 'guest';
 
 @Component({
   selector: 'app-search-result',
   standalone: true,
-  imports: [Footer, Navbar, NgFor, DatePipe,  CommonModule, FormsModule,
-    MatDialogModule, MatCheckboxModule,
-    MatFormFieldModule, MatInputModule, MatButtonModule,
-    HttpClientModule], // 👈 include them here
+  imports: [
+    Footer, Navbar,
+    NgIf, NgFor, DatePipe, CommonModule, FormsModule,
+    MatDialogModule, MatCheckboxModule, MatFormFieldModule, MatInputModule, MatButtonModule,
+    MatSelectModule, MatDividerModule,
+    HttpClientModule, MatOptionModule
+  ],
   templateUrl: './search-result.html',
   styleUrls: ['./search-result.css']
 })
-export class SearchResult {
+export class SearchResult implements OnInit {
+  // ===== Templates for role-based dialogs =====
+  @ViewChild('dlgRequestAccessStudent', { static: true }) dlgStudent!: TemplateRef<any>;
+  @ViewChild('dlgRequestAccessGuest', { static: true }) dlgGuest!: TemplateRef<any>;
+
   thesis: any; // Store thesis passed from router
   citationCopied = false; // Track if citation was just copied
   copiedFormat = ''; // Track which format was copied (APA/MLA)
 
-  constructor(private router: Router,
-    private dialog: MatDialog, private http: HttpClient
+  constructor(
+    private router: Router,
+    private dialog: MatDialog,
+    private http: HttpClient,
+    private authService: AuthService
   ) {
     const nav = this.router.getCurrentNavigation();
     if (nav?.extras?.state && nav.extras.state['thesis']) {
       this.thesis = nav.extras.state['thesis'];
     } else {
-      // fallback if no thesis passed (direct link/refresh)
       this.router.navigate(['/search-thesis']);
     }
+
+    // Initialize current user and role
+    this.initializeUserRole();
+  }
+
+  ngOnInit(): void {
+    // Re-initialize user role in case AuthService wasn't ready in constructor
+    this.initializeUserRole();
+  }
+
+  private initializeUserRole(): void {
+    this.currentUserEmail = this.getCurrentUserEmail();
+    this.userRole = this.deriveRole(this.currentUserEmail);
+    
+    // Debug: Show what user data we actually have
+    const currentUser = this.authService.currentUser;
+    console.log('DEBUG - Full user object:', currentUser);
+    console.log('DEBUG - Available properties:', currentUser ? Object.keys(currentUser) : 'No user');
+    console.log('DEBUG - Course property:', currentUser?.Course);
+    console.log('DEBUG - Department property:', currentUser?.Department);
+    
+    // Auto-select course and department for students based on their account data
+    if (this.userRole === 'student') {
+      this.studentProgram = this.getCurrentUserCourse();
+      this.studentDepartment = this.getCurrentUserDepartment();
+    }
+    
+    console.log('User role initialized:', { 
+      email: this.currentUserEmail, 
+      role: this.userRole,
+      preselectedCourse: this.studentProgram,
+      preselectedDepartment: this.studentDepartment
+    });
+  }
+
+  // ===== Auth / identity =====
+  currentUserEmail = '';
+  userRole: UserRole = 'guest';
+
+  // ===== Checkbox options =====
+  requestOptions = ['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4', 'Chapter 5', 'All'] as const;
+  selectedRequestChapters = new Set<string>();
+
+  // ===== Common form fields =====
+  requestPurpose = '';
+
+  // ===== Student-only fields =====
+  studentProgram: string = '';
+  studentDepartment: string = '';
+
+  // ===== Guest-only fields =====
+  requestEmail = '';       // guest email
+  touchGuestEmail = false;
+  guestCountry: string = '';
+  guestCity: string = '';
+  guestSchool: string = '';
+
+  // ===== Role helpers =====
+  private deriveRole(email: string): UserRole {
+    if (/@iskolarngbayan\.pup\.edu\.ph$/i.test(email || '')) return 'student';
+    return 'guest';
+  }
+  isGmail(email: string): boolean {
+    return /^[^@\s]+@gmail\.com$/i.test((email || '').trim());
+  }
+
+  // ===== Validation helpers =====
+  // Student: email, program, department auto-filled from account; needs purpose, chapters
+  get studentFormValid(): boolean {
+    return this.chaptersValid && this.purposeValid && !!this.studentProgram && !!this.studentDepartment;
+  }
+
+  // Static mapping of programs to departments
+  private readonly programToDepartments: { [key: string]: {value: string, label: string}[] } = {
+      'OPEN UNIVERSITY SYSTEM': [
+        {value: 'Doctor of Business Administration', label: 'Doctor of Business Administration'},
+        {value: 'Doctor of Engineering', label: 'Doctor of Engineering'},
+        {value: 'Doctor of Philosophy in Development Management', label: 'Doctor of Philosophy in Development Management'},
+        {value: 'Doctor of Public Administration', label: 'Doctor of Public Administration'},
+        {value: 'Master of Communication', label: 'Master of Communication'},
+        {value: 'Master of Business Administration', label: 'Master of Business Administration'},
+        {value: 'Master of Arts in Educational Management', label: 'Master of Arts in Educational Management'},
+        {value: 'Master of Information Technology', label: 'Master of Information Technology'},
+        {value: 'Master of Public Administration', label: 'Master of Public Administration'}
+      ],
+      'COLLEGE OF ACCOUNTANCY AND FINANCE': [
+        {value: 'Bachelor of Science in Accountancy', label: 'Bachelor of Science in Accountancy'},
+        {value: 'Bachelor of Science in Business Administration Major in Financial Management', label: 'Bachelor of Science in Business Administration Major in Financial Management'},
+        {value: 'Bachelor of Science in Management Accounting', label: 'Bachelor of Science in Management Accounting'}
+      ],
+      'COLLEGE OF ARCHITECTURE, DESIGN AND THE BUILT ENVIRONMENT': [
+        {value: 'Bachelor of Science in Architecture', label: 'Bachelor of Science in Architecture'},
+        {value: 'Bachelor of Science in Interior Design', label: 'Bachelor of Science in Interior Design'},
+        {value: 'Bachelor of Science in Environmental Planning', label: 'Bachelor of Science in Environmental Planning'}
+      ],
+      'COLLEGE OF ARTS AND LETTERS': [
+        {value: 'Bachelor of Arts in English Language Studies', label: 'Bachelor of Arts in English Language Studies'},
+        {value: 'Bachelor of Arts in Filipino', label: 'Bachelor of Arts in Filipino'},
+        {value: 'Bachelor of Arts in Literary and Cultural Studies', label: 'Bachelor of Arts in Literary and Cultural Studies'},
+        {value: 'Bachelor of Arts in Philosophy', label: 'Bachelor of Arts in Philosophy'},
+        {value: 'Bachelor of Performing Arts', label: 'Bachelor of Performing Arts'}
+      ],
+      'COLLEGE OF BUSINESS ADMINISTRATION': [
+        {value: 'Bachelor of Science in Business Administration Major in Human Resource Management', label: 'Bachelor of Science in Business Administration Major in Human Resource Management'},
+        {value: 'Bachelor of Science in Business Administration Major in Marketing Management', label: 'Bachelor of Science in Business Administration Major in Marketing Management'},
+        {value: 'Bachelor of Science in Entrepreneurship', label: 'Bachelor of Science in Entrepreneurship'},
+        {value: 'Bachelor of Science in Office Administration', label: 'Bachelor of Science in Office Administration'}
+      ],
+      'COLLEGE OF COMMUNICATION': [
+        {value: 'Bachelor of Arts in Advertising and Public Relations', label: 'Bachelor of Arts in Advertising and Public Relations'},
+        {value: 'Bachelor of Arts in Broadcasting', label: 'Bachelor of Arts in Broadcasting'},
+        {value: 'Bachelor of Arts in Communication Research', label: 'Bachelor of Arts in Communication Research'},
+        {value: 'Bachelor of Arts in Journalism', label: 'Bachelor of Arts in Journalism'}
+      ],
+      'COLLEGE OF COMPUTER AND INFORMATION SCIENCES': [
+        {value: 'Bachelor of Science in Computer Science', label: 'Bachelor of Science in Computer Science'},
+        {value: 'Bachelor of Science in Information Technology', label: 'Bachelor of Science in Information Technology'}
+      ],
+      'COLLEGE OF EDUCATION': [
+        {value: 'Master in Business Education', label: 'Master in Business Education'},
+        {value: 'Master of Library and Information Science', label: 'Master of Library and Information Science'},
+        {value: 'Master of Arts in English Language Teaching', label: 'Master of Arts in English Language Teaching'},
+        {value: 'Master of Arts in Educational Management', label: 'Master of Arts in Educational Management'},
+        {value: 'Master of Arts in Physical Education and Sports', label: 'Master of Arts in Physical Education and Sports'},
+        {value: 'Master of Arts in Education Major in Teaching in the Challenged Areas', label: 'Master of Arts in Education Major in Teaching in the Challenged Areas'},
+        {value: 'Post Baccalaureate Diploma in Education', label: 'Post Baccalaureate Diploma in Education'}
+      ],
+      'COLLEGE OF ENGINEERING': [
+        {value: 'Bachelor of Science in Civil Engineering', label: 'Bachelor of Science in Civil Engineering'},
+        {value: 'Bachelor of Science in Computer Engineering', label: 'Bachelor of Science in Computer Engineering'},
+        {value: 'Bachelor of Science in Electrical Engineering', label: 'Bachelor of Science in Electrical Engineering'},
+        {value: 'Bachelor of Science in Electronics and Communications Engineering', label: 'Bachelor of Science in Electronics and Communications Engineering'},
+        {value: 'Bachelor of Science in Industrial Engineering', label: 'Bachelor of Science in Industrial Engineering'},
+        {value: 'Bachelor of Science in Mechanical Engineering', label: 'Bachelor of Science in Mechanical Engineering'},
+        {value: 'Bachelor of Science in Railway Engineering', label: 'Bachelor of Science in Railway Engineering'}
+      ],
+      'COLLEGE OF HUMAN KINETICS': [
+        {value: 'Bachelor of Physical Education', label: 'Bachelor of Physical Education'},
+        {value: 'Bachelor of Science in Exercise and Sports Sciences', label: 'Bachelor of Science in Exercise and Sports Sciences'}
+      ],
+      'COLLEGE OF SOCIAL SCIENCES AND DEVELOPMENT': [
+        {value: 'Bachelor of Arts in History', label: 'Bachelor of Arts in History'},
+        {value: 'Bachelor of Arts in Sociology', label: 'Bachelor of Arts in Sociology'},
+        {value: 'Bachelor of Science in Cooperatives', label: 'Bachelor of Science in Cooperatives'},
+        {value: 'Bachelor of Science in Economics', label: 'Bachelor of Science in Economics'},
+        {value: 'Bachelor of Science in Psychology', label: 'Bachelor of Science in Psychology'}
+      ],
+      'COLLEGE OF SCIENCE': [
+        {value: 'Bachelor of Science in Food Technology', label: 'Bachelor of Science in Food Technology'},
+        {value: 'Bachelor of Science in Applied Mathematics', label: 'Bachelor of Science in Applied Mathematics'},
+        {value: 'Bachelor of Science in Biology', label: 'Bachelor of Science in Biology'},
+        {value: 'Bachelor of Science in Chemistry', label: 'Bachelor of Science in Chemistry'},
+        {value: 'Bachelor of Science in Mathematics', label: 'Bachelor of Science in Mathematics'},
+        {value: 'Bachelor of Science in Nutrition and Dietetics', label: 'Bachelor of Science in Nutrition and Dietetics'},
+        {value: 'Bachelor of Science in Physics', label: 'Bachelor of Science in Physics'}
+      ]
+    };
+
+  // Get filtered department options based on selected program (method instead of getter)
+  getFilteredDepartmentOptions(): {value: string, label: string}[] {
+    return this.programToDepartments[this.studentProgram] || [];
+  }
+
+  // TrackBy function for department options to optimize rendering
+  trackDepartmentBy(index: number, item: {value: string, label: string}): string {
+    return item.value;
+  }
+
+  // Handle program selection change
+  onProgramChange(): void {
+    // Clear department selection if the current selection is not valid for the new program
+    const validDepartments = this.getFilteredDepartmentOptions().map(d => d.value);
+    if (this.studentDepartment && !validDepartments.includes(this.studentDepartment)) {
+      this.studentDepartment = '';
+    }
+  }
+
+  // Guest: gmail + country + city + school + purpose + chapters
+  get guestFormValid(): boolean {
+    return this.chaptersValid && this.purposeValid &&
+           this.isGmail(this.requestEmail) &&
+           !!this.guestCountry && !!this.guestCity && !!this.guestSchool;
+  }
+  private get purposeValid(): boolean {
+    return (this.requestPurpose?.trim().length ?? 0) >= 8;
+  }
+  private get chaptersValid(): boolean {
+    return this.selectedRequestChapters.size > 0;
+  }
+
+  // ===== UI actions =====
+  openRequestDialog(): void {
+    this.resetRequestDialog();
+    const tpl = this.userRole === 'student' ? this.dlgStudent : this.dlgGuest;
+    this.dialog.open(tpl, { width: '640px', autoFocus: false });
+  }
+
+  resetRequestDialog(): void {
+    this.selectedRequestChapters.clear();
+    this.requestPurpose = '';
+
+    // student fields
+    // (keep email from auth and auto-select course/department based on user account)
+    if (this.userRole === 'student') {
+      this.studentProgram = this.getCurrentUserCourse();
+      this.studentDepartment = this.getCurrentUserDepartment();
+    } else {
+    this.studentProgram = '';
+    this.studentDepartment = '';
+    }
+
+    // guest fields
+    this.requestEmail = '';
+    this.touchGuestEmail = false;
+    this.guestCountry = '';
+    this.guestCity = '';
+    this.guestSchool = '';
+  }
+
+  toggleRequestChapter(opt: string, checked: boolean): void {
+    if (opt === 'All') {
+      if (checked) this.requestOptions.forEach(o => this.selectedRequestChapters.add(o));
+      else this.selectedRequestChapters.clear();
+      return;
+    }
+
+    
+    if (checked) this.selectedRequestChapters.add(opt);
+    else this.selectedRequestChapters.delete(opt);
+
+
+    const allOthersSelected = this.requestOptions
+      .filter(o => o !== 'All')
+      .every(o => this.selectedRequestChapters.has(o));
+
+    if (allOthersSelected) this.selectedRequestChapters.add('All');
+    else this.selectedRequestChapters.delete('All');
+  }
+
+  confirmRequest(dialogRef: any): void {
+    const chapters = this.selectedRequestChapters.has('All')
+      ? this.requestOptions.filter(o => o !== 'All')
+      : Array.from(this.selectedRequestChapters);
+
+    const base = {
+      role: this.userRole,
+      purpose: this.requestPurpose.trim(),
+      chapters,
+      thesis_id: this.thesis?.id ?? null
+    };
+
+    const payload =
+      this.userRole === 'student'
+        ? {
+            ...base,
+            email: this.currentUserEmail,
+            program: this.studentProgram,
+            department: this.studentDepartment
+          }
+        : {
+            ...base,
+            email: this.requestEmail.trim(),
+            country: this.guestCountry.trim(),
+            city: this.guestCity.trim(),
+            school: this.guestSchool.trim()
+          };
+
+    // TODO: replace with your real endpoint
+    // this.http.post('/api/access-requests', payload).subscribe({
+    //   next: () => dialogRef.close(payload),
+    //   error: err => console.error('Request failed', err)
+    // });
+
+    console.log('Sending access request:', payload);
+    dialogRef.close(payload);
+    this.resetRequestDialog();
+  }
+
+  // Get current user email from AuthService
+  private getCurrentUserEmail(): string {
+    const currentUser = this.authService.currentUser;
+    return currentUser?.email || currentUser?.Email || '';
+  }
+
+  private getCurrentUserCourse(): string {
+    const currentUser = this.authService.currentUser;
+    const department = currentUser?.Department || '';
+    
+    console.log('🔍 Course Debug (now returning college names):', {
+      hasCurrentUser: !!currentUser,
+      department: department,
+      departmentType: typeof department,
+      allUserKeys: currentUser ? Object.keys(currentUser) : 'no user',
+      fullUser: currentUser
+    });
+    
+    // Map department codes to full college names for Program dropdown
+    const departmentMapping: { [key: string]: string } = {
+      'OUS': 'OPEN UNIVERSITY SYSTEM',
+      'CAF': 'COLLEGE OF ACCOUNTANCY AND FINANCE',
+      'CADBE': 'COLLEGE OF ARCHITECTURE, DESIGN AND THE BUILT ENVIRONMENT',
+      'CAL': 'COLLEGE OF ARTS AND LETTERS',
+      'CBA': 'COLLEGE OF BUSINESS ADMINISTRATION',
+      'COC': 'COLLEGE OF COMMUNICATION',
+      'CCIS': 'COLLEGE OF COMPUTER AND INFORMATION SCIENCES',
+      'COED': 'COLLEGE OF EDUCATION',
+      'CE': 'COLLEGE OF ENGINEERING',
+      'CHK': 'COLLEGE OF HUMAN KINETICS',
+      'CSSD': 'COLLEGE OF SOCIAL SCIENCES AND DEVELOPMENT',
+      'CS': 'COLLEGE OF SCIENCE'
+    };
+    
+    const result = departmentMapping[department] || department || '';
+    console.log('🔍 Course Result (college name):', { input: department, mapped: result });
+    return result;
+  }
+
+  private getCurrentUserDepartment(): string {
+    const currentUser = this.authService.currentUser;
+    const course = currentUser?.Course || '';
+    
+    console.log('🔍 Department Debug (now returning full course names):', {
+      hasCurrentUser: !!currentUser,
+      course: course,
+      courseType: typeof course,
+      allUserKeys: currentUser ? Object.keys(currentUser) : 'no user',
+      fullUser: currentUser
+    });
+    
+    // Map course codes to full course names
+    const courseMapping: { [key: string]: string } = {
+      // OUS - Open University System
+      'DBA': 'Doctor of Business Administration',
+      'D.ENG': 'Doctor of Engineering',
+      'PHDEM': 'Doctor of Philosophy in Development Management',
+      'DPA': 'Doctor of Public Administration',
+      'MC': 'Master of Communication',
+      'MBA': 'Master of Business Administration',
+      'MAEM': 'Master of Arts in Educational Management',
+      'MIT': 'Master of Information Technology',
+      'MPA': 'Master of Public Administration',
+      
+      // CAF - College of Accountancy and Finance
+      'BSA': 'Bachelor of Science in Accountancy',
+      'BSBAFM': 'Bachelor of Science in Business Administration Major in Financial Management',
+      'BSMA': 'Bachelor of Science in Management Accounting',
+      
+      // CADBE - College of Architecture, Design and the Built Environment
+      'BSARCH': 'Bachelor of Science in Architecture',
+      'BSID': 'Bachelor of Science in Interior Design',
+      'BSEP': 'Bachelor of Science in Environmental Planning',
+      
+      // CAL - College of Arts and Letters
+      'ABELS': 'Bachelor of Arts in English Language Studies',
+      'ABF': 'Bachelor of Arts in Filipino',
+      'ABLCS': 'Bachelor of Arts in Literary and Cultural Studies',
+      'ABPHILO': 'Bachelor of Arts in Philosophy',
+      'BPEA': 'Bachelor of Performing Arts',
+      
+      // CBA - College of Business Administration
+      'BSBAHRM': 'Bachelor of Science in Business Administration Major in Human Resource Management',
+      'BSBAMM': 'Bachelor of Science in Business Administration Major in Marketing Management',
+      'BSENTREP': 'Bachelor of Science in Entrepreneurship',
+      'BSOA': 'Bachelor of Science in Office Administration',
+      
+      // COC - College of Communication
+      'BADPR': 'Bachelor of Arts in Advertising and Public Relations',
+      'BAB': 'Bachelor of Arts in Broadcasting',
+      'BACR': 'Bachelor of Arts in Communication Research',
+      'BAJ': 'Bachelor of Arts in Journalism',
+      
+      // CCIS - College of Computer and Information Sciences
+      'BSCS': 'Bachelor of Science in Computer Science',
+      'BSIT': 'Bachelor of Science in Information Technology',
+      
+      // COED - College of Education
+      'MBE': 'Master in Business Education',
+      'MLIS': 'Master of Library and Information Science',
+      'MAELT': 'Master of Arts in English Language Teaching',
+      'MAEDME': 'Master of Arts in Educational Management',
+      'MAPES': 'Master of Arts in Physical Education and Sports',
+      'MAEDTCA': 'Master of Arts in Education Major in Teaching in the Challenged Areas',
+      'PBDE': 'Post Baccalaureate Diploma in Education',
+      
+      // CE - College of Engineering
+      'BSCE': 'Bachelor of Science in Civil Engineering',
+      'BSCPE': 'Bachelor of Science in Computer Engineering',
+      'BSEE': 'Bachelor of Science in Electrical Engineering',
+      'BSECE': 'Bachelor of Science in Electronics and Communications Engineering',
+      'BSIE': 'Bachelor of Science in Industrial Engineering',
+      'BSME': 'Bachelor of Science in Mechanical Engineering',
+      'BSRE': 'Bachelor of Science in Railway Engineering',
+      
+      // CHK - College of Human Kinetics
+      'BPE': 'Bachelor of Physical Education',
+      'BSESS': 'Bachelor of Science in Exercise and Sports Sciences',
+      
+      // CSSD - College of Social Sciences and Development
+      'BAH': 'Bachelor of Arts in History',
+      'BAS': 'Bachelor of Arts in Sociology',
+      'BSC': 'Bachelor of Science in Cooperatives',
+      'BSE': 'Bachelor of Science in Economics',
+      'BSPSY': 'Bachelor of Science in Psychology',
+      
+      // CS - College of Science
+      'BSFT': 'Bachelor of Science in Food Technology',
+      'BSAPMATH': 'Bachelor of Science in Applied Mathematics',
+      'BSBIO': 'Bachelor of Science in Biology',
+      'BSCHEM': 'Bachelor of Science in Chemistry',
+      'BSMATH': 'Bachelor of Science in Mathematics',
+      'BSND': 'Bachelor of Science in Nutrition and Dietetics',
+      'BSPHY': 'Bachelor of Science in Physics'
+    };
+    
+    const result = courseMapping[course] || course || '';
+    console.log('🔍 Department Result (full course name):', { input: course, mapped: result });
+    return result;
   }
 
   // Prevent copy/paste actions on thesis content
@@ -64,93 +495,6 @@ export class SearchResult {
     }
   }
 
-  @ViewChild('dlgRequestAccess') dlgRequestAccess!: TemplateRef<any>;
-
-  // Checkbox options
-  requestOptions = ['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4', 'Chapter 5', 'All'] as const;
-  selectedRequestChapters = new Set<string>();
-
-  // Form fields
-  requestPurpose = '';
-  requestEmail = '';
-
-
-
-  openRequestDialog() {
-    this.resetRequestDialog();
-    this.dialog.open(this.dlgRequestAccess, {
-      width: '640px',
-      // You can pass data if needed via 'data', but not required here.
-    });
-  }
-
-  resetRequestDialog() {
-    this.selectedRequestChapters.clear();
-    this.requestPurpose = '';
-    this.requestEmail = '';
-  }
-
-  toggleRequestChapter(opt: string, checked: boolean) {
-    // Handle "All" special behavior
-    if (opt === 'All') {
-      if (checked) {
-        // Select everything including "All"
-        this.requestOptions.forEach(o => this.selectedRequestChapters.add(o));
-      } else {
-        // Deselect all
-        this.selectedRequestChapters.clear();
-      }
-      return;
-    }
-
-    // Normal chapter toggle
-    if (checked) this.selectedRequestChapters.add(opt);
-    else this.selectedRequestChapters.delete(opt);
-
-    // Keep "All" in sync
-    const allOthersSelected = this.requestOptions
-      .filter(o => o !== 'All')
-      .every(o => this.selectedRequestChapters.has(o));
-
-    if (allOthersSelected) this.selectedRequestChapters.add('All');
-    else this.selectedRequestChapters.delete('All');
-  }
-
-  // --- Validation helpers ---
-  get emailValid(): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.requestEmail.trim());
-  }
-  get purposeValid(): boolean {
-    return this.requestPurpose.trim().length >= 8; // tweak threshold as you like
-  }
-  get chaptersValid(): boolean {
-    return this.selectedRequestChapters.size > 0;
-  }
-  get formValid(): boolean {
-    return this.emailValid && this.purposeValid && this.chaptersValid;
-  }
-
-  confirmRequest(dialogRef: any) {
-    // Build payload; if "All" selected, expand to all chapters for backend clarity
-    const chapters = this.selectedRequestChapters.has('All')
-      ? this.requestOptions.filter(o => o !== 'All')
-      : Array.from(this.selectedRequestChapters);
-
-    const payload = {
-      email: this.requestEmail.trim(),
-      purpose: this.requestPurpose.trim(),
-      chapters
-    };
-
-    // TODO: replace with your real endpoint
-    // this.http.post('/api/access-requests', payload).subscribe({
-    //   next: () => { dialogRef.close(); },
-    //   error: (err) => { console.error('Request failed', err); }
-    // });
-
-    console.log('Sending access request:', payload);
-    dialogRef.close();
-  }
 
   onReturnClick(): void {
     this.router.navigate(['/search-thesis']);

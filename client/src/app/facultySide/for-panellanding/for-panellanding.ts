@@ -47,18 +47,17 @@ type Stats = {
 };
 
 @Component({
-  selector: 'app-faculty-home',
-  standalone: true,
+  selector: 'app-for-panellanding',
   imports: [
     CommonModule, RouterModule, HttpClientModule,
     MatSidenavModule, MatToolbarModule, MatButtonModule, MatIconModule,
     MatTableModule, MatFormFieldModule, MatSelectModule, MatOptionModule,
     MatPaginatorModule, MatSortModule, MatInputModule, Sidenavbar
   ],
-  templateUrl: './faculty-home.html',
-  styleUrls: ['./faculty-home.css'],
+  templateUrl: './for-panellanding.html',
+  styleUrl: './for-panellanding.css'
 })
-export class FacultyHome implements OnInit, AfterViewInit {
+export class ForPanellanding implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['group_id', 'title', 'leader', 'status'];
 
   dataSource = new MatTableDataSource<Group>([]);

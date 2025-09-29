@@ -160,4 +160,46 @@ router.post('/faculty/:id/reset-password', async (req, res) => {
   }
 });
 
+// DELETE /admin/faculty/:id - Delete faculty member
+router.delete('/faculty/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if faculty exists
+    const [existingFaculty] = await pool.execute(
+      'SELECT user_id, firstname, lastname, email FROM users_info WHERE user_id = ? AND role_id = 3',
+      [id]
+    );
+
+    if (existingFaculty.length === 0) {
+      return res.status(404).json({ error: 'Faculty member not found' });
+    }
+
+    // Delete faculty member
+    const [result] = await pool.execute(
+      'DELETE FROM users_info WHERE user_id = ? AND role_id = 3',
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Faculty member not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Faculty member deleted successfully',
+      deleted_faculty: {
+        user_id: id,
+        firstname: existingFaculty[0].firstname,
+        lastname: existingFaculty[0].lastname,
+        email: existingFaculty[0].email
+      }
+    });
+
+  } catch (error) {
+    console.error('Error deleting faculty member:', error);
+    res.status(500).json({ error: 'Failed to delete faculty member' });
+  }
+});
+
 export default router;

@@ -228,27 +228,47 @@
   .action-col {
     text-align: right;
     white-space: nowrap;
-    width: 180px;          
+    width: 200px;          /* Slightly wider to accommodate spaced buttons */
   }
   
   /* Link-like Material button */
 .link-btn {
     background: none !important;
     border: 0 !important;
-    padding: 0 !important;
-    min-width: 0;                 /* remove extra button width */
+    padding: 8px 12px !important;    /* Add padding for better click area */
+    min-width: 0;                     /* remove extra button width */
     line-height: 1.2;
-    color: #800000;               /* tweak to your theme color */
+    color: #800000;                   /* tweak to your theme color */
     text-decoration: underline;
     cursor: pointer;
+    margin-right: 8px;                /* Add space between buttons */
+    border-radius: 4px;               /* Slight rounding for modern look */
+    transition: background-color 0.2s ease; /* Smooth hover transition */
+  }
+  
+  /* Last button in row shouldn't have right margin */
+  .link-btn:last-child {
+    margin-right: 0;
   }
   
   /* Hover/focus states for a11y */
-  .link-btn:hover { text-decoration: none; }
+  .link-btn:hover { 
+    text-decoration: none; 
+    background-color: rgba(128, 0, 0, 0.1) !important; /* Light maroon background on hover */
+  }
   .link-btn:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 2px;
-    
+    background-color: rgba(128, 0, 0, 0.1) !important;
+  }
+  
+  /* Specific styling for delete button to make it more distinct */
+  .link-btn.delete-btn {
+    color: #dc3545;                   /* Red color for delete action */
+  }
+  
+  .link-btn.delete-btn:hover {
+    background-color: rgba(220, 53, 69, 0.1) !important; /* Light red background on hover */
   }
   
   

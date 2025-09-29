@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Location } from '@angular/common';
 import { AuthService } from '../components/navbar/navbar';
+import { AppConfirmationService } from './confirmation.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,8 @@ export class NavigationGuardService {
   constructor(
     private router: Router,
     private location: Location,
-    private authService: AuthService
+    private authService: AuthService,
+    private confirmationService: AppConfirmationService
   ) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
@@ -41,7 +43,7 @@ export class NavigationGuardService {
       'guest': ['/home', '/about-us', '/search-thesis', '/search-result'],
       'student': ['/home', '/about-us', '/search-thesis', '/search-result', '/submission', '/thank-you'],
       'faculty': ['/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page'],
-      'admin': ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template', '/faculty-home', '/for-fic', '/for-panel', '/fichistory-page', '/panelist-approval-page']
+      'admin': ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template']
     };
 
     // Special handling for admin users with role_id check
@@ -63,34 +65,22 @@ export class NavigationGuardService {
           return; // Allow access
         }
         
-        // Define restricted routes that should trigger logout popup for admin users
-        const restrictedForAdmin = [
-          '/login', '/login-faculty', '/login-admin', 
-          '/signup', '/signup-choose',
-          '/home', '/about-us', '/search-thesis', '/search-result', '/submission',
-          '/superAdmin/'
-        ];
-        
-        const isRestrictedRoute = restrictedForAdmin.some(path => currentPath.startsWith(path));
-        
-        if (!isRestrictedRoute) {
-          return; // Allow access to routes not explicitly restricted
-        }
-        
-        // Show logout confirmation for unauthorized access
+        // Admin (role_id = 4) should only access admin routes
+        // If not an admin route or allowed admin path, deny access
         event?.preventDefault();
         
-        const confirmed = confirm(
-          `You are trying to access a restricted area outside your admin permissions.\n\nThis will log you out. Do you want to continue?`
+        this.confirmationService.showRestrictedAreaConfirmation(
+          'admin',
+          () => {
+            // User confirmed - logout and redirect
+            this.authService.logout();
+            this.router.navigate(['/signup-choose']);
+          },
+          () => {
+            // User cancelled - navigate back to admin dashboard
+            this.router.navigate(['/admin-dashboard']);
+          }
         );
-        
-        if (confirmed) {
-          this.authService.logout();
-          this.router.navigate(['/signup-choose']);
-        } else {
-          // Navigate back to admin dashboard
-          this.router.navigate(['/admin-dashboard']);
-        }
         return;
       }
       
@@ -102,22 +92,23 @@ export class NavigationGuardService {
     const userAllowedPaths = allowedPaths[userRole as keyof typeof allowedPaths] || [];
     const isAllowed = userAllowedPaths.some(path => currentPath.startsWith(path));
 
-    if (!isAllowed && (userRole === 'student' || userRole === 'guest')) {
+    if (!isAllowed && (userRole === 'student' || userRole === 'guest' || userRole === 'faculty')) {
       // Prevent the navigation first
       event?.preventDefault();
       
-      const confirmed = confirm(
-        `You are trying to access a restricted area. This will log you out.\n\nDo you want to continue and logout?`
+      this.confirmationService.showRestrictedAreaConfirmation(
+        userRole,
+        () => {
+          // User confirmed - logout and redirect
+          this.authService.logout();
+          this.router.navigate(['/signup-choose']);
+        },
+        () => {
+          // User cancelled - navigate back to allowed area
+          const defaultPath = userRole === 'faculty' ? '/faculty-home' : (userAllowedPaths[0] || '/home');
+          this.router.navigate([defaultPath]);
+        }
       );
-      
-      if (confirmed) {
-        this.authService.logout();
-        this.router.navigate(['/signup-choose']);
-      } else {
-        // Navigate back to allowed area
-        const defaultPath = userAllowedPaths[0] || '/home';
-        this.router.navigate([defaultPath]);
-      }
     }
   }
 }

@@ -16,7 +16,7 @@
         <form #loginForm = "ngForm" (ngSubmit)="onLogin()" class="loginform">
 
             <div class = 'field'>
-                <label for = "email"> Email </label>
+                <label for = "email"> Email or Username </label>
                 <input type="text" pInputText 
                 [(ngModel)]="login.email"  
                 class="w-full"
@@ -24,15 +24,12 @@
                 name = "email"
                 #email = "ngModel"
                 required
-                placeholder="Enter email"
-                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                placeholder="Enter email or group username"
                 />
                 @if(email.invalid &&  (email.dirty || email.touched)) {
                     <small class="block p-error">
                         @if(email.hasError('required')) {
-                            <span> Email is required. </span>
-                        } @else if(email.hasError('pattern')) {
-                            <span> Email is Invalid. </span>
+                            <span> Email or Username is required. </span>
                         }
                     </small>
                 }

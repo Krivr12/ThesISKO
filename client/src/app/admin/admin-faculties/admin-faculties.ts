@@ -63,15 +63,34 @@ export class AdminFaculties implements OnInit, AfterViewInit {
     private router: Router,) {}
 
   ngOnInit(): void {
-    // Load initial data from assets/facultysample.json
-    // Expected JSON shape: Faculty[]
-    this.http.get<Faculty[]>('facultysample.json').subscribe({
+    // Load faculty data from backend API
+    this.loadFaculties();
+  }
+
+  loadFaculties(): void {
+    this.http.get<any[]>('http://localhost:5050/admin/faculty', { withCredentials: true }).subscribe({
       next: (rows) => {
-        this.dataSource.data = rows ?? [];
+        // Map backend data to frontend interface
+        this.dataSource.data = rows.map(faculty => ({
+          id: faculty.user_id,
+          first_name: faculty.firstname,
+          last_name: faculty.lastname,
+          email: faculty.email,
+          faculty_number: faculty.faculty_id
+        }));
       },
       error: (err) => {
-        console.error('Failed to load faculties:', err);
-        this.dataSource.data = []; // fallback
+        console.error('Failed to load faculties from backend:', err);
+        // Fallback to JSON file if backend fails
+        this.http.get<Faculty[]>('facultysample.json').subscribe({
+          next: (rows) => {
+            this.dataSource.data = rows ?? [];
+          },
+          error: (jsonErr) => {
+            console.error('Failed to load faculties from JSON:', jsonErr);
+            this.dataSource.data = []; // fallback
+          }
+        });
       }
     });
   }
@@ -98,9 +117,40 @@ export class AdminFaculties implements OnInit, AfterViewInit {
 
     ref.afterClosed().subscribe((result?: Faculty) => {
       if (result && result.first_name && result.last_name && result.email && result.faculty_number) {
-        // Add to the table (front-end only)
-        const copy = [...this.dataSource.data, { ...result }];
-        this.dataSource.data = copy;
+        this.createFaculty(result);
+      }
+    });
+  }
+
+  createFaculty(faculty: Faculty): void {
+    const payload = {
+      firstname: faculty.first_name,
+      lastname: faculty.last_name,
+      email: faculty.email,
+      faculty_id: faculty.faculty_number
+    };
+
+    console.log('Creating faculty account:', payload);
+
+    this.http.post('http://localhost:5050/admin/faculty', payload, { withCredentials: true }).subscribe({
+      next: (response: any) => {
+        console.log('Faculty account created successfully:', response);
+        
+        // Show success message
+        alert(`Faculty account created successfully! An email with login credentials has been sent to ${faculty.email}.`);
+        
+        // Reload the faculty list to show the new faculty member
+        this.loadFaculties();
+      },
+      error: (error) => {
+        console.error('Error creating faculty account:', error);
+        
+        let errorMessage = 'Failed to create faculty account.';
+        if (error.error && error.error.error) {
+          errorMessage += ` ${error.error.error}`;
+        }
+        
+        alert(errorMessage);
       }
     });
   }
@@ -117,15 +167,70 @@ export class AdminFaculties implements OnInit, AfterViewInit {
     });
 
     ref.afterClosed().subscribe((updated?: Faculty) => {
-      if (!updated) return;
-      const idx = this.dataSource.data.findIndex(
-        r => (r.id ?? `${r.first_name}|${r.last_name}|${r.email}|${r.faculty_number}`)
-           === (row.id ?? `${row.first_name}|${row.last_name}|${row.email}|${row.faculty_number}`)
-      );
-      if (idx > -1) {
-        const copy = [...this.dataSource.data];
-        copy[idx] = { ...copy[idx], ...updated };
-        this.dataSource.data = copy;
+      if (!updated || !row.id) return;
+      this.updateFaculty(row.id, updated);
+    });
+  }
+
+  updateFaculty(facultyId: string, faculty: Faculty): void {
+    const payload = {
+      firstname: faculty.first_name,
+      lastname: faculty.last_name,
+      email: faculty.email,
+      faculty_id: faculty.faculty_number
+    };
+
+    console.log('Updating faculty account:', payload);
+
+    this.http.put(`http://localhost:5050/admin/faculty/${facultyId}`, payload, { withCredentials: true }).subscribe({
+      next: (response: any) => {
+        console.log('Faculty account updated successfully:', response);
+        
+        // Show success message
+        alert('Faculty account updated successfully!');
+        
+        // Reload the faculty list to show the updated faculty member
+        this.loadFaculties();
+      },
+      error: (error) => {
+        console.error('Error updating faculty account:', error);
+        
+        let errorMessage = 'Failed to update faculty account.';
+        if (error.error && error.error.error) {
+          errorMessage += ` ${error.error.error}`;
+        }
+        
+        alert(errorMessage);
+      }
+    });
+  }
+
+  /** ---------- Delete ---------- */
+  deleteFaculty(faculty: Faculty): void {
+    if (!faculty.id) return;
+
+    const confirmed = confirm(`Are you sure you want to delete faculty member ${faculty.first_name} ${faculty.last_name}?`);
+    if (!confirmed) return;
+
+    this.http.delete(`http://localhost:5050/admin/faculty/${faculty.id}`, { withCredentials: true }).subscribe({
+      next: (response: any) => {
+        console.log('Faculty account deleted successfully:', response);
+        
+        // Show success message
+        alert('Faculty account deleted successfully!');
+        
+        // Reload the faculty list
+        this.loadFaculties();
+      },
+      error: (error) => {
+        console.error('Error deleting faculty account:', error);
+        
+        let errorMessage = 'Failed to delete faculty account.';
+        if (error.error && error.error.error) {
+          errorMessage += ` ${error.error.error}`;
+        }
+        
+        alert(errorMessage);
       }
     });
   }

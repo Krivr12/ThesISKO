@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 /* Angular Material (standalone) */
@@ -16,11 +16,15 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
 
+import { Location } from '@angular/common';
+
 /* Your shared components */
 import { Sidenavbar } from '../sidenavbar/sidenavbar';
 
 /* Parser */
 import { parseGroupId } from '../../shared/utils/group-id';
+
+type Program = 'BSIT' | 'BSCS';
 
 interface GroupRow {
   group_id: string;
@@ -36,7 +40,7 @@ interface GroupRow {
 
   // derived
   schoolYear: string;
-  course: 'BSIT' | 'BSCS';
+  course: Program;
   courseShort: 'IT' | 'CS';
   year: string;
   section: string;
@@ -56,10 +60,15 @@ interface GroupRow {
   styleUrl: './for-panel.css'
 })
 export class ForPanel implements OnInit, AfterViewInit {
+  /** URL-driven program filter (?program=BSIT|BSCS) */
+  program: Program | null = null;
+
+  /** Table data (already program-filtered) */
   groups: GroupRow[] = [];
+  private allLoadedGroups: GroupRow[] = []; // raw from JSON before program filter
   dataSource = new MatTableDataSource<GroupRow>([]);
 
-  selectedDepartment: 'IT' | 'CS' | null = null;
+  /** Section filter only */
   selectedSection: string | null = null;
   sections: string[] = [];
 
@@ -71,26 +80,32 @@ export class ForPanel implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private route: ActivatedRoute,
+    private location: Location,
+  ) {}
 
   ngOnInit(): void {
-    // Check if user is still logged in
-    this.checkAuthStatus();
-    
-    // If the json is in /public
-    this.http.get<any>('/groups.json').subscribe(raw => {
-      const arr: any[] = Array.isArray(raw) ? raw : (raw?.groups ?? []);
+    // Read program from query param
+    const raw = (this.route.snapshot.queryParamMap.get('program') || '').toUpperCase();
+    this.program = (raw === 'BSIT' || raw === 'BSCS') ? (raw as Program) : null;
 
-      this.groups = arr.map((it) => {
+    this.http.get<any>('/groups.json').subscribe(rawData => {
+      const arr: any[] = Array.isArray(rawData) ? rawData : (rawData?.groups ?? []);
+
+      this.allLoadedGroups = arr.map((it) => {
         const gid = it.group_id ?? it.groupId ?? '';
         const p = parseGroupId(gid);
 
-        // normalize status casing (your JSON uses "ongoing")
+        // normalize status casing (handles "ongoing", etc.)
         const statusSrc = String(it.status ?? 'Ongoing');
         const normalizedStatus = (statusSrc[0]?.toUpperCase() ?? '') + statusSrc.slice(1).toLowerCase();
 
-        const course: 'BSIT' | 'BSCS' = (p.course === 'BSIT' || p.course === 'BSCS') ? p.course : 'BSIT';
-        const courseShort: 'IT' | 'CS' = course === 'BSIT' ? 'IT' : 'CS';
+        const derivedCourse: Program =
+          (p.course === 'BSIT' || p.course === 'BSCS') ? p.course : 'BSIT';
+        const courseShort: 'IT' | 'CS' = derivedCourse === 'BSIT' ? 'IT' : 'CS';
 
         return {
           group_id: gid,
@@ -107,7 +122,7 @@ export class ForPanel implements OnInit, AfterViewInit {
 
           // derived
           schoolYear: p.schoolYear,
-          course,
+          course: derivedCourse,
           courseShort,
           year: p.year,
           section: p.section,
@@ -115,15 +130,23 @@ export class ForPanel implements OnInit, AfterViewInit {
         } satisfies GroupRow;
       });
 
-      this.dataSource.data = this.groups;
+      // Apply program filter immediately (BSIT-only or BSCS-only)
+      const programFiltered = this.program
+        ? this.allLoadedGroups.filter(g => g.course === this.program)
+        : this.allLoadedGroups;
 
-      // build section dropdown (e.g. ["3A", "3B", ...])
-      this.sections = Array.from(new Set(this.groups.map(g => g.sectionKey)))
+      this.groups = programFiltered;
+
+      // Build section dropdown from the program-filtered data
+      this.sections = Array.from(new Set(programFiltered.map(g => g.sectionKey)))
         .filter(Boolean)
         .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-      // make date & group id sorting correct
-      this.dataSource.sortingDataAccessor = (item, prop) => {
+      // Initialize table with current section filter (if any)
+      this.applySectionFilter();
+
+      // proper sorting for date & group id
+      this.dataSource.sortingDataAccessor = (item: GroupRow, prop: string) => {
         if (prop === 'submissionDate') return new Date(item.submitted_at).getTime();
         if (prop === 'groupId') return item.group_id;
         return (item as any)[prop];
@@ -136,42 +159,37 @@ export class ForPanel implements OnInit, AfterViewInit {
     this.dataSource.sort = this.sort;
   }
 
-  /* VERIFY button navigation with full row in state */
+  /* VERIFY / APPROVE button navigation with full row in state.
+     Also forward the ?program so detail pages can enforce the same filter. */
   goToApproval(groupId: string): void {
     const group = this.groups.find(g => String(g.group_id) === String(groupId));
-    this.router.navigate(['/panelist-approval-page', groupId], { state: { group } });
+    this.router.navigate(
+      ['/panelist-approval-page', groupId],
+      { state: { group }, queryParams: this.program ? { program: this.program } : undefined }
+    );
   }
 
-  /* Filters */
-  filterByDepartment(dept: 'IT' | 'CS'): void {
-    this.selectedDepartment = dept;
-    this.applyFilters();
+  goBack(): void {
+   
+      this.router.navigate(['/faculty-home']); // or the list route you prefer
+    }
+
+  /* -------- Section filter only -------- */
+  viewAllSections(): void {
+    this.selectedSection = null;
+    this.applySectionFilter();
   }
 
   filterBySection(section: string): void {
     this.selectedSection = section;
-    this.applyFilters();
+    this.applySectionFilter();
   }
 
-  applyFilters(): void {
+  private applySectionFilter(): void {
     const filtered = this.groups.filter(g =>
-      (!this.selectedDepartment || g.courseShort === this.selectedDepartment) &&
       (!this.selectedSection || g.sectionKey === this.selectedSection)
     );
     this.dataSource.data = filtered;
     if (this.paginator) this.paginator.firstPage();
-  }
-
-  private checkAuthStatus(): void {
-    // Check if user is still logged in
-    const user = sessionStorage.getItem('user');
-    const role = sessionStorage.getItem('role');
-    
-    if (!user || !role || role.toLowerCase() !== 'faculty') {
-      // User is not logged in or not a faculty member
-      alert('You are not logged in. Please login first.');
-      this.router.navigate(['/signup-choose']);
-      return;
-    }
   }
 }

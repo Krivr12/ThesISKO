@@ -1,18 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Sidenavbar } from '../sidenavbar/sidenavbar';
+import { MatIconModule } from '@angular/material/icon';
 
 type Status = 'Approved' | 'Not Approved' | 'Pending';
 
 export interface GroupMeta {
   group_id: string;
-  title: string;
-  leader: string;
-  members: string[];
+  title?: string;
+  username: string;
+  created_at: string;
+  leader: {
+    student_id: string;
+    name: string;
+    email: string;
+  };
+  members: {
+    student_id: string;
+    name: string;
+    email: string;
+    role: string;
+  }[];
 }
 
 export interface Panelist {
@@ -31,7 +43,7 @@ export interface HistoryItem {
 @Component({
   selector: 'app-fichistory-page',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, Sidenavbar],
+  imports: [CommonModule, HttpClientModule, Sidenavbar, MatIconModule],
   templateUrl: './fichistory-page.html',
   styleUrls: ['./fichistory-page.css']
 })
@@ -46,15 +58,11 @@ export class FICHistoryPage implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private http: HttpClient,
     private location: Location
   ) {}
 
   ngOnInit(): void {
-    // Check if user is still logged in
-    this.checkAuthStatus();
-    
     this.groupId =
       this.route.snapshot.paramMap.get('group_id') ||
       this.route.snapshot.paramMap.get('id') ||
@@ -65,13 +73,19 @@ export class FICHistoryPage implements OnInit {
   private bootstrapData(): void {
     const gid = this.groupId;
 
-    // ✅ Load only from groups.json
-    const group$ = this.http.get<GroupMeta[]>(this.GROUPS_URL).pipe(
-      map((list: GroupMeta[] = []) => {
-        const found = list.find(g => String(g.group_id) === String(gid));
-        return found ?? null; // no fallback; rely solely on groups.json
-      }),
-      catchError(() => of(null)) // if the file is missing or unreadable
+    // Use backend API to get real group data
+    const group$ = this.http.get<GroupMeta>(`http://localhost:5050/groups/${gid}`, { withCredentials: true }).pipe(
+      catchError((error) => {
+        console.error('Error fetching group data from backend:', error);
+        // Fallback to static JSON if backend fails
+        return this.http.get<GroupMeta[]>(this.GROUPS_URL).pipe(
+          map((list: GroupMeta[] = []) => {
+            const found = list.find(g => String(g.group_id) === String(gid));
+            return found ?? null; 
+          }),
+          catchError(() => of(null))
+        );
+      })
     );
 
     const panelists$ = this.http
@@ -96,7 +110,7 @@ export class FICHistoryPage implements OnInit {
         })
       )
       .subscribe(({ group, panelists, history }) => {
-        this.group = group;            // can be null if not found in groups.json
+        this.group = group;            
         this.panelists = panelists;
         this.history = history;
         this.loading = false;
@@ -125,7 +139,6 @@ export class FICHistoryPage implements OnInit {
 
   goBack(): void { this.location.back(); }
 
-  // mocks for now
   private mockPanelists(): Panelist[] {
     return [
       { name: 'Nino Escueta', status: 'Not Approved' },
@@ -146,16 +159,10 @@ export class FICHistoryPage implements OnInit {
     ];
   }
 
-  private checkAuthStatus(): void {
-    // Check if user is still logged in
-    const user = sessionStorage.getItem('user');
-    const role = sessionStorage.getItem('role');
-    
-    if (!user || !role || role.toLowerCase() !== 'faculty') {
-      // User is not logged in or not a faculty member
-      alert('You are not logged in. Please login first.');
-      this.router.navigate(['/signup-choose']);
-      return;
+  getMemberNames(): string {
+    if (!this.group?.members || this.group.members.length === 0) {
+      return '—';
     }
+    return this.group.members.map(member => member.name).join(', ');
   }
 }

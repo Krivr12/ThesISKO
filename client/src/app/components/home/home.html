@@ -29,15 +29,23 @@
       [numVisible]="3"
       [numScroll]="1"
       [circular]="true"
+      [showIndicators]="true"
+      [showNavigators]="true"
       [responsiveOptions]="responsiveOptions"
-      autoplayInterval="3000"
+      [autoplayInterval]="3000"
       class="custom-carousel">
       <ng-template pTemplate="item" let-item>
         <div class="carousel-box">
           <h3 class="title">{{ item.title }}</h3>
           <p class="date">Date Issued: {{ item.submitted_at | date:'MMM d, y' }}</p>
           <p class="authors">Authors: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}</p>
-          <div class="tags">Tags: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}</div>
+          <div class="tags-container">
+            <span class="tags-label">Tags:</span>
+            <div class="tags-wrapper">
+              <span *ngFor="let tag of item.tags" class="tag-pill">{{ tag }}</span>
+              <span *ngIf="!item.tags?.length" class="tag-pill no-tags">No Tags</span>
+            </div>
+          </div>
           <p class="access">Access Level: {{ item.access_level || 'Unknown' }}</p>
         </div>
       </ng-template>

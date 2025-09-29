@@ -1,76 +1,76 @@
 <div class="layout">
-    <app-sidenavbar></app-sidenavbar>
-  
+  <app-sidenavbar></app-sidenavbar>
 
-    <div class="FICpage" *ngIf="!loading; else loadingTpl">
-    <button class="return" (click)="goBack()">← Return</button>
-  
+  <div class="page" *ngIf="!loading; else loadingTpl">
+    <!-- Back -->
+    <button mat-button class="return" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon> Return
+    </button>
+
+    <!-- Meta panel: flat, maroon dividers like the approval page -->
     <section class="meta-card">
       <div class="row">
         <div class="label">Group ID</div>
-        <div class="value">{{ group?.group_id }}</div>
+        <div class="value">{{ group?.group_id || '—' }}</div>
       </div>
       <div class="row">
-        <div class="label">Title</div>
-        <div class="value">{{ group?.title }}</div>
+        <div class="label">Leader</div>
+        <div class="value">{{ group?.leader?.name || '—' }}</div>
       </div>
       <div class="row">
-        <div class="label">Group Leader</div>
-        <div class="value">{{ group?.leader }}</div>
-      </div>
-      <div class="row">
-        <div class="label">Group Members</div>
+        <div class="label">Members</div>
         <div class="value">
-          {{ group?.members?.join(', ') }}
+          {{ getMemberNames() }}
         </div>
       </div>
     </section>
-  
+
+    <!-- Panelists: rounded maroon frame (cohesive with approval page) -->
     <section class="panelist-card">
-      <div class="panelist-header">Panelist</div>
-  
+      <div class="section-header">Panelist</div>
+
       <div class="panelist-list">
         <div class="panelist-row" *ngFor="let p of panelists">
           <div class="panelist-name">{{ p.name }}</div>
-          <div
-            class="panelist-status"
-            [class.not-approved]="p.status === 'Not Approved'"
-            [class.approved]="p.status === 'Approved'"
-            [class.pending]="p.status === 'Pending'"
-          >
+
+          <!-- Link-like status text (same vibe as approval UI) -->
+          <div class="panelist-status"
+               [class.approved]="p.status === 'Approved'"
+               [class.pending]="p.status === 'Pending'"
+               [class.not-approved]="p.status === 'Not Approved'">
             {{ p.status }}
           </div>
         </div>
       </div>
     </section>
-  
-   
+
+    <!-- History: table inside a rounded maroon frame -->
     <section class="history-card">
-      <div class="history-title">History</div>
-  
-      <table class="history-table">
-        <thead>
+      <div class="section-header">History</div>
+
+      <div class="table-frame">
+        <table class="history-table">
+          <thead>
           <tr>
             <th>Date <span class="caret">◆</span></th>
             <th>Action <span class="caret">◆</span></th>
             <th>By <span class="caret">◆</span></th>
             <th>Remarks <span class="caret">◆</span></th>
           </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           <tr *ngFor="let h of history">
             <td>{{ h.ts | date: 'yyyy-MM-dd hh:mm a' }}</td>
             <td>{{ h.action }}</td>
             <td>{{ h.by }}</td>
             <td>{{ h.remarks || '—' }}</td>
           </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </section>
 
-
-
-  
+    <!-- Cohesive action buttons (same sizing/weight/rounded) -->
     <div class="actions">
       <button class="btn primary" (click)="approveManuscript()">
         Approve Manuscript
@@ -78,12 +78,12 @@
       <button class="btn ghost" (click)="rejectManuscript()">
         Reject Manuscript
       </button>
-
+    </div>
   </div>
-</div>
-  
+
   <ng-template #loadingTpl>
-    <div class="loading">Loading…</div>
+    <div class="page">
+      <div class="loading">Loading…</div>
+    </div>
   </ng-template>
-  
 </div>
