@@ -7,7 +7,7 @@ import { map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class SubmissionService {
-  private baseUrl = 'https://thesisko.onrender.com'; // your backend URL
+  private baseUrl = 'https://thesisko-server.vercel.app'; // your backend URL
 
   constructor(private http: HttpClient) {}
 

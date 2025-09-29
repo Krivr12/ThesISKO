@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class UploadService {
-  private baseUrl = 'https://thesisko.onrender.com/s3/upload'; //  backend URL
+  private baseUrl = 'https://thesisko-server.vercel.app/s3/upload'; //  backend URL
 
   constructor(private http: HttpClient) {}
 
