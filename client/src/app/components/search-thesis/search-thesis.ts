@@ -79,7 +79,7 @@ export class SearchThesis implements OnInit {
   }
 
   private fetchAllRecords(): void {
-    this.http.get<Thesis[]>('https://thesisko-server.vercel.app//records').subscribe({
+    this.http.get<Thesis[]>('https://thesisko-server.vercel.app/records').subscribe({
       next: (data) => {
         this.allTheses = data;
 
@@ -105,7 +105,7 @@ export class SearchThesis implements OnInit {
   }
 
   private doSemanticSearch(q: string): void {
-    this.http.post<{ results: any[] }>('https://thesisko-server.vercel.app//records/search', {
+    this.http.post<{ results: any[] }>('https://thesisko-server.vercel.app/records/search', {
       query: q,
       topK: 20
     }).subscribe({
@@ -221,7 +221,7 @@ export class SearchThesis implements OnInit {
   }
 
   viewThesis(thesis: Thesis): void {
-    this.http.post<Thesis[]>('https://thesisko-server.vercel.app//records/theses/by-ids', {
+    this.http.post<Thesis[]>('https://thesisko-server.vercel.app/records/theses/by-ids', {
       ids: [thesis._id]
     }).subscribe({
       next: (res) => {
