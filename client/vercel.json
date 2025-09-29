@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/Azalea/browser",
+  "outputDirectory": "dist/Azalea",
   "framework": "angular",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }

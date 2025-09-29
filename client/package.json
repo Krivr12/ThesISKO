@@ -6,8 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "postbuild": "echo '{\"recordsUrl\": \"'$API_URL'\"}' > ./dist/client/browser/assets/config/config.json"
+    "test": "ng test"
   },
   "prettier": {
     "overrides": [
