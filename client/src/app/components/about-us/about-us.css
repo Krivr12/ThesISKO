@@ -244,6 +244,9 @@ section {
   object-position: 50% 20%; 
 }
 
+.profile-image.Esplana .profile-img {
+  object-position: 50% 10%; 
+}
 
 
 .staff-info h3 {
