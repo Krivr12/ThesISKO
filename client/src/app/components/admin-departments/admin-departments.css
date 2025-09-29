@@ -104,11 +104,19 @@
     padding: 1rem;
 }
 
+.table-row .row-item:nth-child(3) {
+    text-align: center;
+}
+
 .table-header {
     background-color: #f9f9f9;
     font-weight: 600;
     border-bottom: 1px solid #ddd;
     color: #800000;
+}
+
+.table-header .header-item:nth-child(3) {
+    text-align: center;
 }
 
 .header-item.sortable {
