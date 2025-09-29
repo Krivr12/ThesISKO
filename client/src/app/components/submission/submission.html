@@ -516,26 +516,86 @@
         }
 <!-- to avoid duplicate buttons when in step 6 -->
         @if (currentStep() !== 6) {
-        <div class="button-container">
-          <button class="btn"
-                  [class.btn-primary]="!isButtonDisabled()"
-                  [class.btn-disabled]="isButtonDisabled()"
-                  [disabled]="isButtonDisabled()"
-                  (click)="handleButtonClick()">
-              {{ getButtonText() }}
-          </button>
-        </div>
-        }
+          <div class="button-container">
+            @if (currentStep() === 1 && (viewState() === 'fileSelected' || viewState() === 'revisionFileSelected')) {
+              <!-- new button for step 1 -->
+              <div class="dropdown-button-container">
+                <button class="btn btn-primary dropdown-main-btn"
+                        [class.btn-disabled]="isButtonDisabled()"
+                        [disabled]="isButtonDisabled()"
+                        (click)="handleButtonClick()">
+                  {{ getButtonText() }}
+                </button>
+                <button class="btn btn-primary dropdown-toggle-btn"
+                        (click)="toggleFacultyDropdown()"
+                        [class.dropdown-open]="showFacultyDropdown()">
+                  ▼
+                </button>
+                
+                @if (showFacultyDropdown()) {
+                  <div class="faculty-dropdown-menu">
+                    <div class="dropdown-header">
+                      <span>Select Recipients</span>
+                      <div class="dropdown-actions">
+                        <button class="link-btn" (click)="selectAllFaculty()">Select All</button>
+                        <button class="link-btn" (click)="deselectAllFaculty()">Clear</button>
+                      </div>
+                    </div>
+                    
+                    <div class="faculty-list">
+                      @for (faculty of facultyMembers(); track faculty.id) {
+                        <label class="faculty-option">
+                          <input type="checkbox" 
+                                [checked]="faculty.selected"
+                                (change)="selectFaculty(faculty.id)">
+                          <div class="faculty-info">
+                            <span class="faculty-name">{{ faculty.name }}</span>
+                            <span class="faculty-role">{{ faculty.role }}</span>
+                          </div>
+                        </label>
+                      }
+                    </div>
+                    
+                    @if (selectedFacultyNames().length > 0) {
+                      <div class="selected-faculty">
+                        <strong>Selected:</strong> {{ selectedFacultyNames().join(', ') }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <!-- normal button for other steps -->
+              <button class="btn"
+                      [class.btn-primary]="!isButtonDisabled()"
+                      [class.btn-disabled]="isButtonDisabled()"
+                      [disabled]="isButtonDisabled()"
+                      (click)="handleButtonClick()">
+                  {{ getButtonText() }}
+              </button>
+            }
+          </div>
+          }
       </section>
 
       <aside class="sidebar">
         <h2 class="sidebar-title">Status</h2>
-         @if (statusHistory().length > 0) {
+        @if (statusHistory().length > 0) {
           <ul class="status-list">
-            @for (status of statusHistory(); track status.text) {
-               <li class="status-item">
+            @for (status of statusHistory(); track status.text; let i = $index) {
+              <li class="status-item" [class.faculty-feedback]="status.facultyName">
                 <span class="status-dot" [ngClass]="status.type"></span>
-                <span class="status-text" [ngClass]="status.type">{{ status.text }}</span>
+                <div class="status-content">
+                  <span class="status-text" [ngClass]="status.type">{{ status.text }}</span>
+                  @if (status.facultyName) {
+                    <div class="faculty-status">
+                      @if (status.facultyInitials) {
+                        <span class="faculty-avatar">{{ status.facultyInitials }}</span>
+                      }
+                      <span class="faculty-decision">{{ status.facultyName }}</span>
+                    </div>
+                  }
+                </div>
               </li>
             }
           </ul>

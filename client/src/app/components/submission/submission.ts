@@ -4,10 +4,19 @@ import { Footer } from "../footer/footer";
 import { Navbar } from "../navbar/navbar";
 import { Router } from '@angular/router';
 
-// structure for status update
+// structure for status update edit: Updated this as well for dropdown
 interface Status {
   text: string;
   type: 'default' | 'error' | 'success' | 'warning';
+  facultyName?: string; 
+  facultyInitials?: string;
+}
+
+interface FacultyMember {
+  id: string;
+  name: string;
+  role: string;
+  selected: boolean;
 }
 
 // state definitions
@@ -84,6 +93,23 @@ export class Submission {
   confirmationChecked = signal<boolean>(false);
   memberInput = signal<string>('');
   memberNamesString = computed(() => this.memberNames().join('\n'));
+  // submission button stuffs
+  facultyMembers = signal<FacultyMember[]>([
+    { id: 'fic', name: 'Dr. Maria Santos', role: 'Faculty In Charge', selected: false },
+    { id: 'panel1', name: 'Prof. Juan Dela Cruz', role: 'Panelist 1', selected: false },
+    { id: 'panel2', name: 'Dr. Anna Reyes', role: 'Panelist 2', selected: false },
+    { id: 'panel3', name: 'Prof. Michael Tan', role: 'Panelist 3', selected: false }
+  ]);
+
+  showFacultyDropdown = signal<boolean>(false);
+  selectedFacultyNames = computed(() => 
+    this.facultyMembers().filter(f => f.selected).map(f => f.name)
+  );
+
+  getFacultyInitials(name: string): string {
+    if (!name) return '';
+    return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
+  }
   
   // predefined tags
   predefinedTags = signal<string[]>([
@@ -180,6 +206,12 @@ export class Submission {
 
   private submitFile() {
     if (this.uploadProgress() < 100) return;
+    
+    // checks for selected faculty
+    const selectedFaculty = this.facultyMembers().filter(f => f.selected);
+    if (selectedFaculty.length === 0) {
+      this.selectAllFaculty(); //selects all if none selectedd
+    }
 
     let nextState: ViewState = 'confirming';
     if (this.viewState() === 'revisionFileSelected') {
@@ -188,6 +220,30 @@ export class Submission {
       nextState = 'step2_confirming';
     }
     this.viewState.set(nextState);
+  }
+
+  toggleFacultyDropdown() {
+    this.showFacultyDropdown.update(show => !show);
+  }
+
+  selectFaculty(facultyId: string) {
+    this.facultyMembers.update(members => 
+      members.map(member => 
+        member.id === facultyId ? { ...member, selected: !member.selected } : member
+      )
+    );
+  }
+
+  selectAllFaculty() {
+    this.facultyMembers.update(members => 
+      members.map(member => ({ ...member, selected: true }))
+    );
+  }
+
+  deselectAllFaculty() {
+    this.facultyMembers.update(members => 
+      members.map(member => ({ ...member, selected: false }))
+    );
   }
 
   closeModal() {
@@ -600,20 +656,51 @@ resetToHome() {
 
   // --- SIMULATION METHODS ---
 
-  private simulateReviewProcess() {
+  private simulateReviewProcess() { //revised simulate review process
     setTimeout(() => {
-      this.statusHistory.update(history => [...history, { text: 'Pending Review', type: 'default' }]);
+      this.statusHistory.update(history => [...history, { 
+        text: 'Pending Review', 
+        type: 'default' 
+      }]);
+      
+      // shows who was selected and sent to
+      const submittedTo = this.selectedFacultyNames().join(', ');
+      this.statusHistory.update(history => [...history, { 
+        text: `Submitted to: ${submittedTo}`, 
+        type: 'default' 
+      }]);
     }, 2000);
 
     setTimeout(() => {
-      this.statusHistory.update(history => [...history, { text: 'Rejected - For Revision', type: 'error' }]);
+    // Simulate rejection by a specific faculty member
+      const rejectingFaculty = this.facultyMembers()[Math.floor(Math.random() * this.facultyMembers().length)];
+      const initials = this.getFacultyInitials(rejectingFaculty.name);
+      
+      this.statusHistory.update(history => [...history, { 
+        text: `Rejected - For Revision`, 
+        type: 'error',
+        facultyName: rejectingFaculty.name,
+        facultyInitials: initials
+      }]);
+      
       this.viewState.set('needsRevision');
     }, 4000);
   }
 
   private simulateFinalApproval() {
-     setTimeout(() => {
-      this.statusHistory.update(history => [...history, { text: 'Approved', type: 'success' }]);
+    setTimeout(() => {
+      // Show who approved the manuscript
+      const approvingFaculty = this.facultyMembers().filter(f => f.selected);
+      const approverNames = approvingFaculty.map(f => f.name).join(', ');
+      const initials = approvingFaculty.length > 0 ? this.getFacultyInitials(approvingFaculty[0].name) : '';
+      
+      this.statusHistory.update(history => [...history, { 
+        text: `Approved`, 
+        type: 'success',
+        facultyName: approverNames,
+        facultyInitials: initials
+      }]);
+      
       this.viewState.set('approved');
     }, 3000);
   }

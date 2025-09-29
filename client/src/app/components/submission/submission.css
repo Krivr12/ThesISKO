@@ -780,4 +780,158 @@ radio-group {
   font-weight: 600;
 }
 
+/* new styles for dropdown button */
+.dropdown-button-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-main-btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-right: 1px;
+}
+
+.dropdown-toggle-btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding: 0.75rem 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dropdown-toggle-btn.dropdown-open {
+  background-color: #910101;
+}
+
+.faculty-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 300px;
+  margin-top: 0.5rem;
+}
+
+.dropdown-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dropdown-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #800000;
+  cursor: pointer;
+  font-size: 0.875rem;
+  text-decoration: underline;
+}
+
+.link-btn:hover {
+  color: #910101;
+}
+
+.faculty-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.faculty-option {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.faculty-option:hover {
+  background-color: #f9fafb;
+}
+
+.faculty-option input[type="checkbox"] {
+  margin-right: 0.75rem;
+}
+
+.faculty-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.faculty-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.faculty-role {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.selected-faculty {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Status list enhancements for faculty feedback */
+.status-item.faculty-feedback {
+  align-items: flex-start;
+}
+
+.status-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.faculty-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.faculty-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: #800000;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.faculty-decision {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.status-item.faculty-feedback {
+  align-items: flex-start;
+}
+
+.status-item.faculty-feedback .status-dot {
+  margin-top: 0.5rem;
+}
 
