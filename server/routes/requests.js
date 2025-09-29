@@ -6,6 +6,8 @@ import s3 from "../databaseConnections/AWS/s3_connection.js";
 import { sendEmail } from "../services/sesService.js";
 import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { uploadRequestersData, updateRequestStatus } from "../services/analyticsService.js";
+
 
 const router = express.Router();
 const collection = db.collection("requests");
@@ -30,6 +32,10 @@ router.post("/", async (req, res) => {
     };
 
     const result = await collection.insertOne(newRequest);
+
+    // 🔹 Send analytics copy to Supabase
+    uploadRequestersData(requester, userType, result.insertedId.toString());
+
     res
       .status(201)
       .json({ message: "Request submitted", requestId: result.insertedId });
@@ -71,7 +77,7 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
           Bucket: process.env.AWS_BUCKET_NAME,
           Key: s3Key,
         }),
-        { expiresIn: 172800  } // 2 days
+        { expiresIn: 172800 } // 2 days
       );
     }
 
@@ -89,6 +95,22 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
       }
     );
 
+    await collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          status,
+          deanRemarks,
+          approvedChapters,
+          s3Key, // store key, not presigned url
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    // 🔹 Update Supabase analytics status as well
+    updateRequestStatus(id, status);
+
     // Send email via SES
     const subject =
       status === "approved"
@@ -99,7 +121,7 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
       status === "approved"
         ? `<p>Your request for ${request.docId} was approved.</p>
            <p>Remarks: ${deanRemarks}</p>
-           <p>You can download the file here (valid for 2 days ): 
+           <p>You can download the file here (valid for 2 days): 
               <a href="${presignedUrl}">${presignedUrl}</a></p>`
         : `<p>Your request for ${request.docId} was rejected.</p>
            <p>Reason: ${deanRemarks}</p>`;
