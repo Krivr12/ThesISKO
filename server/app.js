@@ -29,10 +29,14 @@ app.use(
       }
       return callback(null, true);
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // ✅ Added OPTIONS
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // ✅ Added credentials support
   })
 );
+
+// ✅ Add explicit OPTIONS handler
+app.options('*', cors());
 
 app.use(express.json());
 
@@ -40,12 +44,11 @@ app.use(express.json());
 app.use("/records", records);
 app.use("/programs", programs);
 app.use("/group_progress", group_progress);
-app.use("/s3", s3Routes); 
-app.use("/s3", s3SearchRoutes); 
+app.use("/s3", s3Routes);
+app.use("/s3", s3SearchRoutes);
 app.use("/blocks", blocks);
 app.use("/groups", groups);
 app.use("/requests", requests)
-
 
 // ❌ REMOVE app.listen()
 // ✅ Export the app for Vercel
