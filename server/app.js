@@ -29,14 +29,14 @@ app.use(
       }
       return callback(null, true);
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // ✅ Added OPTIONS
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // ✅ Added credentials support
+    credentials: true,
   })
 );
 
-// ✅ Add explicit OPTIONS handler
-app.options('*', cors());
+// ❌ REMOVE THIS LINE - it's causing the crash:
+// app.options('*', cors());
 
 app.use(express.json());
 
@@ -50,6 +50,5 @@ app.use("/blocks", blocks);
 app.use("/groups", groups);
 app.use("/requests", requests)
 
-// ❌ REMOVE app.listen()
 // ✅ Export the app for Vercel
 export default app;
