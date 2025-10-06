@@ -1,4 +1,5 @@
-/*pagewrapper para hay hero lang*/
+/* ==================== GLOBAL / PAGE WRAPPER ==================== */
+/* pagewrapper para hay hero lang */
 .page-wrapper {
   display: flex;
   flex-direction: column;
@@ -21,6 +22,7 @@ section {
   display: block;
 }
 
+/* ==================== HERO ==================== */
 .hero {
   position: relative;
   min-height: 900px;  
@@ -33,8 +35,6 @@ section {
   overflow: hidden;
 }
 
-
-
 .hero .bgimg {
   position: absolute;
   bottom: 0;
@@ -46,7 +46,6 @@ section {
   z-index: -1;
   opacity: 0.6;
 }
-
 
 .hero h1 {
   font-size: 75px;
@@ -61,7 +60,6 @@ section {
   white-space: nowrap; 
 }
 
-
 .hero p {
   font-size: 1.1rem;
   margin-bottom: 2.5rem; 
@@ -71,6 +69,7 @@ section {
   text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
 }
 
+/* ==================== HERO: SEARCH BOX ==================== */
 .search-container {
   display: flex;
   align-items: center;
@@ -107,9 +106,7 @@ section {
   background-color: #ffcc33 !important;
 }
 
-
-/*carousel side*/
-
+/* ==================== CAROUSEL ==================== */
 .carousel-container {
   text-align: center;
   background: #fff;
@@ -139,7 +136,6 @@ section {
 :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 20px; box-sizing: border-box; }
 :host ::ng-deep .custom-carousel .p-carousel-indicators { justify-content: center; }
 
-
 .carousel-box {
   background: #ffd966;
   border: 1px solid #d7c178;
@@ -164,7 +160,6 @@ section {
   line-height: 1.25;
   text-align: left;
 }
-
 
 .carousel-box .title {
   font-size: 1.30rem;
@@ -193,33 +188,31 @@ section {
   text-overflow: clip;
 }
 
-
+/* ==================== CAROUSEL: RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .carousel-shell { padding: 0 12px; }
   :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 12px; }
   .carousel-box { padding: 12px; }
 }
 
+/* ==================== SUBMIT WORK SECTION ==================== */
+.containerSubmitWork {
+  display: flex;
+  justify-content: center;   
+  align-items: center;       
+  width: 100%;
+  min-height: 600px;
+  background-color: #800000;
+  padding: 40px 0;           
+}
 
-
-/*submit work side*/
-  .containerSubmitWork {
-    display: flex;
-    justify-content: center;   
-    align-items: center;       
-    width: 100%;
-    min-height: 600px;
-    background-color: #800000;
-    padding: 40px 0;           
-  }
-  
-  .containerSubmitWork .inner {
-    display: flex;
-    gap: 40px;
-    max-width: 1200px;         
-    width: 100%;
-    padding: 0 40px;          
-  }
+.containerSubmitWork .inner {
+  display: flex;
+  gap: 40px;
+  max-width: 1200px;         
+  width: 100%;
+  padding: 0 40px;          
+}
 
 .leftside, .rightside {
   flex: 1;
@@ -250,7 +243,6 @@ section {
   white-space: nowrap; 
 }
 
-
 .leftside p {
   color: white;
   font-size: 16px;
@@ -262,7 +254,7 @@ section {
 }
 
 :host ::ng-deep .submit .p-button {
-  background: #ffd966; /* yellow */
+  background: #ffd966;
   border: none;
   padding: 0.75rem 2rem;
   font-size: 1rem;
@@ -303,3 +295,61 @@ section {
   font-weight: bold;
   opacity: 1;            
 }
+
+/* ==================== CAROUSEL: TAGS ==================== */
+/* Tags container styling */
+.carousel-box .tags-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.carousel-box .tags-label {
+  font-size: 0.95rem;
+  color: #444;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+  padding-top: 0.25rem;
+}
+
+.carousel-box .tags-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.carousel-box .tag-pill {
+  background: transparent;
+  color: #800000;
+  border: 1px solid rgba(128, 0, 0, 0.4);
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  display: inline-block;
+  box-shadow: none;
+  transition: all 0.3s ease;
+}
+
+.carousel-box .tag-pill:hover {
+  background: rgba(128, 0, 0, 0.05);
+  border-color: rgba(128, 0, 0, 0.6);
+  transform: translateY(-1px);
+}
+
+.carousel-box .tag-pill.no-tags {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid rgba(108, 117, 125, 0.4);
+}
+
+.carousel-box .tag-pill.no-tags:hover {
+  background: rgba(108, 117, 125, 0.05);
+  border-color: rgba(108, 117, 125, 0.6);
+}
+

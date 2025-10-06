@@ -34,20 +34,37 @@
       [numScroll]="1"
       [circular]="true"
       [responsiveOptions]="responsiveOptions"
-      autoplayInterval="3000"
+      [autoplayInterval]="3000"
       class="custom-carousel">
+
       <ng-template pTemplate="item" let-item>
-        <div class="carousel-box">
+        <div
+          class="carousel-box"
+          role="button"
+          tabindex="0"
+          (click)="navigateToRecord(item)"
+          (keyup.enter)="navigateToRecord(item)"
+          (keyup.space)="navigateToRecord(item)">
+
           <h3 class="title">{{ item.title }}</h3>
           <p class="date">Date Issued: {{ item.submitted_at | date:'MMM d, y' }}</p>
           <p class="authors">Authors: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}</p>
+
+
           <div class="tags">Tags: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}</div>
+          
           <p class="access">Access Level: {{ item.access_level || 'Unknown' }}</p>
+          <p class="section-text" style="white-space: pre-wrap;">
+            {{ item.abstract }}
+          </p>
+          
         </div>
       </ng-template>
+
     </p-carousel>
   </div>
 </div>
+
 
   
   <div class="containerSubmitWork">
