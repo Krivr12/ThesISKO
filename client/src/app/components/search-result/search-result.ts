@@ -50,6 +50,8 @@ export class SearchResult {
     if (nav?.extras?.state && nav.extras.state['thesis']) {
       this.thesis = nav.extras.state['thesis'];
       console.log('thesis from state:', this.thesis);
+
+      
     } else {
       this.router.navigate(['/search-thesis']);
     }
