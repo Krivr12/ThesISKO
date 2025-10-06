@@ -30,40 +30,40 @@
     <mat-dialog-content class="ag-body">
       <form #addForm="ngForm" class="ag-form" (keydown.enter)="$event.preventDefault()">
         <!-- Academic Year -->
-        <div class="ag-field-label">Academic Year <small class="muted">(YYYY, e.g., 2425)</small></div>
+        <div class="ag-field-label">Academic Year <small class="muted"></small></div>
         <mat-form-field appearance="outline" class="ag-field">
           <input
             id="academic_year"
             matInput
             [(ngModel)]="newForm.academic_year"
             name="academic_year"
-            placeholder="2425"
+            placeholder="(YYYY, e.g., 2425)"
             aria-label="Academic Year"
             required />
         </mat-form-field>
   
         <!-- Program -->
-        <div class="ag-field-label">Program <small class="muted">(e.g., IT, CS)</small></div>
+        <div class="ag-field-label">Program <small class="muted"></small></div>
         <mat-form-field appearance="outline" class="ag-field">
           <input
             id="program"
             matInput
             [(ngModel)]="newForm.program"
             name="program"
-            placeholder="IT"
+            placeholder="(e.g., IT, CS)"
             aria-label="Program"
             required />
         </mat-form-field>
   
         <!-- Code -->
-        <div class="ag-field-label">Code <small class="muted">(e.g., 3A)</small></div>
+        <div class="ag-field-label">Code <small class="muted"></small></div>
         <mat-form-field appearance="outline" class="ag-field">
           <input
             id="code"
             matInput
             [(ngModel)]="newForm.code"
             name="code"
-            placeholder="3A"
+            placeholder="(e.g., 25)"
             aria-label="Code"
             required />
         </mat-form-field>
@@ -76,7 +76,7 @@
             matInput
             [(ngModel)]="newForm.faculty_in_charge"
             name="faculty_in_charge"
-            placeholder="e.g., Ryan Garcia"
+            placeholder="e.g., Kim Mingyu"
             aria-label="Faculty-in-Charge"
             required />
         </mat-form-field>
