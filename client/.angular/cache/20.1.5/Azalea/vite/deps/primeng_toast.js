@@ -15,14 +15,6 @@ import {
   BaseStyle
 } from "./chunk-QOZZYQIB.js";
 import {
-  Kt,
-  MessageService,
-  PrimeTemplate,
-  SharedModule,
-  a,
-  s3 as s
-} from "./chunk-32SD3NQV.js";
-import {
   animate,
   animateChild,
   query,
@@ -31,6 +23,14 @@ import {
   transition,
   trigger
 } from "./chunk-FIT3ROIU.js";
+import {
+  Kt,
+  MessageService,
+  PrimeTemplate,
+  SharedModule,
+  a,
+  s3 as s
+} from "./chunk-32SD3NQV.js";
 import {
   CommonModule,
   NgClass,
