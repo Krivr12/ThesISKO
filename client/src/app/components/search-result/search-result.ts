@@ -1,203 +1,47 @@
-import { Component, TemplateRef, ViewChild } from '@angular/core';
-import { CommonModule, NgIf, NgFor, DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-
-/* Angular Material */
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatOptionModule } from '@angular/material/core';
-
-
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-
 import { Footer } from "../footer/footer";
 import { Navbar } from "../navbar/navbar";
-
-type UserRole = 'student' | 'guest';
+import { LoginModal } from '../login-modal/login-modal';
 
 @Component({
   selector: 'app-search-result',
   standalone: true,
-  imports: [
-    Footer, Navbar,
-    NgIf, NgFor, DatePipe, CommonModule, FormsModule,
-    MatDialogModule, MatCheckboxModule, MatFormFieldModule, MatInputModule, MatButtonModule,
-    MatSelectModule, MatDividerModule,
-    HttpClientModule, MatOptionModule
-  ],
+  imports: [Footer, Navbar, LoginModal],
   templateUrl: './search-result.html',
-  styleUrls: ['./search-result.css']
+  styleUrl: './search-result.css'
 })
 export class SearchResult {
-  // ===== Templates for role-based dialogs =====
-  @ViewChild('dlgRequestAccessStudent', { static: true }) dlgStudent!: TemplateRef<any>;
-  @ViewChild('dlgRequestAccessGuest', { static: true }) dlgGuest!: TemplateRef<any>;
+  // Makes sure modal not visible
+  isLoginModalVisible = false;
 
-  thesis: any; // Store thesis passed from router
+  //Placeholder
+  document = {
+    title: 'Optimizing Urban Traffic Flow Using Reinforcement Learning and Real-Time Sensor Data',
+    abstract: 'Urban traffic congestion remains a persistent issue in modern cities, leading to economic inefficiencies, increased emissions, and commuter frustration. This study introduces a reinforcement learning (RL)-based framework that utilizes real-time sensor data to optimize traffic signal control across urban intersections. By employing a model-free Deep Q-Learning algorithm, the system enables an intelligent agent to learn adaptive signal timing strategies aimed at minimizing vehicle waiting times, congestion levels, and travel delays. Real-time inputs from simulated sensors—such as vehicle counts, queue lengths, and speeds—are used to inform decision-making in a dynamic environment. The model is trained and evaluated in a microsimulation platform designed to reflect real-world traffic conditions, demonstrating significant improvements over traditional fixed-time and actuated control systems in metrics such as average travel time, throughput, and fuel consumption. Furthermore, the system exhibits strong adaptability to non-stationary scenarios like peak hours or road incidents, and it scales effectively across multiple intersections. This research highlights the potential of combining reinforcement learning with real-time data to create a more responsive and efficient urban traffic management system, paving the way for future developments involving real-world deployment and cooperative multi-agent learning strategies.',
+    dateOfPublication: '2023, March 30',
+    degreeName: 'Bachelor of Science in Accountancy',
+    subjectCategories: 'Road Management | Technology and Innovation',
+    authors: 'Evangelista, Christopher Bryan S.',
+    college: 'College of Computer and Information Sciences',
+    documentType: 'Bachelor\'s Thesis'
+  };
+  // Inject the Router service in the constructor
+  constructor(private router: Router) { }
 
-  constructor(
-    private router: Router,
-    private dialog: MatDialog,
-    private http: HttpClient
-  ) {
-    const nav = this.router.getCurrentNavigation();
-    if (nav?.extras?.state && nav.extras.state['thesis']) {
-      this.thesis = nav.extras.state['thesis'];
-      console.log('thesis from state:', this.thesis);
-
-      
-    } else {
-      this.router.navigate(['/search-thesis']);
-    }
-
-    // Initialize current user and role
-    this.currentUserEmail = this.getCurrentUserEmail();
-    this.userRole = this.deriveRole(this.currentUserEmail);
-  }
-
-  // ===== Auth / identity =====
-  currentUserEmail = '';
-  userRole: UserRole = 'guest';
-
-  // ===== Checkbox options =====
-  requestOptions = ['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4', 'Chapter 5', 'All'] as const;
-  selectedRequestChapters = new Set<string>();
-
-  // ===== Common form fields =====
-  requestPurpose = '';
-
-  // ===== Student-only fields =====
-  studentProgram: string = '';
-  studentDepartment: string = '';
-
-  // ===== Guest-only fields =====
-  requestEmail = '';       // guest email
-  touchGuestEmail = false;
-  guestCountry: string = '';
-  guestCity: string = '';
-  guestSchool: string = '';
-
-  // ===== Role helpers =====
-  private deriveRole(email: string): UserRole {
-    if (/@iskolarngbayan\.pup\.edu\.ph$/i.test(email || '')) return 'student';
-    return 'guest';
-  }
-  isGmail(email: string): boolean {
-    return /^[^@\s]+@gmail\.com$/i.test((email || '').trim());
-  }
-
-  // ===== Validation helpers =====
-  // Student: email from auth; needs program, department, purpose, chapters
-  get studentFormValid(): boolean {
-    return this.chaptersValid && this.purposeValid && !!this.studentProgram && !!this.studentDepartment;
-  }
-  // Guest: gmail + country + city + school + purpose + chapters
-  get guestFormValid(): boolean {
-    return this.chaptersValid && this.purposeValid &&
-           this.isGmail(this.requestEmail) &&
-           !!this.guestCountry && !!this.guestCity && !!this.guestSchool;
-  }
-  private get purposeValid(): boolean {
-    return (this.requestPurpose?.trim().length ?? 0) >= 8;
-  }
-  private get chaptersValid(): boolean {
-    return this.selectedRequestChapters.size > 0;
-  }
-
-  // ===== UI actions =====
-  openRequestDialog(): void {
-    this.resetRequestDialog();
-    const tpl = this.userRole === 'student' ? this.dlgStudent : this.dlgGuest;
-    this.dialog.open(tpl, { width: '640px', autoFocus: false });
-  }
-
-  resetRequestDialog(): void {
-    this.selectedRequestChapters.clear();
-    this.requestPurpose = '';
-
-    // student fields
-    // (keep email from auth; do not reset)
-    this.studentProgram = '';
-    this.studentDepartment = '';
-
-    // guest fields
-    this.requestEmail = '';
-    this.touchGuestEmail = false;
-    this.guestCountry = '';
-    this.guestCity = '';
-    this.guestSchool = '';
-  }
-
-  toggleRequestChapter(opt: string, checked: boolean): void {
-    if (opt === 'All') {
-      if (checked) this.requestOptions.forEach(o => this.selectedRequestChapters.add(o));
-      else this.selectedRequestChapters.clear();
-      return;
-    }
-
-    if (checked) this.selectedRequestChapters.add(opt);
-    else this.selectedRequestChapters.delete(opt);
-
-    const allOthersSelected = this.requestOptions
-      .filter(o => o !== 'All')
-      .every(o => this.selectedRequestChapters.has(o));
-
-    if (allOthersSelected) this.selectedRequestChapters.add('All');
-    else this.selectedRequestChapters.delete('All');
-  }
-
-  confirmRequest(dialogRef: any): void {
-    const chapters = this.selectedRequestChapters.has('All')
-      ? this.requestOptions.filter(o => o !== 'All')
-      : Array.from(this.selectedRequestChapters);
-
-    const base = {
-      role: this.userRole,
-      purpose: this.requestPurpose.trim(),
-      chapters,
-      thesis_id: this.thesis?.id ?? null
-    };
-
-    const payload =
-      this.userRole === 'student'
-        ? {
-            ...base,
-            email: this.currentUserEmail,
-            program: this.studentProgram,
-            department: this.studentDepartment
-          }
-        : {
-            ...base,
-            email: this.requestEmail.trim(),
-            country: this.guestCountry.trim(),
-            city: this.guestCity.trim(),
-            school: this.guestSchool.trim()
-          };
-
-    // TODO: replace with your real endpoint
-    // this.http.post('/api/access-requests', payload).subscribe({
-    //   next: () => dialogRef.close(payload),
-    //   error: err => console.error('Request failed', err)
-    // });
-
-    console.log('Sending access request:', payload);
-    dialogRef.close(payload);
-    this.resetRequestDialog();
-  }
-
+  // New method to handle the click event and navigate
   onReturnClick(): void {
+    // This will navigate to the specified route
+    // Replace 'your-page-route' with the actual route you want to go to
     this.router.navigate(['/search-thesis']);
   }
 
-  // Replace with your real auth source
-  private getCurrentUserEmail(): string {
-    // e.g., return this.authService.currentUser?.email ?? '';
-    return ''; // if blank, defaults to guest flow
+  // Pop up Function
+  openLoginModal(): void {
+    this.isLoginModalVisible = true;
+  }
+
+  closeLoginModal(): void {
+    this.isLoginModalVisible = false;
   }
 }

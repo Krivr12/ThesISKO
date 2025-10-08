@@ -1,16 +1,13 @@
 
 .footer {
-  display: flex;
-  align-items: center;     /* vertically center content */
-  justify-content: space-between;
-  height: 64px;           /* <- set exact height */
-  padding: 0 40px;        /* move vertical padding to 0 so height stays exact */
-  box-sizing: border-box; /* padding stays inside the 64px */
-  background: #800000;
-  color: #fff;
-  font-size: 14px;
-}
-
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    padding: 15px 40px;
+    background-color: #800000; 
+    color: white;
+    font-size: 14px;
+  }
   
   .footer-left p {
     margin: 0;

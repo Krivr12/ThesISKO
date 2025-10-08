@@ -1,42 +1,28 @@
 <p-toolbar class="navbar">
-  <ng-template #start>
-    <div class="nav-left">
-      <h2 class="logo">ThesISKO</h2>
-      <p-button label="Home" text plain routerLink="/home"></p-button>
-      <p-button label="Search" text plain routerLink="/search-thesis"></p-button>
-      <p-button label="About" text plain routerLink="/about-us"></p-button>
-      <p-button label="Submit" text plain routerLink="/submission"></p-button>
-    </div>
-  </ng-template>
-
-  <ng-template #end>
-    <!-- If signed in, show user chip; else show Login -->
-    <ng-container *ngIf="user$ | async as user; else loginTpl">
-      <div class="user-chip" (click)="profileMenu.toggle($event)">
-        <!-- Avatar uses user photo if present; else default asset image -->
-        <p-avatar
-          [image]="avatarFor(user)"
-          size="large"
-          shape="circle">
-        </p-avatar>
-
-        <span class="username" [title]="user.email">
-          {{ user.email || user.displayName || user.username }}
-        </span>
-
-        <i class="pi pi-chevron-down"></i>
+    <ng-template #start>
+      <div class="nav-left">
+        <h2 class="logo">ThesISKO</h2>
+        <p-button label="Home" text plain routerLink="/home"></p-button>
+        <p-button label="Search" text plain routerLink="/search-thesis"></p-button>
+        <p-button label="About" text plain routerLink="/about-us"></p-button>
+        <!-- modified the submit button to show pop up. Can't authorize yet so double click "Submit" to show the pop up login-->
+        <p-button label="Submit" text plain routerLink="/submission" (click)="openLoginModal()"></p-button>
       </div>
-
-      <p-menu #profileMenu [popup]="true" [model]="profileItems"></p-menu>
-    </ng-container>
-
-    <ng-template #loginTpl>
-      <p-button
-        class="dark"
-        label="Login"
-        styleClass="login-button p-button-rounded p-button-warning"
+    </ng-template>
+  
+    <ng-template #end>
+      <p-button 
+        class = dark
+        label="Login" 
+        styleClass="login-button p-button-rounded p-button-warning" 
         routerLink="/login">
       </p-button>
     </ng-template>
-  </ng-template>
-</p-toolbar>
+  </p-toolbar>
+
+<!-- Adding in the component for pop up login -->
+<app-login-modal 
+  [isVisible]="isLoginModalVisible" 
+  (close)="closeLoginModal()">
+</app-login-modal>
+  
