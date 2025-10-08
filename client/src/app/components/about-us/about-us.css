@@ -23,30 +23,31 @@ section {
 
 .hero {
   position: relative;
-  min-height: 900px;  
+  min-height: 700px;  
   width: 100%;            
   display: flex;
   flex-direction: column;
   justify-content: center; 
-  padding-left: 5%;         
+  padding-left: 10%; 
+  padding-right:5%;        
   color: white;
   overflow: hidden;
 }
 
-
-
-.hero .bgimg {
-  position: absolute;
-  bottom: 0;
-  right: 20;
-  height: 100%;      
-  width: auto;
-  max-width: none;    
-  object-fit: cover;  
-  z-index: -1;
-  opacity: 0.6;
+.hero .bgimg{
+  position:absolute;
+  right: clamp(16px, 4vw, 56px);   
+  top: 50%;            /* vertically center relative to hero */
+  transform: translateY(-50%);
+  width: min(36vw, 550px);
+  height: auto;    
+  object-fit: contain;
+  opacity: .4;
+  z-index: 0;          /* on top of background, but behind text */
+  pointer-events:none; /* decorative */
 }
 
+.hero > *{ position:relative; z-index:1; } /* keep text above image */
 
 .hero h1 {
   font-size: 75px;
@@ -113,19 +114,19 @@ section {
   background-color: #fff;
   padding: clamp(48px, 7vw, 80px) 0;
   color: #333;
+  height: 700px;  
 }
 
 .content-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 clamp(16px, 3vw, 20px);
 }
 
 .main-title {
   font-size: clamp(28px, 6vw, 56px);
   font-weight: 800;
   color: #800000;
-  margin-bottom: clamp(16px, 3vw, 24px);
+  margin-bottom: 10px
 }
 
 .mission-section {
@@ -143,6 +144,7 @@ section {
   font-weight: 700;
   color: #800000;
   margin-bottom: 10px;
+  margin-top: 0; 
 }
 
 .mission-description {
@@ -186,6 +188,7 @@ section {
   padding: clamp(48px, 7vw, 80px) 20px;
   text-align: center;
   color: #fff;
+  width: 900px;
 }
 
 .officials-and-staffs h1 {
@@ -235,7 +238,6 @@ section {
   border-radius: 50%;
 }
 
-/* Per-person nudge (optional) */
 .profile-image.Galicia .profile-img {
   object-position: 40% 50%; 
 }
@@ -265,6 +267,7 @@ section {
 .contact-section {
   background-color: #fff;
   padding: clamp(48px, 7vw, 80px) 20px;
+  height: 550px;
   
 }
 

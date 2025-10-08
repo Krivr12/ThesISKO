@@ -8,6 +8,7 @@
                 <div class="filter-buttons">
                     <button [class.active]="currentFilter === 'For Approval'" (click)="setFilter('For Approval')">For Approval</button>
                     <button [class.active]="currentFilter === 'With Issues'" (click)="setFilter('With Issues')">With Issues</button>
+                    <button [class.active]="currentFilter === 'Approved'" (click)="setFilter('Approved')">Approved</button>
                 </div>
             </header>
 
@@ -43,7 +44,6 @@
                 </div>
             </div>
 
-            <!-- ito lang binago kooo -->
             <div class="paginator">
                 <mat-paginator
                   [length]="filteredDocuments.length"
@@ -54,7 +54,6 @@
                   showFirstLastButtons>
                 </mat-paginator>
               </div>
-              
         </div>
 
         <!-- Details View -->
@@ -79,11 +78,44 @@
                 <h2 class="section-title">Documents</h2>
                 <div class="section-content">
                     <ul class="documents-list">
-                        <li *ngFor="let doc of selectedDocument.documents">
+                        <li *ngFor="let doc of selectedDocument?.documents; let i = index">
                             <span>{{ doc.name }}</span>
-                            <a href="#" class="file-link"> {{ doc.file }}</a>
+                            <button class="file-link" (click)="viewDocument(doc)">
+                                View {{ getFileExtension(doc.file) }}
+                            </button>
                         </li>
                     </ul>
+                </div>
+            </div>
+
+            <!-- Add PDF Viewer Modal -->
+            <div class="modal-overlay" *ngIf="isPdfViewerVisible">
+                <div class="modal-content pdf-viewer-modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">{{ currentPdfDocument?.name }}</h3>
+                        <button class="modal-close-btn" (click)="closePdfViewer()">×</button>
+                    </div>
+                    <div class="modal-body pdf-viewer-body">
+                        <div *ngIf="pdfLoading" class="pdf-loading">
+                            <p>Loading document...</p>
+                        </div>
+                        <div *ngIf="pdfError" class="pdf-error">
+                            <p>Error loading document: {{ pdfError }}</p>
+                            <button class="download-fallback" (click)="downloadDocument()">Download Instead</button>
+                        </div>
+                        <iframe 
+                            *ngIf="currentPdfUrl && !pdfLoading && !pdfError"
+                            [src]="currentPdfUrl"
+                            class="pdf-iframe"
+                            frameborder="0"
+                            (load)="onPdfLoad()"
+                            (error)="onPdfError()">
+                        </iframe>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="modal-btn confirm-btn" (click)="downloadDocument()">Download</button>
+                        <button class="modal-btn cancel-btn" (click)="closePdfViewer()">Close</button>
+                    </div>
                 </div>
             </div>
 

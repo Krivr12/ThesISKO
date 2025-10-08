@@ -1,17 +1,20 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Navbar } from '../navbar/navbar';
-import { Footer } from "../footer/footer";
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { signal } from '@angular/core';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+
+import { Navbar } from '../navbar/navbar';
+import { Footer } from '../footer/footer';
 
 interface Thesis {
   _id: string;
   doc_id: string;
   title: string;
   abstract: string;
-  submitted_at: string;
+  submitted_at: string; // ISO date string
   access_level: string;
   authors: string[];
   tags: string[];
@@ -22,24 +25,18 @@ interface Thesis {
 @Component({
   selector: 'app-search-thesis',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, Navbar, Footer],
+  imports: [CommonModule, FormsModule, HttpClientModule, Navbar, Footer, MatPaginatorModule],
   templateUrl: 'search-thesis.html',
   styleUrls: ['search-thesis.css']
 })
 export class SearchThesis implements OnInit {
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    private http: HttpClient
-  ) {}
 
-  // Pagination
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  // Pagination (driven by <mat-paginator>)
   totalItems = 0;
-  itemsPerPage = 8;
-  currentPage = 1;
-  maxPageButtons = 5;
-  totalPages = 0;
-  pages: number[] = [];
+  itemsPerPage = 10;     // match your mat-paginator [pageSize]
+  currentPage = 1;      // 1-based for easier slicing
 
   // Filters
   isCollapsed = false;
@@ -61,14 +58,21 @@ export class SearchThesis implements OnInit {
   ]);
   availableYears = signal<number[]>([]);
 
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private http: HttpClient
+  ) {}
+
   ngOnInit(): void {
     // Single source of truth: URL query param `q`
     this.route.queryParamMap.subscribe(params => {
       const q = (params.get('q') || '').trim();
-      this.searchQuery = q; // pre-fill the input
+      this.searchQuery = q;
 
-      // reset pagination on every new q
+      // reset paging whenever the search term changes
       this.currentPage = 1;
+      this.paginator?.firstPage();
 
       if (q) {
         this.doSemanticSearch(q);
@@ -78,34 +82,29 @@ export class SearchThesis implements OnInit {
     });
   }
 
+  // ------------------------
+  // Data fetching
+  // ------------------------
   private fetchAllRecords(): void {
-    this.http.get<Thesis[]>('https://thesisko-server.vercel.app/records').subscribe({
+    this.http.get<Thesis[]>('http://localhost:5050/records').subscribe({
       next: (data) => {
         this.allTheses = data;
 
         const years = [...new Set(
-          this.allTheses.map(t => new Date(t.submitted_at).getFullYear())
+          this.allTheses
+            .map(t => new Date(t.submitted_at).getFullYear())
+            .filter(y => !Number.isNaN(y))
         )].sort((a,b) => b - a);
         this.availableYears.set(years);
 
         this.applyFilters();
       },
-      error: (err) => console.error("❌ Error fetching records:", err)
-    });
-  }
-
-  // Push q to URL; the subscription above will run the actual search/fetch
-  onSearch(): void {
-    const q = (this.searchQuery || '').trim();
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { q: q || null },
-      queryParamsHandling: 'merge'
+      error: (err) => console.error('❌ Error fetching records:', err)
     });
   }
 
   private doSemanticSearch(q: string): void {
-    this.http.post<{ results: any[] }>('https://thesisko-server.vercel.app/records/search', {
+    this.http.post<{ results: any[] }>('http://localhost:5050/records/search', {
       query: q,
       topK: 20
     }).subscribe({
@@ -124,29 +123,47 @@ export class SearchThesis implements OnInit {
         }));
         this.applyFilters();
       },
-      error: (err) => console.error("❌ Semantic search error:", err)
+      error: (err) => console.error('❌ Semantic search error:', err)
     });
   }
 
-  toggleFilters(): void { this.isCollapsed = !this.isCollapsed; }
+  // ------------------------
+  // Search + filters
+  // ------------------------
+  onSearch(): void {
+    const q = (this.searchQuery || '').trim();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { q: q || null },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  toggleFilters(): void {
+    this.isCollapsed = !this.isCollapsed;
+  }
 
   onTagChange(tag: string, event: Event): void {
     const isChecked = (event.target as HTMLInputElement).checked;
     this.selectedTags = isChecked
       ? [...this.selectedTags, tag]
       : this.selectedTags.filter(t => t !== tag);
+
     this.currentPage = 1;
+    this.paginator?.firstPage();
     this.applyFilters();
   }
 
   onYearChange(year: string): void {
     this.selectedYear = year;
     this.currentPage = 1;
+    this.paginator?.firstPage();
     this.applyFilters();
   }
 
   onAuthorChange(): void {
     this.currentPage = 1;
+    this.paginator?.firstPage();
     this.applyFilters();
   }
 
@@ -156,7 +173,9 @@ export class SearchThesis implements OnInit {
     this.selectedYear = '';
     this.authorName = '';
     this.currentPage = 1;
-    // Update URL too (removes q), then subscription reloads all
+    this.paginator?.firstPage();
+
+    // Also clear query param; subscription will reload all
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { q: null },
@@ -166,44 +185,34 @@ export class SearchThesis implements OnInit {
 
   applyFilters(): void {
     this.filteredTheses = this.allTheses.filter(thesis => {
-      const matchesTags = this.selectedTags.length === 0 ||
+      const matchesTags =
+        this.selectedTags.length === 0 ||
         this.selectedTags.some(tag => thesis.tags.includes(tag));
 
       const thesisYear = new Date(thesis.submitted_at).getFullYear().toString();
-      const matchesYear = this.selectedYear === '' || thesisYear === this.selectedYear;
+      const matchesYear =
+        this.selectedYear === '' || thesisYear === this.selectedYear;
 
-      const matchesAuthor = this.authorName === '' ||
-        thesis.authors.some(a => a.toLowerCase().includes(this.authorName.toLowerCase()));
+      const matchesAuthor =
+        this.authorName === '' ||
+        thesis.authors.some(a =>
+          a.toLowerCase().includes(this.authorName.toLowerCase())
+        );
 
       return matchesTags && matchesYear && matchesAuthor;
     });
 
     this.totalItems = this.filteredTheses.length;
-    this.calculatePagination();
     this.updateDisplayedTheses();
   }
 
-  private calculatePagination(): void {
-    this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
-    this.pages = this.getPageRange();
-  }
-
-  private getPageRange(): number[] {
-    let startPage: number, endPage: number;
-    const half = Math.floor(this.maxPageButtons / 2);
-
-    if (this.totalPages <= this.maxPageButtons) {
-      startPage = 1; endPage = this.totalPages;
-    } else if (this.currentPage <= half) {
-      startPage = 1; endPage = this.maxPageButtons;
-    } else if (this.currentPage + half >= this.totalPages) {
-      startPage = this.totalPages - this.maxPageButtons + 1;
-      endPage = this.totalPages;
-    } else {
-      startPage = this.currentPage - half;
-      endPage = this.currentPage + half;
-    }
-    return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+  // ------------------------
+  // Pagination wiring
+  // ------------------------
+  onPage(event: PageEvent): void {
+    this.itemsPerPage = event.pageSize;
+    this.currentPage = event.pageIndex + 1; // convert 0-based -> 1-based
+    this.updateDisplayedTheses();
   }
 
   private updateDisplayedTheses(): void {
@@ -212,16 +221,11 @@ export class SearchThesis implements OnInit {
     this.displayedTheses = this.filteredTheses.slice(startIndex, endIndex);
   }
 
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.calculatePagination();
-      this.updateDisplayedTheses();
-    }
-  }
-
+  // ------------------------
+  // Navigation
+  // ------------------------
   viewThesis(thesis: Thesis): void {
-    this.http.post<Thesis[]>('https://thesisko-server.vercel.app/records/theses/by-ids', {
+    this.http.post<Thesis[]>('http://localhost:5050/records/theses/by-ids', {
       ids: [thesis._id]
     }).subscribe({
       next: (res) => {
@@ -229,7 +233,7 @@ export class SearchThesis implements OnInit {
           this.router.navigate(['/search-result'], { state: { thesis: res[0] } });
         }
       },
-      error: (err) => console.error("❌ Error fetching thesis details:", err)
+      error: (err) => console.error('❌ Error fetching thesis details:', err)
     });
   }
 }

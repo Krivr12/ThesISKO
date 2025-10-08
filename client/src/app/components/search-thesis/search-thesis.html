@@ -79,41 +79,17 @@
           </div>
         </div>
 
-        <!-- paginator component -->
-        <div class="paginator" *ngIf="totalPages > 1">
-          <button (click)="goToPage(1)" [disabled]="currentPage === 1" class="paginator-button nav-button">
-            &lt;&lt;
-          </button>
-          <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" class="paginator-button nav-button">
-            &lt;
-          </button>
+        
+        <mat-paginator
+        class="paginator"
+        [length]="totalItems"
+        [pageIndex]="currentPage - 1"
+        [pageSize]="itemsPerPage"
+        [pageSizeOptions]="[5, 10, 20]"
+        (page)="onPage($event)">
+      </mat-paginator>
+      
 
-          <ng-container *ngIf="pages[0] > 1">
-            <button (click)="goToPage(1)" [ngClass]="{'active': currentPage === 1}" class="paginator-button">1</button>
-            <span *ngIf="pages[0] > 2" class="paginator-ellipsis">...</span>
-          </ng-container>
-
-          <button *ngFor="let page of pages"
-                  (click)="goToPage(page)"
-                  [ngClass]="{'active': currentPage === page}"
-                  class="paginator-button">
-            {{ page }}
-          </button>
-
-          <ng-container *ngIf="pages[pages.length - 1] < totalPages">
-            <span *ngIf="pages[pages.length - 1] < totalPages - 1" class="paginator-ellipsis">...</span>
-            <button (click)="goToPage(totalPages)" [ngClass]="{'active': currentPage === totalPages}" class="paginator-button">
-              {{ totalPages }}
-            </button>
-          </ng-container>
-
-          <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages" class="paginator-button nav-button">
-            &gt;
-          </button>
-          <button (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages" class="paginator-button nav-button">
-            &gt;&gt;
-          </button>
-        </div>
       </div>
     </div>
   </div>
