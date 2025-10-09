@@ -1,44 +1,48 @@
-# Node.js dependencies
+# Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
-# Environment variables
+# Logs
+logs/
+*.log
+
+# Environment
 .env
 *.env
 config.env
 server/config.env
 
-# Logs
-logs/
-*.log
-logs/*.log
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Build / cache
+# Build & Cache
 dist/
 build/
-.cache/
-.next/
 out/
 .angular/
-coverage/          # test coverage reports
+client/.angular/
+.next/
+.cache/
+coverage/
 .tmp/
 temp/
+.eslintcache
+.stylelintcache
+.sass-cache/
+*.tsbuildinfo
 
-# IDE/editor settings
+# IDE / Editor
 .vscode/
 .idea/
+.history/
 *.swp
 *.swo
 
-# Ignore Thesisko folder (if really unused)
-# /Thesisko/
+# OS Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Deployment
+.vercel/
+
+# Yarn Plug'n'Play
+.pnp.cjs
+.pnp.loader.mjs
+.pnp.data.json
