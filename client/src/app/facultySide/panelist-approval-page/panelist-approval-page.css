@@ -1,0 +1,239 @@
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+  }
+  
+  /* Sidebar (your <app-navbar>) */
+  app-sidenavbar {
+    width: 200px;
+    flex-shrink: 0;
+  }
+
+  .layout {
+    display: flex;
+    gap: 0;
+    min-height: 100vh;
+    background-color: white;
+  }
+  
+  /* Keep the sticky sidebar as-is */
+  .layout app-sidenavbar {
+    flex: 0 0 220px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+  }
+  
+  /* Add 40px horizontal padding so content (your rectangle) sits 40px from both edges */
+  .page {
+    flex: 1 1 auto;
+    padding: 12px 50px;   /* ← 40px left & right */
+  }
+  
+
+/* Return link */
+.return { gap: 6px; color: #800000; margin: 4px 0 10px; }
+
+/* Main panel look */
+.approval-panel {
+  border: 2px solid #800000;
+  border-radius: 12px;
+  padding: 18px 18px 22px;
+  background: #fff;
+}
+.title { color: #800000; margin: 4px 0 10px; }
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  gap: 10px 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e7bebe;
+  margin-bottom: 10px;
+}
+
+/* People block spacing */
+.people p { margin: 2px 0; }
+
+/* Subject row: label left, file pill right */
+.subject-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid #e7bebe;
+  border-bottom: 1px solid #e7bebe;
+  margin: 10px 0 6px;
+}
+.subject-label { font-size: 20px; font-weight: 700; color: #800000; }
+
+/* File pill + progress */
+.file-pill {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 10px;
+  align-items: center;
+  background: #fff3cf;            /* warm yellow like screenshot */
+  border: 1px solid #f2d58c;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.file-pill mat-icon { font-size: 20px; width: 20px; height: 20px; color: #7a5a00; }
+.file-pill a { text-decoration: none; color: #3b3b3b; font-weight: 600; }
+.file-pill small { grid-column: 2 / 3; color: #6b6b6b; }
+
+/* Progress bar inside the pill (full width under filename) */
+.upload-bar {
+  grid-column: 1 / -1;
+  height: 8px;
+  background: #f6e8b6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.upload-bar .fill {
+  height: 100%;
+  background: #7a1a1a;           /* maroon progress */
+  width: 100%;
+}
+
+/* Remarks area */
+/* Container styling */
+.remarks-block {
+  margin-top: 12px;
+}
+
+.remarks-label {
+  font-weight: 700;
+  color: #5a5a5a;
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* Force rectangular outline */
+/* Apply to your form-field element */
+.remarks-field.mat-mdc-form-field {
+  width: 100%;
+  /* 🔶 make it rounded: try 12px or 16px */
+  --mdc-outlined-text-field-container-shape: 12px;
+  --mdc-outlined-text-field-outline-width: 1.5px;
+}
+
+/* Optional: round the inner textarea too (cosmetic) */
+.remarks-field textarea.mat-mdc-input-element {
+  border-radius: 12px;   /* doesn’t change the outline, just inside corners */
+  background: #fff;
+  padding: 12px;
+  min-height: 160px;
+}
+
+/* Fallback override if tokens are being ignored */
+:host ::ng-deep .remarks-field .mdc-notched-outline__leading,
+:host ::ng-deep .remarks-field .mdc-notched-outline__notch,
+:host ::ng-deep .remarks-field .mdc-notched-outline__trailing {
+  border-radius: 12px !important;
+}
+
+
+
+/* Actions: big buttons like the mock */
+.actions {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  margin-top: 18px;
+}
+.btn-approve {
+  background: #800000;
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+.btn-approve:hover { background: #6c0000; }
+
+.btn-reject {
+  border-color: #800000 !important;
+  color: #800000 !important;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+.btn-reject:hover { background: #fde9e9; }
+
+.btn-approve {
+  background: #800000; color: #fff; padding: 14px 28px; border-radius: 12px; font-weight: 700;
+}
+.btn-reject, .btn-revision {
+  border-color: #800000 !important; color: #800000 !important;
+  padding: 14px 28px; border-radius: 12px; font-weight: 700;
+}
+.btn-approve:hover { background:#6c0000; }
+.btn-reject:hover, .btn-revision:hover { background:#fde9e9; }
+
+
+/* Empty */
+.empty { padding: 20px; color: #777; }
+
+/* Rectangle viewer used elsewhere on page (kept as-is) */
+.rectangle-container {
+  width: 95%;
+  margin: 10px auto;
+  padding: 15px;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.dialog-body { min-width: 280px; }
+.dialog-section { margin: 8px 0 14px; }
+.section-title { font-weight: 700; margin-bottom: 6px; color: #800000; }
+.reasons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px 12px;
+  padding: 6px 0;
+}
+.w-100 { width: 100%; }
+.hint { color: #6b6b6b; }
+
+
+/* Responsive stack on small screens */
+@media (max-width: 900px) {
+  .meta { grid-template-columns: 1fr 1fr; }
+  .subject-row { grid-template-columns: 1fr; }
+}
+
+/* Optional: nicer dialog surface */
+::ng-deep .file-viewer-dialog .mat-mdc-dialog-surface {
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+.viewer-header .title {
+  font-weight: 600;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.viewer-body {
+  height: 80vh;
+  width: 80vw;
+  max-width: 1100px;
+  max-height: 90vh;
+}
+.pdf-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

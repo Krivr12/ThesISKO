@@ -9,6 +9,6 @@
     ]
   },
   "include": [
-    "ThesISKO/client/src/**/*.ts"
+    "src/**/*.ts"
   ]
 }

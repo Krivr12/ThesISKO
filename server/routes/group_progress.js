@@ -2,10 +2,20 @@ import express from "express";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 
 const router = express.Router();
-const collection = RepoMongodb.collection("group_progress");
+const collection = RepoMongodb ? RepoMongodb.collection("group_progress") : null;
+
+// Helper function to check MongoDB availability
+const checkMongoDB = (res) => {
+  if (!collection) {
+    res.status(503).json({ error: "MongoDB not available" });
+    return false;
+  }
+  return true;
+};
 
 // GET all group progress
 router.get("/", async (req, res) => {
+  if (!checkMongoDB(res)) return;
   try {
     const results = await collection.find({}).toArray();
     res.status(200).json(results);

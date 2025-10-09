@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "Azalea": {
+    "ThesISKO": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/Azalea",
+            "outputPath": "dist/ThesISKO",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
@@ -53,8 +53,23 @@
             }
           },
           "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "ThesISKO:build:production"
+            },
+            "development": {
+              "buildTarget": "ThesISKO:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "de8993ea-08a0-43ca-b07e-ff01ddb7c3fe"
   }
 }

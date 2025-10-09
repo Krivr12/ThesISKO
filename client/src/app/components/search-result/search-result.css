@@ -20,18 +20,40 @@
   align-items: center;
   margin-bottom: 2rem;
 }
-/* note to self: fix this*/
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .return-link {
   color: #800000;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s;
   cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  font: inherit;
 }
 
 .return-link:hover {
   color: #800000;
   cursor: pointer; 
+  text-decoration: underline;
+}
+
+.return-link:focus-visible {
+  outline: 2px solid #800000;
+  outline-offset: 2px;
+}
+
+.return-link:focus { 
+  outline: none; 
 }
 
 .request-button {
@@ -101,4 +123,242 @@
 
 .detail-value {
   color: #555;
+}
+
+/* Citation dropdown container */
+.citation-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Main citation button */
+.citation-button {
+  background-color: transparent;
+  border: 1px solid #800000;
+  color: #800000;
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 160px;
+  width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.citation-button:hover {
+  background-color: #800000;
+  border-color: #aaa;
+  color: #f5f5f5;
+}
+
+/* Citation button copied state */
+.citation-button.copied {
+  background-color: #fbea31 !important;
+  border-color: #fbea31 !important;
+  color: #800000 !important;
+  transition: all 0.3s ease;
+}
+
+/* Dropdown arrow */
+.dropdown-arrow {
+  font-size: 0.8em;
+  margin-left: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.citation-dropdown:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Citation options dropdown */
+.citation-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #800000;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.citation-dropdown:hover .citation-options {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Individual citation option buttons */
+.citation-option {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: white;
+  color: #800000;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+.citation-option:hover {
+  background-color: #f8f9fa;
+}
+
+.citation-option:last-child {
+  border-radius: 0 0 4px 4px;
+}
+
+/* Copy Protection Styles */
+.protected-content {
+  /* Disable text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* Disable highlighting */
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Disable drag and drop */
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  
+  /* Prevent image saving on right-click */
+  pointer-events: auto;
+}
+
+/* Ensure citation buttons remain functional */
+.citation-dropdown,
+.citation-button,
+.citation-options,
+.citation-option,
+.request-button {
+  -webkit-user-select: auto !important;
+  -moz-user-select: auto !important;
+  -ms-user-select: auto !important;
+  user-select: auto !important;
+  pointer-events: auto !important;
+}
+
+/* Material dialog shell */
+:host ::ng-deep .mat-mdc-dialog-surface {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .mat-mdc-dialog-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1f1f1f;
+  padding: 20px 24px 8px;
+  margin: 0;
+}
+
+:host ::ng-deep .mat-mdc-dialog-content {
+  padding: 0 24px 12px;
+  max-height: 70vh;
+}
+
+:host ::ng-deep .mat-mdc-dialog-actions {
+  padding: 8px 16px 16px;
+  gap: 8px;
+}
+
+/* Make the primary (accent) action maroon like your brand */
+:host ::ng-deep .mat-mdc-raised-button.mat-accent:not(:disabled) {
+  background-color: #800000;
+  color: #ffffff;
+}
+
+/* Dialog body & sections */
+.dialog-body {
+  min-width: 520px;
+}
+
+.dialog-section {
+  margin: 12px 0 16px;
+}
+
+/* Checkbox grid layout */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px 12px;
+  padding: 6px 0;
+}
+
+/* Align checkbox label content nicely */
+.checkbox-grid .mdc-form-field {
+  width: 100%;
+  align-items: flex-start;
+}
+
+.checkbox-grid .mdc-checkbox {
+  margin-top: 2px;
+}
+
+/* Full-width fields */
+.w-100 { 
+  width: 100%; 
+}
+
+/* Comfy textarea height */
+mat-form-field.w-100 textarea[matInput] {
+  min-height: 120px;
+}
+
+/* Tip line */
+.hint {
+  color: #6b6b6b;
+  font-size: 12px;
+}
+
+/* Policy note */
+.policy-note {
+  color: #666;
+  font-size: 0.9em;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+/* ===================== NEW DIALOG STYLES ======================= */
+
+.muted { 
+  opacity: .8; 
+  font-size: 0.9rem; 
+}
+
+.mb-2 { 
+  margin-bottom: .5rem; 
+}
+
+.terms-scroll {
+  max-height: 40vh;
+  overflow: auto;
+  padding-right: 8px;
+}
+
+.terms-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.terms-checkbox {
+  display: block;
+  margin-top: 16px;
 }

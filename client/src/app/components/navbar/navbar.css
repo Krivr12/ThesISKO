@@ -62,3 +62,141 @@ h2 {
     width: 105px;
     height: 44px;
   }
+
+  /* User Profile Card Styles */
+  .user-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 40px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 220px;
+  }
+
+  .user-profile-card:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    text-align: left;
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .user-info * {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .user-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: white;
+    margin-bottom: 1px;
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .user-email {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0.9;
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .user-avatar {
+    flex-shrink: 0;
+  }
+
+  /* Override PrimeNG avatar default styles */
+  :host ::ng-deep .user-avatar .p-avatar {
+    background-color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  :host ::ng-deep .user-avatar .p-avatar img {
+    background-color: transparent !important;
+    background: transparent !important;
+  }
+
+  :host ::ng-deep .user-avatar .p-avatar::before,
+  :host ::ng-deep .user-avatar .p-avatar::after {
+    display: none !important;
+  }
+
+  /* Additional override for any wrapper elements */
+  :host ::ng-deep .user-avatar {
+    background-color: transparent !important;
+    background: transparent !important;
+  }
+
+  .dropdown-icon {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    margin-left: 4px;
+    transition: transform 0.2s ease;
+  }
+
+  .user-profile-card:hover .dropdown-icon {
+    color: white;
+  }
+
+  /* Disabled Submit Button Styles */
+  :host ::ng-deep .disabled-button {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+
+  :host ::ng-deep .disabled-button:hover {
+    background-color: #800000 !important;
+    transform: none !important;
+  }
+
+  :host ::ng-deep .disabled-button .p-button-label {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  /* Change Password Button Styles for Faculty */
+  .change-password-btn {
+    margin-right: 1rem !important;
+  }
+
+  :host ::ng-deep .change-password-btn .p-button {
+    background-color: transparent !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+    font-weight: 600 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 25px !important;
+    transition: all 0.3s ease !important;
+    font-size: 14px !important;
+  }
+
+  :host ::ng-deep .change-password-btn .p-button:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+  color: white !important;
+    transform: translateY(-1px) !important;
+}
+
+  :host ::ng-deep .change-password-btn .p-button .p-button-icon {
+    color: white !important;
+    margin-right: 0.5rem !important;
+  }
+
+
+
+

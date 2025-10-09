@@ -1,0 +1,250 @@
+* {
+    color: #800000;
+    background-color: white;
+    font-family: 'Inter', sans-serif;
+}
+
+.background {
+    background-color: white;
+    display: flex;
+    height: 100vh;   
+}
+
+.leftside {
+    flex: 1; 
+    height: 100%;
+    position: relative;
+}
+
+.leftside img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.leftside .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(128, 0, 0, 0.3); 
+}
+
+/* rightside */
+.rightside {
+    flex: 1;
+    display: flex;
+    align-items: center; 
+    justify-content: center; 
+    background-color: white; 
+  position: relative;
+}
+
+.login-header {
+    font-size: 60px;
+    font-weight: 900;
+    color: #800000;
+    margin-bottom: 1rem;
+    margin-left: 2rem;
+    text-align: left;
+  }
+
+.loginform {
+    background-color: white;
+    margin-top: 50px;
+    padding: 2rem;
+    border-radius: 30px;
+    text-align: left; 
+    display: flex;
+    height: 100%;
+    width: 600px;
+    max-width: 90%;
+    flex-direction: column;
+    align-items: center;
+    color:#800000;
+    background-color: white !important; 
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #800000;
+    text-align: left;
+    margin-top: 100px;
+    margin-bottom: 1rem;
+  }
+  
+
+.field label {
+    display: block;
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
+    font-weight: 400;
+    font-size: 1rem;
+    color: #0b0202;
+    width: 100%;
+  }
+
+.field {
+    margin-bottom: 1rem; 
+    width: 100%; 
+    max-width: 480px; 
+}
+
+.p-error {
+    display: block;        
+    margin-top: 0.25rem;  
+    color: #800000;         
+    font-size: 0.85rem;    
+}
+
+/*text*/
+
+.p-inputtext {
+    background-color: white !important; 
+    border: 1px solid #800000 !important;    
+    color: rgb(0, 0, 0);                             
+    padding: 0.5rem;
+    width: 480px !important;
+    height: 50px; 
+    border-radius: 10px;
+}
+
+
+.p-inputtext:focus {
+    border-color: #a00000 !important;
+    box-shadow: none !important; 
+}
+
+/*passwords*/
+.p-password {
+    width: 480px !important;
+    height: 50px; 
+    border-radius: 10px;
+}
+
+.p-password input {
+    background-color: white !important;
+    border: 1px solid #800000 !important;
+    color: black;
+    width: 480px !important;
+    height: 50px;  
+    border-radius: 10px;
+}
+
+
+:host ::ng-deep .p-password input {
+    background-color: white !important; 
+    border: 1px solid #800000 !important;      
+    color: black !important;    
+    width: 480px !important;
+    height: 50px; 
+    border-radius: 10px;             
+}
+
+
+:host ::ng-deep .p-password input:focus {
+    background-color: white !important; 
+    border-color: #a00000 !important;          
+    box-shadow: none !important;              
+}
+
+.p-inputtext,
+:host ::ng-deep .p-password input {
+    width: 480px !important;
+    height: 50px; 
+    border-radius: 10px;
+    padding: 0.5rem;
+    padding-right: 40px !important; /* Make room for the icon */
+    box-sizing: border-box;
+}
+
+
+:host ::ng-deep .p-button {
+    width: 480px !important;
+    height: 50px; 
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+
+:host ::ng-deep .loginbtn .p-button {
+    background-color: #800000 !important;
+    border: none !important;
+    color: white !important;
+    font-weight: bold;
+    border-radius: 10px;
+    height: 55px;
+  }
+  
+
+:host ::ng-deep .loginbtn .p-button:hover {
+    background-color: #a00000 !important;
+  }
+  
+
+.mt-2 {
+    margin-top: 2rem;      
+    font-size: 1rem;         
+    color: #000000;          
+    text-align: center;      
+  }
+  .mt-2 a {
+    text-decoration: underline;
+    font-weight: bold;
+    color: #800000;
+  }
+
+.p-inputtext::placeholder {
+    color: #450808;           
+    font-size: 0.95rem;
+  }
+  
+ 
+  :host ::ng-deep .p-password input::placeholder {
+    color: #450808;         
+    font-size: 0.95rem;
+  }
+
+/* Password toggle icon positioning */
+:host ::ng-deep .p-password {
+  position: relative;
+  width: 480px !important;
+}
+
+:host ::ng-deep .p-password .p-inputwrapper {
+  position: relative;
+  width: 100%;
+}
+
+:host ::ng-deep .p-password .p-password-toggle {
+  color: #800000;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:host ::ng-deep .p-password .p-password-toggle:hover {
+  color: #a00000;
+}
+
+/* Ensure the input has proper padding for the icon */
+:host ::ng-deep .p-password .p-inputtext {
+  padding-right: 40px !important; /* Make room for the icon */
+}

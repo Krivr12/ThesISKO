@@ -1,0 +1,50 @@
+<div  class = "background">
+    
+    <div class = "leftside">
+    <img 
+      src="puplagoon.jpg" 
+      alt="pup lagoon" 
+    />
+    <div class="overlay"></div>
+    </div>
+
+
+    <div class = "rightside">
+        <div class="form-container">
+            <h2 class="header">Hello, Researcher</h2>
+            <h5 class="headerchoose">Please click or tap your destination.</h5>
+
+            <p-button
+            class="facultyButton"
+            label="Faculty"
+            [routerLink]="'/login-faculty'">
+          </p-button>
+          
+          <p-button
+            class="studentButton"
+            label="Student"
+            [routerLink]="'/login'">
+          </p-button>
+
+          <div class="divider">
+            <hr />
+            <span>or</span>
+            <hr />
+        </div>
+
+        <p-button
+            class="guestButton"
+            label="Guest"
+            (click)="onGuestAccess()">
+          </p-button>
+
+          <div class="mt-2">
+            Are you an Admin?
+            <a routerLink="/login-admin">LogIn here.</a>
+          </div>
+          
+
+        </div>
+    </div>
+      
+  </div>

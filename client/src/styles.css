@@ -1,6 +1,42 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* Faculty Change Password Button Styles - Force Override */
+
+.save-btn-custom,
+.save-btn-custom.p-button,
+.p-button.save-btn-custom {
+  background: #800000 !important;
+  background-color: #800000 !important;
+  border: 2px solid #800000 !important;
+  border-color: #800000 !important;
+  color: white !important;
+  font-weight: 700 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 15px rgba(128, 0, 0, 0.4) !important;
+  transition: all 0.3s ease !important;
+}
+
+.save-btn-custom:hover,
+.save-btn-custom.p-button:hover,
+.p-button.save-btn-custom:hover {
+  background: #a00000 !important;
+  background-color: #a00000 !important;
+  border-color: #a00000 !important;
+  color: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(128, 0, 0, 0.6) !important;
+}
+
+.save-btn-custom:disabled,
+.save-btn-custom.p-button:disabled,
+.p-button.save-btn-custom:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
 html,body {
     height: 100%;
     margin: 0;
@@ -9,7 +45,16 @@ html,body {
       height: 100%;
       margin: 0;
       padding: 0;
-      background-color: #800000; 
+      background-color: #800000; /* Default maroon background for public pages */
+    }
+    
+    /* Admin pages should have white background */
+    .admin-page {
+      background-color: #ffffff !important;
+    }
+    
+    .admin-page body {
+      background-color: #ffffff !important;
     }
     
     .hero {
@@ -91,3 +136,48 @@ html,body {
   
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Global password toggle icon positioning - Force inside input */
+.p-password {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+.p-password .p-inputwrapper {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+.p-password .p-password-toggle {
+  position: absolute !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 100 !important;
+  color: #800000 !important;
+  cursor: pointer !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  outline: none !important;
+}
+
+.p-password .p-password-toggle:hover {
+  color: #a00000 !important;
+}
+
+.p-password .p-inputtext {
+  padding-right: 40px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+
+
+

@@ -5,13 +5,22 @@ import { ObjectId } from "mongodb";
 
 const router = express.Router();
 const VECTOR_INDEX = "AbstractSemanticSearch"; // replace with your Atlas vector index
-const collection = RepoMongodb.collection("records");
+const collection = RepoMongodb ? RepoMongodb.collection("records") : null;
 
+// Helper function to check MongoDB availability
+const checkMongoDB = (res) => {
+  if (!collection) {
+    res.status(503).json({ error: "MongoDB not available" });
+    return false;
+  }
+  return true;
+};
 
 // -------------------- Routes --------------------
 
 // GET all records
 router.get("/", async (req, res) => {
+  if (!checkMongoDB(res)) return;
   try {
     const results = await collection.find({}).toArray();
     res.status(200).json(results);
@@ -23,6 +32,7 @@ router.get("/", async (req, res) => {
 
 // GET latest 6 records
 router.get("/latest", async (req, res) => {
+  if (!checkMongoDB(res)) return;
   try {
     const results = await collection
       .find(
