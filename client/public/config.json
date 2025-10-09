@@ -1,4 +1,3 @@
 {
-  "authApiUrl": "http://localhost:5050",
-  "recordsApiUrl": "http://localhost:5050/records"
+  "recordsUrl": "https://thesisko-server.vercel.app/records"
 }

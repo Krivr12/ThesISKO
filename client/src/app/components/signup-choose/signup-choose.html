@@ -35,9 +35,12 @@
         <p-button
             class="guestButton"
             label="Guest"
-            (click)="onGuestAccess()">
+            [routerLink]="'/home'">
           </p-button>
 
+
+
+          
           <div class="mt-2">
             Are you an Admin?
             <a routerLink="/login-admin">LogIn here.</a>
@@ -48,3 +51,4 @@
     </div>
       
   </div>
+  

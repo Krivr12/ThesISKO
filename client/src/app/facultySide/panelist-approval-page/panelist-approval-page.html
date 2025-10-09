@@ -20,8 +20,8 @@
       <div class="people">
         <p><b>Leader:</b> {{ g.leader || '—' }}</p>
         <p><b>Leader’s Email:</b> {{ g.leader_email || '—' }}</p>
-        <p><b>Group Members:</b> {{ g.members.length ? g.members.join(', ') : '—' }}</p>
-        <p><b>Members' Emails:</b> {{ g.member_emails.length ? g.member_emails.join(', ') : '—' }}</p>
+        <p><b>Group Members:</b> {{ g.members?.length ? g.members.join(', ') : '—' }}</p>
+        <p><b>Members’ Emails:</b> {{ g.member_emails?.length ? g.member_emails.join(', ') : '—' }}</p>
       </div>
 
 

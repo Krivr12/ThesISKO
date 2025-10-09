@@ -25,7 +25,7 @@
                 #email = "ngModel"
                 required
                 placeholder="Enter email"
-                pattern="^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$"
+                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                 />
                 @if(email.invalid &&  (email.dirty || email.touched)) {
                     <small class="block p-error">
@@ -64,12 +64,9 @@
             type = "submit">
             </p-button>
 
-            <div class="mt-2"> 
-                <a routerLink="/signup-choose">← Back to Role Selection</a> 
-            </div>
-
         </form>
         </div>
     </div>
       
   </div>
+  

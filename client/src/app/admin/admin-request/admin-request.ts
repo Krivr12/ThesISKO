@@ -22,31 +22,21 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminSideBar } from '../admin-side-bar/admin-side-bar';
 
 interface RequestItem {
-  id?: string;              // Primary key from database (UUID)
-  request_id?: string;       // Request ID from database
-  user_type?: string;        // "student" | "faculty" etc
+  request_id?: string; 
+  requestor_name: string;
+  date: string;             // "YYYY-MM-DD"
+  time: string;             // "HH:mm"
+  selected_chapter: string; // "1" | "2" | "3" | "4" | "5" | "all"
+  purpose: string;
   email: string;
-  department?: string;       // "CCIS" etc
-  program?: string;          // "BSIT" etc
-  country?: string;
-  city?: string;
-  school?: string;
-  status?: string;           // "pending" | "approved" | "rejected"
-  created_at?: string;       // Database timestamp
-  updated_at?: string;       // Database timestamp
-  
-  // Legacy fields for compatibility with existing UI
-  requestor_name?: string;
-  date?: string;             // "YYYY-MM-DD"
-  time?: string;             // "HH:mm"
-  selected_chapter?: string; // "1" | "2" | "3" | "4" | "5" | "all"
-  purpose?: string;
   title?: string;
 
   // Enriched fields from groups.json
   group_id?: string;
   block_id?: string;
   course?: string;
+  program?: string;
+  status?: string;
   abstract?: string;
   leader?: string;
   members?: string[];
@@ -106,7 +96,7 @@ interface GroupEntry {
   styleUrl: './admin-request.css'
 })
 export class AdminRequest implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['email', 'department', 'program', 'status', 'created_at', 'actions'];
+  displayedColumns: string[] = ['requestor', 'time', 'title', 'chapters', 'purpose', 'actions'];
   dataSource = new MatTableDataSource<RequestItem>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -128,8 +118,11 @@ export class AdminRequest implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    // Load requests from JSON file
-    this.loadRequestData();
+    // Load requests for the table
+    this.http.get<RequestItem[]>('requestsample.json').subscribe({
+      next: rows => this.dataSource.data = rows ?? [],
+      error: () => this.dataSource.data = []
+    });
 
     // Load groups once, then index by normalized title
     this.http.get<GroupEntry[]>('groups.json').subscribe({
@@ -150,21 +143,6 @@ export class AdminRequest implements OnInit, AfterViewInit {
     ).includes((f || '').toLowerCase());
   }
 
-  private loadRequestData(): void {
-    // Load requests from JSON file
-    this.http.get<RequestItem[]>('requestsample.json').subscribe({
-      next: rows => {
-        this.dataSource.data = rows ?? [];
-        console.log('Request data loaded from JSON:', rows);
-      },
-      error: (error) => {
-        console.error('Error loading request data:', error);
-        this.dataSource.data = [];
-      }
-    });
-  }
-
-
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
@@ -177,16 +155,6 @@ export class AdminRequest implements OnInit, AfterViewInit {
   formatChapters(sel: string): string {
     if (!sel) return '—';
     return sel === 'all' ? 'All Chapters' : `Chapter ${sel}`;
-  }
-
-  formatDate(dateString: string): string {
-    if (!dateString) return '—';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-    } catch {
-      return dateString;
-    }
   }
 
   /** CLICK: Open Request dialog */
@@ -211,24 +179,22 @@ export class AdminRequest implements OnInit, AfterViewInit {
     }).afterClosed().subscribe(() => {});
   }
   approveRequest(row: RequestItem): void {
-    // Update UI only (no database connection)
-    console.log('Request approved:', row);
+    // TODO: tawag sa API (approve) bago o pagkatapos ng optimistic UI
     this.removeRow(row);
     this.dialog.closeAll();
   }
   
   rejectRequest(row: RequestItem): void {
-    // Update UI only (no database connection)
-    console.log('Request rejected:', row);
+    // TODO: tawag sa API (reject) bago o pagkatapos ng optimistic UI
     this.removeRow(row);
     this.dialog.closeAll();
   }
   
   /** Tanggalin ang row sa table (by id kung meron; otherwise by shallow compare/fingerprint) */
   private removeRow(target: RequestItem): void {
-    const hasId = !!(target.id || target.request_id);
+    const hasId = !!target.request_id;
     const key = (r: RequestItem) =>
-      (r.id ?? r.request_id ?? `${r.requestor_name}||${r.email}||${r.title}||${r.date} ${r.time}||${r.selected_chapter}`);
+      (r.request_id ?? `${r.requestor_name}||${r.email}||${r.title}||${r.date} ${r.time}||${r.selected_chapter}`);
   
     const newData = this.dataSource.data.filter(r => key(r) !== key(target));
     this.dataSource.data = newData;           // re-assign triggers table update

@@ -1,24 +1,20 @@
-<div class="sidenav">
-    <h2 class="logo">ThesISKO</h2>
-  
-    <div class="nav-links">
-      <a mat-button class="Dashboard" routerLink="/admin-dashboard">Dashboard</a>
-      <a mat-button class="Documents" routerLink="/admin-documents">Documents</a>
-      
-      <!-- Admin only menu items (role_id = 4) -->
-      <a mat-button class="Departments" routerLink="/admin-block" *ngIf="isAdmin">Blocks</a>
-      
-      <!-- SuperAdmin only menu items (role_id = 5) -->
-      <a mat-button class="faculty" routerLink="/admin-faculties" *ngIf="isSuperAdmin">Faculties</a>
-      <a mat-button class="departments" routerLink="/admin-departments" *ngIf="isSuperAdmin">Department</a>
-      
-      <!-- Both Admin and SuperAdmin -->
-      <a mat-button class="Request" routerLink="/admin-request">Request</a>
-      <a mat-button class="Template" routerLink="/admin-template">Template</a>
-    </div>
+<mat-sidenav-container class="sidenav-container">
 
-    <button mat-button class="logout" (click)="openLogoutDialog($event)">Logout</button>
-</div>
+    <mat-sidenav mode="side" opened class="sidenav">
+        <h2 class="logo">ThesISKO</h2>
+      
+        <div class="nav-links">
+          <a mat-button class="Dashboard" routerLink="/admin-dashboard">Dashboard</a>
+          <a mat-button class="Documents" routerLink="/admin-documents">Documents</a>
+          <a mat-button class="Departments" routerLink="/admin-block">Blocks</a>
+          <a mat-button class="faculty" routerLink="/admin-faculties">Faculties</a>
+          <a mat-button class="Request" routerLink="/admin-request">Requests</a>
+          <a mat-button class="Template" routerLink="/admin-template">Template</a>
+        </div>
+
+        <button mat-button class="logout" (click)="openLogoutDialog($event)">Logout</button>
+</mat-sidenav>
+</mat-sidenav-container>
 
 <!-- ===== Logout confirm dialog (inline template) ===== -->
 <ng-template #logoutConfirm let-dialogRef="dialogRef">

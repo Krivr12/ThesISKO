@@ -2,346 +2,58 @@
 <div class="container">
   <div class="content-card">
     <div class="card-header">
-      <button type="button" class="return-link" (click)="onReturnClick()">
-        &larr; Return
-      </button>
-    
-      <div class="actions">
-        <div class="citation-dropdown"
-             [class.copied]="citationCopied">
-          <button
-            mat-stroked-button
-            color="primary"
-            class="citation-button"
-            [class.copied]="citationCopied">
-            <span *ngIf="!citationCopied">Copy Citation</span>
-            <span *ngIf="citationCopied">{{copiedFormat}} Copied</span>
-            <span class="dropdown-arrow">▼</span>
-          </button>
-          
-          <div class="citation-options">
-            <button class="citation-option" (click)="generateCitation('apa')">
-              APA
-            </button>
-            <button class="citation-option" (click)="generateCitation('mla')">
-              MLA
-            </button>
-          </div>
-        </div>
-        <button
-          mat-stroked-button
-          color="primary"
-          class="request-button"
-          (click)="$event.stopPropagation(); openRequestDialog()">
-          Request Manuscript
-        </button>
+      <div class="return-link" (click)="onReturnClick()">
+        &lt; Return
       </div>
-    </div>
-    
-
-<!-- ===================== STUDENT DIALOG ===================== -->
-<ng-template #dlgRequestAccessStudent let-dialogRef="dialogRef">
-  <h2 mat-dialog-title>Request Manuscript</h2>
-
-  <mat-dialog-content class="dialog-body">
-    <!-- Email (read-only from auth) -->
-    <div class="dialog-section">
-      <div class="section-title">Your PUP email</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput [value]="currentUserEmail" readonly />
-        <mat-hint>Signed in via @iskolarngbayan.pup.edu.ph</mat-hint>
-      </mat-form-field>
+      <!-- modified request button to open the login pup op -->
+      <button class="request-button" (click)="openLoginModal()">Request for full access</button>
     </div>
 
-    <!-- Program -->
-    <div class="dialog-section">
-      <div class="section-title">Program</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <mat-select [(ngModel)]="studentProgram" placeholder="Select program" (selectionChange)="onProgramChange()">
-          <mat-option value="OPEN UNIVERSITY SYSTEM">OPEN UNIVERSITY SYSTEM</mat-option>
-          <mat-option value="COLLEGE OF ACCOUNTANCY AND FINANCE">COLLEGE OF ACCOUNTANCY AND FINANCE</mat-option>
-          <mat-option value="COLLEGE OF ARCHITECTURE, DESIGN AND THE BUILT ENVIRONMENT">COLLEGE OF ARCHITECTURE, DESIGN AND THE BUILT ENVIRONMENT</mat-option>
-          <mat-option value="COLLEGE OF ARTS AND LETTERS">COLLEGE OF ARTS AND LETTERS</mat-option>
-          <mat-option value="COLLEGE OF BUSINESS ADMINISTRATION">COLLEGE OF BUSINESS ADMINISTRATION</mat-option>
-          <mat-option value="COLLEGE OF COMMUNICATION">COLLEGE OF COMMUNICATION</mat-option>
-          <mat-option value="COLLEGE OF COMPUTER AND INFORMATION SCIENCES">COLLEGE OF COMPUTER AND INFORMATION SCIENCES</mat-option>
-          <mat-option value="COLLEGE OF EDUCATION">COLLEGE OF EDUCATION</mat-option>
-          <mat-option value="COLLEGE OF ENGINEERING">COLLEGE OF ENGINEERING</mat-option>
-          <mat-option value="COLLEGE OF HUMAN KINETICS">COLLEGE OF HUMAN KINETICS</mat-option>
-          <mat-option value="COLLEGE OF SOCIAL SCIENCES AND DEVELOPMENT">COLLEGE OF SOCIAL SCIENCES AND DEVELOPMENT</mat-option>
-          <mat-option value="COLLEGE OF SCIENCE">COLLEGE OF SCIENCE</mat-option>
-        </mat-select>
-        <mat-hint>Pre-selected from your account (can be changed)</mat-hint>
-      </mat-form-field>
+    <div class="main-title">
+      <h1>{{ document.title }}</h1>
     </div>
 
-    <!-- Department -->
-    <div class="dialog-section">
-      <div class="section-title">Department</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <mat-select [(ngModel)]="studentDepartment" placeholder="Select department">
-          <mat-option *ngFor="let dept of getFilteredDepartmentOptions(); trackBy: trackDepartmentBy" [value]="dept.value">
-            {{dept.label}}
-          </mat-option>
-        </mat-select>
-        <mat-hint>Filtered based on selected program (can be changed)</mat-hint>
-      </mat-form-field>
-    </div>
-
-    <!-- Chapters -->
-    <div class="dialog-section">
-      <div class="section-title">Select chapters</div>
-      <div class="checkbox-grid">
-        <mat-checkbox
-          *ngFor="let c of requestOptions"
-          [checked]="selectedRequestChapters.has(c)"
-          (change)="toggleRequestChapter(c, $event.checked)">
-          {{ c }}
-        </mat-checkbox>
-      </div>
-      <small class="hint">Tip: Select "All" if you need the entire manuscript.</small>
-    </div>
-
-    <!-- Purpose -->
-    <div class="dialog-section">
-      <div class="section-title">Purpose of request</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <textarea
-          matInput
-          [(ngModel)]="requestPurpose"
-          placeholder="State your purpose"
-          rows="4"
-          required></textarea>
-        <mat-hint>Give a short but clear reason.</mat-hint>
-        <mat-error *ngIf="requestPurpose.trim().length < 8">Please enter at least 8 characters.</mat-error>
-      </mat-form-field>
-    </div>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
-    <button
-      mat-raised-button
-      color="accent"
-      [disabled]="!(studentFormValid && studentProgram && studentDepartment)"
-      (click)="openTermsAndSubmit(dialogRef)">
-      Send request
-    </button>
-  </mat-dialog-actions>
-</ng-template>
-
-<!-- ===================== GUEST DIALOG ======================= -->
-<ng-template #dlgRequestAccessGuest let-dialogRef="dialogRef">
-  <h2 mat-dialog-title>Request Manuscript</h2>
-
-  <mat-dialog-content class="dialog-body">
-    <!-- Email -->
-    <div class="dialog-section">
-      <div class="section-title">Your email</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <input
-          matInput
-          [(ngModel)]="requestEmail"
-          type="email"
-          placeholder="name@gmail.com"
-          (ngModelChange)="touchGuestEmail = true"
-          required />
-        <mat-hint>Guests must request using Gmail.</mat-hint>
-        <mat-error *ngIf="touchGuestEmail && !isGmail(requestEmail)">
-          Please use a valid Gmail address.
-        </mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- Country -->
-    <div class="dialog-section">
-      <div class="section-title">Country</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput [(ngModel)]="guestCountry" placeholder="e.g., Philippines" required />
-        <mat-error *ngIf="!guestCountry">Country is required.</mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- School -->
-    <div class="dialog-section">
-      <div class="section-title">School</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput [(ngModel)]="guestSchool" placeholder="e.g., XYZ University" required />
-        <mat-error *ngIf="!guestSchool">School is required.</mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- City -->
-    <div class="dialog-section">
-      <div class="section-title">City</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput [(ngModel)]="guestCity" placeholder="e.g., Manila" required />
-        <mat-error *ngIf="!guestCity">City is required.</mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- Chapters -->
-    <div class="dialog-section">
-      <div class="section-title">Select chapters</div>
-      <div class="checkbox-grid">
-        <mat-checkbox
-          *ngFor="let c of requestOptions"
-          [checked]="selectedRequestChapters.has(c)"
-          (change)="toggleRequestChapter(c, $event.checked)">
-          {{ c }}
-        </mat-checkbox>
-      </div>
-      <small class="hint">Tip: Select "All" if you need the entire manuscript.</small>
-    </div>
-
-    <!-- Purpose -->
-    <div class="dialog-section">
-      <div class="section-title">Purpose of request</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <textarea
-          matInput
-          [(ngModel)]="requestPurpose"
-          placeholder="State your purpose"
-          rows="4"
-          required></textarea>
-        <mat-error *ngIf="requestPurpose.trim().length < 8">Please enter at least 8 characters.</mat-error>
-      </mat-form-field>
-    </div>
-
-    <mat-divider></mat-divider>
-    <p class="policy-note">
-      Requests are reviewed by admin. You may be asked to verify your email.
-    </p>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
-    <button
-      mat-raised-button
-      color="accent"
-      [disabled]="!(guestFormValid && guestCountry && guestCity && guestSchool)"
-      (click)="openTermsAndSubmit(dialogRef)">
-      Send request
-    </button>
-  </mat-dialog-actions>
-</ng-template>
-
-<!-- ===================== LOGIN REQUIRED (NOT SIGNED IN) ======================= -->
-<ng-template #dlgLoginRequired let-dialogRef="dialogRef">
-  <h2 mat-dialog-title>Log In to continue</h2>
-
-  <mat-dialog-content class="dialog-body">
-    <p class="mb-2">
-      If you wish to download this manuscript, you need to Log In first.
-    </p>
-    <p class="muted">
-     PUP Students: use your <strong>@iskolarngbayan.pup.edu.ph</strong> account. <br />
-      Non-PUP: you may proceed with a Gmail account after signing in.
-    </p>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="dialogRef.close()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="goToLogin(dialogRef)">
-      LogIn
-    </button>
-  </mat-dialog-actions>
-</ng-template>
-
-<!-- ===================== TERMS & CONDITIONS ======================= -->
-<ng-template #dlgTerms let-dialogRef="dialogRef">
-  <h2 mat-dialog-title>Terms &amp; Conditions for Thesis/Manuscript Access</h2>
-
-  <mat-dialog-content class="dialog-body">
-    <div class="terms-scroll">
-      <ul class="terms-list">
-        <li><strong>Scope &amp; Purpose (Academic-Only)</strong> — You will use the file strictly for coursework, capstone, or non-commercial academic research.</li>
-        <li><strong>Non-Commercial Use</strong> — You will not sell, rent, license, or otherwise monetize any part of the work.</li>
-        <li><strong>No Plagiarism</strong> — You will not copy or paraphrase without proper attribution, nor submit any portion as your own work.</li>
-        <li><strong>Proper Citation</strong> — When quoting, paraphrasing, or referencing, you will cite the work using your required style (APA/MLA/Chicago/etc.).</li>
-        <li><strong>No Unauthorized Distribution</strong> — You will not publicly upload, repost, mirror, or share full copies with others without written permission from the rights holder and/or PUP.</li>
-        <li><strong>Integrity of the Work</strong> — You will not alter or remove author names, titles, watermarks, or copyright notices.</li>
-        <li><strong>Access &amp; Security</strong> — You will not bypass access controls. You acknowledge that access may be logged for audit and compliance.</li>
-        <li><strong>Reporting Misuse</strong> — You will promptly report any accidental leaks, unauthorized access, or suspected misuse to the librarian/admin.</li>
-        <li><strong>Compliance &amp; Consequences</strong> — Violations may lead to revoked access, school disciplinary action, and/or legal remedies.</li>
-        <li><strong>Acknowledgment</strong> — By proceeding, you affirm you have read, understood, and agree to these terms and are responsible for compliance.</li>
-      </ul>
-    </div>
-
-    <mat-checkbox [(ngModel)]="termsAccepted" class="terms-checkbox">
-      I have read, understood, and agree to the Terms &amp; Conditions for academic, non-commercial use.
-    </mat-checkbox>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="dialogRef.close(false)">Cancel</button>
-    <button mat-raised-button color="accent"
-            [disabled]="!termsAccepted"
-            (click)="dialogRef.close(true)">
-      Send request
-    </button>
-  </mat-dialog-actions>
-</ng-template>
-
-    <div class="main-title protected-content" 
-         (contextmenu)="preventAction($event)"
-         (selectstart)="preventAction($event)"
-         (copy)="preventAction($event)"
-         (cut)="preventAction($event)"
-         (paste)="preventAction($event)"
-         (dragstart)="preventAction($event)">
-      <h1>{{ thesis.title }}</h1>
-    </div>
-
-    <div class="section protected-content"
-         (contextmenu)="preventAction($event)"
-         (selectstart)="preventAction($event)"
-         (copy)="preventAction($event)"
-         (cut)="preventAction($event)"
-         (paste)="preventAction($event)"
-         (dragstart)="preventAction($event)">
+    <div class="section">
       <h2 class="section-title">Abstract</h2>
-      <p class="section-text">{{ thesis.abstract }}</p>
+      <p class="section-text">{{ document.abstract }}</p>
     </div>
 
-    <div class="details-grid protected-content"
-         (contextmenu)="preventAction($event)"
-         (selectstart)="preventAction($event)"
-         (copy)="preventAction($event)"
-         (cut)="preventAction($event)"
-         (paste)="preventAction($event)"
-         (dragstart)="preventAction($event)">
+    <div class="details-grid">
       <div class="details-column">
         <div class="detail-item">
           <p class="detail-label">Date of Publication</p>
-          <p class="detail-value">
-            {{ thesis.submitted_at | date:'MMMM d, y' }}
-          </p>
+          <p class="detail-value">{{ document.dateOfPublication }}</p>
         </div>
         <div class="detail-item">
-          <p class="detail-label">Access Level</p>
-          <p class="detail-value">{{ thesis.access_level }}</p>
+          <p class="detail-label">Degree Name</p>
+          <p class="detail-value">{{ document.degreeName }}</p>
         </div>
         <div class="detail-item">
           <p class="detail-label">Subject Categories</p>
-          <p class="detail-value">{{ thesis.tags }}</p>
+          <p class="detail-value">{{ document.subjectCategories }}</p>
         </div>
       </div>
       <div class="details-column">
         <div class="detail-item">
           <p class="detail-label">Author's</p>
-          <p class="detail-value">{{ thesis.authors }}</p>
+          <p class="detail-value">{{ document.authors }}</p>
         </div>
         <div class="detail-item">
-          <p class="detail-label">Program</p>
-          <p class="detail-value">{{ thesis.program }}</p>
+          <p class="detail-label">College</p>
+          <p class="detail-value">{{ document.college }}</p>
         </div>
         <div class="detail-item">
           <p class="detail-label">Document Type</p>
-          <p class="detail-value">{{ thesis.document_type }}</p>
+          <p class="detail-value">{{ document.documentType }}</p>
         </div>
       </div>
     </div>
   </div>
 </div>
 <app-footer></app-footer>
+
+<!-- modal componentt -->
+<app-login-modal 
+  [isVisible]="isLoginModalVisible" 
+  (close)="closeLoginModal()">
+</app-login-modal>

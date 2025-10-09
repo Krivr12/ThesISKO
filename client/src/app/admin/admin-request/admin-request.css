@@ -212,22 +212,6 @@
   overflow: hidden;
   margin-bottom: 0;
 }
-/* ========== STATUS STYLING ========== */
-.status-pending {
-  color: #ff9800;
-  font-weight: 600;
-}
-
-.status-approved {
-  color: #4caf50;
-  font-weight: 600;
-}
-
-.status-rejected {
-  color: #f44336;
-  font-weight: 600;
-}
-
 /* ========== PAGINATOR: CENTER & NO BACKGROUND ========== */
 .paginator {
   display: flex;

@@ -46,3 +46,11 @@ Desktop.ini
 .pnp.cjs
 .pnp.loader.mjs
 .pnp.data.json
+
+# Ignore Thesisko folder
+/Thesisko/
+
+# Angular & Vite cache
+client/.angular/cache/
+client/vite/
+client/*.tsbuildinfo

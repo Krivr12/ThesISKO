@@ -20,6 +20,15 @@ import users from "./routes/users.js";
 import auth from "./routes/auth.js";
 import admin from "./routes/admin.js";
 import facultyPassword from "./routes/faculty-password.js";
+// New routes from dev-Chris
+import blocks from "./routes/blocks.js";
+import groups from "./routes/groups.js";
+import programs from "./routes/programs.js";
+import requests from "./routes/requests.js";
+// New middlewares from dev-Chris
+import rateLimiter from "./middlewares/rateLimiter.js";
+import { validateRequest } from "./middlewares/requestValidator.js";
+import { errorLoggerMiddleware } from "./middlewares/errorLogger.js";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -42,14 +51,16 @@ process.on('unhandledRejection', (reason, promise) => {
 app.use(helmet());
 
 // ✅ Restrict CORS to your Angular app only
-const allowedOrigins = [
-  "http://localhost:4200",   // Angular local dev (default)
-  "http://localhost:4201",   // Angular local dev (alternative port)
-  "http://127.0.0.1:4201",   // Alternative localhost format
-  "http://localhost:54825",  // Angular dev server dynamic port
-  "http://localhost:44740",  // Angular local dev (alternative port)
-  "https://thesisko.vercel.app" // replace with your real prod domain
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+  : [
+      "http://localhost:4200",   // Angular local dev (default)
+      "http://localhost:4201",   // Angular local dev (alternative port)
+      "http://127.0.0.1:4201",   // Alternative localhost format
+      "http://localhost:54825",  // Angular dev server dynamic port
+      "http://localhost:44740",  // Angular local dev (alternative port)
+      "https://thesisko.vercel.app" // replace with your real prod domain
+    ];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -96,6 +107,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// 🛡️ Global rate limiter (applies to all routes)
+app.use(rateLimiter);
+
 // Routes
 app.use("/records", records);
 app.use("/group_progress", group_progress);
@@ -105,6 +119,12 @@ app.use("/api/users", users);
 app.use("/auth", auth);
 app.use("/admin", admin);
 app.use("/api/faculty", facultyPassword);
+// New routes from dev-Chris
+app.use("/programs", programs);
+app.use("/blocks", blocks);
+app.use("/groups", groups);
+// 🧾 Request validation only for request creation routes
+app.use("/requests", validateRequest, requests);
 
 // Direct verification route (for email links)
 app.get("/verify-student", async (req, res) => {
@@ -145,6 +165,9 @@ app.get("/health", async (req, res) => {
   }
 });
 
+// 🪵 Error logger middleware (must be before final error handler)
+app.use(errorLoggerMiddleware);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error("Error:", err);
@@ -162,4 +185,4 @@ if (process.env.NODE_ENV !== "production") {
 // ✅ Export handler for Vercel
 export default app;
 
-//node --env-file=config.env server.js            
+//node --env-file=config.env server.js

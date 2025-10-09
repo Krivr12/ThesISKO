@@ -1,14 +1,14 @@
-.sidenav {
-    width: 200px;
+.sidenav-container {
     height: 100vh;
+  }
+  
+  .sidenav {
+    width: 200px;
     background-color: #800000;
     padding-top: 2rem;
     padding-left: 1rem;
     padding-right: 1rem;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
+   
   }
   
   .logout{

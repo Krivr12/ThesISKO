@@ -1,0 +1,661 @@
+[
+  {
+    "title": "Optimizing Urban Traffic Flow Using Reinforcement Learning and Real-Time Sensor Data",
+    "abstract": "Urban traffic congestion remains a persistent issue in modern cities, leading to economic inefficiencies, increased emissions, and commuter frustration. This study introduces a reinforcement learning (RL)-based framework that utilizes real-time sensor data to optimize traffic signal control across urban intersections. By employing a model-free Deep Q-Learning algorithm, the system enables an intelligent agent to learn adaptive signal timing strategies aimed at minimizing vehicle waiting times, congestion levels, and travel delays.",
+    "access_level": "Public",
+    "authors": ["Juan Dela Cruz", "Maria Santos", "Jose Ramirez", "Liza Bautista"],
+    "tags": ["Reinforcement Learning", "Traffic", "Smart Cities"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Enhancing Crop Yield Prediction Using Machine Learning and Satellite Imagery",
+    "abstract": "Accurate crop yield prediction is vital for food security and resource allocation. This study leverages machine learning algorithms combined with satellite imagery to forecast yields with high precision. Data on vegetation indices, soil moisture, and historical yields were used to train a Random Forest model that demonstrates improved accuracy compared to traditional statistical approaches.",
+    "access_level": "Limited",
+    "authors": ["Mark Villanueva", "Angela Reyes", "Carlos Mendoza", "Kristine Ramos"],
+    "tags": ["Agriculture", "Machine Learning", "Satellite Data"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Blockchain-Based Voting System for Secure and Transparent Elections",
+    "abstract": "This research proposes a blockchain-based voting platform aimed at enhancing election security, transparency, and voter trust. The system utilizes decentralized ledger technology to prevent tampering, ensure anonymity, and enable real-time vote verification, addressing major concerns in traditional voting systems.",
+    "access_level": "Restricted",
+    "authors": ["Patrick Flores", "Elaine Cruz", "Ramon Navarro", "Bianca Morales"],
+    "tags": ["Blockchain", "Elections", "Security"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Developing a Smart Flood Monitoring and Early Warning System Using IoT",
+    "abstract": "Flooding is a recurring disaster in the Philippines, causing significant damage and displacement. This project presents an IoT-based flood monitoring system integrating water-level sensors, GSM modules, and cloud-based dashboards to provide real-time alerts for early disaster response and community safety.",
+    "access_level": "Public",
+    "authors": ["Jessa Aquino", "Marco Torres", "Daniel Castillo", "Sophia Hernandez"],
+    "tags": ["IoT", "Disaster Management", "Flood Monitoring"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Predicting Student Academic Performance Through Learning Analytics",
+    "abstract": "This study applies learning analytics techniques on student data such as attendance, LMS interactions, and quiz performance to predict academic outcomes. Machine learning models like Support Vector Machines and Gradient Boosting are evaluated to identify at-risk students and improve intervention strategies.",
+    "access_level": "Limited",
+    "authors": ["Kevin Lopez", "Andrea Santiago", "Francis Dizon", "Janelle Gutierrez"],
+    "tags": ["Education", "Learning Analytics", "Prediction"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Renewable Energy Integration in Smart Grids Using AI Forecasting Models",
+    "abstract": "The increasing penetration of renewable energy sources introduces variability in power supply. This research develops AI-based forecasting models for solar and wind power generation, enabling more efficient integration into smart grids while maintaining stability and reducing reliance on fossil fuels.",
+    "access_level": "Public",
+    "authors": ["Nico Ramos", "Hannah Bautista", "Luis Fernandez", "Carla Diaz"],
+    "tags": ["Renewable Energy", "AI", "Smart Grids"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "AI-Powered Mental Health Chatbot for Early Detection of Depression",
+    "abstract": "Mental health challenges are rising, yet access to professional help remains limited. This project introduces an AI chatbot that performs sentiment analysis on user interactions to detect early signs of depression and anxiety. The chatbot provides supportive responses and refers users to mental health professionals when needed.",
+    "access_level": "Restricted",
+    "authors": ["Paolo Cruz", "Jasmine Flores", "Allan Garcia", "Bea Mendoza"],
+    "tags": ["AI", "Mental Health", "Chatbot"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Optimizing E-Commerce Recommendation Systems Using Deep Learning",
+    "abstract": "This research explores the use of deep neural networks for enhancing e-commerce recommendation systems. By analyzing user browsing history, purchase data, and clickstream patterns, the model provides more personalized recommendations, improving user engagement and sales conversion rates.",
+    "access_level": "Public",
+    "authors": ["Vincent Perez", "Rhea Santos", "Erwin Villanueva", "Claudia Ramos"],
+    "tags": ["E-Commerce", "Deep Learning", "Recommender Systems"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Climate Change Impact Modeling on Philippine Coastal Communities",
+    "abstract": "The Philippines is highly vulnerable to rising sea levels and extreme weather events. This study models the long-term impacts of climate change on coastal communities using geospatial data, predictive climate models, and socio-economic indicators to inform policy-making and adaptive strategies.",
+    "access_level": "Limited",
+    "authors": ["Miguel Cruz", "Patricia Gomez", "Joel Bautista", "Sofia Castillo"],
+    "tags": ["Climate Change", "Coastal", "Modeling"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "5G Network Security Challenges and Solutions in Developing Countries",
+    "abstract": "As 5G networks roll out globally, security threats such as man-in-the-middle attacks and network slicing vulnerabilities are emerging. This research investigates security frameworks tailored for developing countries, balancing performance, cost, and resilience.",
+    "access_level": "Restricted",
+    "authors": ["Andre Morales", "Camille Reyes", "Jason Navarro", "Denise Cruz"],
+    "tags": ["5G", "Network Security", "Developing Countries"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Improving Disaster Response with Drone-Based Aerial Surveillance",
+    "abstract": "This project designs a drone-based system for rapid aerial assessment during disasters. Equipped with thermal imaging and live-streaming capabilities, drones provide emergency responders with real-time situational awareness, improving decision-making and resource deployment.",
+    "access_level": "Public",
+    "authors": ["Joshua Mendoza", "Lara Cruz", "Enrique Santos", "Mariel Gonzales"],
+    "tags": ["Drones", "Disaster Response", "Surveillance"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Smart Healthcare Monitoring System Using Wearable Devices",
+    "abstract": "This study introduces a wearable health monitoring device that continuously tracks vital signs such as heart rate, oxygen levels, and blood pressure. The data is transmitted securely to healthcare providers, enabling early detection of medical emergencies and better patient care.",
+    "access_level": "Limited",
+    "authors": ["Ralph Gutierrez", "Fiona Lim", "Oscar Delgado", "Grace Villanueva"],
+    "tags": ["Healthcare", "Wearables", "IoT"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Automating Legal Document Analysis Using Natural Language Processing",
+    "abstract": "Legal practitioners face overwhelming amounts of text data. This research applies NLP models such as BERT to automate contract analysis, clause extraction, and risk identification, reducing manual workload and improving efficiency in the legal sector.",
+    "access_level": "Restricted",
+    "authors": ["Christian Ramos", "Elaine David", "Martin Cruz", "Angela Torres"],
+    "tags": ["NLP", "Law", "Automation"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Gamified Mobile Application for Language Learning",
+    "abstract": "This study presents a mobile application that incorporates gamification techniques—such as points, levels, and challenges—into language learning. The system enhances learner engagement, motivation, and retention compared to traditional language-learning apps.",
+    "access_level": "Public",
+    "authors": ["Ronald Villanueva", "Michelle Santiago", "Dennis Reyes", "Clara Fernandez"],
+    "tags": ["Gamification", "Mobile App", "Language Learning"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Real-Time Earthquake Detection Using Crowdsourced Smartphone Sensors",
+    "abstract": "This research leverages accelerometer data from smartphones to create a crowdsourced earthquake detection system. The system processes real-time vibration data to provide early warnings and supplement government seismic networks.",
+    "access_level": "Public",
+    "authors": ["Leandro Cruz", "Hannah Morales", "Victor Castillo", "Joanna Gomez"],
+    "tags": ["Earthquake", "Crowdsourcing", "Sensors"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Cybersecurity Threat Detection in Cloud Infrastructures Using AI",
+    "abstract": "Cloud infrastructures are increasingly targeted by cyber threats. This study employs deep learning models to detect anomalies in network traffic, enhancing the detection of zero-day attacks and insider threats in cloud platforms.",
+    "access_level": "Restricted",
+    "authors": ["Jerome Dela Cruz", "Katrina Santos", "Felix Ramirez", "Mica Bautista"],
+    "tags": ["Cybersecurity", "Cloud", "AI"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "AI-Enhanced Personalized Fitness Coaching Platform",
+    "abstract": "This project introduces an AI-driven fitness application that personalizes workout plans based on user goals, biometrics, and activity data. The system leverages reinforcement learning to adjust exercise intensity and routines dynamically.",
+    "access_level": "Limited",
+    "authors": ["Alfredo Lopez", "Jenny Ramos", "Gabriel Fernandez", "Monica Cruz"],
+    "tags": ["Fitness", "AI", "Personalization"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Digital Twin Technology for Smart Manufacturing",
+    "abstract": "This study develops a digital twin framework for manufacturing systems that enables real-time monitoring, predictive maintenance, and optimization of production lines. The research shows improvements in efficiency and cost savings.",
+    "access_level": "Public",
+    "authors": ["Samuel Gutierrez", "Nina Reyes", "Arthur Mendoza", "Celine Navarro"],
+    "tags": ["Digital Twin", "Manufacturing", "Optimization"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Autonomous Vehicle Navigation in Complex Urban Environments",
+    "abstract": "The rise of autonomous vehicles requires robust navigation systems. This research implements deep reinforcement learning for self-driving cars, enabling them to adapt to traffic lights, pedestrians, and unpredictable road scenarios in urban settings.",
+    "access_level": "Restricted",
+    "authors": ["Darren Torres", "Elaine Cruz", "Ivan Morales", "Rica Santos"],
+    "tags": ["Autonomous Vehicles", "Navigation", "Reinforcement Learning"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Smart Rice Farming System Using Computer Vision and IoT Sensors",
+    "abstract": "Rice farming in the Philippines faces challenges from pests, weather variability, and resource optimization. This study develops an integrated system combining computer vision for pest detection, IoT sensors for soil monitoring, and mobile alerts to help farmers make data-driven decisions for improved rice yield and sustainable farming practices.",
+    "access_level": "Public",
+    "authors": ["Ricardo Dela Rosa", "Carmen Villanueva", "Eduardo Santos", "Isabelle Cruz"],
+    "tags": ["Computer Vision", "IoT", "Agriculture", "Smart Farming"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Blockchain-Based Barangay ID Management System for Rural Communities",
+    "abstract": "Rural barangays in the Philippines often struggle with identity verification and record-keeping. This research proposes a blockchain-based digital ID system that ensures secure, tamper-proof resident records while enabling offline functionality for areas with limited internet connectivity.",
+    "access_level": "Limited",
+    "authors": ["Fernando Reyes", "Maria Elena Torres", "Benjamin Cruz", "Rosario Mendoza"],
+    "tags": ["Blockchain", "Digital Identity", "Rural Technology", "Government Services"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "AI-Powered Jeepney Route Optimization for Metro Manila Traffic",
+    "abstract": "Traditional jeepney routes in Metro Manila contribute to traffic congestion and inefficient public transport. This study applies genetic algorithms and real-time traffic data to optimize jeepney routes, reducing travel time and improving passenger satisfaction while preserving the cultural significance of this iconic transport mode.",
+    "access_level": "Public",
+    "authors": ["Roberto Fernandez", "Ana Gutierrez", "Miguel Santos", "Gloria Ramos"],
+    "tags": ["Transportation", "Optimization", "Urban Planning", "Genetic Algorithms"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Coconut Disease Detection Using Deep Learning and Drone Imagery",
+    "abstract": "Coconut farming is crucial to Philippine agriculture but faces threats from various diseases. This research employs convolutional neural networks to analyze drone-captured images for early detection of coconut diseases, enabling timely intervention and reducing crop losses in remote farming areas.",
+    "access_level": "Limited",
+    "authors": ["Carlos Villanueva", "Luz Maria Santos", "Antonio Cruz", "Remedios Flores"],
+    "tags": ["Deep Learning", "Agriculture", "Drone Technology", "Disease Detection"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Smart City Dashboard for Cebu: Real-Time Urban Analytics Platform",
+    "abstract": "Cebu City's rapid urbanization requires better data-driven governance. This project develops a comprehensive smart city dashboard integrating traffic, waste management, energy consumption, and citizen feedback data to support evidence-based decision-making for sustainable urban development.",
+    "access_level": "Public",
+    "authors": ["Jose Ramon Diaz", "Patricia Morales", "Arturo Bautista", "Esperanza Navarro"],
+    "tags": ["Smart Cities", "Data Analytics", "Urban Management", "Dashboard"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Machine Learning Approach to Predicting Typhoon Impact on Power Grids",
+    "abstract": "The Philippines experiences numerous typhoons annually, often causing widespread power outages. This study develops ML models using historical weather data, grid topology, and damage reports to predict power grid vulnerabilities and optimize pre-positioning of repair resources.",
+    "access_level": "Restricted",
+    "authors": ["Alfonso Cruz", "Beatriz Santos", "Domingo Reyes", "Catalina Mendoza"],
+    "tags": ["Machine Learning", "Disaster Preparedness", "Power Grid", "Typhoon Prediction"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Virtual Reality Training System for Filipino Healthcare Workers",
+    "abstract": "Healthcare training in remote Philippine areas faces resource constraints. This research creates a VR-based medical training platform specifically designed for Filipino healthcare contexts, including common tropical diseases and culturally appropriate patient interactions, improving training accessibility and effectiveness.",
+    "access_level": "Limited",
+    "authors": ["Teodoro Villanueva", "Angela Maria Cruz", "Rodrigo Santos", "Cecilia Ramos"],
+    "tags": ["Virtual Reality", "Healthcare Training", "Medical Education", "Simulation"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Crowdsourced Water Quality Monitoring Network for Philippine Rivers",
+    "abstract": "Water pollution in Philippine rivers poses serious health risks. This study establishes a crowdsourced monitoring network using low-cost sensors and mobile apps, enabling communities to track water quality in real-time and report pollution incidents to authorities.",
+    "access_level": "Public",
+    "authors": ["Manuel Torres", "Rosa Cruz", "Alejandro Gutierrez", "Maricar Santos"],
+    "tags": ["Water Quality", "Crowdsourcing", "Environmental Monitoring", "Mobile Apps"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Natural Language Processing for Filipino Text Sentiment Analysis",
+    "abstract": "Social media monitoring in the Philippines requires understanding Filipino language nuances. This research develops NLP models specifically trained on Filipino text data, including Tagalog, Taglish, and regional dialects, for accurate sentiment analysis of social media posts and news articles.",
+    "access_level": "Public",
+    "authors": ["Gabriel Reyes", "Luz Santos", "Francisco Cruz", "Adelaida Morales"],
+    "tags": ["Natural Language Processing", "Sentiment Analysis", "Filipino Language", "Social Media"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Edge Computing Solution for Remote Island Connectivity",
+    "abstract": "Many Philippine islands lack reliable internet infrastructure. This study implements edge computing nodes that can operate autonomously, providing essential digital services like online banking, telemedicine consultations, and educational content even with intermittent connectivity.",
+    "access_level": "Limited",
+    "authors": ["Ernesto Villanueva", "Carmen Santos", "Pablo Cruz", "Milagros Fernandez"],
+    "tags": ["Edge Computing", "Rural Connectivity", "Digital Inclusion", "Island Technology"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Augmented Reality App for Philippine Historical Site Tourism",
+    "abstract": "Philippine tourism can benefit from interactive technology. This project develops an AR mobile application that overlays historical information, stories, and reconstructions onto real Philippine heritage sites, enhancing tourist experiences while promoting cultural preservation and education.",
+    "access_level": "Public",
+    "authors": ["Leonardo Santos", "Marites Cruz", "Vicente Reyes", "Dolores Bautista"],
+    "tags": ["Augmented Reality", "Tourism", "Cultural Preservation", "Mobile App"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Automated Tuna Quality Grading Using Computer Vision",
+    "abstract": "The Philippines is a major tuna exporter, but manual quality grading is subjective and time-consuming. This research develops computer vision algorithms to automatically assess tuna quality based on color, texture, and size parameters, standardizing export quality and reducing processing time.",
+    "access_level": "Limited",
+    "authors": ["Ramon Gutierrez", "Victoria Santos", "Nestor Cruz", "Corazon Villanueva"],
+    "tags": ["Computer Vision", "Food Processing", "Quality Control", "Export Industry"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Smart Energy Management System for Philippine Households",
+    "abstract": "Rising electricity costs burden Filipino families. This study creates a smart home energy management system using IoT devices and machine learning to optimize appliance usage, reduce peak-hour consumption, and integrate solar panels for cost-effective household energy management.",
+    "access_level": "Public",
+    "authors": ["Sergio Morales", "Remedios Cruz", "Armando Santos", "Teresita Reyes"],
+    "tags": ["Smart Home", "Energy Management", "IoT", "Solar Integration"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Digital Banking Security Framework for Rural Philippine Communities",
+    "abstract": "Digital banking adoption in rural Philippines faces security concerns and low digital literacy. This research develops a simplified, secure mobile banking interface with biometric authentication and SMS-based backup systems tailored for rural users with limited smartphone experience.",
+    "access_level": "Restricted",
+    "authors": ["Florencio Santos", "Concepcion Cruz", "Emilio Villanueva", "Socorro Ramos"],
+    "tags": ["Digital Banking", "Rural Finance", "Security", "User Experience"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Machine Learning for Predicting Fish Catch Patterns in Philippine Waters",
+    "abstract": "Filipino fishing communities rely on traditional knowledge for fishing patterns. This study combines historical catch data, weather patterns, and ocean conditions with machine learning algorithms to predict optimal fishing locations and times, supporting sustainable fishing practices.",
+    "access_level": "Public",
+    "authors": ["Abundio Cruz", "Esperanza Santos", "Marcelino Reyes", "Purificacion Torres"],
+    "tags": ["Machine Learning", "Fisheries", "Sustainable Fishing", "Marine Resources"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "IoT-Based Landslide Early Warning System for Mountain Barangays",
+    "abstract": "Mountainous areas in the Philippines are prone to landslides during rainy seasons. This project deploys IoT sensors to monitor soil moisture, ground movement, and rainfall, providing automated early warnings to vulnerable barangays through SMS and community alert systems.",
+    "access_level": "Public",
+    "authors": ["Primitivo Villanueva", "Visitacion Santos", "Ambrosio Cruz", "Soledad Gutierrez"],
+    "tags": ["IoT", "Landslide Detection", "Early Warning", "Community Safety"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Automated Classroom Attendance System Using Facial Recognition",
+    "abstract": "Philippine schools face challenges with accurate attendance tracking. This study implements a facial recognition system adapted for Filipino students, addressing challenges like varying lighting conditions and face mask usage while ensuring privacy protection and cultural sensitivity.",
+    "access_level": "Limited",
+    "authors": ["Catalino Reyes", "Encarnacion Santos", "Hilario Cruz", "Natividad Morales"],
+    "tags": ["Facial Recognition", "Education Technology", "Attendance System", "Privacy"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "AI-Powered Crop Insurance Assessment for Filipino Farmers",
+    "abstract": "Crop insurance claims in the Philippines often face delays and disputes. This research develops an AI system using satellite imagery and weather data to automatically assess crop damage, speeding up insurance claims processing and reducing fraudulent claims while supporting farmer livelihoods.",
+    "access_level": "Restricted",
+    "authors": ["Macario Santos", "Pilar Cruz", "Celestino Villanueva", "Perfecta Reyes"],
+    "tags": ["Artificial Intelligence", "Insurance Technology", "Agriculture", "Risk Assessment"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Mobile Health Platform for Maternal Care in Rural Philippines",
+    "abstract": "Maternal mortality rates in remote Philippine areas remain high due to limited healthcare access. This mHealth platform provides prenatal guidance, appointment scheduling, and emergency alerts while connecting pregnant women with healthcare providers through telemedicine consultations.",
+    "access_level": "Limited",
+    "authors": ["Numeriano Cruz", "Salvacion Santos", "Eusebio Reyes", "Consolacion Morales"],
+    "tags": ["Mobile Health", "Maternal Care", "Telemedicine", "Rural Healthcare"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Smart Traffic Light System for Provincial Cities Using AI",
+    "abstract": "Growing traffic in Philippine provincial cities needs intelligent solutions. This study develops an AI-driven traffic light control system that adapts to local traffic patterns, considers pedestrian crossings, and integrates with public transport schedules to improve traffic flow in smaller urban centers.",
+    "access_level": "Public",
+    "authors": ["Pacifico Villanueva", "Trinidad Santos", "Ceferino Cruz", "Felicidad Gutierrez"],
+    "tags": ["Artificial Intelligence", "Traffic Management", "Provincial Cities", "Smart Systems"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Blockchain-Based Supply Chain Tracking for Philippine Mangoes",
+    "abstract": "Philippine mango exports require transparent quality assurance. This research implements a blockchain system to track mangoes from farm to export, recording quality checks, storage conditions, and transportation data to ensure product integrity and build international buyer confidence.",
+    "access_level": "Limited",
+    "authors": ["Dionisio Santos", "Caridad Cruz", "Proceso Reyes", "Milagros Villanueva"],
+    "tags": ["Blockchain", "Supply Chain", "Food Traceability", "Export Quality"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Smart Waste Segregation System for Filipino Households",
+    "abstract": "Waste segregation compliance in Philippine communities is low. This IoT-based smart bin system uses sensors and mobile apps to guide proper waste sorting, track household compliance, and gamify recycling efforts while integrating with local waste collection schedules.",
+    "access_level": "Public",
+    "authors": ["Gregorio Cruz", "Asuncion Santos", "Leopoldo Morales", "Engracia Reyes"],
+    "tags": ["Smart Waste Management", "IoT", "Environmental Sustainability", "Gamification"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Deep Learning for Philippine Banknote Authentication",
+    "abstract": "Counterfeit currency detection is crucial for Philippine financial security. This study develops a deep learning model trained on authentic Philippine peso features to detect counterfeit bills through mobile phone cameras, supporting micro-businesses and informal vendors in fraud prevention.",
+    "access_level": "Restricted",
+    "authors": ["Bonifacio Villanueva", "Filomena Santos", "Anastacio Cruz", "Presentacion Torres"],
+    "tags": ["Deep Learning", "Financial Security", "Currency Authentication", "Fraud Detection"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "AI-Enhanced Learning Management System for K-12 Philippine Schools",
+    "abstract": "Philippine K-12 education needs personalized learning support. This LMS integrates AI to adapt content difficulty, identify learning gaps, and provide personalized recommendations while considering local curriculum requirements and limited technology resources in rural schools.",
+    "access_level": "Public",
+    "authors": ["Florante Santos", "Rosalinda Cruz", "Perfecto Reyes", "Gliceria Morales"],
+    "tags": ["Educational Technology", "Artificial Intelligence", "K-12 Education", "Personalized Learning"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Cybersecurity Framework for Philippine Government Agencies",
+    "abstract": "Philippine government digital transformation requires robust cybersecurity. This research develops a comprehensive security framework addressing common vulnerabilities in government systems, including employee training protocols and incident response procedures tailored for local government capabilities.",
+    "access_level": "Restricted",
+    "authors": ["Tranquilino Cruz", "Amparo Santos", "Demetrio Villanueva", "Maxima Gutierrez"],
+    "tags": ["Cybersecurity", "Government Systems", "Digital Transformation", "Risk Management"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Smart Aquaculture Monitoring for Philippine Fish Farms",
+    "abstract": "Aquaculture is vital to Philippine food security and exports. This IoT system monitors water quality, feeding schedules, and fish behavior in real-time, using machine learning to predict optimal harvest times and prevent disease outbreaks in tilapia and bangus farms.",
+    "access_level": "Limited",
+    "authors": ["Guillermo Reyes", "Consolacion Santos", "Aurelio Cruz", "Remedios Villanueva"],
+    "tags": ["IoT", "Aquaculture", "Smart Farming", "Food Security"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Mobile Payment Integration for Philippine Sari-Sari Stores",
+    "abstract": "Sari-sari stores are integral to Philippine communities but often lack digital payment options. This study develops a simplified mobile payment system designed for small store owners with limited technical skills, integrating with existing Filipino digital wallets and providing offline transaction capabilities.",
+    "access_level": "Public",
+    "authors": ["Telesforo Santos", "Purificacion Cruz", "Arcadio Morales", "Felicitas Reyes"],
+    "tags": ["Mobile Payments", "Digital Inclusion", "Small Business", "Financial Technology"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Computer Vision System for Automatic License Plate Recognition",
+    "abstract": "Traffic enforcement in Philippine cities needs automation support. This computer vision system recognizes Philippine license plates under various conditions including poor lighting and different plate formats, supporting law enforcement and parking management systems in urban areas.",
+    "access_level": "Limited",
+    "authors": ["Eliseo Cruz", "Guadalupe Santos", "Valeriano Villanueva", "Perpetua Torres"],
+    "tags": ["Computer Vision", "License Plate Recognition", "Traffic Enforcement", "Urban Systems"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "AI Chatbot for Philippine Government Service Information",
+    "abstract": "Citizens often struggle to find information about government services. This multilingual AI chatbot provides 24/7 support for common inquiries about Philippine government processes, requirements, and procedures, reducing office visits and improving citizen service experience.",
+    "access_level": "Public",
+    "authors": ["Zacarias Reyes", "Consolacion Santos", "Martiniano Cruz", "Adoracion Morales"],
+    "tags": ["Artificial Intelligence", "Government Services", "Chatbot", "Citizen Engagement"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Machine Learning for Dengue Outbreak Prediction in Philippine Cities",
+    "abstract": "Dengue fever is a persistent health threat in the Philippines. This study combines weather data, mosquito surveillance reports, and historical outbreak patterns with machine learning algorithms to predict dengue hotspots, enabling proactive public health interventions and resource allocation.",
+    "access_level": "Public",
+    "authors": ["Severino Santos", "Encarnacion Cruz", "Policarpio Villanueva", "Vicenta Gutierrez"],
+    "tags": ["Machine Learning", "Public Health", "Disease Prediction", "Epidemiology"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Intelligent Inventory Management System for Philippine Pharmacies",
+    "abstract": "Philippine pharmacies struggle with manual inventory tracking and expired medication management. This study develops an intelligent system using RFID technology and predictive analytics to automate inventory monitoring, predict stock shortages, and reduce waste through optimized procurement scheduling.",
+    "access_level": "Limited",
+    "authors": ["Diego Martinez", "Esperanza Villanueva", "Carlos Mendoza", "Sofia Ramirez"],
+    "tags": ["Inventory Management", "RFID", "Healthcare", "Predictive Analytics"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Blockchain-Based Academic Credential Verification System",
+    "abstract": "Academic credential fraud is a growing concern in the Philippines. This research proposes a blockchain-based system for secure, tamper-proof storage and verification of educational credentials, enabling employers and institutions to instantly verify the authenticity of diplomas and certificates.",
+    "access_level": "Public",
+    "authors": ["Fernando Dela Cruz", "Isabella Rodriguez", "Miguel Torres", "Carmen Flores"],
+    "tags": ["Blockchain", "Education", "Credential Verification", "Security"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Smart Parking Solution for Urban Shopping Centers",
+    "abstract": "Parking congestion in Philippine shopping centers causes customer frustration and lost revenue. This project implements IoT sensors and mobile applications to provide real-time parking availability, automated payment processing, and navigation assistance to optimize parking space utilization.",
+    "access_level": "Public",
+    "authors": ["Antonio Gutierrez", "Maria Cristina Santos", "Jose Luis Reyes", "Ana Patricia Cruz"],
+    "tags": ["Smart Parking", "IoT", "Mobile App", "Urban Solutions"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Computer Vision-Based Quality Control for Electronics Manufacturing",
+    "abstract": "Electronics manufacturing requires consistent quality control processes. This study develops a computer vision system that automatically detects defects in printed circuit boards, component placement errors, and soldering issues, improving production efficiency and reducing manual inspection costs.",
+    "access_level": "Restricted",
+    "authors": ["Roberto Villanueva", "Elena Martinez", "Francisco Santos", "Guadalupe Morales"],
+    "tags": ["Computer Vision", "Quality Control", "Manufacturing", "Automation"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Mobile Emergency Response Application for Barangay Officials",
+    "abstract": "Barangay officials need efficient emergency response coordination tools. This mobile application provides GPS-based incident reporting, real-time communication channels, resource allocation tracking, and integration with higher-level government emergency systems to improve disaster response at the community level.",
+    "access_level": "Limited",
+    "authors": ["Alejandro Cruz", "Rosario Fernandez", "Patricio Santos", "Esperanza Villanueva"],
+    "tags": ["Emergency Response", "Mobile App", "Government Services", "Community Safety"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Artificial Intelligence for Predictive Maintenance in Power Plants",
+    "abstract": "Power plant equipment failures cause costly outages and safety risks. This research applies deep learning algorithms to analyze sensor data from turbines, generators, and cooling systems to predict equipment failures before they occur, enabling proactive maintenance scheduling and reducing unplanned downtime.",
+    "access_level": "Restricted",
+    "authors": ["Emilio Reyes", "Concepcion Torres", "Mariano Cruz", "Remedios Garcia"],
+    "tags": ["AI", "Predictive Maintenance", "Power Generation", "Industrial IoT"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Digital Library Management System for Public Schools",
+    "abstract": "Philippine public schools need modern library management solutions. This system digitizes book catalogs, implements barcode-based checkout systems, provides online reading resources, and includes analytics for tracking reading patterns to support educational decision-making in resource-constrained environments.",
+    "access_level": "Public",
+    "authors": ["Leonardo Villanueva", "Maria Paz Santos", "Arturo Cruz", "Luz Elena Morales"],
+    "tags": ["Digital Library", "Education Technology", "School Management", "Reading Analytics"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Machine Learning Approach for Stock Market Prediction Using Social Media Sentiment",
+    "abstract": "Philippine stock market volatility can be influenced by public sentiment. This study combines natural language processing of social media posts, news articles, and financial indicators with machine learning algorithms to predict short-term stock price movements and market trends.",
+    "access_level": "Limited",
+    "authors": ["Santiago Rodriguez", "Carmela Villanueva", "Pedro Martinez", "Soledad Cruz"],
+    "tags": ["Machine Learning", "Stock Prediction", "Sentiment Analysis", "Financial Technology"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "IoT-Based Smart Home Security System with AI Recognition",
+    "abstract": "Home security concerns drive demand for intelligent monitoring solutions. This project develops an IoT-based security system incorporating facial recognition, motion detection, and smartphone alerts, providing homeowners with remote monitoring capabilities and automated threat assessment.",
+    "access_level": "Public",
+    "authors": ["Teodoro Santos", "Perfecta Cruz", "Domingo Villanueva", "Milagros Rodriguez"],
+    "tags": ["IoT", "Home Security", "Facial Recognition", "Smart Home"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Autonomous Drone System for Agricultural Pesticide Application",
+    "abstract": "Traditional pesticide application methods are inefficient and potentially harmful. This research develops an autonomous drone system that uses GPS navigation, computer vision, and precision spraying technology to apply pesticides only where needed, reducing chemical usage while maintaining crop protection effectiveness.",
+    "access_level": "Restricted",
+    "authors": ["Maximiliano Cruz", "Visitacion Santos", "Abundio Reyes", "Caridad Torres"],
+    "tags": ["Autonomous Systems", "Agriculture", "Precision Farming", "Drone Technology"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Web-Based Student Information Management System for Private Schools",
+    "abstract": "Private schools in the Philippines need comprehensive student management solutions. This web-based system handles enrollment, grade management, attendance tracking, parent communication, and financial records, providing a centralized platform for school administration and stakeholder communication.",
+    "access_level": "Limited",
+    "authors": ["Primitivo Villanueva", "Encarnacion Martinez", "Herminio Santos", "Perfecta Cruz"],
+    "tags": ["Student Management", "Web Application", "School Administration", "Database Systems"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Deep Learning for Medical Image Analysis in Radiology",
+    "abstract": "Radiological diagnosis in Philippine hospitals faces challenges with specialist availability. This study develops deep learning models for automated analysis of X-rays, CT scans, and MRIs to assist radiologists in detecting anomalies, measuring structures, and generating preliminary reports for common conditions.",
+    "access_level": "Restricted",
+    "authors": ["Clemente Santos", "Adoracion Cruz", "Silvestre Reyes", "Remedios Villanueva"],
+    "tags": ["Deep Learning", "Medical Imaging", "Healthcare AI", "Radiology"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Smart Water Distribution Monitoring for Rural Communities",
+    "abstract": "Rural water distribution systems lack proper monitoring infrastructure. This IoT-based solution tracks water flow, pressure, and quality throughout distribution networks, detecting leaks and contamination events while providing communities with real-time information about their water supply status.",
+    "access_level": "Public",
+    "authors": ["Placido Cruz", "Consolacion Torres", "Marcelino Santos", "Socorro Villanueva"],
+    "tags": ["Water Management", "IoT", "Rural Infrastructure", "Environmental Monitoring"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Genetic Algorithm Optimization for University Class Scheduling",
+    "abstract": "University course scheduling is a complex combinatorial problem involving multiple constraints. This research applies genetic algorithms to optimize class schedules considering room availability, instructor preferences, student conflicts, and resource limitations, improving academic efficiency and satisfaction.",
+    "access_level": "Limited",
+    "authors": ["Feliciano Reyes", "Asuncion Santos", "Norberto Cruz", "Gliceria Martinez"],
+    "tags": ["Genetic Algorithms", "Optimization", "Educational Planning", "Scheduling"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "E-Commerce Platform with Integrated Payment Gateway for SMEs",
+    "abstract": "Small and medium enterprises in the Philippines need accessible e-commerce solutions. This platform provides inventory management, order processing, customer relationship management, and integrated payment processing specifically designed for Filipino businesses with limited technical resources.",
+    "access_level": "Public",
+    "authors": ["Evaristo Villanueva", "Felicitas Santos", "Porfirio Cruz", "Esperanza Torres"],
+    "tags": ["E-Commerce", "Payment Systems", "SME Support", "Web Development"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Computer Vision System for Automatic Vehicle Counting and Classification",
+    "abstract": "Traffic management requires accurate vehicle counting and classification data. This computer vision system analyzes traffic camera feeds to automatically count and classify vehicles by type, providing transportation authorities with real-time traffic statistics for infrastructure planning and congestion management.",
+    "access_level": "Public",
+    "authors": ["Melecio Santos", "Purificacion Cruz", "Anacleto Reyes", "Presentacion Villanueva"],
+    "tags": ["Computer Vision", "Traffic Analysis", "Vehicle Classification", "Urban Planning"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Mobile Learning Application for Filipino Language Education",
+    "abstract": "Filipino language education can benefit from interactive mobile technology. This application incorporates gamification, speech recognition for pronunciation practice, cultural context lessons, and progress tracking to make Filipino language learning engaging and effective for students and heritage speakers.",
+    "access_level": "Public",
+    "authors": ["Bernardo Cruz", "Consolacion Villanueva", "Timoteo Santos", "Remedios Rodriguez"],
+    "tags": ["Mobile Learning", "Language Education", "Gamification", "Cultural Preservation"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "AI-Powered Fraud Detection System for Online Banking",
+    "abstract": "Online banking fraud poses significant risks to Filipino consumers and financial institutions. This research develops machine learning models that analyze transaction patterns, user behavior, and device characteristics to detect fraudulent activities in real-time, balancing security with user experience.",
+    "access_level": "Restricted",
+    "authors": ["Macario Torres", "Salvacion Cruz", "Inocencio Santos", "Caridad Villanueva"],
+    "tags": ["Fraud Detection", "Banking Security", "Machine Learning", "Financial Technology"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Smart Building Energy Management System Using IoT",
+    "abstract": "Commercial buildings in the Philippines consume significant energy resources. This IoT-based system monitors and controls HVAC, lighting, and electrical systems through intelligent algorithms that optimize energy consumption while maintaining occupant comfort and reducing operational costs.",
+    "access_level": "Limited",
+    "authors": ["Proceso Villanueva", "Trinidad Santos", "Crisanto Cruz", "Soledad Torres"],
+    "tags": ["Smart Buildings", "Energy Management", "IoT", "Sustainability"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Neural Network Approach for Handwritten Character Recognition in Baybayin Script",
+    "abstract": "Preserving the ancient Filipino Baybayin script requires modern digitization tools. This research develops neural networks specifically trained to recognize handwritten Baybayin characters, supporting cultural preservation efforts and enabling digitization of historical documents written in the traditional Filipino script.",
+    "access_level": "Public",
+    "authors": ["Venancio Santos", "Remedios Cruz", "Apolinario Reyes", "Constancia Villanueva"],
+    "tags": ["Neural Networks", "OCR", "Cultural Preservation", "Baybayin Script"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Telemedicine Platform for Remote Patient Monitoring",
+    "abstract": "Healthcare access in remote Philippine areas requires innovative solutions. This telemedicine platform enables remote patient monitoring through wearable devices, video consultations, electronic health records, and medication reminders, connecting patients with healthcare providers across geographical barriers.",
+    "access_level": "Limited",
+    "authors": ["Faustino Cruz", "Milagros Santos", "Celestino Torres", "Perfecta Villanueva"],
+    "tags": ["Telemedicine", "Remote Monitoring", "Healthcare Technology", "Patient Care"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Machine Learning for Credit Risk Assessment in Microfinance",
+    "abstract": "Microfinance institutions need accurate credit risk assessment tools for underserved populations. This study develops machine learning models using alternative data sources like mobile money transactions, social connections, and behavioral patterns to assess creditworthiness for borrowers without traditional credit histories.",
+    "access_level": "Restricted",
+    "authors": ["Dionisio Reyes", "Consolacion Villanueva", "Modesto Santos", "Remedios Cruz"],
+    "tags": ["Credit Risk", "Microfinance", "Alternative Data", "Financial Inclusion"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  },
+  {
+    "title": "Augmented Reality Maintenance Manual for Industrial Equipment",
+    "abstract": "Industrial equipment maintenance requires specialized knowledge and training. This AR application overlays step-by-step maintenance instructions, safety warnings, and diagnostic information directly onto equipment through mobile devices, improving maintenance efficiency and reducing errors in industrial settings.",
+    "access_level": "Limited",
+    "authors": ["Silverio Villanueva", "Asuncion Santos", "Pantaleon Cruz", "Gracia Torres"],
+    "tags": ["Augmented Reality", "Industrial Maintenance", "Training Technology", "Safety"],
+    "program": "BSIT",
+    "document_type": "Capstone Paper"
+  },
+  {
+    "title": "Deep Learning for Philippine Weather Prediction and Climate Analysis",
+    "abstract": "Accurate weather prediction is crucial for Philippine agriculture and disaster preparedness. This research applies deep learning to historical weather data, satellite imagery, and ocean temperature measurements to improve short-term weather forecasting and long-term climate trend analysis for the Philippines.",
+    "access_level": "Public",
+    "authors": ["Anacleto Santos", "Remedios Cruz", "Perfecto Villanueva", "Consolacion Rodriguez"],
+    "tags": ["Weather Prediction", "Deep Learning", "Climate Analysis", "Meteorology"],
+    "program": "BSCS",
+    "document_type": "Thesis"
+  }
+]
+
+#testing

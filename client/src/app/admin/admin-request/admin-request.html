@@ -1,4 +1,4 @@
-<div class="layout admin-page">
+<div class="layout">
   <app-admin-side-bar></app-admin-side-bar>
 
   <div class="content">
@@ -15,38 +15,34 @@
         matSort
         class="mat-elevation-z8 full-width-table no-table-margin">
 
-        <!-- Email -->
-        <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
-          <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+        <!-- Requestor -->
+        <ng-container matColumnDef="requestor">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Requestor</th>
+          <td mat-cell *matCellDef="let row">{{ row.requestor_name }}</td>
         </ng-container>
 
-        <!-- Department -->
-        <ng-container matColumnDef="department">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Department</th>
-          <td mat-cell *matCellDef="let row">{{ row.department || '—' }}</td>
+        <!-- Time -->
+        <ng-container matColumnDef="time">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Time</th>
+          <td mat-cell *matCellDef="let row">{{ row.date }} {{ row.time }}</td>
         </ng-container>
 
-        <!-- Program -->
-        <ng-container matColumnDef="program">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Program</th>
-          <td mat-cell *matCellDef="let row">{{ row.program || '—' }}</td>
+        <!-- Title -->
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>File Requested</th>
+          <td mat-cell *matCellDef="let row">{{ row.title }}</td>
         </ng-container>
 
-        <!-- Status -->
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
-          <td mat-cell *matCellDef="let row">
-            <span [class]="'status-' + (row.status || 'pending')">
-              {{ row.status || 'pending' }}
-            </span>
-          </td>
+        <!-- Chapters -->
+        <ng-container matColumnDef="chapters">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Chapters</th>
+          <td mat-cell *matCellDef="let row">{{ formatChapters(row.selected_chapter) }}</td>
         </ng-container>
 
-        <!-- Created At -->
-        <ng-container matColumnDef="created_at">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Request Date</th>
-          <td mat-cell *matCellDef="let row">{{ formatDate(row.created_at) }}</td>
+        <!-- Purpose -->
+        <ng-container matColumnDef="purpose">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Purpose</th>
+          <td mat-cell *matCellDef="let row">{{ row.purpose }}</td>
         </ng-container>
 
         <!-- Actions -->

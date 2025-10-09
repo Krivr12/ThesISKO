@@ -6,8 +6,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { RouterLink, Router} from '@angular/router';
 import { MatDialogModule , MatDialog} from '@angular/material/dialog';
-import { AuthService } from '../../components/navbar/navbar';
-import { Auth } from '../../service/auth';
 
 @Component({
   selector: 'app-sidenavbar',
@@ -26,12 +24,7 @@ import { Auth } from '../../service/auth';
 export class Sidenavbar {
   @ViewChild('logoutConfirm') logoutConfirmTpl!: TemplateRef<any>;
 
-  constructor(
-    private dialog: MatDialog, 
-    private router: Router,
-    private navAuthService: AuthService,
-    private mainAuthService: Auth
-  ) {}
+  constructor(private dialog: MatDialog, private router: Router) {}
 
   openLogoutDialog(ev?: Event) {
     ev?.preventDefault();
@@ -43,13 +36,8 @@ export class Sidenavbar {
 
     ref.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        console.log('🔍 Faculty logout confirmed - clearing AuthServices');
-        
-        // Clear both AuthServices
-        this.navAuthService.logout();
-        this.mainAuthService.logout();
-        
-        // Navigate to signup choose
+        // TODO: clear auth/session if needed
+        // localStorage.removeItem('token'); etc.
         this.router.navigateByUrl('/signup-choose');
       }
     });
