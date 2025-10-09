@@ -1,0 +1,105 @@
+<app-navbar></app-navbar>
+
+<div class="profile-container">
+  <div class="profile-content">
+    <p-card header="Edit Guest Information" styleClass="profile-card">
+      <form [formGroup]="profileForm" (ngSubmit)="onSave()">
+        <div class="form-grid">
+          <!-- Personal Information Section -->
+          <div class="form-section">
+            <h3>Personal Information</h3>
+            
+            <div class="form-row">
+              <div class="form-field">
+                <label for="firstName">First Name *</label>
+                <input 
+                  pInputText 
+                  id="firstName" 
+                  formControlName="firstName"
+                  placeholder="Enter your first name"
+                  [class.ng-invalid]="firstName?.invalid && firstName?.touched"
+                />
+                <small 
+                  class="error-message" 
+                  *ngIf="firstName?.invalid && firstName?.touched"
+                >
+                  First name is required (minimum 2 characters)
+                </small>
+              </div>
+
+              <div class="form-field">
+                <label for="lastName">Last Name *</label>
+                <input 
+                  pInputText 
+                  id="lastName" 
+                  formControlName="lastName"
+                  placeholder="Enter your last name"
+                  [class.ng-invalid]="lastName?.invalid && lastName?.touched"
+                />
+                <small 
+                  class="error-message" 
+                  *ngIf="lastName?.invalid && lastName?.touched"
+                >
+                  Last name is required (minimum 2 characters)
+                </small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="email">Email Address</label>
+                <input 
+                  pInputText 
+                  id="email" 
+                  formControlName="email"
+                  placeholder="Your email address"
+                  readonly
+                  title="Email cannot be changed"
+                />
+                <small class="info-message">Email address cannot be modified</small>
+              </div>
+
+              <div class="form-field">
+                <!-- Empty field for spacing -->
+              </div>
+            </div>
+
+            <div class="guest-info">
+              <small class="info-message">
+                <i class="pi pi-info-circle"></i>
+                As a guest user, you can only update your name information
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <p-button 
+            label="Cancel" 
+            icon="pi pi-times" 
+            severity="secondary"
+            type="button"
+            (click)="onCancel()"
+            styleClass="cancel-button"
+          >
+          </p-button>
+          
+          <p-button 
+            label="Save Changes" 
+            icon="pi pi-check" 
+            type="submit"
+            [loading]="isLoading"
+            [disabled]="profileForm.invalid || isLoading"
+            [style]="{'background-color': '#ffd966', 'border-color': '#ffd966', 'color': '#800000'}"
+          >
+          </p-button>
+        </div>
+      </form>
+    </p-card>
+  </div>
+</div>
+
+<app-footer></app-footer>
+
+<p-toast></p-toast>

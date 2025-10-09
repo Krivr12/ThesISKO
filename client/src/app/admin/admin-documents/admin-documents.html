@@ -1,0 +1,198 @@
+<div class="page-layout admin-page">
+    <app-admin-side-bar> </app-admin-side-bar>
+    <main class="main-content">
+        <!-- List View -->
+        <div *ngIf="view === 'list'" class="list-view-container">
+            <header class="page-header">
+                <h1 class="page-title">Documents</h1>
+                <div class="filter-buttons">
+                    <button [class.active]="currentFilter === 'For Approval'" (click)="setFilter('For Approval')">For Approval</button>
+                    <button [class.active]="currentFilter === 'With Issues'" (click)="setFilter('With Issues')">With Issues</button>
+                    <button [class.active]="currentFilter === 'Approved'" (click)="setFilter('Approved')">Approved</button>
+                </div>
+            </header>
+
+            <div class="documents-table">
+                <div class="table-header">
+                    <div class="header-item sortable" (click)="onSort('title')">
+                        Thesis Title 
+                        <span class="sort-arrow" *ngIf="sortColumn === 'title'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('submissionDate')">
+                        Submission Date
+                        <span class="sort-arrow" *ngIf="sortColumn === 'submissionDate'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('id')">
+                        Thesis ID
+                        <span class="sort-arrow" *ngIf="sortColumn === 'id'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item"></div>
+                </div>
+                <div class="table-row" *ngFor="let doc of paginatedDocuments">
+                    <div class="row-item">{{ doc.title }}</div>
+                    <div class="row-item">{{ doc.submissionDate }}</div>
+                    <div class="row-item">{{ doc.id }}</div>
+                    <div class="row-item action-cell">
+                        <button *ngIf="doc.status === 'For Approval'" class="verify-btn" (click)="showDetailsView(doc)">Verify</button>
+                        <span *ngIf="doc.status !== 'For Approval'" 
+                              class="status-tag clickable" 
+                              [ngClass]="doc.status.split(' ')[0].toLowerCase()"
+                              (click)="showDetailsView(doc)">
+                            {{ doc.status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="paginator">
+                <mat-paginator
+                  [length]="filteredDocuments.length"
+                  [pageIndex]="currentPage - 1"
+                  [pageSize]="itemsPerPage"
+                  [pageSizeOptions]="[5, 10, 20]"
+                  (page)="onPage($event)"
+                  showFirstLastButtons>
+                </mat-paginator>
+              </div>
+        </div>
+
+        <!-- Details View -->
+        <div *ngIf="view === 'details' && selectedDocument" class="details-view-container">
+            <button class="return-btn" (click)="showListView()">&lt; Return to Documents List</button>
+            
+            <div class="details-section">
+                <h2 class="section-title">Title</h2>
+                <div class="section-content">
+                    <p>{{ selectedDocument.title }}</p>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h2 class="section-title">Abstract</h2>
+                <div class="section-content">
+                    <p>{{ selectedDocument.abstract }}</p>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h2 class="section-title">Documents</h2>
+                <div class="section-content">
+                    <ul class="documents-list">
+                        <li *ngFor="let doc of selectedDocument?.documents; let i = index">
+                            <span>{{ doc.name }}</span>
+                            <button class="file-link" (click)="viewDocument(doc)">
+                                View {{ getFileExtension(doc.file) }}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Add PDF Viewer Modal -->
+            <div class="modal-overlay" *ngIf="isPdfViewerVisible">
+                <div class="modal-content pdf-viewer-modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">{{ currentPdfDocument?.name }}</h3>
+                        <button class="modal-close-btn" (click)="closePdfViewer()">×</button>
+                    </div>
+                    <div class="modal-body pdf-viewer-body">
+                        <div *ngIf="pdfLoading" class="pdf-loading">
+                            <p>Loading document...</p>
+                        </div>
+                        <div *ngIf="pdfError" class="pdf-error">
+                            <p>Error loading document: {{ pdfError }}</p>
+                            <button class="download-fallback" (click)="downloadDocument()">Download Instead</button>
+                        </div>
+                        <iframe 
+                            *ngIf="currentPdfUrl && !pdfLoading && !pdfError"
+                            [src]="currentPdfUrl"
+                            class="pdf-iframe"
+                            frameborder="0"
+                            (load)="onPdfLoad()"
+                            (error)="onPdfError()">
+                        </iframe>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="modal-btn confirm-btn" (click)="downloadDocument()">Download</button>
+                        <button class="modal-btn cancel-btn" (click)="closePdfViewer()">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h2 class="section-title">Authors</h2>
+                <div class="section-content">
+                    <div class="authors-list">
+                        <p>{{ selectedDocument.authors.join(', ') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h2 class="section-title">Tags</h2>
+                <div class="section-content">
+                    <div class="tags-container">
+                        <span *ngFor="let tag of selectedDocument.tags" class="tag">{{ tag }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h2 class="section-title">Thesis ID</h2>
+                <div class="section-content">
+                    <p>{{ selectedDocument.id }}</p>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h2 class="section-title">Submission Date</h2>
+                <div class="section-content">
+                    <p>{{ selectedDocument.submissionDate }}</p>
+                </div>
+            </div>
+
+            <footer class="details-footer">
+                <button class="approve-btn" (click)="openApproveModal()">Approve Submission</button>
+                <button class="reject-btn" (click)="openRejectModal()">Reject Submission</button>
+            </footer>
+        </div>
+
+        <!-- Approve Modal -->
+        <div class="modal-overlay" *ngIf="isApproveModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Confirm Approval of Submission</h3>
+                    <button class="modal-close-btn" (click)="closeApproveModal()">×</button>
+                </div>
+                <p class="modal-body">Are you sure you want to approve this submission?</p>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" (click)="approveSubmission()">Yes</button>
+                    <button class="modal-btn cancel-btn" (click)="closeApproveModal()">No</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reject Modal -->
+        <div class="modal-overlay" *ngIf="isRejectModalVisible">
+            <div class="modal-content reject-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">Reason for Rejection</h3>
+                    <button class="modal-close-btn" (click)="closeRejectModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="rejection-form">
+                        <label><input type="checkbox" [(ngModel)]="rejectionReasons.plagiarism"> Plagiarism and Copyright Violations</label>
+                        <label><input type="checkbox" [(ngModel)]="rejectionReasons.incomplete"> Incomplete Research</label>
+                        <label><input type="checkbox" [(ngModel)]="rejectionReasons.technical"> Technical Problems</label>
+                        <label><input type="checkbox" [(ngModel)]="rejectionReasons.incorrect"> Incorrect Submission</label>
+                        <textarea placeholder="Comments" [(ngModel)]="rejectionComment"></textarea>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" (click)="rejectSubmission()">Yes</button>
+                    <button class="modal-btn cancel-btn" (click)="closeRejectModal()">No</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

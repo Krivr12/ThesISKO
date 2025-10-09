@@ -1,13 +1,13 @@
 {
-  "name": "azalea",
+  "name": "thesisko",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "npx ng build --configuration=production",
-    "watch": "node src/set-config.js && ng build --watch --configuration development",
+    "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "generate-config": "node src/set-config.js",
+    "generate-config": "echo 'Config generation removed - using default configs'",
     "dev": "ng build --configuration=production"
   },
   "prettier": {
@@ -31,6 +31,7 @@
     "@angular/platform-browser": "^20.1.0",
     "@angular/router": "^20.1.0",
     "@primeuix/themes": "^1.2.3",
+    "chart.js": "^4.5.0",
     "jason-server": "^3.0.0",
     "primeng": "^20.0.1",
     "rxjs": "~7.8.0",
@@ -42,7 +43,6 @@
     "@angular/cli": "^20.1.3",
     "@angular/compiler-cli": "^20.1.0",
     "@types/jasmine": "~5.1.0",
-    "dotenv": "^17.2.2",
     "esbuild": "^0.25.9",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",

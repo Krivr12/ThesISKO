@@ -1,0 +1,94 @@
+<div class="layout">
+  <app-sidenavbar></app-sidenavbar>
+  
+  <div class="content">
+    <div class="profile-container">
+      <div class="profile-content">
+        <p-card header="Change Password" styleClass="profile-card">
+          <form [formGroup]="profileForm" (ngSubmit)="onSave()">
+            <div class="form-grid">
+              <!-- Password Change Section -->
+              <div class="form-section">
+                <h3>Change Password</h3>
+                
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="currentPassword">Current Password *</label>
+                    <p-password 
+                      id="currentPassword" 
+                      formControlName="currentPassword"
+                      placeholder="Enter current password"
+                      [feedback]="false"
+                      [toggleMask]="true"
+                      [class.ng-invalid]="currentPassword?.invalid && currentPassword?.touched"
+                    ></p-password>
+                    <small 
+                      class="error-message" 
+                      *ngIf="currentPassword?.invalid && currentPassword?.touched"
+                    >
+                      Current password is required to change password
+                    </small>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="password">New Password *</label>
+                    <p-password 
+                      id="password" 
+                      formControlName="password"
+                      placeholder="Enter new password"
+                      [feedback]="true"
+                      [toggleMask]="true"
+                      [class.ng-invalid]="password?.invalid && password?.touched"
+                    ></p-password>
+                    <small 
+                      class="error-message" 
+                      *ngIf="password?.invalid && password?.touched"
+                    >
+                      Password must be at least 8 characters long
+                    </small>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="confirmPassword">Confirm New Password *</label>
+                    <p-password 
+                      id="confirmPassword" 
+                      formControlName="confirmPassword"
+                      placeholder="Confirm new password"
+                      [feedback]="false"
+                      [toggleMask]="true"
+                      [class.ng-invalid]="confirmPassword?.invalid && confirmPassword?.touched"
+                    ></p-password>
+                    <small 
+                      class="error-message" 
+                      *ngIf="profileForm.hasError('passwordMismatch') && confirmPassword?.touched"
+                    >
+                      Passwords do not match
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+              <div class="save-button">
+                <p-button 
+                  label="Change Password" 
+                  icon="pi pi-check" 
+                  type="submit"
+                  [loading]="isLoading"
+                  [disabled]="!profileForm.valid"
+                  styleClass="save-btn-custom"
+                ></p-button>
+              </div>
+            </div>
+          </form>
+        </p-card>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-toast></p-toast>

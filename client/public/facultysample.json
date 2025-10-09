@@ -1,0 +1,22 @@
+[
+    { "first_name": "Ryan", 
+    "last_name": "Garcia", 
+    "email": "ryan.garcia@pup.edu.ph", 
+    "faculty_number": "060304" },
+
+    { "first_name": "Kim",  
+    "last_name": "Mingyu", 
+    "email": "kim.mingyu@pup.edu.ph",   
+    "faculty_number": "060305" },
+
+    { "first_name": "Azalea", 
+    "last_name": "Chanel", 
+    "email": "azalea.chanel@pup.edu.ph", 
+    "faculty_number": "022824" },
+
+    { "first_name": "Dior",  
+    "last_name": "Neki", 
+    "email": "dior.neki@pup.edu.ph",   
+    "faculty_number": "042824" }
+  ]
+  

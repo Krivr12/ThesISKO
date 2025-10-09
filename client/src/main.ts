@@ -4,7 +4,7 @@ import { App } from './app/app';
 
 // Default fallback config
 const defaultConfig = {
-  authApiUrl: 'http://localhost:3000',
+  authApiUrl: 'http://localhost:5050',
   recordsApiUrl: 'http://localhost:5050/records'
 };
 
