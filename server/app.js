@@ -40,8 +40,6 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 
-// 🛡️ Global rate limiter (applies to all routes)
-app.use(rateLimiter);
 
 // Routes
 app.use("/records", records);
@@ -53,7 +51,8 @@ app.use("/blocks", blocks);
 app.use("/groups", groups);
 
 // 🧾 Request validation only for request creation routes
-app.use("/requests", validateRequest, requests);
+app.use("/requests", rateLimiter, validateRequest, requests);
+
 
 // 🪵 Error logger middleware (must be last)
 app.use(errorLoggerMiddleware);

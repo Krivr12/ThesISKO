@@ -5,8 +5,8 @@
       <div class="return-link" (click)="onReturnClick()">
         &lt; Return
       </div>
-      <!-- modified request button to open the login pup op -->
-      <button class="request-button" (click)="openLoginModal()">Request for full access</button>
+      <!-- Request button -->
+      <button class="request-button" (click)="openRequestDialog()">Request Manuscript</button>
     </div>
 
     <div class="main-title">
@@ -52,8 +52,179 @@
 </div>
 <app-footer></app-footer>
 
-<!-- modal componentt -->
+<!-- Login Modal -->
 <app-login-modal 
   [isVisible]="isLoginModalVisible" 
   (close)="closeLoginModal()">
 </app-login-modal>
+
+<!-- Request Dialog Template -->
+<ng-template #requestDialog>
+  <div class="request-dialog">
+    <h2 mat-dialog-title>Request Manuscript</h2>
+    
+    <mat-dialog-content class="dialog-body">
+      <!-- User Type Display -->
+      <div class="user-type-info">
+        <p><strong>Requesting as:</strong> {{ userRole | titlecase }}</p>
+      </div>
+
+      <!-- Email (read-only for logged in users) -->
+      <div class="form-section">
+        <label>Email</label>
+        <input 
+          type="email" 
+          [(ngModel)]="requestForm.email" 
+          [readonly]="currentUser"
+          placeholder="your.email@example.com"
+          required>
+        <small *ngIf="userRole === 'guest'">Guests must use Gmail addresses.</small>
+      </div>
+
+      <!-- Name -->
+      <div class="form-section">
+        <label>Full Name</label>
+        <input 
+          type="text" 
+          [(ngModel)]="requestForm.name" 
+          placeholder="Your full name"
+          required>
+      </div>
+
+      <!-- Student/Group specific fields -->
+      <div *ngIf="userRole === 'student' || userRole === 'group'" class="form-section">
+        <label>Program</label>
+        <input 
+          type="text" 
+          [(ngModel)]="requestForm.program" 
+          placeholder="e.g., Bachelor of Science in Computer Science"
+          required>
+      </div>
+
+      <div *ngIf="userRole === 'student' || userRole === 'group'" class="form-section">
+        <label>Department</label>
+        <input 
+          type="text" 
+          [(ngModel)]="requestForm.department" 
+          placeholder="e.g., Computer Science Department"
+          required>
+      </div>
+
+      <!-- Guest specific fields -->
+      <div *ngIf="userRole === 'guest'" class="form-section">
+        <label>Country</label>
+        <input 
+          type="text" 
+          [(ngModel)]="requestForm.country" 
+          placeholder="e.g., Philippines"
+          required>
+      </div>
+
+      <div *ngIf="userRole === 'guest'" class="form-section">
+        <label>City</label>
+        <input 
+          type="text" 
+          [(ngModel)]="requestForm.city" 
+          placeholder="e.g., Manila"
+          required>
+      </div>
+
+      <div *ngIf="userRole === 'guest'" class="form-section">
+        <label>School/Institution</label>
+        <input 
+          type="text" 
+          [(ngModel)]="requestForm.school" 
+          placeholder="e.g., University of the Philippines"
+          required>
+      </div>
+
+      <!-- Chapters Selection -->
+      <div class="form-section">
+        <label>Select Chapters</label>
+        <div class="chapters-grid">
+          <label *ngFor="let chapter of requestOptions" class="chapter-checkbox">
+            <input 
+              type="checkbox" 
+              [checked]="requestForm.selectedChapters.has(chapter)"
+              (change)="toggleRequestChapter(chapter, $event.target.checked)">
+            {{ chapter === 'All' ? 'All Chapters' : 'Chapter ' + chapter }}
+          </label>
+        </div>
+        <small>Select "All" if you need the entire manuscript.</small>
+      </div>
+
+      <!-- Purpose -->
+      <div class="form-section">
+        <label>Purpose of Request</label>
+        <textarea 
+          [(ngModel)]="requestForm.purpose" 
+          placeholder="Please describe why you need access to this manuscript..."
+          rows="4"
+          required></textarea>
+        <small *ngIf="requestForm.purpose.length < 8 && requestForm.purpose.length > 0">
+          Please provide at least 8 characters.
+        </small>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="resetRequestForm(); dialog.close()">Cancel</button>
+      <button 
+        mat-raised-button 
+        color="primary"
+        [disabled]="!isFormValid()"
+        (click)="openTermsAndSubmit(dialog)">
+        Submit Request
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>
+
+<!-- Terms and Conditions Dialog -->
+<ng-template #termsDialog>
+  <div class="terms-dialog">
+    <h2 mat-dialog-title>Terms and Conditions</h2>
+    
+    <mat-dialog-content>
+      <div class="terms-content">
+        <h3>Document Access Agreement</h3>
+        <p>By requesting access to this manuscript, you agree to:</p>
+        <ul>
+          <li>Use the document only for academic research purposes</li>
+          <li>Not redistribute or share the document without permission</li>
+          <li>Cite the document properly in any work that references it</li>
+          <li>Respect the intellectual property rights of the authors</li>
+          <li>Use the document in accordance with academic integrity standards</li>
+        </ul>
+        
+        <h3>Privacy Notice</h3>
+        <p>Your request information will be stored securely and may be used for:</p>
+        <ul>
+          <li>Processing your access request</li>
+          <li>Academic analytics and research purposes</li>
+          <li>Contacting you regarding your request</li>
+        </ul>
+        
+        <div class="terms-checkbox">
+          <label>
+            <input 
+              type="checkbox" 
+              [(ngModel)]="termsAccepted">
+            I have read and agree to the terms and conditions above
+          </label>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="dialog.close()">Cancel</button>
+      <button 
+        mat-raised-button 
+        color="primary"
+        [disabled]="!termsAccepted"
+        (click)="dialog.close(true)">
+        Agree and Submit
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

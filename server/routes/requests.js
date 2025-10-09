@@ -10,8 +10,6 @@ import { uploadRequestersData, updateRequestStatus } from "../services/analytics
 import { validateRequest } from "../middlewares/requestValidator.js";
 import rateLimiter from "../middlewares/rateLimiter.js";
 
-
-
 const router = express.Router();
 const collection = db.collection("requests");
 
@@ -19,14 +17,15 @@ const collection = db.collection("requests");
 const upload = multer({ storage: multer.memoryStorage() });
 
 /* -------------------- Create Request (Student/Guest) -------------------- */
-router.post("/", rateLimiter, validateRequest, async (req, res) => {
+/* IMPORTANT: validateRequest BEFORE rateLimiter so invalid payloads DON'T increment counters */
+router.post("/", validateRequest, rateLimiter, async (req, res) => {
   try {
     const { docId, userType, requester, chaptersRequested, purpose } = req.body;
 
     const newRequest = {
       docId,
       userType,
-      requester, // must contain at least { email }
+      requester,
       chaptersRequested,
       purpose,
       status: "pending",
@@ -36,17 +35,16 @@ router.post("/", rateLimiter, validateRequest, async (req, res) => {
 
     const result = await collection.insertOne(newRequest);
 
-    // 🔹 Send analytics copy to Supabase
+    // Send analytics copy to Supabase (retry-wrapped inside service)
     uploadRequestersData(requester, userType, result.insertedId.toString());
 
-    res
-      .status(201)
-      .json({ message: "Request submitted", requestId: result.insertedId });
+    res.status(201).json({ message: "Request submitted", requestId: result.insertedId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create request" });
   }
 });
+
 
 /* -------------------- Dean Respond (Approve/Reject) -------------------- */
 router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
