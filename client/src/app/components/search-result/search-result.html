@@ -134,9 +134,10 @@
     <button
       mat-raised-button
       color="accent"
-      [disabled]="!(studentFormValid && studentProgram && studentDepartment)"
+      [disabled]="!(studentFormValid && studentProgram && studentDepartment) || isSubmittingRequest"
       (click)="openTermsAndSubmit(dialogRef)">
-      Send request
+      <span *ngIf="!isSubmittingRequest">Send request</span>
+      <span *ngIf="isSubmittingRequest">Submitting...</span>
     </button>
   </mat-dialog-actions>
 </ng-template>
@@ -230,9 +231,10 @@
     <button
       mat-raised-button
       color="accent"
-      [disabled]="!(guestFormValid && guestCountry && guestCity && guestSchool)"
+      [disabled]="!(guestFormValid && guestCountry && guestCity && guestSchool) || isSubmittingRequest"
       (click)="openTermsAndSubmit(dialogRef)">
-      Send request
+      <span *ngIf="!isSubmittingRequest">Send request</span>
+      <span *ngIf="isSubmittingRequest">Submitting...</span>
     </button>
   </mat-dialog-actions>
 </ng-template>
@@ -287,9 +289,10 @@
   <mat-dialog-actions align="end">
     <button mat-button (click)="dialogRef.close(false)">Cancel</button>
     <button mat-raised-button color="accent"
-            [disabled]="!termsAccepted"
+            [disabled]="!termsAccepted || isSubmittingRequest"
             (click)="dialogRef.close(true)">
-      Send request
+      <span *ngIf="!isSubmittingRequest">Send request</span>
+      <span *ngIf="isSubmittingRequest">Submitting...</span>
     </button>
   </mat-dialog-actions>
 </ng-template>
