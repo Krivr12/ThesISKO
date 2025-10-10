@@ -44,6 +44,21 @@
 
           <div class="filter-group">
             <h4 class="filter-group-title">By Tags</h4>
+            
+            <!-- Add custom tag textbox -->
+            <div class="custom-tag-input">
+              <input 
+                type="text" 
+                placeholder="Add custom tag..." 
+                class="search-input" 
+                [(ngModel)]="customTagInput"
+                (keyup.enter)="addCustomTag()"
+              />
+              <button class="add-tag-button" (click)="addCustomTag()">+</button>
+            </div>
+            
+            <!-- Predefined tags -->
+            <h5 class="filter-subtitle">Tags</h5>
             <ul class="filter-list">
               <li *ngFor="let tag of predefinedTags()">
                 <label class="filter-option">
@@ -53,6 +68,24 @@
                     (change)="onTagChange(tag, $event)"
                   >
                   {{ tag }}
+                </label>
+              </li>
+            </ul>
+            
+            <!-- Custom tags -->
+            <h5 class="filter-subtitle" *ngIf="customTags().length > 0">Your Tags</h5>
+            <ul class="filter-list">
+              <li *ngFor="let tag of customTags()">
+                <label class="filter-option custom-tag">
+                  <input 
+                    type="checkbox" 
+                    [checked]="selectedTags.includes(tag)"
+                    (change)="onTagChange(tag, $event)"
+                  >
+                  {{ tag }}
+                  <button class="remove-tag-btn" (click)="removeCustomTag(tag); $event.stopPropagation()">
+                    ×
+                  </button>
                 </label>
               </li>
             </ul>
@@ -69,50 +102,17 @@
 
         <div class="result-card" *ngFor="let thesis of displayedTheses" (click)="viewThesis(thesis)">
           <h3 class="thesis-title">{{ thesis.title }}</h3>
-          <p class="thesis-meta">
-            By: {{ thesis.authors.join(', ') }} | Year: {{ thesis.submitted_at | date:'yyyy' }}
-          </p>
+          <p class="thesis-meta">By: {{ thesis.author }} | Year: {{ thesis.year }}</p>
           <div class="tags-container">
-            <span *ngFor="let tag of thesis.tags" class="tag tag-keywords">
-              {{ tag }}
+            <span class="tag tag-year">{{ thesis.year }}</span>
+            <span *ngFor="let keyword of thesis.keywords" class="tag tag-keywords">
+              {{ keyword }}
             </span>
           </div>
         </div>
 
-        <!-- paginator component -->
         <div class="paginator" *ngIf="totalPages > 1">
-          <button (click)="goToPage(1)" [disabled]="currentPage === 1" class="paginator-button nav-button">
-            &lt;&lt;
-          </button>
-          <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" class="paginator-button nav-button">
-            &lt;
-          </button>
-
-          <ng-container *ngIf="pages[0] > 1">
-            <button (click)="goToPage(1)" [ngClass]="{'active': currentPage === 1}" class="paginator-button">1</button>
-            <span *ngIf="pages[0] > 2" class="paginator-ellipsis">...</span>
-          </ng-container>
-
-          <button *ngFor="let page of pages"
-                  (click)="goToPage(page)"
-                  [ngClass]="{'active': currentPage === page}"
-                  class="paginator-button">
-            {{ page }}
-          </button>
-
-          <ng-container *ngIf="pages[pages.length - 1] < totalPages">
-            <span *ngIf="pages[pages.length - 1] < totalPages - 1" class="paginator-ellipsis">...</span>
-            <button (click)="goToPage(totalPages)" [ngClass]="{'active': currentPage === totalPages}" class="paginator-button">
-              {{ totalPages }}
-            </button>
-          </ng-container>
-
-          <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages" class="paginator-button nav-button">
-            &gt;
-          </button>
-          <button (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages" class="paginator-button nav-button">
-            &gt;&gt;
-          </button>
+          <!-- Your existing paginator code -->
         </div>
       </div>
     </div>

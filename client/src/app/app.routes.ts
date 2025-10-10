@@ -33,6 +33,7 @@ import { ForPanel } from './facultySide/for-panel/for-panel';
 import { ForPanellanding } from './facultySide/for-panellanding/for-panellanding';
 import { PanelistApprovalPage } from './facultySide/panelist-approval-page/panelist-approval-page';
 import { FacultyProfile } from './facultySide/faculty-profile/faculty-profile';
+import { LoginModal } from './components/login-modal/login-modal';
 
 export const routes: Routes = [
     {path: 'signup-choose', component: SignupChoose},
@@ -84,4 +85,12 @@ export const routes: Routes = [
     {path: 'super-admin-nav-bar', redirectTo: '/admin-dashboard'},
     
     {path: '', redirectTo: '/signup-choose', pathMatch: 'full'}
+    {path: 'home', component: Home},
+    {path: 'about-us', component: AboutUs},
+    {path: 'search-thesis', component: SearchThesis},
+    {path: 'search-result', component: SearchResult},
+    {path: 'submission', component: Submission},
+    {path: 'thank-you', component: ThankYou},
+    {path: 'login-modal', component: LoginModal},
+    {path: '', redirectTo: 'home', pathMatch: 'full'}
 ];
