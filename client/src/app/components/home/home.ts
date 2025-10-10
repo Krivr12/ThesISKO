@@ -6,21 +6,18 @@ import { ButtonModule } from 'primeng/button';
 import { CarouselModule } from 'primeng/carousel';
 import { Footer } from '../footer/footer';
 import { RecordsService } from '../../service/records.service';
-import { DatePipe } from '@angular/common';
+import { DatePipe, SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 
 interface UpdateItem {
-  // data para sa carousel cards
-  id: string;
+  // data para sa carousel cards (matches backend /latest/ endpoint)
+  _id: string;
+  document_id: string;
   title: string;
   submitted_at: string;
   authors: string[];
-  access_level?: string;
   tags: string[];
-  program?: string;
-  document_type?: string;
-  abstract?: string;
 }
 
 @Component({
@@ -34,6 +31,7 @@ interface UpdateItem {
     ButtonModule,
     CarouselModule,
     DatePipe,
+    SlicePipe,
     FormsModule
   ],
   providers: [DatePipe],
@@ -61,18 +59,8 @@ export class Home implements OnInit {
   ngOnInit() {
     this.recordsService.getLatestRecords().subscribe({
       next: (data) => {
-        // map API -> UI model
-        this.updates = (data || []).map((item: any) => ({
-          id: item.id ?? item._id,
-          title: item.title,
-          submitted_at: item.submitted_at,
-          authors: item.authors ?? [],
-          tags: item.tags ?? [],
-          access_level: item.access_level ?? 'Unknown',
-          program: item.program,
-          document_type: item.document_type,
-          abstract: item.abstract ?? item.abstract_text ?? item.summary ?? ''
-        }));
+        // Backend now returns the correct structure, no mapping needed
+        this.updates = data || [];
       },
       error: (err) => console.error('Error fetching latest records:', err) 
     });
@@ -80,7 +68,10 @@ export class Home implements OnInit {
 
   // click sa carousel item -> punta sa Search Result 
   navigateToRecord(item: UpdateItem) {
-    this.router.navigate(['/search-result'], { state: { thesis: item } });
+    // Pass document_id in state (same pattern as search-thesis -> search-result)
+    this.router.navigate(['/search-result'], { 
+      state: { document_id: item._id } 
+    });
   }
 
   // search function

@@ -4,10 +4,11 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface UpdateItem {
+  _id: string;
+  document_id: string;
   title: string;
   submitted_at: string;
   authors: string[];
-  access_level: string;
   tags: string[];
 }
 

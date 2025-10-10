@@ -47,16 +47,12 @@
           (keyup.space)="navigateToRecord(item)">
 
           <h3 class="title">{{ item.title }}</h3>
-          <p class="date">Date Issued: {{ item.submitted_at | date:'MMM d, y' }}</p>
-          <p class="authors">Authors: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}</p>
+          <p class="date">Year: {{ item.submitted_at ? (item.submitted_at | date:'yyyy') : 'No year' }}</p>
+          <p class="authors">Author: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}</p>
 
-
-          <div class="tags">Tags: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}</div>
+          <div class="tags">Keywords: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}</div>
           
-          <p class="access">Access Level: {{ item.access_level || 'Unknown' }}</p>
-          <p class="section-text" style="white-space: pre-wrap;">
-            {{ item.abstract }}
-          </p>
+        
           
         </div>
       </ng-template>
