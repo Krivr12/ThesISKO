@@ -33,6 +33,7 @@ export class SearchThesis implements OnInit {
   
   isCollapsed: boolean = false;
   searchQuery: string = '';
+  isLoading: boolean = true; // Loading state for spinner
   
   // filter states
   selectedTags: string[] = [];
@@ -70,11 +71,13 @@ export class SearchThesis implements OnInit {
   }
 
   loadTheses(): void {
+    this.isLoading = true; // Show spinner
     this.http.get<Thesis[]>('http://localhost:5050/records/').subscribe({
       next: (data) => {
         this.allTheses = data;
         this.updateAvailableYears();
         this.applyFilters();
+        this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
         console.error('Error loading theses:', error);
@@ -82,6 +85,7 @@ export class SearchThesis implements OnInit {
         this.allTheses = [];
         this.updateAvailableYears();
         this.applyFilters();
+        this.isLoading = false; // Hide spinner even on error
       }
     });
   }

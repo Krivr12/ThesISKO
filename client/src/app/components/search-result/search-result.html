@@ -1,7 +1,17 @@
 <app-navbar></app-navbar>
 <div class="page-wrapper">
-  <div class="search-page-container">
-    <div class="content-card">
+  <div class="main-content-area">
+    <div class="search-page-container">
+      
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading document details...</p>
+      </div>
+
+      <!-- Main Content -->
+      <div *ngIf="!isLoading" class="main-content">
+      <div class="content-card">
     <div class="card-header">
       <button type="button" class="return-link" (click)="onReturnClick()">
         &larr; Return
@@ -344,7 +354,9 @@
       </div>
     </div>
   </div>
+      </div> <!-- End main-content -->
+    </div>
+  </div> <!-- End main-content-area -->
+  
+  <app-footer></app-footer>
 </div>
-</div>
-
-<app-footer></app-footer>

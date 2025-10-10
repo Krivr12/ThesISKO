@@ -1,7 +1,17 @@
 <app-navbar></app-navbar>
 <div class="page-wrapper">
-  <div class="search-page-container">
-    <div class="search-bar-container">
+  <div class="main-content-area">
+    <div class="search-page-container">
+      
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading documents...</p>
+      </div>
+
+      <!-- Main Content -->
+      <div *ngIf="!isLoading" class="main-content">
+      <div class="search-bar-container">
       <input 
         type="text" 
         placeholder="Search by title, author, or keywords..." 
@@ -116,7 +126,9 @@
         </div>
       </div>
     </div>
-  </div>
+      </div> <!-- End main-content -->
+    </div>
+  </div> <!-- End main-content-area -->
+  
+  <app-footer></app-footer>
 </div>
-
-<app-footer></app-footer>
