@@ -50,10 +50,19 @@ export class SearchResult implements OnInit {
     private http: HttpClient,
     private authService: AuthService
   ) {
+    console.log('🔍 [SEARCH-RESULT] Constructor called');
     const nav = this.router.getCurrentNavigation();
-    if (nav?.extras?.state && nav.extras.state['thesis']) {
-      this.thesis = nav.extras.state['thesis'];
+    console.log('🔍 [SEARCH-RESULT] Navigation object:', nav);
+    console.log('🔍 [SEARCH-RESULT] Navigation extras:', nav?.extras);
+    console.log('🔍 [SEARCH-RESULT] Navigation state:', nav?.extras?.state);
+    console.log('🔍 [SEARCH-RESULT] Document ID from state:', nav?.extras?.state?.['document_id']);
+    
+    if (nav?.extras?.state && nav.extras.state['document_id']) {
+      const documentId = nav.extras.state['document_id'];
+      console.log('✅ [SEARCH-RESULT] Found document_id, calling loadThesisDetails:', documentId);
+      this.loadThesisDetails(documentId);
     } else {
+      console.log('❌ [SEARCH-RESULT] No document_id found, redirecting to search-thesis');
       this.router.navigate(['/search-thesis']);
     }
 
@@ -64,6 +73,24 @@ export class SearchResult implements OnInit {
   ngOnInit(): void {
     // Re-initialize user role in case AuthService wasn't ready in constructor
     this.initializeUserRole();
+  }
+
+  loadThesisDetails(document_id: string): void {
+    console.log('🔍 [LOAD-THESIS] Starting to fetch details for document_id:', document_id);
+    console.log('🔍 [LOAD-THESIS] API URL:', `http://localhost:5050/records/${document_id}`);
+    
+    this.http.get<any>(`http://localhost:5050/records/${document_id}`).subscribe({
+      next: (data) => {
+        console.log('✅ [LOAD-THESIS] API call successful, received data:', data);
+        this.thesis = data;
+        console.log('✅ [LOAD-THESIS] Thesis object set:', this.thesis);
+      },
+      error: (error) => {
+        console.error('❌ [LOAD-THESIS] Error loading thesis details:', error);
+        console.log('❌ [LOAD-THESIS] Redirecting back to search-thesis due to error');
+        this.router.navigate(['/search-thesis']);
+      }
+    });
   }
 
   private initializeUserRole(): void {

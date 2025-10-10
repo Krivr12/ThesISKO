@@ -1,8 +1,17 @@
-.container {
+.page-wrapper {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 3rem 0;
+  background-color: #fff;
+}
+
+.search-page-container {
+  max-width: 1400px;
+  margin: 40px auto;
+  padding: 0 40px;
+  width: 100%;
 }
 
 .content-card {

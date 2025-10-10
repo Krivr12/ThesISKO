@@ -18,12 +18,43 @@ const checkMongoDB = (res) => {
 
 // -------------------- Routes --------------------
 
-// GET all records
+// GET all records (minimal data for search page)
 router.get("/", async (req, res) => {
   if (!checkMongoDB(res)) return;
   try {
     const results = await collection.find({}).toArray();
-    res.status(200).json(results);
+    
+    // Transform to minimal data for search page
+    const transformedResults = results.map(doc => {
+      // Handle empty authors array
+      const firstAuthor = doc.authors && doc.authors.length > 0 
+        ? doc.authors[0] 
+        : "Unknown Author";
+      
+      // Extract year from submitted_at, handle null/undefined
+      let year = null;
+      if (doc.submitted_at) {
+        try {
+          year = new Date(doc.submitted_at).getFullYear();
+        } catch (dateError) {
+          console.warn(`Invalid date for document ${doc._id}:`, doc.submitted_at);
+          year = new Date().getFullYear(); // Fallback to current year
+        }
+      } else {
+        year = new Date().getFullYear(); // Fallback to current year
+      }
+      
+      return {
+        _id: doc._id,
+        document_id: doc.document_id || doc._id.toString(), // Fallback to _id if document_id is missing
+        title: doc.title || "Untitled",
+        author: firstAuthor,
+        year: year,
+        keywords: doc.tags || []
+      };
+    });
+    
+    res.status(200).json(transformedResults);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error fetching records" });
@@ -59,15 +90,19 @@ router.get("/latest", async (req, res) => {
   }
 });
 
-// GET single record by doc_id
-router.get("/:doc_id", async (req, res) => {
+// GET single record by _id (full data for detail page)
+router.get("/:_id", async (req, res) => {
   try {
-    const result = await collection.findOne({ doc_id: req.params.doc_id });
+    const result = await collection.findOne({ _id: new ObjectId(req.params._id) });
 
     if (!result) {
       return res.status(404).json({ error: "Record not found" });
     }
-    res.status(200).json(result);
+    
+    // Exclude unnecessary fields for detail page
+    const { abstract_embedding, updated_at, ...filteredResult } = result;
+    
+    res.status(200).json(filteredResult);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error fetching record" });
