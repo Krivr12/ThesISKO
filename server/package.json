@@ -4,8 +4,14 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+<<<<<<< HEAD
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
+=======
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node server.js"
+>>>>>>> dev-Chris
   },
   "keywords": [],
   "author": "",
@@ -13,6 +19,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.888.0",
     "@aws-sdk/s3-request-presigner": "^3.888.0",
+    "@supabase/supabase-js": "^2.58.0",
     "@xenova/transformers": "^2.17.2",
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^6.0.0",
@@ -24,6 +31,7 @@
     "helmet": "^8.1.0",
     "mongodb": "^6.18.0",
     "multer": "^2.0.2",
+<<<<<<< HEAD
     "nodemailer": "^7.0.7",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
@@ -32,4 +40,8 @@
     "uuid": "^13.0.0"
   },
   "description": ""
+=======
+    "validator": "^13.15.15"
+  }
+>>>>>>> dev-Chris
 }

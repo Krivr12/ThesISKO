@@ -162,12 +162,15 @@ body {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); 
 }
 
+/* tried adding letter spacing and line height */
 .thesis-title {
   font-size: 1.4rem;
   font-weight: 700;
   color: #800000;
   margin-top: 0;
   margin-bottom: 8px;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
 }
 
 .thesis-meta {
@@ -362,4 +365,81 @@ body {
 
 .filter-list::-webkit-scrollbar-thumb:hover {
   background: #aaa;
+}
+
+/* for custom tags  */
+
+.custom-tag-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.custom-tag-input .search-input {
+  flex-grow: 1;
+  margin-bottom: 0;
+}
+
+.add-tag-button {
+  padding: 0 15px;
+  border: none;
+  border-radius: 8px;
+  background-color: #800000;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-tag-button:hover {
+  background-color: #6a0000;
+}
+
+.filter-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #616161;
+  margin: 15px 0 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.custom-tag {
+  position: relative;
+  padding-right: 30px;
+}
+
+.remove-tag-btn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #ff0000;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.remove-tag-btn:hover {
+  background-color: #ffebee;
+}
+
+/* Selected tags highlight */
+.filter-option input[type="checkbox"]:checked + span {
+  font-weight: 700;
+  color: #800000;
+}
+
+.custom-tag input[type="checkbox"]:checked + span {
+  font-weight: 700;
+  color: #d32f2f;
 }

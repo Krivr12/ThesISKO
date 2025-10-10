@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Load environment variables FIRST before any other imports
 import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
@@ -171,3 +172,12 @@ if (process.env.NODE_ENV !== "production") {
 export default app;
 
 //node --env-file=config.env server.js            
+=======
+import app from "./app.js"; // import the exported app
+
+const PORT = process.env.PORT || 5050;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});
+>>>>>>> dev-Chris

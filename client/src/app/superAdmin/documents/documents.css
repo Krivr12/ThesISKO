@@ -1,0 +1,99 @@
+/* Base */
+html, body { height: 100%; margin: 0; }
+.container { display: flex; height: 100vh; width: 100%; }
+app-sidenavbar { width: 200px; flex-shrink: 0; }
+
+/* Main content */
+mat-sidenav-content.content {
+  flex: 1;
+  overflow: auto;
+  background: #f9f9f9;
+  padding: 0;
+  margin: 0;
+}
+
+/* One centered column for header + card */
+.page {
+  max-width: 1200px;
+  width: 100%;
+  margin: 24px auto;
+  padding: 0 16px;         /* same left inset for Return + card */
+  box-sizing: border-box;
+}
+
+/* Return button */
+button.return {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin: 0 0 12px;        /* sits right on top of the card */
+  color: #800000;
+  text-decoration: none;
+}
+button.return:hover,
+button.return:focus { text-decoration: none; }
+
+/* Card */
+.rectangle-container {
+  background: #fff;
+  border: 2px solid #800000;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin: 0;               /* aligned with Return button */
+}
+
+/* Controls row */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.section-filter { min-width: 200px; }
+
+/* Table basics */
+table { width: 100%; }
+.mat-mdc-table { table-layout: fixed; width: 100%; }
+.mat-mdc-header-cell,
+.mat-mdc-cell { padding: 8px 16px; }
+.mat-mdc-header-row::after,
+.mat-mdc-row::after { display: none !important; }
+
+/* Column widths for stable layout */
+.mat-column-status { width: 260px; }
+.mat-column-forApproval { width: 140px; text-align: center; }
+
+/*dito naayos yung sa status cell*/
+.mat-mdc-cell.mat-column-status,
+.mat-cell.mat-column-status {
+  display: table-cell !important;
+  overflow: visible;        
+  white-space: normal;
+  vertical-align: middle;
+  padding: 16px;           
+}
+
+/* Status cell + dot */
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.status-text { flex: 0 1 auto; min-width: 0; }
+.status-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  display: inline-block; flex: 0 0 auto;
+}
+.status-dot.ongoing { background: gold; }
+.status-dot.rejected { background: red; }
+.status-dot.approved { background: green; }
+
+/* Verify button cell */
+.for-approval-cell { text-align: center; }
+
+/* Optional: clean typography for the app sidebar (if needed) */
+.nav-links a { color: white; display: block; margin: .5rem 0; }
+.logo { color: white; font-weight: bold; margin-bottom: 1rem; }

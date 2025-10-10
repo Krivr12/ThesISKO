@@ -1,100 +1,165 @@
 import express from "express";
-import multer from "multer";
-import s3  from "../databaseConnections/AWS/s3_connection.js"; // make sure s3 is exported as { s3 } in s3.js
-import { DeleteObjectCommand, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import s3 from "../databaseConnections/AWS/s3_connection.js";
+import {
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
-// Student upload route
-router.post("/upload", upload.single("file"), async (req, res) => {
+// Generate signed URL for uploading a single file
+router.post("/signed-url", async (req, res) => {
   try {
-    const params = {
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `submission/${req.file.originalname}`,
-      Body: req.file.buffer,
-    };
-
-    const command = new PutObjectCommand(params);
-    await s3.send(command); // v3 uses send() instead of .upload()
-
-    // Construct the file URL (optional, same as in view route)
-    const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/submission/${req.file.originalname}`;
-
-    res.json({ message: "✅ File uploaded!", url: fileUrl });
-  } catch (err) {
-    console.error("S3 upload error:", err);
-    res.status(500).json({ error: "❌ Upload failed" });
-  }
-});
-
-// Student Delete route
-router.delete("/delete/:filename", async (req, res) => {
-  try {
-    const key = `submission/${req.params.filename}`;
-
-    await s3.send(new DeleteObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key,
-    }));
-
-    res.json({ message: `✅ File ${req.params.filename} deleted successfully` });
-  } catch (err) {
-    console.error("❌ Delete failed", err);
-    res.status(500).json({ error: "❌ Delete failed" });
-  }
-});
-
-
-// Student Multiple-file upload route
-router.post("/upload-multiple", upload.array("files", 10), async (req, res) => {
-  try {
-    const uploadedFiles = [];
-
-    for (const file of req.files) {
-      const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `submission/${file.originalname}`,
-        Body: file.buffer,
-      };
-
-      const command = new PutObjectCommand(params);
-      await s3.send(command);
-
-      const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/submission/${file.originalname}`;
-      uploadedFiles.push({ filename: file.originalname, url: fileUrl });
-
-
+    const { group_id, filename, contentType } = req.body;
+    if (!group_id || !filename || !contentType) {
+      return res
+        .status(400)
+        .json({ error: "Missing group_id, filename, or contentType" });
     }
 
-    res.json({ message: "✅ Files uploaded!", files: uploadedFiles });
+    const key = `submission/${group_id}/${filename}`;
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+      ContentType: contentType,
+    });
+
+    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+    res.json({ uploadUrl, key });
   } catch (err) {
-    console.error("S3 multiple upload error:", err);
-    res.status(500).json({ error: "❌ Upload failed" });
+    console.error("Signed URL error:", err);
+    res.status(500).json({ error: "Failed to generate signed URL" });
   }
 });
 
-
-// Faculty/Admin view file (signed URL for frontend)
-router.get("/view/:filename", async (req, res) => {
+// Generate signed URLs for uploading multiple files
+router.post("/signed-urls", async (req, res) => {
   try {
-    const key = `submission/${req.params.filename}`;
+    const { group_id, files } = req.body; // expected: { group_id, files: [{ filename, contentType }] }
+    if (!group_id || !Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ error: "Missing group_id or files array" });
+    }
 
-    const command = new GetObjectCommand({
+    const urls = await Promise.all(
+      files.map(async ({ filename, contentType }) => {
+        const key = `submission/${group_id}/${filename}`;
+        const command = new PutObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: key,
+          ContentType: contentType,
+        });
+        const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+        return { key, uploadUrl };
+      })
+    );
+
+    res.json({ urls });
+  } catch (err) {
+    console.error("Multiple signed URLs error:", err);
+    res.status(500).json({ error: "Failed to generate signed URLs" });
+  }
+});
+
+// Fetch signed URLs for viewing or downloading existing files
+router.post("/view-urls", async (req, res) => {
+  try {
+    const { group_id, filenames } = req.body; // expected: { group_id, filenames: ["file1.pdf", "file2.pdf"] }
+    if (!group_id || !Array.isArray(filenames) || filenames.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Missing group_id or filenames array" });
+    }
+
+    const urls = await Promise.all(
+      filenames.map(async (filename) => {
+        const key = `submission/${group_id}/${filename}`;
+        const command = new GetObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: key,
+        });
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+        return { key, signedUrl };
+      })
+    );
+
+    res.json({ urls });
+  } catch (err) {
+    console.error("View signed URLs error:", err);
+    res.status(500).json({ error: "Failed to fetch signed URLs" });
+  }
+});
+
+// Delete a file from S3
+router.delete("/file", async (req, res) => {
+  try {
+    const { group_id, filename } = req.body;
+    if (!group_id || !filename)
+      return res.status(400).json({ error: "Missing group_id or filename" });
+
+    const key = `submission/${group_id}/${filename}`;
+
+    const command = new DeleteObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: key,
     });
 
-    // Generate signed URL valid for 1 hour
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-
-    res.json({ url }); // send URL to Angular frontend
+    try {
+      await s3.send(command);
+      res.json({ message: "File deleted successfully", key });
+    } catch (s3Error) {
+      if (s3Error.name === 'NoSuchKey') {
+        // File doesn't exist, but that's okay for delete operations
+        res.json({ message: "File already deleted or doesn't exist", key });
+      } else {
+        throw s3Error; // Re-throw for other S3 errors
+      }
+    }
   } catch (err) {
-    console.error("S3 get file error:", err);
-    res.status(500).json({ error: "❌ Could not get file" });
+    console.error("Delete error:", err);
+    res.status(500).json({ error: "Failed to delete file" });
   }
 });
 
+// Update file by removing old and returning signed URL for new upload
+router.post("/update-file", async (req, res) => {
+  try {
+    const { group_id, oldFilename, newFilename, contentType } = req.body;
+    if (!group_id || !oldFilename || !newFilename || !contentType) {
+      return res.status(400).json({
+        error: "Missing group_id, oldFilename, newFilename, or contentType",
+      });
+    }
+
+    const oldKey = `submission/${group_id}/${oldFilename}`;
+    const newKey = `submission/${group_id}/${newFilename}`;
+
+    // delete old file
+    const deleteCmd = new DeleteObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: oldKey,
+    });
+    await s3.send(deleteCmd);
+
+    // generate signed url for new file
+    const putCmd = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: newKey,
+      ContentType: contentType,
+    });
+    const uploadUrl = await getSignedUrl(s3, putCmd, { expiresIn: 300 });
+
+    res.json({
+      message: "Old file removed. Use this URL to upload new file.",
+      uploadUrl,
+      key: newKey,
+    });
+  } catch (err) {
+    console.error("Update file error:", err);
+    res.status(500).json({ error: "Failed to update file" });
+  }
+});
 
 export default router;
