@@ -5,21 +5,8 @@ dotenv.config({ path: "config.env" });
 
 const uri = process.env.ATLAS_URI || "";
 
-<<<<<<< HEAD
 let client;
 let db;
-=======
-console.log("ATLAS_URI from env:", process.env.ATLAS_URI);
-
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: false,
-    deprecationErrors: true,
-  },
-});
->>>>>>> dev-Chris
 
 if (uri && uri.startsWith("mongodb")) {
   try {

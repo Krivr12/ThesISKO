@@ -84,13 +84,7 @@ export const routes: Routes = [
     {path: 'documents-verify', redirectTo: '/admin-documents'},
     {path: 'super-admin-nav-bar', redirectTo: '/admin-dashboard'},
     
-    {path: '', redirectTo: '/signup-choose', pathMatch: 'full'}
-    {path: 'home', component: Home},
-    {path: 'about-us', component: AboutUs},
-    {path: 'search-thesis', component: SearchThesis},
-    {path: 'search-result', component: SearchResult},
-    {path: 'submission', component: Submission},
-    {path: 'thank-you', component: ThankYou},
+    {path: '', redirectTo: '/signup-choose', pathMatch: 'full'},
     {path: 'login-modal', component: LoginModal},
-    {path: '', redirectTo: 'home', pathMatch: 'full'}
+    {path: '**', redirectTo: '/signup-choose'} // Catch-all route
 ];

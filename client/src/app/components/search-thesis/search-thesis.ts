@@ -4,8 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
 import { Footer } from "../footer/footer";
 import { Router } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 interface Thesis {
+  _id: string;
+  document_id: string;
   title: string;
   author: string;
   year: number;
@@ -15,12 +18,12 @@ interface Thesis {
 @Component({
   selector: 'app-search-thesis',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar, Footer],
+  imports: [CommonModule, FormsModule, Navbar, Footer, HttpClientModule],
   templateUrl: './search-thesis.html',
   styleUrl: './search-thesis.css'
 })
 export class SearchThesis implements OnInit {
-  constructor(private router: Router) {}
+  constructor(private router: Router, private http: HttpClient) {}
   totalItems: number = 0;
   itemsPerPage: number = 8;
   currentPage: number = 1;
@@ -57,174 +60,36 @@ export class SearchThesis implements OnInit {
   // get unique years from theses
   availableYears = signal<number[]>([]);
 
-  allTheses: Thesis[] = [
-    {
-      title: 'Optimizing Urban Traffic Flow Using Reinforcement Learning and Real-Time Sensor Data',
-      author: 'C.B. Evangelista',
-      year: 2024,
-      keywords: ['Traffic Flow', 'Real-Time Sensor', 'Machine Learning', 'Reinforcement']
-    },
-    {
-      title: 'A Deep Dive into Convolutional Neural Networks for Image Recognition',
-      author: 'M.A. Del Rosario',
-      year: 2023,
-      keywords: ['Neural Networks', 'Image Recognition', 'Deep Learning', 'Computer Vision']
-    },
-    {
-      title: 'The Impact of Climate Change on Agricultural Productivity in Southeast Asia',
-      author: 'J.P. Reyes',
-      year: 2022,
-      keywords: ['Climate Change', 'Agriculture', 'Southeast Asia', 'Environmental Science']
-    },
-    {
-      title: 'Blockchain Technology in Supply Chain Management: A Case Study',
-      author: 'A.L. Cruz',
-      year: 2024,
-      keywords: ['Blockchain', 'Supply Chain', 'Logistics', 'Decentralization']
-    },
-    {
-      title: 'Enhancing Cybersecurity Defenses with AI-Powered Threat Detection',
-      author: 'R.M. Santiago',
-      year: 2023,
-      keywords: ['Cybersecurity', 'AI', 'Threat Detection', 'Network Security']
-    },
-    {
-      title: 'Sustainable Urban Planning: Integrating Green Spaces and Public Transport',
-      author: 'S.D. Gonzales',
-      year: 2022,
-      keywords: ['Urban Planning', 'Sustainability', 'Green Spaces', 'Public Transport']
-    },
-    {
-      title: 'The Role of Big Data Analytics in Modern Healthcare Systems',
-      author: 'P.C. Aquino',
-      year: 2024,
-      keywords: ['Big Data', 'Healthcare', 'Analytics', 'Medical Informatics']
-    },
-    {
-      title: 'Development of a Smart Home Automation System Using IoT',
-      author: 'K.F. Lim',
-      year: 2023,
-      keywords: ['Smart Home', 'IoT', 'Automation', 'Embedded Systems']
-    },
-    {
-      title: 'Analyzing Social Media Sentiment for Brand Reputation Management',
-      author: 'E.V. Tan',
-      year: 2022,
-      keywords: ['Social Media', 'Sentiment Analysis', 'Brand Management', 'Marketing']
-    },
-    {
-      title: 'Predictive Modeling for Financial Market Trends using Machine Learning',
-      author: 'L.G. Garcia',
-      year: 2024,
-      keywords: ['Predictive Modeling', 'Financial Markets', 'Machine Learning', 'Economics']
-    },
-    {
-      title: 'Advanced Robotics for Autonomous Navigation in Unstructured Environments',
-      author: 'B.H. Ramos',
-      year: 2023,
-      keywords: ['Robotics', 'Autonomous Navigation', 'AI', 'Control Systems']
-    },
-    {
-      title: 'Impact of Renewable Energy Sources on National Power Grids',
-      author: 'D.N. Santos',
-      year: 2022,
-      keywords: ['Renewable Energy', 'Power Grids', 'Energy Policy', 'Sustainable Development']
-    },
-    {
-      title: 'User Interface Design Principles for Accessible Web Applications',
-      author: 'F.I. Castro',
-      year: 2024,
-      keywords: ['UI Design', 'Accessibility', 'Web Development', 'User Experience']
-    },
-    {
-      title: 'The Efficacy of Gamification in Online Education Platforms',
-      author: 'G.J. Rivera',
-      year: 2023,
-      keywords: ['Gamification', 'Online Education', 'E-learning', 'Pedagogy']
-    },
-    {
-      title: 'Developing Sustainable Waste Management Strategies for Urban Areas',
-      author: 'H.K. Mendoza',
-      year: 2022,
-      keywords: ['Waste Management', 'Sustainability', 'Urban Areas', 'Environmental Engineering']
-    },
-    {
-      title: 'Artificial Intelligence in Drug Discovery and Development',
-      author: 'I.L. Torres',
-      year: 2024,
-      keywords: ['AI', 'Drug Discovery', 'Pharmaceuticals', 'Biomedical Engineering']
-    },
-    {
-      title: 'The Role of Social Support in Mental Health Resilience among College Students',
-      author: 'J.P. Lim',
-      year: 2023,
-      keywords: ['Mental Health', 'Social Support', 'College Students', 'Psychology']
-    },
-    {
-      title: 'Analyzing the Economic Impact of Tourism on Local Communities',
-      author: 'K.R. Reyes',
-      year: 2024,
-      keywords: ['Tourism', 'Economic Impact', 'Local Communities', 'Sociology']
-    },
-    {
-      title: 'Development of a Mobile Application for Language Learning',
-      author: 'L.M. Cruz',
-      year: 2022,
-      keywords: ['Mobile Application', 'Language Learning', 'EdTech', 'Software Engineering']
-    },
-    {
-      title: 'A Comparative Study of Agile vs. Waterfall Software Development Methodologies',
-      author: 'N.O. Santos',
-      year: 2024,
-      keywords: ['Agile', 'Waterfall', 'Software Development', 'Project Management']
-    },
-    {
-      title: 'The Use of Drones in Precision Agriculture for Crop Monitoring',
-      author: 'P.Q. Gonzales',
-      year: 2023,
-      keywords: ['Drones', 'Precision Agriculture', 'Crop Monitoring', 'Technology']
-    },
-    {
-      title: 'Examining the Effects of Remote Work on Employee Productivity and Well-being',
-      author: 'R.S. Aquino',
-      year: 2022,
-      keywords: ['Remote Work', 'Productivity', 'Well-being', 'Human Resources']
-    },
-    {
-      title: 'The Future of Sustainable Architecture in Urban Environments',
-      author: 'T.U. Ramos',
-      year: 2024,
-      keywords: ['Sustainable Architecture', 'Urban Design', 'Environmental Sustainability', 'Design']
-    },
-    {
-      title: 'Application of Machine Learning in Predictive Maintenance of Industrial Machinery',
-      author: 'V.W. Tan',
-      year: 2023,
-      keywords: ['Machine Learning', 'Predictive Maintenance', 'Industrial Engineering', 'AI']
-    },
-    {
-      title: 'Analyzing Consumer Behavior on E-commerce Platforms',
-      author: 'X.Y. Castro',
-      year: 2022,
-      keywords: ['Consumer Behavior', 'E-commerce', 'Marketing', 'Data Analytics']
-    },
-    {
-      title: 'Ethical Considerations in the Development of Autonomous Vehicles',
-      author: 'A.B. Rivera',
-      year: 2024,
-      keywords: ['Ethics', 'Autonomous Vehicles', 'AI', 'Safety']
-    },
-  ];
+  allTheses: Thesis[] = [];
 
   filteredTheses: Thesis[] = [];
   displayedTheses: Thesis[] = [];
 
   ngOnInit(): void {
+    this.loadTheses();
+  }
+
+  loadTheses(): void {
+    this.http.get<Thesis[]>('http://localhost:5050/records/').subscribe({
+      next: (data) => {
+        this.allTheses = data;
+        this.updateAvailableYears();
+        this.applyFilters();
+      },
+      error: (error) => {
+        console.error('Error loading theses:', error);
+        // Fallback to empty array if API fails
+        this.allTheses = [];
+        this.updateAvailableYears();
+        this.applyFilters();
+      }
+    });
+  }
+
+  updateAvailableYears(): void {
     // Extract unique years from theses
     const years = [...new Set(this.allTheses.map(thesis => thesis.year))].sort((a, b) => b - a);
     this.availableYears.set(years);
-    
-    this.applyFilters();
   }
 
   toggleFilters(): void {
@@ -358,8 +223,11 @@ export class SearchThesis implements OnInit {
   }
 
   viewThesis(thesis: Thesis): void {
+    console.log('🔍 [SEARCH-THESIS] Navigating to search-result with _id:', thesis._id);
+    console.log('🔍 [SEARCH-THESIS] Document ID for display:', thesis.document_id);
+    console.log('🔍 [SEARCH-THESIS] Full thesis object:', thesis);
     this.router.navigate(['/search-result'], { 
-      state: { thesis: thesis } 
+      state: { document_id: thesis._id } // Use _id for navigation
     });
   }
 }

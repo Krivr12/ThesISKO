@@ -4,14 +4,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-<<<<<<< HEAD
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
-=======
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node server.js"
->>>>>>> dev-Chris
   },
   "keywords": [],
   "author": "",
@@ -31,7 +25,6 @@
     "helmet": "^8.1.0",
     "mongodb": "^6.18.0",
     "multer": "^2.0.2",
-<<<<<<< HEAD
     "nodemailer": "^7.0.7",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
@@ -40,8 +33,4 @@
     "uuid": "^13.0.0"
   },
   "description": ""
-=======
-    "validator": "^13.15.15"
-  }
->>>>>>> dev-Chris
 }
