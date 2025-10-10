@@ -45,12 +45,12 @@ router.get("/", async (req, res) => {
       }
       
       return {
-        _id: doc._id,
-        document_id: doc.document_id || doc._id.toString(), // Fallback to _id if document_id is missing
+        _id: doc._id || doc.id, // Handle both _id and id fields
+        document_id: doc.document_id || doc.doc_id || (doc._id || doc.id)?.toString(), // Handle doc_id field
         title: doc.title || "Untitled",
-        author: firstAuthor,
-        year: year,
-        keywords: doc.tags || []
+        submitted_at: doc.submitted_at, // Keep original field name for frontend
+        authors: doc.authors || [], // Keep original field name for frontend
+        tags: doc.tags || [] // Keep original field name for frontend
       };
     });
     
@@ -66,24 +66,24 @@ router.get("/latest", async (req, res) => {
   if (!checkMongoDB(res)) return;
   try {
     const results = await collection
-      .find(
-        {},
-        {
-          projection: {
-            doc_id: 1,
-            title: 1,
-            submitted_at: 1,
-            authors: 1,
-            access_level: 1,
-            tags: 1,
-          },
-        }
-      )
+      .find({})
       .sort({ submitted_at: -1 })
       .limit(6)
       .toArray();
+    
+    // Transform to same format as /records/ endpoint
+    const transformedResults = results.map(doc => {
+      return {
+        _id: doc._id || doc.id, // Handle both _id and id fields
+        document_id: doc.document_id || doc.doc_id || (doc._id || doc.id)?.toString(), // Handle doc_id field
+        title: doc.title || "Untitled",
+        submitted_at: doc.submitted_at, // Keep original field name for frontend
+        authors: doc.authors || [], // Keep original field name for frontend
+        tags: doc.tags || [] // Keep original field name for frontend
+      };
+    });
 
-    res.status(200).json(results);
+    res.status(200).json(transformedResults);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error fetching latest records" });
