@@ -21,10 +21,10 @@ const upload = multer({ storage: multer.memoryStorage() });
 /* -------------------- Create Request (Student/Guest) -------------------- */
 router.post("/", rateLimiter, validateRequest, async (req, res) => {
   try {
-    const { docId, userType, requester, chaptersRequested, purpose } = req.body;
+    const { document_id, userType, requester, chaptersRequested, purpose } = req.body;
 
     const newRequest = {
-      docId,
+      document_id,
       userType,
       requester, // must contain at least { email }
       chaptersRequested,
@@ -122,11 +122,11 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
 
     const body =
       status === "approved"
-        ? `<p>Your request for ${request.docId} was approved.</p>
+        ? `<p>Your request for ${request.document_id} was approved.</p>
            <p>Remarks: ${deanRemarks}</p>
            <p>You can download the file here (valid for 2 days): 
               <a href="${presignedUrl}">${presignedUrl}</a></p>`
-        : `<p>Your request for ${request.docId} was rejected.</p>
+        : `<p>Your request for ${request.document_id} was rejected.</p>
            <p>Reason: ${deanRemarks}</p>`;
 
     await sendEmail(request.requester.email, subject, body);

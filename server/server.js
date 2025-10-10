@@ -28,6 +28,7 @@ import users from "./routes/users.js";
 import auth from "./routes/auth.js";
 import admin from "./routes/admin.js";
 import facultyPassword from "./routes/faculty-password.js";
+import requests from "./routes/requests.js"; // import requests route
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -113,6 +114,7 @@ app.use("/api/users", users);
 app.use("/auth", auth);
 app.use("/admin", admin);
 app.use("/api/faculty", facultyPassword);
+app.use("/requests", requests); // Mount requests route
 
 // Direct verification route (for email links)
 app.get("/verify-student", async (req, res) => {

@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild, HostListener, OnInit } from '@angular/core';
+import { Component, TemplateRef, ViewChild, HostListener, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -33,17 +33,18 @@ type UserRole = 'student' | 'guest' | 'group';
   templateUrl: './search-result.html',
   styleUrls: ['./search-result.css']
 })
-export class SearchResult implements OnInit {
+export class SearchResult implements OnInit, AfterViewInit {
   // ===== Templates for role-based dialogs =====
-  @ViewChild('dlgRequestAccessStudent', { static: true }) dlgStudent!: TemplateRef<any>;
-  @ViewChild('dlgRequestAccessGuest', { static: true }) dlgGuest!: TemplateRef<any>;
-  @ViewChild('dlgLoginRequired') dlgLoginRequired!: TemplateRef<any>;
-  @ViewChild('dlgTerms') dlgTerms!: TemplateRef<any>;
+  @ViewChild('dlgRequestAccessStudent', { static: false }) dlgStudent!: TemplateRef<any>;
+  @ViewChild('dlgRequestAccessGuest', { static: false }) dlgGuest!: TemplateRef<any>;
+  @ViewChild('dlgLoginRequired', { static: false }) dlgLoginRequired!: TemplateRef<any>;
+  @ViewChild('dlgTerms', { static: false }) dlgTerms!: TemplateRef<any>;
 
   thesis: any; // Store thesis passed from router
   citationCopied = false; // Track if citation was just copied
   copiedFormat = ''; // Track which format was copied (APA/MLA)
   isLoading: boolean = true; // Loading state for spinner
+  isSubmittingRequest: boolean = false; // Loading state for request submission
 
   constructor(
     private router: Router,
@@ -74,6 +75,15 @@ export class SearchResult implements OnInit {
   ngOnInit(): void {
     // Re-initialize user role in case AuthService wasn't ready in constructor
     this.initializeUserRole();
+  }
+
+  ngAfterViewInit(): void {
+    // Verify ViewChild references are available
+    console.log('🔍 [VIEW-INIT] Checking ViewChild references...');
+    console.log('🔍 [VIEW-INIT] dlgStudent:', this.dlgStudent ? 'Available' : 'Undefined');
+    console.log('🔍 [VIEW-INIT] dlgGuest:', this.dlgGuest ? 'Available' : 'Undefined');
+    console.log('🔍 [VIEW-INIT] dlgLoginRequired:', this.dlgLoginRequired ? 'Available' : 'Undefined');
+    console.log('🔍 [VIEW-INIT] dlgTerms:', this.dlgTerms ? 'Available' : 'Undefined');
   }
 
   loadThesisDetails(document_id: string): void {
@@ -187,7 +197,14 @@ export class SearchResult implements OnInit {
   // ===== Validation helpers =====
   // Student: email, program, department auto-filled from account; needs purpose, chapters
   get studentFormValid(): boolean {
-    return this.chaptersValid && this.purposeValid && !!this.studentProgram && !!this.studentDepartment;
+    const valid = this.chaptersValid && this.purposeValid && !!this.studentProgram && !!this.studentDepartment;
+    console.log('🔍 [VALIDATION] Student form valid:', valid, {
+      chaptersValid: this.chaptersValid,
+      purposeValid: this.purposeValid,
+      studentProgram: this.studentProgram,
+      studentDepartment: this.studentDepartment
+    });
+    return valid;
   }
 
   // Static mapping of programs to departments
@@ -327,9 +344,19 @@ export class SearchResult implements OnInit {
 
   // Guest: gmail + country + city + school + purpose + chapters
   get guestFormValid(): boolean {
-    return this.chaptersValid && this.purposeValid &&
+    const valid = this.chaptersValid && this.purposeValid &&
            this.isGmail(this.requestEmail) &&
            !!this.guestCountry && !!this.guestCity && !!this.guestSchool;
+    console.log('🔍 [VALIDATION] Guest form valid:', valid, {
+      chaptersValid: this.chaptersValid,
+      purposeValid: this.purposeValid,
+      isGmail: this.isGmail(this.requestEmail),
+      requestEmail: this.requestEmail,
+      guestCountry: this.guestCountry,
+      guestCity: this.guestCity,
+      guestSchool: this.guestSchool
+    });
+    return valid;
   }
   private get purposeValid(): boolean {
     return (this.requestPurpose?.trim().length ?? 0) >= 8;
@@ -340,16 +367,37 @@ export class SearchResult implements OnInit {
 
   // ===== UI actions =====
   openRequestDialog(): void {
+    console.log('🔍 [REQUEST-DIALOG] Opening request dialog...');
+    console.log('🔍 [REQUEST-DIALOG] User role:', this.userRole);
+    console.log('🔍 [REQUEST-DIALOG] User email:', this.currentUserEmail);
+    
     // Check if user is logged in
     if (!this.currentUserEmail) {
+      console.log('🔍 [REQUEST-DIALOG] No user email, showing login required dialog');
       // Show login required dialog
-      this.dialog.open(this.dlgLoginRequired, { width: '500px', autoFocus: false });
+      if (this.dlgLoginRequired) {
+        this.dialog.open(this.dlgLoginRequired, { width: '500px', autoFocus: false });
+      } else {
+        console.error('❌ [REQUEST-DIALOG] Login required dialog template not available');
+      }
       return;
     }
     
     this.resetRequestDialog();
+    
     // Students and groups use the student template, guests use the guest template
     const tpl = (this.userRole === 'student' || this.userRole === 'group') ? this.dlgStudent : this.dlgGuest;
+    console.log('🔍 [REQUEST-DIALOG] Selected template:', tpl ? 'Available' : 'Undefined');
+    console.log('🔍 [REQUEST-DIALOG] Template type:', this.userRole === 'student' || this.userRole === 'group' ? 'Student/Group' : 'Guest');
+    
+    if (!tpl) {
+      console.error('❌ [REQUEST-DIALOG] Dialog template not available');
+      console.error('❌ [REQUEST-DIALOG] dlgStudent:', this.dlgStudent);
+      console.error('❌ [REQUEST-DIALOG] dlgGuest:', this.dlgGuest);
+      return;
+    }
+    
+    console.log('✅ [REQUEST-DIALOG] Opening dialog with template');
     this.dialog.open(tpl, { width: '640px', autoFocus: false });
   }
 
@@ -399,51 +447,6 @@ export class SearchResult implements OnInit {
     else this.selectedRequestChapters.delete('All');
   }
 
-  confirmRequest(dialogRef: any): void {
-    const chapters = this.selectedRequestChapters.has('All')
-      ? this.requestOptions.filter(o => o !== 'All')
-      : Array.from(this.selectedRequestChapters);
-
-    const base = {
-      role: this.userRole,
-      purpose: this.requestPurpose.trim(),
-      chapters,
-      thesis_id: this.thesis?.id ?? null
-    };
-
-    const payload =
-      this.userRole === 'student'
-        ? {
-            ...base,
-            email: this.currentUserEmail,
-            program: this.studentProgram,
-            department: this.studentDepartment
-          }
-        : this.userRole === 'group'
-        ? {
-            ...base,
-            email: this.currentUserEmail,
-            group_id: this.authService.currentUser?.group_id,
-            leader_name: this.authService.currentUser?.leader_name
-          }
-        : {
-            ...base,
-            email: this.requestEmail.trim(),
-            country: this.guestCountry.trim(),
-            city: this.guestCity.trim(),
-            school: this.guestSchool.trim()
-          };
-
-    // TODO: replace with your real endpoint
-    // this.http.post('/api/access-requests', payload).subscribe({
-    //   next: () => dialogRef.close(payload),
-    //   error: err => console.error('Request failed', err)
-    // });
-
-    console.log('Sending access request:', payload);
-    dialogRef.close(payload);
-    this.resetRequestDialog();
-  }
 
   // ===== New methods for login and terms dialogs =====
   goToLogin(dialogRef: any): void {
@@ -453,10 +456,20 @@ export class SearchResult implements OnInit {
   }
 
   openTermsAndSubmit(prevDialogRef?: any): void {
+    console.log('🔍 [TERMS] Opening terms dialog...');
+    console.log('🔍 [TERMS] dlgTerms template:', this.dlgTerms ? 'Available' : 'Undefined');
+    
     // Optional: keep the original dialog open but block accidental outside close
     if (prevDialogRef) prevDialogRef.disableClose = true;
 
     this.termsAccepted = false; // reset each time
+    
+    if (!this.dlgTerms) {
+      console.error('❌ [TERMS] Terms dialog template not available');
+      alert('Error: Terms dialog not available. Please try again.');
+      return;
+    }
+    
     const ref = this.dialog.open(this.dlgTerms, {
       width: '720px',
       autoFocus: false,
@@ -477,12 +490,78 @@ export class SearchResult implements OnInit {
 
   // Your actual submit logic (API call, snackbar, etc.)
   finalizeRequestSubmission(): void {
-    // TODO: replace with your real submit call
-    // this.requestService.submit({...}).subscribe(...)
-    // Example placeholder:
-    // this.snack.open('Request sent. Please watch your email for updates.', 'Close', { duration: 3000 });
+    console.log('🔍 [FINALIZE] Starting final request submission...');
+    console.log('🔍 [FINALIZE] User role:', this.userRole);
+    console.log('🔍 [FINALIZE] Thesis ID:', this.thesis?._id);
+    
+    // Validate that we have the required data
+    if (!this.thesis?._id) {
+      console.error('❌ [FINALIZE] No thesis ID available');
+      alert('Error: Document information not available. Please try again.');
+      return;
+    }
 
-    console.log('Request submitted!');
+    this.isSubmittingRequest = true; // Show loading state
+
+    // Prepare chapters array
+    const chapters = this.selectedRequestChapters.has('All')
+      ? this.requestOptions.filter(o => o !== 'All')
+      : Array.from(this.selectedRequestChapters);
+
+    // Transform data to backend format
+    const requestPayload = {
+      document_id: this.thesis._id, // Use thesis._id as document_id
+      userType: this.userRole === 'group' ? 'student' : this.userRole, // Map group to student
+      requester: this.userRole === 'student' || this.userRole === 'group'
+        ? {
+            email: this.currentUserEmail,
+            program: this.studentProgram,
+            department: this.studentDepartment
+          }
+        : {
+            email: this.requestEmail.trim(),
+            country: this.guestCountry.trim(),
+            city: this.guestCity.trim(),
+            school: this.guestSchool.trim()
+          },
+      chaptersRequested: chapters,
+      purpose: this.requestPurpose.trim()
+    };
+
+    console.log('📤 [FINALIZE] Submitting to backend:', requestPayload);
+
+    // Call backend API
+    this.http.post('http://localhost:5050/requests/', requestPayload).subscribe({
+      next: (response: any) => {
+        console.log('✅ [FINALIZE] Success response:', response);
+        this.isSubmittingRequest = false;
+        
+        // Show success message
+        alert(`Request submitted successfully! Request ID: ${response.requestId}`);
+        
+        // Reset form
+        this.resetRequestDialog();
+      },
+      error: (error) => {
+        console.error('❌ [FINALIZE] Error response:', error);
+        this.isSubmittingRequest = false;
+        
+        // Handle different types of errors
+        let errorMessage = 'Failed to submit request. Please try again.';
+        
+        if (error.status === 400) {
+          errorMessage = error.error?.error || 'Invalid request data. Please check your information.';
+        } else if (error.status === 429) {
+          errorMessage = 'Too many requests. Please wait a moment before trying again.';
+        } else if (error.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        } else if (error.status === 0) {
+          errorMessage = 'Network error. Please check your connection.';
+        }
+        
+        alert(`Error: ${errorMessage}`);
+      }
+    });
   }
 
   // Get current user email from AuthService

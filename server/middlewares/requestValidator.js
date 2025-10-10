@@ -6,9 +6,9 @@ const { isEmail } = validator;
  */
 export function validateRequest(req, res, next) {
   try {
-    const { docId, userType, requester, chaptersRequested, purpose } = req.body;
+    const { document_id, userType, requester, chaptersRequested, purpose } = req.body;
 
-    if (!docId || !userType || !requester || !purpose) {
+    if (!document_id || !userType || !requester || !purpose) {
       return res.status(400).json({ error: "Missing required fields." });
     }
 
