@@ -48,9 +48,9 @@ router.get("/", async (req, res) => {
         _id: doc._id || doc.id, // Handle both _id and id fields
         document_id: doc.document_id || doc.doc_id || (doc._id || doc.id)?.toString(), // Handle doc_id field
         title: doc.title || "Untitled",
-        submitted_at: doc.submitted_at, // Keep original field name for frontend
-        authors: doc.authors || [], // Keep original field name for frontend
-        tags: doc.tags || [] // Keep original field name for frontend
+        author: firstAuthor, // Transform to single author string for search-thesis
+        year: year, // Transform to year number for search-thesis
+        keywords: doc.tags || [] // Transform tags to keywords for search-thesis
       };
     });
     
