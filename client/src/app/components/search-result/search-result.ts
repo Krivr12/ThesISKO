@@ -43,6 +43,7 @@ export class SearchResult implements OnInit {
   thesis: any; // Store thesis passed from router
   citationCopied = false; // Track if citation was just copied
   copiedFormat = ''; // Track which format was copied (APA/MLA)
+  isLoading: boolean = true; // Loading state for spinner
 
   constructor(
     private router: Router,
@@ -76,6 +77,7 @@ export class SearchResult implements OnInit {
   }
 
   loadThesisDetails(document_id: string): void {
+    this.isLoading = true; // Show spinner
     console.log('🔍 [LOAD-THESIS] Starting to fetch details for document_id:', document_id);
     console.log('🔍 [LOAD-THESIS] API URL:', `http://localhost:5050/records/${document_id}`);
     
@@ -84,10 +86,12 @@ export class SearchResult implements OnInit {
         console.log('✅ [LOAD-THESIS] API call successful, received data:', data);
         this.thesis = data;
         console.log('✅ [LOAD-THESIS] Thesis object set:', this.thesis);
+        this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
         console.error('❌ [LOAD-THESIS] Error loading thesis details:', error);
         console.log('❌ [LOAD-THESIS] Redirecting back to search-thesis due to error');
+        this.isLoading = false; // Hide spinner even on error
         this.router.navigate(['/search-thesis']);
       }
     });

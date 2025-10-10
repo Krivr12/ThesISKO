@@ -7,6 +7,10 @@
     background-color: #800000; 
     color: white;
     font-size: 14px;
+    height: 60px; /* Fixed height to prevent expansion */
+    min-height: 60px; /* Ensure minimum height */
+    max-height: 60px; /* Prevent expansion beyond this height */
+    box-sizing: border-box; /* Include padding in height calculation */
   }
   
   .footer-left p {
