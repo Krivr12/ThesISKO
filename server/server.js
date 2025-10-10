@@ -1,6 +1,14 @@
 // Load environment variables FIRST before any other imports
 import dotenv from "dotenv";
-dotenv.config({ path: './config.env' });
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load config.env from the same directory as server.js
+dotenv.config({ path: join(__dirname, 'config.env') });
 
 // Verify environment variables are loaded
 // Environment variables loaded from config.env
