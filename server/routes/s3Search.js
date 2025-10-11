@@ -16,7 +16,7 @@ router.get("/search", async (req, res) => {
 
     
     const command = new ListObjectsV2Command({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
       Prefix: "submission/", // optional: if you store inside 'submission/'
     });
 

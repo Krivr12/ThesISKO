@@ -66,7 +66,7 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
 
       await s3.send(
         new PutObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME,
+          Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
           Key: s3Key,
           Body: req.file.buffer,
           ContentType: "application/pdf",
@@ -77,7 +77,7 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
       presignedUrl = await getSignedUrl(
         s3,
         new GetObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME,
+          Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
           Key: s3Key,
         }),
         { expiresIn: 172800 } // 2 days

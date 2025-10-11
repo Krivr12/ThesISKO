@@ -22,7 +22,7 @@ router.post("/signed-url", async (req, res) => {
     const key = `submission/${group_id}/${filename}`;
 
     const command = new PutObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
       Key: key,
       ContentType: contentType,
     });
@@ -47,7 +47,7 @@ router.post("/signed-urls", async (req, res) => {
       files.map(async ({ filename, contentType }) => {
         const key = `submission/${group_id}/${filename}`;
         const command = new PutObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME,
+          Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
           Key: key,
           ContentType: contentType,
         });
@@ -77,7 +77,7 @@ router.post("/view-urls", async (req, res) => {
       filenames.map(async (filename) => {
         const key = `submission/${group_id}/${filename}`;
         const command = new GetObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME,
+          Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
           Key: key,
         });
         const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
@@ -102,7 +102,7 @@ router.delete("/file", async (req, res) => {
     const key = `submission/${group_id}/${filename}`;
 
     const command = new DeleteObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
       Key: key,
     });
 
@@ -138,14 +138,14 @@ router.post("/update-file", async (req, res) => {
 
     // delete old file
     const deleteCmd = new DeleteObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
       Key: oldKey,
     });
     await s3.send(deleteCmd);
 
     // generate signed url for new file
     const putCmd = new PutObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
+      Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
       Key: newKey,
       ContentType: contentType,
     });
@@ -159,6 +159,32 @@ router.post("/update-file", async (req, res) => {
   } catch (err) {
     console.error("Update file error:", err);
     res.status(500).json({ error: "Failed to update file" });
+  }
+});
+
+// Generate signed URL for viewing repository file (approved documents)
+router.post("/view-repository-file", async (req, res) => {
+  try {
+    const { file_key } = req.body;
+    
+    if (!file_key) {
+      return res.status(400).json({ error: "Missing file_key" });
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: process.env.THESISKO_REPOSITORY_BUCKET || process.env.THESISKO_DOCUMENTS_BUCKET,
+      Key: file_key,
+    });
+
+    const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+    
+    res.json({ 
+      signedUrl,
+      expiresIn: 300  // 5 minutes
+    });
+  } catch (err) {
+    console.error("View repository file error:", err);
+    res.status(500).json({ error: "Failed to generate signed URL for viewing" });
   }
 });
 
