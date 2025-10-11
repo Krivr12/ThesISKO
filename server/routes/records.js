@@ -2,6 +2,8 @@ import express from "express";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 import { generateEmbedding, semanticSearch  } from "../controller/embeddingService.js";
 import { ObjectId } from "mongodb";
+import s3 from "../databaseConnections/AWS/s3_connection.js";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const router = express.Router();
 const VECTOR_INDEX = "AbstractSemanticSearch"; // replace with your Atlas vector index
@@ -18,11 +20,23 @@ const checkMongoDB = (res) => {
 
 // -------------------- Routes --------------------
 
-// GET all records (minimal data for search page)
+// GET all records (full data for admin, or minimal for search based on query param)
 router.get("/", async (req, res) => {
   if (!checkMongoDB(res)) return;
   try {
     const results = await collection.find({}).toArray();
+    
+    // Check if request wants full data (for admin pages)
+    const fullData = req.query.full === 'true';
+    
+    if (fullData) {
+      // Return full records excluding only the large embedding field
+      const fullResults = results.map(doc => {
+        const { abstract_embedding, ...recordData } = doc;
+        return recordData;
+      });
+      return res.status(200).json(fullResults);
+    }
     
     // Transform to minimal data for search page
     const transformedResults = results.map(doc => {
@@ -31,13 +45,14 @@ router.get("/", async (req, res) => {
         ? doc.authors[0] 
         : "Unknown Author";
       
-      // Extract year from submitted_at, handle null/undefined
+      // Extract year from created_at or submitted_at, handle null/undefined
       let year = null;
-      if (doc.submitted_at) {
+      const dateField = doc.created_at || doc.submitted_at;
+      if (dateField) {
         try {
-          year = new Date(doc.submitted_at).getFullYear();
+          year = new Date(dateField).getFullYear();
         } catch (dateError) {
-          console.warn(`Invalid date for document ${doc._id}:`, doc.submitted_at);
+          console.warn(`Invalid date for document ${doc._id}:`, dateField);
           year = new Date().getFullYear(); // Fallback to current year
         }
       } else {
@@ -236,20 +251,52 @@ router.post("/theses/by-ids", async (req, res) => {
   }
 });
 
-// DELETE a record by doc_id
-router.delete("/:doc_id", async (req, res) => {
+// DELETE a record by _id (also deletes associated S3 file)
+router.delete("/:_id", async (req, res) => {
   try {
-    const result = await collection.deleteOne({ doc_id: req.params.doc_id });
+    const { _id } = req.params;
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(_id)) {
+      return res.status(400).json({ error: "Invalid record ID" });
+    }
+
+    // 1. Find the record first to get file_key for S3 deletion
+    const record = await collection.findOne({ _id: new ObjectId(_id) });
+
+    if (!record) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    // 2. Delete file from S3 if file_key exists
+    if (record.file_key) {
+      try {
+        const deleteCommand = new DeleteObjectCommand({
+          Bucket: process.env.THESISKO_REPOSITORY_BUCKET || process.env.THESISKO_DOCUMENTS_BUCKET,
+          Key: record.file_key,
+        });
+        await s3.send(deleteCommand);
+        console.log(`✅ S3 file deleted: ${record.file_key}`);
+      } catch (s3Error) {
+        // Log S3 error but continue with MongoDB deletion
+        console.warn(`⚠️ S3 deletion failed for ${record.file_key}:`, s3Error.message);
+      }
+    }
+
+    // 3. Delete record from MongoDB
+    const result = await collection.deleteOne({ _id: new ObjectId(_id) });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ error: "Record not found" });
     }
 
     res.status(200).json({
-      message: `Record ${req.params.doc_id} deleted successfully`,
+      message: `Record deleted successfully`,
+      deletedId: _id,
+      document_id: record.document_id,
     });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error deleting record:", err);
     res.status(500).json({ error: "Error deleting record" });
   }
 });

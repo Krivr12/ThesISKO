@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
 import { Footer } from "../footer/footer";
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 interface Thesis {
@@ -23,7 +23,7 @@ interface Thesis {
   styleUrl: './search-thesis.css'
 })
 export class SearchThesis implements OnInit {
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private router: Router, private http: HttpClient, private route: ActivatedRoute) {}
   totalItems: number = 0;
   itemsPerPage: number = 8;
   currentPage: number = 1;
@@ -67,7 +67,15 @@ export class SearchThesis implements OnInit {
   displayedTheses: Thesis[] = [];
 
   ngOnInit(): void {
-    this.loadTheses();
+    // Check for query parameter from hero search
+    this.route.queryParams.subscribe(params => {
+      if (params['q'] && params['q'].trim() !== '') {
+        this.searchQuery = params['q'];
+        this.performSemanticSearch(params['q']);
+      } else {
+        this.loadTheses();
+      }
+    });
   }
 
   loadTheses(): void {
@@ -90,6 +98,58 @@ export class SearchThesis implements OnInit {
     });
   }
 
+  // Semantic search method
+  performSemanticSearch(query: string): void {
+    if (!query || query.trim() === '') {
+      this.loadTheses(); // Load all theses if query is empty
+      return;
+    }
+
+    this.isLoading = true; // Show spinner
+    this.http.post<{results: any[]}>('http://localhost:5050/records/search', {
+      query: query.trim(),
+      topK: 20 // Get more results for better filtering
+    }).subscribe({
+      next: (response) => {
+        // Transform semantic search results to match Thesis interface
+        this.allTheses = response.results.map(doc => {
+          const firstAuthor = doc.authors && doc.authors.length > 0 
+            ? doc.authors[0] 
+            : "Unknown Author";
+          
+          let year = null;
+          if (doc.submitted_at) {
+            try {
+              year = new Date(doc.submitted_at).getFullYear();
+            } catch (dateError) {
+              year = new Date().getFullYear();
+            }
+          } else {
+            year = new Date().getFullYear();
+          }
+          
+          return {
+            _id: doc._id,
+            document_id: doc._id?.toString(),
+            title: doc.title || "Untitled",
+            author: firstAuthor,
+            year: year,
+            keywords: doc.tags || []
+          };
+        });
+        
+        this.updateAvailableYears();
+        this.applyFilters();
+        this.isLoading = false; // Hide spinner, show content
+      },
+      error: (error) => {
+        console.error('Error performing semantic search:', error);
+        // Fallback to regular search on error
+        this.loadTheses();
+      }
+    });
+  }
+
   updateAvailableYears(): void {
     // Extract unique years from theses
     const years = [...new Set(this.allTheses.map(thesis => thesis.year))].sort((a, b) => b - a);
@@ -102,7 +162,12 @@ export class SearchThesis implements OnInit {
 
   onSearch(): void {
     this.currentPage = 1;
-    this.applyFilters();
+    // Use semantic search if there's a query, otherwise load all theses
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      this.performSemanticSearch(this.searchQuery);
+    } else {
+      this.loadTheses();
+    }
   }
 
   onTagChange(tag: string, event: Event): void {

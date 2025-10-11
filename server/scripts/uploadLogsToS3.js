@@ -19,7 +19,7 @@ async function uploadLogsToS3() {
 
     await s3.send(
       new PutObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
+        Bucket: process.env.THESISKO_DOCUMENTS_BUCKET,
         Key: `thesisko-logs/${s3Key}`,
         Body: jsonData,
         ContentType: "application/json",

@@ -644,8 +644,8 @@ router.post("/:group_id/repository", async (req, res) => {
     const document_id = await generateDocumentId(block.program_id);
 
     // 6. Move file to repository bucket
-    const sourceBucket = process.env.AWS_BUCKET_NAME;
-    const destBucket = process.env.REPOSITORY_BUCKET;
+    const sourceBucket = process.env.THESISKO_DOCUMENTS_BUCKET;
+    const destBucket = process.env.THESISKO_REPOSITORY_BUCKET;
     const newKey = `repository-files/${document_id}/${fileName}`;
 
     await moveFileBetweenBuckets(sourceBucket, destBucket, originalKey, newKey);
