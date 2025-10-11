@@ -99,12 +99,13 @@
 
 .table-header, .table-row {
     display: grid;
-    grid-template-columns: 3fr 1fr 1fr;
+    grid-template-columns: 1fr 2fr 2fr 2fr 1fr;
     align-items: center;
     padding: 1rem;
+    gap: 1rem;
 }
 
-.table-row .row-item:nth-child(3) {
+.table-row .row-item:last-child {
     text-align: center;
 }
 
@@ -115,7 +116,7 @@
     color: #800000;
 }
 
-.table-header .header-item:nth-child(3) {
+.table-header .header-item:last-child {
     text-align: center;
 }
 
