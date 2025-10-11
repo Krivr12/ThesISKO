@@ -5,12 +5,12 @@
       <a mat-button class="Dashboard" routerLink="/admin-dashboard">Dashboard</a>
       <a mat-button class="Documents" routerLink="/admin-documents">Documents</a>
       
-      <!-- Admin only menu items (role_id = 4) -->
+      <!-- Admin only menu items (role_id = 4, 7) -->
       <a mat-button class="Departments" routerLink="/admin-block" *ngIf="isAdmin">Blocks</a>
+      <a mat-button class="faculty" routerLink="/admin-faculties" *ngIf="isAdmin">Faculties</a>
       
-      <!-- SuperAdmin only menu items (role_id = 5) -->
-      <a mat-button class="faculty" routerLink="/admin-faculties" *ngIf="isSuperAdmin">Faculties</a>
-      <a mat-button class="departments" routerLink="/admin-departments" *ngIf="isSuperAdmin">Department</a>
+      <!-- SuperAdmin only menu items (role_id = 5, 8) -->
+      <a mat-button class="programs" routerLink="/admin-programs" *ngIf="isSuperAdmin">Programs</a>
       
       <!-- Both Admin and SuperAdmin -->
       <a mat-button class="Request" routerLink="/admin-request">Request</a>

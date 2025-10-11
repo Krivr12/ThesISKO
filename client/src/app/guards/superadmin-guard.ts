@@ -4,7 +4,7 @@ import { Auth } from '../service/auth';
 import { map, take } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/api';
 
-export const facultyGuard: CanActivateFn = (route, state) => {
+export const superadminGuard: CanActivateFn = (route, state) => {
   const authService = inject(Auth);
   const router = inject(Router);
   const confirmationService = inject(ConfirmationService);
@@ -13,20 +13,20 @@ export const facultyGuard: CanActivateFn = (route, state) => {
     take(1),
     map(user => {
       if (!user) {
-        // User not logged in, redirect to faculty login
-        router.navigate(['/login-faculty']);
+        // User not logged in, redirect to login
+        router.navigate(['/login-admin']);
         return false;
       }
 
-      // Check if user has faculty role (role_id = 3, 7, 8)
-      // role_id 3 = faculty, 7 = admin_faculty, 8 = superadmin_faculty
-      if (user.role_id === 3 || user.role_id === 7 || user.role_id === 8) {
+      // Check if user has superadmin role (role_id = 5, 8)
+      // role_id 5 = superadmin, 8 = superadmin_faculty
+      if (user.role_id === 5 || user.role_id === 8) {
         return true;
       }
 
-      // User doesn't have faculty privileges - show logout confirmation
+      // User doesn't have superadmin privileges - show logout confirmation
       confirmationService.confirm({
-        message: 'You are not authorized to access faculty pages. Would you like to logout and return to the appropriate login page?',
+        message: 'You are not authorized to access super admin pages. Would you like to logout and return to the appropriate login page?',
         header: 'Unauthorized Access',
         icon: 'pi pi-exclamation-triangle',
         acceptLabel: 'Yes, Logout',
@@ -35,15 +35,24 @@ export const facultyGuard: CanActivateFn = (route, state) => {
           // Logout and redirect to appropriate login
           authService.logout();
           sessionStorage.removeItem('guestMode');
-          if (user.role_id === 5 || user.role_id === 4 || user.role_id === 8) {
-            router.navigate(['/login-admin']);
+          const userRole = user.role_id;
+          if (userRole === 3 || userRole === 4 || userRole === 7) {
+            // Faculty or Admin - redirect to their respective login
+            if (userRole === 3 || userRole === 7) {
+              router.navigate(['/login-faculty']);
+            } else {
+              router.navigate(['/login-admin']);
+            }
           } else {
             router.navigate(['/login']);
           }
         },
         reject: () => {
           // Redirect to appropriate home page
-          if (user.role_id === 5 || user.role_id === 4 || user.role_id === 8) {
+          const userRole = user.role_id;
+          if (userRole === 3 || userRole === 7) {
+            router.navigate(['/faculty-home']);
+          } else if (userRole === 4) {
             router.navigate(['/admin-dashboard']);
           } else {
             router.navigate(['/home']);
@@ -54,3 +63,4 @@ export const facultyGuard: CanActivateFn = (route, state) => {
     })
   );
 };
+

@@ -136,7 +136,7 @@ router.post('/faculty-login', async (req, res) => {
       const pool = (await import('../data/database.js')).default;
       const bcrypt = (await import('bcrypt')).default;
       
-      // Find user with faculty role only
+      // Find user with faculty role (3, 7, 8)
       const userResult = await pool.query(`
         SELECT 
           ui.user_id,
@@ -157,7 +157,7 @@ router.post('/faculty-login', async (req, res) => {
         LEFT JOIN courses c ON ui.course_id = c.course_id
         LEFT JOIN departments d ON ui.department_id = d.department_id
         WHERE LOWER(ui.email) = $1 
-        AND ui.role_id = 3 -- Only faculty role
+        AND ui.role_id IN (3, 7, 8) -- Faculty (3), admin_faculty (7), superadmin_faculty (8)
         LIMIT 1
       `, [email])
       
@@ -261,7 +261,7 @@ router.post('/admin-login', async (req, res) => {
       const pool = (await import('../data/database.js')).default;
       const bcrypt = (await import('bcrypt')).default;
       
-      // Find user with admin or superadmin role
+      // Find user with admin or superadmin role (4, 5, 7, 8)
       const userResult = await pool.query(`
         SELECT 
           ui.user_id,
@@ -282,7 +282,7 @@ router.post('/admin-login', async (req, res) => {
         LEFT JOIN courses c ON ui.course_id = c.course_id
         LEFT JOIN departments d ON ui.department_id = d.department_id
         WHERE LOWER(ui.email) = $1 
-        AND ui.role_id IN (4, 5) -- Only admin (4) and superadmin (5) roles
+        AND ui.role_id IN (4, 5, 7, 8) -- admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
         LIMIT 1
       `, [email])
       

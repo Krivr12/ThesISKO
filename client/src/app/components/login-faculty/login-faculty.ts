@@ -58,12 +58,12 @@ export class LoginFaculty {
           this.authService.setUser(userData);
           this.navAuthService.setUser(userData);
           
-          // Faculty login should only allow faculty users (role_id = 3)
-          if (user.role_id === 3) {
-            // Faculty - redirect to faculty home
+          // Faculty login allows role 3, 7, 8 - all redirect to faculty home
+          if (user.role_id === 3 || user.role_id === 7 || user.role_id === 8) {
+            // Faculty, admin_faculty, superadmin_faculty - all redirect to faculty home
             this.router.navigate(['/faculty-home']);
           } else {
-            // This shouldn't happen since backend only allows faculty, but just in case
+            // This shouldn't happen since backend only allows faculty roles, but just in case
             this.messageService.add({
               severity: 'error',
               summary: 'Access Denied',

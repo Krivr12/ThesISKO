@@ -40,11 +40,13 @@ export class AdminSideBar {
   }
 
   get isAdmin(): boolean {
-    return this.currentUser?.role_id === 4;
+    // Admin (4) or admin_faculty (7)
+    return this.currentUser?.role_id === 4 || this.currentUser?.role_id === 7;
   }
 
   get isSuperAdmin(): boolean {
-    return this.currentUser?.role_id === 5;
+    // SuperAdmin (5) or superadmin_faculty (8)
+    return this.currentUser?.role_id === 5 || this.currentUser?.role_id === 8;
   }
 
   openLogoutDialog(ev?: Event) {

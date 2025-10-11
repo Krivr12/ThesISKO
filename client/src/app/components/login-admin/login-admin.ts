@@ -39,9 +39,12 @@ export class LoginAdmin {
           sessionStorage.setItem('email', email);
           
           // Redirect based on role
-          if (response.user.role_id === 5 || response.user.role_id === 4) {
-            // Both Admin and SuperAdmin - redirect to admin dashboard
+          if (response.user.role_id === 4 || response.user.role_id === 7) {
+            // Admin (4) or admin_faculty (7) → Admin Dashboard
             this.router.navigate(['/admin-dashboard']);
+          } else if (response.user.role_id === 5 || response.user.role_id === 8) {
+            // SuperAdmin (5) or superadmin_faculty (8) → SuperAdmin Dashboard
+            this.router.navigate(['/superadmin-dashboard']);
           } else {
             // Other roles - redirect to home
             this.router.navigate(['/home']);

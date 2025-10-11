@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Chairperson } from './chairperson';
+import { Templates } from './templates';
 
-describe('Chairperson', () => {
-  let component: Chairperson;
-  let fixture: ComponentFixture<Chairperson>;
+describe('Templates', () => {
+  let component: Templates;
+  let fixture: ComponentFixture<Templates>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Chairperson]
+      imports: [Templates]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Chairperson);
+    fixture = TestBed.createComponent(Templates);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -21,3 +21,4 @@ describe('Chairperson', () => {
     expect(component).toBeTruthy();
   });
 });
+
