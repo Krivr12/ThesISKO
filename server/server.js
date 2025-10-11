@@ -29,6 +29,9 @@ import auth from "./routes/auth.js";
 import admin from "./routes/admin.js";
 import facultyPassword from "./routes/faculty-password.js";
 import requests from "./routes/requests.js"; // import requests route
+import programs from "./routes/programs.js"; // import programs route
+import groups from "./routes/groups.js"; // import groups route
+import blocks from "./routes/blocks.js"; // import blocks route
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -115,6 +118,9 @@ app.use("/auth", auth);
 app.use("/admin", admin);
 app.use("/api/faculty", facultyPassword);
 app.use("/requests", requests); // Mount requests route
+app.use("/programs", programs); // Mount programs route
+app.use("/groups", groups); // Mount groups route
+app.use("/blocks", blocks); // Mount blocks route
 
 // Direct verification route (for email links)
 app.get("/verify-student", async (req, res) => {

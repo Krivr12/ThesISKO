@@ -49,6 +49,10 @@ export const authGuard: CanActivateFn = (route, state) => {
                 router.navigate(['/faculty-home']); // faculty
               } else if (userRole === 4 || userRole === 5) {
                 router.navigate(['/admin-dashboard']); // admin/superadmin
+              } else if (userRole === 7) {
+                router.navigate(['/faculty-home']); // admin_faculty defaults to faculty home
+              } else if (userRole === 8) {
+                router.navigate(['/admin-dashboard']); // superadmin_faculty defaults to admin dashboard
               }
             }
           });
@@ -94,8 +98,10 @@ export const authGuard: CanActivateFn = (route, state) => {
         student: ['/home', '/search-thesis', '/search-result', '/submission', '/thank-you', '/about-us', '/student-profile'],
         guest: ['/home', '/search-thesis', '/search-result', '/about-us', '/guest-profile'],
         faculty: ['/home', '/faculty-home', '/for-fic', '/for-ficlanding', '/for-panel', '/for-panellanding', '/panelist-approval-page', '/fichistory-page', '/faculty-change-password'],
-        admin: ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-request', '/admin-template'],
-        superadmin: ['/admin-dashboard', '/admin-documents', '/admin-faculties', '/admin-departments', '/admin-request', '/admin-template']
+        admin: ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template'],
+        superadmin: ['/superadmin-dashboard', '/superadmin-documents', '/superadmin-programs', '/superadmin-faculties', '/superadmin-request', '/superadmin-templates', '/admin-dashboard', '/admin-documents', '/admin-faculties', '/admin-programs', '/admin-request', '/admin-template'],
+        admin_faculty: ['/home', '/faculty-home', '/for-fic', '/for-ficlanding', '/for-panel', '/for-panellanding', '/panelist-approval-page', '/fichistory-page', '/faculty-change-password', '/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template'],
+        superadmin_faculty: ['/home', '/faculty-home', '/for-fic', '/for-ficlanding', '/for-panel', '/for-panellanding', '/panelist-approval-page', '/fichistory-page', '/faculty-change-password', '/superadmin-dashboard', '/superadmin-documents', '/superadmin-programs', '/superadmin-faculties', '/superadmin-request', '/superadmin-templates', '/admin-dashboard', '/admin-documents', '/admin-faculties', '/admin-programs', '/admin-request', '/admin-template']
       };
 
       // Determine user's role category based on role_id
@@ -110,6 +116,10 @@ export const authGuard: CanActivateFn = (route, state) => {
         userRoleCategory = 'admin';
       } else if (userRole === 5) {
         userRoleCategory = 'superadmin';
+      } else if (userRole === 7) {
+        userRoleCategory = 'admin_faculty';
+      } else if (userRole === 8) {
+        userRoleCategory = 'superadmin_faculty';
       }
 
       console.log('  - Determined role category:', userRoleCategory);
@@ -132,7 +142,7 @@ export const authGuard: CanActivateFn = (route, state) => {
             // Logout and redirect to appropriate login
             authService.logout();
             sessionStorage.removeItem('guestMode');
-            if (userRoleCategory === 'faculty') {
+            if (userRoleCategory === 'faculty' || userRoleCategory === 'admin_faculty' || userRoleCategory === 'superadmin_faculty') {
               router.navigate(['/login-faculty']);
             } else if (userRoleCategory === 'admin' || userRoleCategory === 'superadmin') {
               router.navigate(['/login-admin']);
@@ -142,10 +152,12 @@ export const authGuard: CanActivateFn = (route, state) => {
           },
           reject: () => {
             // Redirect to appropriate home page
-            if (userRoleCategory === 'faculty') {
+            if (userRoleCategory === 'faculty' || userRoleCategory === 'admin_faculty') {
               router.navigate(['/faculty-home']);
-            } else if (userRoleCategory === 'admin' || userRoleCategory === 'superadmin') {
+            } else if (userRoleCategory === 'admin') {
               router.navigate(['/admin-dashboard']);
+            } else if (userRoleCategory === 'superadmin' || userRoleCategory === 'superadmin_faculty') {
+              router.navigate(['/superadmin-dashboard']);
             } else {
               router.navigate(['/home']);
             }

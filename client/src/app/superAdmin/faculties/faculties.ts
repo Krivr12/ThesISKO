@@ -19,35 +19,37 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
 
-import { SuperAdminNavBar } from "../super-admin-nav-bar/super-admin-nav-bar";
+import { SuperAdminNavBar } from '../super-admin-nav-bar/super-admin-nav-bar';
+
+
 
 
 interface Faculty {
-  id?: string;              // optional if your JSON has one
-  first_name: string;
-  last_name: string;
+  user_id?: string;
+  firstname: string;
+  lastname: string;
   email: string;
-  faculty_number: string;
+  faculty_id: string;
+  status?: string;
+  created_at?: string;
 }
 
 @Component({
-  selector: 'app-chairperson',
-  imports: [
-    SuperAdminNavBar, CommonModule, RouterModule, HttpClientModule,
+  selector: 'app-superadmin-faculties',
+  imports: [ SuperAdminNavBar, CommonModule, RouterModule, HttpClientModule,
     MatSidenavModule, MatToolbarModule, MatButtonModule, MatIconModule,
     MatTableModule, MatFormFieldModule, MatSelectModule, MatOptionModule,
     MatPaginatorModule, MatSortModule, MatInputModule,
-    MatDialogModule, FormsModule, RouterModule
-  ],
-  templateUrl: './chairperson.html',
-  styleUrl: './chairperson.css'
+    MatDialogModule, FormsModule, RouterModule],
+  templateUrl: './faculties.html',
+  styleUrl: './faculties.css'
 })
-export class Chairperson implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['name', 'email', 'faculty_number', 'actions'];
+export class Faculties implements OnInit, AfterViewInit {
+  displayedColumns: string[] = ['name', 'email', 'faculty_id', 'status', 'actions'];
   dataSource = new MatTableDataSource<Faculty>([]);
 
-  newFaculty: Faculty = { first_name: '', last_name: '', email: '', faculty_number: '' };
-  editFaculty: Faculty = { first_name: '', last_name: '', email: '', faculty_number: '' };
+  newFaculty: Faculty = { firstname: '', lastname: '', email: '', faculty_id: '' };
+  editFaculty: Faculty = { firstname: '', lastname: '', email: '', faculty_id: '' };
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -62,14 +64,18 @@ export class Chairperson implements OnInit, AfterViewInit {
     private router: Router,) {}
 
   ngOnInit(): void {
-    // Load initial data from assets/facultysample.json
-    // Expected JSON shape: Faculty[]
-    this.http.get<Faculty[]>('facultysample.json').subscribe({
-      next: (rows) => {
-        this.dataSource.data = rows ?? [];
+    // Load faculty data from database
+    this.loadFaculties();
+  }
+
+  loadFaculties(): void {
+    this.http.get<Faculty[]>('http://localhost:5050/admin/faculty').subscribe({
+      next: (faculties) => {
+        this.dataSource.data = faculties ?? [];
+        console.log('Loaded faculties from database:', faculties);
       },
       error: (err) => {
-        console.error('Failed to load faculties:', err);
+        console.error('Failed to load faculties from database:', err);
         this.dataSource.data = []; // fallback
       }
     });
@@ -81,13 +87,13 @@ export class Chairperson implements OnInit, AfterViewInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/dashboard'])
+    this.router.navigate(['/superadmin-dashboard'])
   }
 
   /** ---------- Add ---------- */
   openAddDialog(): void {
     // reset the model
-    this.newFaculty = { first_name: '', last_name: '', email: '', faculty_number: '' };
+    this.newFaculty = { firstname: '', lastname: '', email: '', faculty_id: '' };
 
     const ref = this.dialog.open(this.addFacultyDialogTpl, {
       width: '560px',
@@ -96,10 +102,9 @@ export class Chairperson implements OnInit, AfterViewInit {
     });
 
     ref.afterClosed().subscribe((result?: Faculty) => {
-      if (result && result.first_name && result.last_name && result.email && result.faculty_number) {
-        // Add to the table (front-end only)
-        const copy = [...this.dataSource.data, { ...result }];
-        this.dataSource.data = copy;
+      if (result && result.firstname && result.lastname && result.email && result.faculty_id) {
+        // Call API to create faculty account
+        this.createFaculty(result);
       }
     });
   }
@@ -118,8 +123,8 @@ export class Chairperson implements OnInit, AfterViewInit {
     ref.afterClosed().subscribe((updated?: Faculty) => {
       if (!updated) return;
       const idx = this.dataSource.data.findIndex(
-        r => (r.id ?? `${r.first_name}|${r.last_name}|${r.email}|${r.faculty_number}`)
-           === (row.id ?? `${row.first_name}|${row.last_name}|${row.email}|${row.faculty_number}`)
+        r => (r.user_id ?? `${r.firstname}|${r.lastname}|${r.email}|${r.faculty_id}`)
+           === (row.user_id ?? `${row.firstname}|${row.lastname}|${row.email}|${row.faculty_id}`)
       );
       if (idx > -1) {
         const copy = [...this.dataSource.data];
@@ -129,8 +134,33 @@ export class Chairperson implements OnInit, AfterViewInit {
     });
   }
 
+  /** ---------- Create Faculty ---------- */
+  createFaculty(faculty: Faculty): void {
+    this.http.post('http://localhost:5050/admin/faculty', {
+      firstname: faculty.firstname,
+      lastname: faculty.lastname,
+      email: faculty.email,
+      faculty_id: faculty.faculty_id
+    }).subscribe({
+      next: (response: any) => {
+        console.log('Faculty created successfully:', response);
+        // Reload the faculty list to show the new faculty
+        this.loadFaculties();
+        // Show success message (you can add a snackbar or toast here)
+        alert(`Faculty account created successfully! Email sent to ${faculty.email}`);
+      },
+      error: (error) => {
+        console.error('Error creating faculty:', error);
+        // Show error message
+        const errorMessage = error.error?.error || 'Failed to create faculty account';
+        alert(`Error: ${errorMessage}`);
+      }
+    });
+  }
+
   /** Optional: simple client-side filter hook if you add a search box later */
   applyFilter(value: string) {
     this.dataSource.filter = value.trim().toLowerCase();
   }
 }
+

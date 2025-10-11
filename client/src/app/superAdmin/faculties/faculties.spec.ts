@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AdminDepartments } from './admin-departments';
+import { Faculties } from './faculties';
 
-describe('AdminDepartments', () => {
-  let component: AdminDepartments;
-  let fixture: ComponentFixture<AdminDepartments>;
+describe('Faculties', () => {
+  let component: Faculties;
+  let fixture: ComponentFixture<Faculties>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdminDepartments]
+      imports: [Faculties]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AdminDepartments);
+    fixture = TestBed.createComponent(Faculties);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -21,3 +21,4 @@ describe('AdminDepartments', () => {
     expect(component).toBeTruthy();
   });
 });
+

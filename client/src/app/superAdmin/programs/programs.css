@@ -35,7 +35,7 @@
     gap: 1rem;
 }
 
-.add-department-btn {
+.add-program-btn {
     background-color: #800000;
     color: #fff;
     border: 1px solid;
@@ -46,7 +46,7 @@
     transition: background-color 0.2s;
 }
 
-.add-department-btn:hover {
+.add-program-btn:hover {
     background-color: #910101;
 }
 
@@ -88,8 +88,8 @@
     color: #fff;
 }
 
-/* Departments Table */
-.departments-table {
+/* Programs Table */
+.programs-table {
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -263,7 +263,7 @@
 }
 
 /* Form Styles */
-.department-form {
+.program-form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -296,3 +296,39 @@
 .form-input::placeholder {
     color: #9ca3af;
 }
+
+.form-hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Edit Button */
+.edit-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.edit-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Cancel Button */
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #5a6268;
+}
+

@@ -17,13 +17,19 @@ import { AdminDashboard } from './admin/admin-dashboard/admin-dashboard';
 import { AdminBlock } from './admin/admin-block/admin-block';
 import { AdminDocuments } from './admin/admin-documents/admin-documents';
 import { AdminFaculties } from './admin/admin-faculties/admin-faculties';
-import { AdminDepartments } from './admin/admin-departments/admin-departments';
 import { AdminRequest } from './admin/admin-request/admin-request';
 import { AdminTemplate } from './admin/admin-template/admin-template';
 import { AdminSideBar } from './admin/admin-side-bar/admin-side-bar';
 import { adminGuard } from './guards/admin-guard';
+import { superadminGuard } from './guards/superadmin-guard';
 import { facultyGuard } from './guards/faculty-guard';
 import { authGuard } from './guards/auth-guard';
+import { Programs } from './superAdmin/programs/programs';
+import { Dashboard as SuperAdminDashboard } from './superAdmin/dashboard/dashboard';
+import { Documents as SuperAdminDocuments } from './superAdmin/documents/documents';
+import { Request } from './superAdmin/request/request';
+import { Templates } from './superAdmin/templates/templates';
+import { Faculties } from './superAdmin/faculties/faculties';
 import { RoleTestComponent } from './components/role-test/role-test';
 import { FacultyHome } from './facultySide/faculty-home/faculty-home';
 import { FICHistoryPage } from './facultySide/fichistory-page/fichistory-page';
@@ -64,25 +70,33 @@ export const routes: Routes = [
     {path: 'panelist-approval-page', component: PanelistApprovalPage, canActivate: [facultyGuard]},
     {path: 'panelist-approval-page/:id', component: PanelistApprovalPage, canActivate: [facultyGuard]},
     
-    // Admin routes (role_id = 4 or 5 can access)
+    // Admin routes (role_id = 4, 7 can access)
     {path: 'admin-dashboard', component: AdminDashboard, canActivate: [adminGuard]},
     {path: 'admin-block', component: AdminBlock, canActivate: [adminGuard]},
     {path: 'admin-documents', component: AdminDocuments, canActivate: [adminGuard]},
     {path: 'admin-faculties', component: AdminFaculties, canActivate: [adminGuard]},
-    {path: 'admin-departments', component: AdminDepartments, canActivate: [adminGuard]},
     {path: 'admin-request', component: AdminRequest, canActivate: [adminGuard]},
     {path: 'admin-template', component: AdminTemplate, canActivate: [adminGuard]},
     {path: 'admin-side-bar', component: AdminSideBar, canActivate: [adminGuard]},
     
-    // Redirect old superadmin routes to admin routes
-    {path: 'superadmin-dashboard', redirectTo: '/admin-dashboard'},
-    {path: 'dashboard', redirectTo: '/admin-dashboard'},
+    // SuperAdmin routes (role_id = 5, 8 can access)
+    {path: 'superadmin-dashboard', component: SuperAdminDashboard, canActivate: [superadminGuard]},
+    {path: 'superadmin-documents', component: SuperAdminDocuments, canActivate: [superadminGuard]},
+    {path: 'superadmin-programs', component: Programs, canActivate: [superadminGuard]},
+    {path: 'superadmin-request', component: Request, canActivate: [superadminGuard]},
+    {path: 'superadmin-templates', component: Templates, canActivate: [superadminGuard]},
+    {path: 'superadmin-faculties', component: Faculties, canActivate: [superadminGuard]},
+    
+    // Backwards compatibility redirects
+    {path: 'admin-programs', redirectTo: '/superadmin-programs', pathMatch: 'full'},
+    {path: 'admin-departments', redirectTo: '/superadmin-programs', pathMatch: 'full'},
+    {path: 'dashboard', redirectTo: '/superadmin-dashboard', pathMatch: 'full'},
     {path: 'documents', redirectTo: '/admin-documents'},
-    {path: 'departments', redirectTo: '/admin-faculties'},
+    {path: 'departments', redirectTo: '/superadmin-programs'},
     {path: 'chairperson', redirectTo: '/admin-faculties'},
     {path: 'documents-issues', redirectTo: '/admin-documents'},
     {path: 'documents-verify', redirectTo: '/admin-documents'},
-    {path: 'super-admin-nav-bar', redirectTo: '/admin-dashboard'},
+    {path: 'super-admin-nav-bar', redirectTo: '/superadmin-dashboard'},
     
     {path: '', redirectTo: '/signup-choose', pathMatch: 'full'},
     {path: 'login-modal', component: LoginModal},

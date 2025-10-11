@@ -18,8 +18,9 @@ export const adminGuard: CanActivateFn = (route, state) => {
         return false;
       }
 
-      // Check if user has admin role (role_id = 4) or superadmin role (role_id = 5)
-      if (user.role_id === 4 || user.role_id === 5) {
+      // Check if user has admin role (role_id = 4, 7)
+      // role_id 4 = admin, 7 = admin_faculty
+      if (user.role_id === 4 || user.role_id === 7) {
         return true;
       }
 
@@ -34,18 +35,22 @@ export const adminGuard: CanActivateFn = (route, state) => {
           // Logout and redirect to appropriate login
           authService.logout();
           sessionStorage.removeItem('guestMode');
-          const userStatus = user.Status?.toLowerCase();
-          if (userStatus === 'faculty') {
+          const userRole = user.role_id;
+          if (userRole === 3 || userRole === 7 || userRole === 8) {
             router.navigate(['/login-faculty']);
+          } else if (userRole === 5) {
+            router.navigate(['/login-admin']);
           } else {
             router.navigate(['/login']);
           }
         },
         reject: () => {
           // Redirect to appropriate home page
-          const userStatus = user.Status?.toLowerCase();
-          if (userStatus === 'faculty') {
+          const userRole = user.role_id;
+          if (userRole === 3 || userRole === 7) {
             router.navigate(['/faculty-home']);
+          } else if (userRole === 5 || userRole === 8) {
+            router.navigate(['/superadmin-dashboard']);
           } else {
             router.navigate(['/home']);
           }
