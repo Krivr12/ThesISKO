@@ -44,3 +44,22 @@
 .sidenav .nav-links a.active-link:hover {
   filter: brightness(0.95);
 }
+
+/* Logout button */
+.logout {
+  color: white;
+  margin-top: auto;
+  width: 100%;
+  color: #FFE477;
+  font-weight: 600;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logout.mat-mdc-button .mdc-button__label {
+  justify-content: flex-start;
+  padding-left: 1rem;
+  color: #FFE477 !important;
+}
