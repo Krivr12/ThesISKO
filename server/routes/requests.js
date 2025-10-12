@@ -48,10 +48,36 @@ router.get("/:request_id/details", async (req, res) => {
       return res.status(404).json({ error: "Request not found" });
     }
 
+    console.log("📋 Request found:", {
+      _id: request._id,
+      document_id: request.document_id,
+      status: request.status
+    });
+
     // 2. Fetch document details from records collection
     let documentDetails = null;
     if (request.document_id) {
-      documentDetails = await recordsCollection.findOne({ document_id: request.document_id });
+      console.log("🔍 Looking for document with document_id:", request.document_id);
+      
+      // Try to find by _id first (if document_id is actually a MongoDB ObjectId)
+      if (ObjectId.isValid(request.document_id)) {
+        console.log("🔍 Trying to find by _id (ObjectId)...");
+        documentDetails = await recordsCollection.findOne({ _id: new ObjectId(request.document_id) });
+      }
+      
+      // If not found, try by document_id string (like "2025-BSIT-0001")
+      if (!documentDetails) {
+        console.log("🔍 Trying to find by document_id string...");
+        documentDetails = await recordsCollection.findOne({ document_id: request.document_id });
+      }
+      
+      if (documentDetails) {
+        console.log("✅ Document found:", documentDetails.document_id);
+      } else {
+        console.log("❌ No document found with document_id:", request.document_id);
+      }
+    } else {
+      console.log("⚠️ Request has no document_id field");
     }
 
     // 3. Combine and return
