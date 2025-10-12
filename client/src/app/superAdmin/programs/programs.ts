@@ -341,5 +341,40 @@ export class Programs implements OnInit {
            !!this.editingProgram.program_name?.trim() && 
            !!this.editingProgram.chairperson_email?.trim();
   }
+
+  // Delete Program Method
+  deleteProgram(program: Program): void {
+    const confirmDelete = confirm(
+      `Are you sure you want to delete the program "${program.program_name}" (${program.program_id})?\n\n` +
+      `This will:\n` +
+      `- Remove the program from the system\n` +
+      `- Unassign the chairperson (${program.chairperson_email})\n` +
+      `- Demote the chairperson back to faculty status\n\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.http.delete<{ success: boolean; message: string }>(
+      `${this.apiUrl}/${program.program_id}`
+    ).subscribe({
+      next: (response) => {
+        console.log('✅ Program deleted:', response);
+        alert(`Program "${program.program_name}" deleted successfully!`);
+        this.loadPrograms(); // Reload programs
+        this.loadAvailableFaculty(); // Reload faculty (chairperson is now available again)
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('❌ Error deleting program:', err);
+        const errorMsg = err.error?.message || 'Failed to delete program';
+        alert(`Error: ${errorMsg}`);
+        this.isLoading = false;
+      }
+    });
+  }
 }
 

@@ -309,6 +309,10 @@ const getAllUsers = async (req, res) => {
         ui.student_id,
         ui.faculty_id,
         ui.admin_id,
+        ui.block_id,
+        ui.program_id,
+        ui.admin_program,
+        ui.admin_type,
         ui.avatar_url AS AvatarUrl
       FROM users_info ui
       LEFT JOIN roles r ON ui.role_id = r.role_id
@@ -522,6 +526,10 @@ const loginUser = async (req, res) => {
           ui.student_id,
           ui.faculty_id,
           ui.admin_id,
+          ui.block_id,
+          ui.program_id,
+          ui.admin_program,
+          ui.admin_type,
           ui.avatar_url
         FROM users_info ui
         LEFT JOIN roles r ON ui.role_id = r.role_id
@@ -852,6 +860,9 @@ const getUserById = async (req, res) => {
         ui.admin_id,
         ui.group_id,
         ui.block_id,
+        ui.program_id,
+        ui.admin_program,
+        ui.admin_type,
         ui.avatar_url AS AvatarUrl
       FROM users_info ui
       LEFT JOIN roles r ON ui.role_id = r.role_id
