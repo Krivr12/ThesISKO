@@ -1,5 +1,6 @@
 import express from "express";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
+import pool from "../data/database.js"; // PostgreSQL connection for users_info
 
 const router = express.Router();
 const collection = RepoMongodb.collection("blocks"); // collection name
@@ -93,6 +94,20 @@ router.post("/", async (req, res) => {
 
     const result = await collection.insertOne(newBlock);
 
+    // Update faculty_in_charge's block_id in PostgreSQL users_info
+    if (faculty_in_charge_email) {
+      try {
+        await pool.query(
+          'UPDATE users_info SET block_id = $1 WHERE email = $2',
+          [block_id, faculty_in_charge_email]
+        );
+        console.log(`✅ Updated block_id for faculty: ${faculty_in_charge_email} → ${block_id}`);
+      } catch (dbError) {
+        console.error('⚠️ Failed to update faculty block_id in users_info:', dbError);
+        // Don't fail the entire operation, just log the error
+      }
+    }
+
     res.status(201).json({
       success: true,
       insertedId: result.insertedId,
@@ -164,6 +179,35 @@ router.put("/:block_id", async (req, res) => {
       { $set: updateFields }
     );
 
+    // Update faculty_in_charge's block_id in PostgreSQL users_info if it changed
+    if (req.body.faculty_in_charge_email !== undefined) {
+      const oldEmail = existingBlock.faculty_in_charge_email;
+      const newEmail = req.body.faculty_in_charge_email;
+
+      try {
+        // Clear old faculty's block_id if it changed
+        if (oldEmail && oldEmail !== newEmail) {
+          await pool.query(
+            'UPDATE users_info SET block_id = NULL WHERE email = $1 AND block_id = $2',
+            [oldEmail, block_id]
+          );
+          console.log(`✅ Cleared block_id for old faculty: ${oldEmail}`);
+        }
+
+        // Set new faculty's block_id
+        if (newEmail) {
+          await pool.query(
+            'UPDATE users_info SET block_id = $1 WHERE email = $2',
+            [block_id, newEmail]
+          );
+          console.log(`✅ Updated block_id for new faculty: ${newEmail} → ${block_id}`);
+        }
+      } catch (dbError) {
+        console.error('⚠️ Failed to update faculty block_id in users_info:', dbError);
+        // Don't fail the entire operation, just log the error
+      }
+    }
+
     res.json({
       success: true,
       message: "Block updated successfully",
@@ -179,14 +223,39 @@ router.put("/:block_id", async (req, res) => {
 // DELETE a block by block_id
 router.delete("/:block_id", async (req, res) => {
   try {
-    const result = await collection.deleteOne({ block_id: req.params.block_id });
+    const { block_id } = req.params;
+
+    // First, get the block to find the faculty_in_charge_email
+    const existingBlock = await collection.findOne({ block_id });
+    
+    if (!existingBlock) {
+      return res.status(404).json({ error: "Block not found" });
+    }
+
+    // Delete the block
+    const result = await collection.deleteOne({ block_id });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ error: "Block not found" });
     }
 
+    // Clear faculty_in_charge's block_id in PostgreSQL users_info
+    if (existingBlock.faculty_in_charge_email) {
+      try {
+        await pool.query(
+          'UPDATE users_info SET block_id = NULL WHERE email = $1 AND block_id = $2',
+          [existingBlock.faculty_in_charge_email, block_id]
+        );
+        console.log(`✅ Cleared block_id for faculty: ${existingBlock.faculty_in_charge_email}`);
+      } catch (dbError) {
+        console.error('⚠️ Failed to clear faculty block_id in users_info:', dbError);
+        // Don't fail the entire operation, just log the error
+      }
+    }
+
     res.status(200).json({
-      message: `Block ${req.params.block_id} deleted successfully`  ,
+      success: true,
+      message: `Block ${block_id} deleted successfully`,
     });
   } catch (err) {
     console.error(err);
