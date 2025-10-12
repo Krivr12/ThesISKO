@@ -4,8 +4,116 @@ import pool from "../data/database.js"; // PostgreSQL connection for users_info
 
 const router = express.Router();
 const collection = RepoMongodb.collection("blocks"); // collection name
+const programsCollection = RepoMongodb.collection("programs"); // programs collection
 
 // -------------------- Routes --------------------
+
+// GET faculty's blocks (FIC and Panelist)
+router.get("/faculty/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email parameter is required" });
+    }
+
+    // Find blocks where faculty is FIC
+    const ficBlocks = await collection.find({ 
+      faculty_in_charge_email: email 
+    }).toArray();
+
+    // Find blocks where faculty is a panelist
+    const panelistBlocks = await collection.find({ 
+      panelists_email: email 
+    }).toArray();
+
+    // Get unique program_ids
+    const ficProgramIds = [...new Set(ficBlocks.map(b => b.program_id))];
+    const panelistProgramIds = [...new Set(panelistBlocks.map(b => b.program_id))];
+
+    // Fetch program details from programs collection
+    const allProgramIds = [...new Set([...ficProgramIds, ...panelistProgramIds])];
+    const programs = await programsCollection.find({
+      program_id: { $in: allProgramIds }
+    }).toArray();
+
+    // Create program lookup map
+    const programMap = {};
+    programs.forEach(p => {
+      programMap[p.program_id] = {
+        program_id: p.program_id,
+        program_name: p.program_name,
+        department_id: p.department_id,
+        department_name: p.department_name
+      };
+    });
+
+    console.log('📊 Programs found:', programs.length);
+    console.log('📋 Program IDs in map:', Object.keys(programMap));
+    console.log('📚 FIC blocks program_ids:', ficBlocks.map(b => b.program_id));
+    console.log('👥 Panelist blocks program_ids:', panelistBlocks.map(b => b.program_id));
+
+    // Group FIC blocks by program
+    const ficByProgram = {};
+    ficBlocks.forEach(block => {
+      if (!ficByProgram[block.program_id]) {
+        const programInfo = programMap[block.program_id];
+        if (!programInfo) {
+          console.warn(`⚠️ No program found for program_id: ${block.program_id} (block: ${block.block_id})`);
+        }
+        ficByProgram[block.program_id] = {
+          program_id: block.program_id,
+          program_name: programInfo?.program_name || `Unknown Program (${block.program_id})`,
+          department_id: programInfo?.department_id,
+          department_name: programInfo?.department_name,
+          blocks: []
+        };
+      }
+      ficByProgram[block.program_id].blocks.push({
+        block_id: block.block_id,
+        academic_year: block.academic_year,
+        block_code: block.block_code
+      });
+    });
+
+    // Group panelist blocks by program
+    const panelistByProgram = {};
+    panelistBlocks.forEach(block => {
+      if (!panelistByProgram[block.program_id]) {
+        const programInfo = programMap[block.program_id];
+        if (!programInfo) {
+          console.warn(`⚠️ No program found for program_id: ${block.program_id} (block: ${block.block_id})`);
+        }
+        panelistByProgram[block.program_id] = {
+          program_id: block.program_id,
+          program_name: programInfo?.program_name || `Unknown Program (${block.program_id})`,
+          department_id: programInfo?.department_id,
+          department_name: programInfo?.department_name,
+          blocks: []
+        };
+      }
+      panelistByProgram[block.program_id].blocks.push({
+        block_id: block.block_id,
+        academic_year: block.academic_year,
+        block_code: block.block_code
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        ficBlocks: Object.values(ficByProgram),
+        panelistBlocks: Object.values(panelistByProgram)
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching faculty blocks:', err);
+    res.status(500).json({ 
+      success: false,
+      error: "Error fetching faculty blocks" 
+    });
+  }
+});
 
 // GET all blocks (limit 50 for safety)
 router.get("/", async (req, res) => {

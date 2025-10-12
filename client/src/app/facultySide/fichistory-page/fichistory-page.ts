@@ -37,8 +37,6 @@ export interface HistoryItem {
   styleUrls: ['./fichistory-page.css']
 })
 export class FICHistoryPage implements OnInit {
-  private readonly GROUPS_URL = '/groups.json'; // or '/assets/groups.json'
-
   loading = true;
   groupId = '';
   group?: GroupMeta | null;
@@ -62,42 +60,89 @@ export class FICHistoryPage implements OnInit {
   private bootstrapData(): void {
     const gid = this.groupId;
 
-    
-    const group$ = this.http.get<GroupMeta[]>(this.GROUPS_URL).pipe(
-      map((list: GroupMeta[] = []) => {
-        const found = list.find(g => String(g.group_id) === String(gid));
-        return found ?? null; 
-      }),
-      catchError(() => of(null)) 
-    );
+    if (!gid) {
+      console.error('No group ID provided');
+      this.loading = false;
+      return;
+    }
 
-    const panelists$ = this.http
-      .get<Panelist[]>(`/api/panel/${gid}/panelists`)
-      .pipe(catchError(() => of(this.mockPanelists())));
+    console.log('📚 Fetching group data for:', gid);
 
-    const studentHistory$ = this.http
-      .get<HistoryItem[]>(`/api/student/${gid}/history`)
-      .pipe(catchError(() => of(this.mockStudentHistory())));
-
-    const panelHistory$ = this.http
-      .get<HistoryItem[]>(`/api/panel/${gid}/history`)
-      .pipe(catchError(() => of(this.mockPanelHistory())));
-
-    forkJoin({ group: group$, panelists: panelists$, studentHistory: studentHistory$, panelHistory: panelHistory$ })
-      .pipe(
-        map(({ group, panelists, studentHistory, panelHistory }) => {
-          const merged = [...studentHistory, ...panelHistory].sort(
-            (a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime()
-          );
-          return { group, panelists, history: merged };
-        })
-      )
-      .subscribe(({ group, panelists, history }) => {
-        this.group = group;            
-        this.panelists = panelists;
-        this.history = history;
+    // Fetch group from MongoDB API
+    this.http.get<any>(`http://localhost:5050/groups/${gid}`).pipe(
+      catchError((err) => {
+        console.error('❌ Error fetching group:', err);
+        return of(null);
+      })
+    ).subscribe((response: any) => {
+      if (!response) {
+        console.error('Group not found');
         this.loading = false;
-      });
+        return;
+      }
+
+      console.log('✅ Group response:', response);
+
+      // Map MongoDB group structure to GroupMeta
+      const leaderName = response.leader 
+        ? `${response.leader.firstname || ''} ${response.leader.surname || ''}`.trim()
+        : '';
+
+      const memberNames = (response.members || []).map((m: any) => 
+        `${m.firstname || ''} ${m.surname || ''}`.trim()
+      );
+
+      this.group = {
+        group_id: response.group_id,
+        title: response.title || '',
+        leader: leaderName,
+        members: memberNames
+      };
+
+      // Extract panelists from milestones
+      const uploadManuscript = response.milestones?.find((m: any) => m.type === 'upload_manuscript');
+      const approvedBy = uploadManuscript?.approved_by || [];
+
+      // Fetch block to get panelist names
+      if (response.block_id) {
+        this.http.get<any>(`http://localhost:5050/blocks/${response.block_id}`).pipe(
+          catchError(() => of(null))
+        ).subscribe((block: any) => {
+          if (block && block.panelists) {
+            const panelistNames = block.panelists || [];
+            const panelistEmails = block.panelists_email || [];
+
+            this.panelists = panelistNames.map((name: string, index: number) => {
+              const email = panelistEmails[index];
+              const hasApproved = approvedBy.some((a: any) => 
+                a.panelist_id === email || a.name?.includes(name)
+              );
+
+              return {
+                name: name,
+                status: hasApproved ? 'Approved' : 'Not Approved'
+              } as Panelist;
+            });
+          } else {
+            // Use mock panelists if block not found
+            this.panelists = this.mockPanelists();
+          }
+          
+          this.loading = false;
+        });
+      } else {
+        // Use mock panelists if no block_id
+        this.panelists = this.mockPanelists();
+        this.loading = false;
+      }
+
+      // Use mock history (S3 integration not priority)
+      const studentHistory = this.mockStudentHistory();
+      const panelHistory = this.mockPanelHistory();
+      this.history = [...studentHistory, ...panelHistory].sort(
+        (a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime()
+      );
+    });
   }
 
   approveManuscript(): void {
