@@ -36,10 +36,18 @@ router.get("/:block_id", async (req, res) => {
 // POST new block
 router.post("/", async (req, res) => {
   try {
-    const { academic_year, program_id, block_code, faculty_in_charge, panelists } = req.body;
+    const { 
+      academic_year, 
+      program_id, 
+      block_code, 
+      faculty_in_charge,           // Faculty name
+      faculty_in_charge_email,     // Faculty email
+      panelists,                   // Array of panelist names
+      panelists_email              // Array of panelist emails
+    } = req.body;
 
-    if (!academic_year || !program_id || !block_code || !faculty_in_charge) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!academic_year || !program_id || !block_code) {
+      return res.status(400).json({ error: "Missing required fields: academic_year, program_id, block_code" });
     }
 
     // Build block_id: academic_year-program_id-block_code
@@ -51,9 +59,23 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Block already exists" });
     }
 
-    // Prevent faculty_in_charge from being in panelists[]
-    if (panelists && panelists.includes(faculty_in_charge)) {
+    // Validate panelists arrays have same length
+    const panelistsArray = Array.isArray(panelists) ? panelists : [];
+    const panelistsEmailArray = Array.isArray(panelists_email) ? panelists_email : [];
+    
+    if (panelistsArray.length !== panelistsEmailArray.length) {
+      return res.status(400).json({ error: "Panelists names and emails must have same length" });
+    }
+
+    // Prevent faculty_in_charge_email from being in panelists_email[]
+    if (faculty_in_charge_email && panelistsEmailArray.includes(faculty_in_charge_email)) {
       return res.status(400).json({ error: "Faculty in Charge cannot also be a panelist" });
+    }
+
+    // Prevent duplicate panelists
+    const uniquePanelistEmails = new Set(panelistsEmailArray);
+    if (uniquePanelistEmails.size !== panelistsEmailArray.length) {
+      return res.status(400).json({ error: "Duplicate panelists are not allowed" });
     }
 
     const newBlock = {
@@ -61,8 +83,10 @@ router.post("/", async (req, res) => {
       academic_year,
       program_id,
       block_code,
-      faculty_in_charge,
-      panelists: Array.isArray(panelists) ? panelists : [],
+      faculty_in_charge: faculty_in_charge || "",
+      faculty_in_charge_email: faculty_in_charge_email || "",
+      panelists: panelistsArray,
+      panelists_email: panelistsEmailArray,
       created_at: new Date(),
       updated_at: new Date(),
     };
@@ -70,6 +94,7 @@ router.post("/", async (req, res) => {
     const result = await collection.insertOne(newBlock);
 
     res.status(201).json({
+      success: true,
       insertedId: result.insertedId,
       block_id,
     });
@@ -94,16 +119,38 @@ router.put("/:block_id", async (req, res) => {
     if (req.body.academic_year) updateFields.academic_year = req.body.academic_year;
     if (req.body.program_id) updateFields.program_id = req.body.program_id;
     if (req.body.block_code) updateFields.block_code = req.body.block_code;
-    if (req.body.faculty_in_charge) updateFields.faculty_in_charge = req.body.faculty_in_charge;
+    if (req.body.faculty_in_charge !== undefined) updateFields.faculty_in_charge = req.body.faculty_in_charge;
+    if (req.body.faculty_in_charge_email !== undefined) updateFields.faculty_in_charge_email = req.body.faculty_in_charge_email;
 
-    // Use updated faculty_in_charge if provided, otherwise use the existing one
-    const facultyInCharge = req.body.faculty_in_charge || existingBlock.faculty_in_charge;
+    // Use updated faculty_in_charge_email if provided, otherwise use the existing one
+    const facultyInChargeEmail = req.body.faculty_in_charge_email || existingBlock.faculty_in_charge_email;
 
-    if (req.body.panelists) {
-      if (req.body.panelists.includes(facultyInCharge)) {
-        return res.status(400).json({ error: "Faculty in Charge cannot also be a panelist" });
-      }
-      updateFields.panelists = req.body.panelists;
+    // Handle panelists update
+    if (req.body.panelists !== undefined) {
+      updateFields.panelists = Array.isArray(req.body.panelists) ? req.body.panelists : [];
+    }
+    if (req.body.panelists_email !== undefined) {
+      updateFields.panelists_email = Array.isArray(req.body.panelists_email) ? req.body.panelists_email : [];
+    }
+
+    // Get final panelists arrays (either updated or existing)
+    const finalPanelists = updateFields.panelists !== undefined ? updateFields.panelists : (existingBlock.panelists || []);
+    const finalPanelistsEmail = updateFields.panelists_email !== undefined ? updateFields.panelists_email : (existingBlock.panelists_email || []);
+
+    // Validate panelists arrays have same length
+    if (finalPanelists.length !== finalPanelistsEmail.length) {
+      return res.status(400).json({ error: "Panelists names and emails must have same length" });
+    }
+
+    // Prevent faculty_in_charge_email from being in panelists_email[]
+    if (facultyInChargeEmail && finalPanelistsEmail.includes(facultyInChargeEmail)) {
+      return res.status(400).json({ error: "Faculty in Charge cannot also be a panelist" });
+    }
+
+    // Prevent duplicate panelists
+    const uniquePanelistEmails = new Set(finalPanelistsEmail);
+    if (uniquePanelistEmails.size !== finalPanelistsEmail.length) {
+      return res.status(400).json({ error: "Duplicate panelists are not allowed" });
     }
 
     if (Object.keys(updateFields).length === 0) {
@@ -118,6 +165,7 @@ router.put("/:block_id", async (req, res) => {
     );
 
     res.json({
+      success: true,
       message: "Block updated successfully",
       modifiedCount: result.modifiedCount,
     });
