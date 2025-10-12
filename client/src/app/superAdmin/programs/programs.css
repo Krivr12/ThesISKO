@@ -306,21 +306,66 @@
     font-style: italic;
 }
 
+/* Action Buttons Container */
+.action-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
 /* Edit Button */
 .edit-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     background-color: #007bff;
     color: white;
     border: none;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
 }
 
 .edit-btn:hover {
     background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.edit-btn svg {
+    flex-shrink: 0;
+}
+
+/* Delete Button (Icon Only) */
+.delete-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    color: #dc3545;
+    border: 2px solid #dc3545;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.delete-btn-icon:hover {
+    background-color: #dc3545;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.delete-btn-icon svg {
+    flex-shrink: 0;
 }
 
 /* Cancel Button */

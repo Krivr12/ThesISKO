@@ -84,7 +84,7 @@ router.post("/", async (req, res) => {
 
     // 2. Verify chairperson exists and has faculty_id
     const chairpersonQuery = `
-      SELECT email, faculty_id, admin_program
+      SELECT email, faculty_id, admin_program, program_id
       FROM users_info
       WHERE email = $1 AND faculty_id IS NOT NULL
     `;
@@ -120,17 +120,33 @@ router.post("/", async (req, res) => {
 
     const mongoResult = await collection.insertOne(newProgram);
 
-    // 5. Update chairperson in Supabase (set role_id to 7 for admin_faculty)
-    const updateQuery = `
-      UPDATE users_info
-      SET role_id = 7,
-          admin_type = 'ADMIN',
-          admin_program = $1
-      WHERE email = $2
-    `;
-    await pool.query(updateQuery, [program_id, chairperson_email]);
-
-    console.log(`✅ Program '${program_id}' created with chairperson ${chairperson_email}`);
+    // 5. Update chairperson in Supabase
+    // If they don't have a program_id yet, assign them to this program as faculty
+    // If they already have a program_id, keep it (they're faculty in a different program)
+    const hasExistingProgram = chairperson.program_id && chairperson.program_id !== '';
+    
+    if (hasExistingProgram) {
+      // Keep existing program_id, only update chairperson role
+      await pool.query(`
+        UPDATE users_info
+        SET role_id = 7,
+            admin_type = 'ADMIN',
+            admin_program = $1
+        WHERE email = $2
+      `, [program_id, chairperson_email]);
+      console.log(`✅ Program '${program_id}' created with chairperson ${chairperson_email} (keeping faculty status in ${chairperson.program_id})`);
+    } else {
+      // No existing program, assign them as faculty in this program
+      await pool.query(`
+        UPDATE users_info
+        SET role_id = 7,
+            admin_type = 'ADMIN',
+            admin_program = $1,
+            program_id = $1
+        WHERE email = $2
+      `, [program_id, chairperson_email]);
+      console.log(`✅ Program '${program_id}' created with chairperson ${chairperson_email} (also assigned as faculty)`);
+    }
 
     res.status(201).json({
       success: true,
@@ -168,7 +184,7 @@ router.put("/:program_id", async (req, res) => {
     if (chairperson_email && chairperson_email !== existingProgram.chairperson_email) {
       // Verify new chairperson exists and has faculty_id
       const newChairQuery = `
-        SELECT email, faculty_id, admin_program
+        SELECT email, faculty_id, admin_program, program_id
         FROM users_info
         WHERE email = $1 AND faculty_id IS NOT NULL
       `;
@@ -191,7 +207,7 @@ router.put("/:program_id", async (req, res) => {
         });
       }
 
-      // Unassign old chairperson (revert role_id to 3 - faculty)
+      // Unassign old chairperson (revert role_id to 3 - faculty, keep their program_id)
       if (existingProgram.chairperson_email) {
         await pool.query(`
           UPDATE users_info
@@ -200,19 +216,38 @@ router.put("/:program_id", async (req, res) => {
               admin_program = NULL
           WHERE email = $1
         `, [existingProgram.chairperson_email]);
+        console.log(`✅ Demoted ${existingProgram.chairperson_email} to faculty (kept program_id)`);
       }
 
-      // Assign new chairperson (set role_id to 7 - admin_faculty)
-      await pool.query(`
-        UPDATE users_info
-        SET role_id = 7,
-            admin_type = 'ADMIN',
-            admin_program = $1
-        WHERE email = $2
-      `, [program_id, chairperson_email]);
+      // Assign new chairperson
+      // If they don't have a program_id, assign them to this program as faculty
+      // If they already have a program_id, keep it
+      const hasExistingProgram = newChair.program_id && newChair.program_id !== '';
+      
+      if (hasExistingProgram) {
+        // Keep existing program_id
+        await pool.query(`
+          UPDATE users_info
+          SET role_id = 7,
+              admin_type = 'ADMIN',
+              admin_program = $1
+          WHERE email = $2
+        `, [program_id, chairperson_email]);
+        console.log(`✅ Assigned ${chairperson_email} as chairperson of ${program_id} (keeping faculty status in ${newChair.program_id})`);
+      } else {
+        // No existing program, assign them as faculty in this program
+        await pool.query(`
+          UPDATE users_info
+          SET role_id = 7,
+              admin_type = 'ADMIN',
+              admin_program = $1,
+              program_id = $1
+          WHERE email = $2
+        `, [program_id, chairperson_email]);
+        console.log(`✅ Assigned ${chairperson_email} as chairperson of ${program_id} (also assigned as faculty)`);
+      }
 
       updateFields.chairperson_email = chairperson_email;
-      console.log(`✅ Chairperson changed from ${existingProgram.chairperson_email} to ${chairperson_email}`);
     }
 
     if (Object.keys(updateFields).length === 0) {
@@ -250,6 +285,7 @@ router.delete("/:program_id", async (req, res) => {
     }
 
     // Unassign chairperson if exists (revert role_id to 3 - faculty)
+    // Keep their program_id - they remain faculty in their program even if they were demoted
     if (program.chairperson_email) {
       await pool.query(`
         UPDATE users_info
@@ -259,7 +295,7 @@ router.delete("/:program_id", async (req, res) => {
         WHERE email = $1
       `, [program.chairperson_email]);
       
-      console.log(`✅ Unassigned chairperson ${program.chairperson_email} from program ${program_id}`);
+      console.log(`✅ Unassigned chairperson ${program.chairperson_email} from program ${program_id} (kept program_id for faculty status)`);
     }
 
     // Delete program from MongoDB
