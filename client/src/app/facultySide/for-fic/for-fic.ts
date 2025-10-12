@@ -66,13 +66,14 @@ type Person = { firstName: string; lastName: string; email: string; };
   styleUrl: './for-fic.css'
 })
 export class ForFIC implements OnInit, AfterViewInit {
-  /* URL-driven program filter */
-  program: Program | null = null; // ?program=BSIT or ?program=BSCS
-  program_id: string = ''; // Full program_id (e.g., 'BSIT')
+  /* URL-driven block filter */
+  block_id: string = ''; // From query param ?block=2425-BSIT-5
+  program: Program | null = null; // Derived from block
+  program_id: string = ''; // Derived from block
 
   /* Table data */
-  groups: GroupRow[] = [];                 // source for current (already program-filtered) list
-  private allLoadedGroups: GroupRow[] = []; // raw list from JSON before program filter (kept for safety if needed)
+  groups: GroupRow[] = [];
+  private allLoadedGroups: GroupRow[] = [];
   dataSource = new MatTableDataSource<GroupRow>([]);
 
   /* Filters / dropdowns */
@@ -95,6 +96,9 @@ export class ForFIC implements OnInit, AfterViewInit {
 
   /* Current user */
   currentUserEmail: string = '';
+  
+  /* Block info */
+  currentBlockInfo: any = null;
 
   constructor(
     private http: HttpClient,
@@ -117,30 +121,34 @@ export class ForFIC implements OnInit, AfterViewInit {
       }
     }
 
-    // Read program from query param (?program=BSIT|BSCS)
-    const raw = (this.route.snapshot.queryParamMap.get('program') || '').toUpperCase();
-    this.program = (raw === 'BSIT' || raw === 'BSCS') ? (raw as Program) : null;
-    this.program_id = this.program || '';
+    // Read block_id from query param (?block=2425-BSIT-5)
+    this.block_id = this.route.snapshot.queryParamMap.get('block') || '';
 
     if (!this.currentUserEmail) {
       console.error('No user email found in session');
       return;
     }
 
-    // Fetch groups from MongoDB API
-    const apiUrl = `http://localhost:5050/groups/by-fic/${encodeURIComponent(this.currentUserEmail)}?program_id=${this.program_id}`;
-    console.log('📚 Fetching FIC groups from:', apiUrl);
+    if (!this.block_id) {
+      console.error('No block_id provided in query params');
+      return;
+    }
 
-    this.http.get<{ success: boolean; data: any[] }>(apiUrl).subscribe({
+    console.log('📚 Fetching groups for block:', this.block_id);
+
+    // Fetch groups for this specific block
+    const apiUrl = `http://localhost:5050/groups?block_id=${encodeURIComponent(this.block_id)}`;
+
+    this.http.get<any[]>(apiUrl).subscribe({
       next: (response) => {
         console.log('✅ Groups response:', response);
 
-        if (!response.success || !response.data) {
+        if (!Array.isArray(response)) {
           console.error('Invalid response format');
           return;
         }
 
-        const arr = response.data;
+        const arr = response;
 
         this.allLoadedGroups = arr.map((it) => {
           // Map MongoDB group structure to GroupRow
@@ -181,9 +189,19 @@ export class ForFIC implements OnInit, AfterViewInit {
 
           const memberEmails = (it.members || []).map((m: any) => m.email || '');
 
-          // Determine course from program_id
-          const derivedCourse: Program = this.program || 'BSIT';
+          // Determine course from block_id (e.g., "2425-BSIT-5" -> "BSIT")
+          const blockParts = this.block_id.split('-');
+          const programFromBlock = blockParts[1] || 'BSIT'; // e.g., "BSIT"
+          const derivedCourse: Program = (programFromBlock === 'BSIT' || programFromBlock === 'BSCS') 
+            ? programFromBlock as Program 
+            : 'BSIT';
           const courseShort: 'IT' | 'CS' = derivedCourse === 'BSIT' ? 'IT' : 'CS';
+          
+          // Store program for later use
+          if (!this.program) {
+            this.program = derivedCourse;
+            this.program_id = derivedCourse;
+          }
 
           return {
             group_id: gid,
@@ -312,10 +330,45 @@ export class ForFIC implements OnInit, AfterViewInit {
   }
 
   saveNewGroup(ref: any): void {
-    const leaderFull = `${this.leader.firstName.trim()} ${this.leader.lastName.trim()}`.trim();
-    const memberNames = this.members.map(m => `${m.firstName.trim()} ${m.lastName.trim()}`.trim());
-    const memberEmails = this.members.map(m => m.email.trim());
+    const payload = {
+      block_id: this.block_id,
+      title: null, // Initially null, can be updated later
+      leader: {
+        firstname: this.leader.firstName.trim(),
+        surname: this.leader.lastName.trim(),
+        email: this.leader.email.trim()
+      },
+      members: this.members.map(m => ({
+        firstname: m.firstName.trim(),
+        surname: m.lastName.trim(),
+        email: m.email.trim()
+      }))
+    };
 
-    // New rows inherit the active program; default B
+    console.log('🔨 Creating group with payload:', payload);
+
+    this.http.post('http://localhost:5050/groups', payload).subscribe({
+      next: (response: any) => {
+        console.log('✅ Group created successfully:', response);
+        alert(`Group created successfully! 
+        
+Group ID: ${response.group.group_id}
+
+✅ Emails have been sent to the leader and all members.
+✅ New student accounts created automatically for users not in the system.
+✅ Credentials sent to new users via email.`);
+        
+        // Reload groups
+        this.ngOnInit();
+        
+        // Close dialog
+        ref.close();
+      },
+      error: (err) => {
+        console.error('❌ Error creating group:', err);
+        const errorMessage = err.error?.error || 'Failed to create group';
+        alert(`Error: ${errorMessage}`);
+      }
+    });
   }
 }

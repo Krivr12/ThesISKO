@@ -60,13 +60,14 @@ interface GroupRow {
   styleUrl: './for-panel.css'
 })
 export class ForPanel implements OnInit, AfterViewInit {
-  /** URL-driven program filter (?program=BSIT|BSCS) */
-  program: Program | null = null;
-  program_id: string = ''; // Full program_id (e.g., 'BSIT')
+  /* URL-driven block filter */
+  block_id: string = ''; // From query param ?block=2425-BSIT-5
+  program: Program | null = null; // Derived from block
+  program_id: string = ''; // Derived from block
 
-  /** Table data (already program-filtered) */
+  /** Table data */
   groups: GroupRow[] = [];
-  private allLoadedGroups: GroupRow[] = []; // raw from JSON before program filter
+  private allLoadedGroups: GroupRow[] = [];
   dataSource = new MatTableDataSource<GroupRow>([]);
 
   /** Section filter only */
@@ -103,30 +104,34 @@ export class ForPanel implements OnInit, AfterViewInit {
       }
     }
 
-    // Read program from query param
-    const raw = (this.route.snapshot.queryParamMap.get('program') || '').toUpperCase();
-    this.program = (raw === 'BSIT' || raw === 'BSCS') ? (raw as Program) : null;
-    this.program_id = this.program || '';
+    // Read block_id from query param (?block=2425-BSIT-5)
+    this.block_id = this.route.snapshot.queryParamMap.get('block') || '';
 
     if (!this.currentUserEmail) {
       console.error('No user email found in session');
       return;
     }
 
-    // Fetch groups from MongoDB API
-    const apiUrl = `http://localhost:5050/groups/by-panelist/${encodeURIComponent(this.currentUserEmail)}?program_id=${this.program_id}`;
-    console.log('👥 Fetching panelist groups from:', apiUrl);
+    if (!this.block_id) {
+      console.error('No block_id provided in query params');
+      return;
+    }
 
-    this.http.get<{ success: boolean; data: any[] }>(apiUrl).subscribe({
+    console.log('👥 Fetching groups for block:', this.block_id);
+
+    // Fetch groups for this specific block
+    const apiUrl = `http://localhost:5050/groups?block_id=${encodeURIComponent(this.block_id)}`;
+
+    this.http.get<any[]>(apiUrl).subscribe({
       next: (response) => {
         console.log('✅ Panelist groups response:', response);
 
-        if (!response.success || !response.data) {
+        if (!Array.isArray(response)) {
           console.error('Invalid response format');
           return;
         }
 
-        const arr = response.data;
+        const arr = response;
 
         this.allLoadedGroups = arr.map((it) => {
           // Map MongoDB group structure to GroupRow
@@ -167,9 +172,19 @@ export class ForPanel implements OnInit, AfterViewInit {
 
           const memberEmails = (it.members || []).map((m: any) => m.email || '');
 
-          // Determine course from program_id
-          const derivedCourse: Program = this.program || 'BSIT';
+          // Determine course from block_id (e.g., "2425-BSIT-5" -> "BSIT")
+          const blockParts = this.block_id.split('-');
+          const programFromBlock = blockParts[1] || 'BSIT'; // e.g., "BSIT"
+          const derivedCourse: Program = (programFromBlock === 'BSIT' || programFromBlock === 'BSCS') 
+            ? programFromBlock as Program 
+            : 'BSIT';
           const courseShort: 'IT' | 'CS' = derivedCourse === 'BSIT' ? 'IT' : 'CS';
+          
+          // Store program for later use
+          if (!this.program) {
+            this.program = derivedCourse;
+            this.program_id = derivedCourse;
+          }
 
           return {
             group_id: gid,

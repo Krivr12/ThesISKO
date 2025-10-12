@@ -136,54 +136,28 @@ export class FICHistoryPage implements OnInit {
         this.loading = false;
       }
 
-      // Use mock history (S3 integration not priority)
-      const studentHistory = this.mockStudentHistory();
-      const panelHistory = this.mockPanelHistory();
-      this.history = [...studentHistory, ...panelHistory].sort(
-        (a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime()
-      );
+      // History will be implemented with S3 logging system later
+      this.history = [];
     });
   }
 
   approveManuscript(): void {
-    this.history.unshift({
-      ts: new Date().toISOString(),
-      action: 'Approved',
-      by: 'Panel – You',
-      remarks: '',
-      source: 'panelist',
-    });
+    // TODO: Implement approval with backend API
+    console.log('Approve manuscript for group:', this.group?.group_id);
   }
 
   rejectManuscript(): void {
-    this.history.unshift({
-      ts: new Date().toISOString(),
-      action: 'Rejected',
-      by: 'Panel – You',
-      remarks: '—',
-      source: 'panelist',
-    });
+    // TODO: Implement rejection with backend API
+    console.log('Reject manuscript for group:', this.group?.group_id);
   }
 
   goBack(): void { this.location.back(); }
 
   private mockPanelists(): Panelist[] {
     return [
-      { name: 'Nino Escueta', status: 'Not Approved' },
-      { name: 'Aleta Fabregas', status: 'Not Approved' },
-      { name: 'Sherilyn Usero', status: 'Not Approved' },
-    ];
-  }
-  private mockStudentHistory(): HistoryItem[] {
-    return [
-      { ts: '2025-09-08T08:22:31+08:00', action: 'Submitted', by: 'Leader – Patricia Reyes', remarks: '', source: 'student' },
-      { ts: '2025-09-08T09:25:03+08:00', action: 'Resubmitted', by: 'Leader – Patricia Reyes', remarks: '', source: 'student' },
-    ];
-  }
-  private mockPanelHistory(): HistoryItem[] {
-    return [
-      { ts: '2025-09-08T09:18:47+08:00', action: 'Rejected', by: 'Faculty –', remarks: 'Missing References', source: 'panelist' },
-      { ts: '2025-09-07T09:07:21+08:00', action: 'Ongoing', by: 'Faculty –', remarks: 'Under review', source: 'panelist' },
+      { name: 'Panelist 1', status: 'Not Approved' },
+      { name: 'Panelist 2', status: 'Not Approved' },
+      { name: 'Panelist 3', status: 'Not Approved' },
     ];
   }
 }

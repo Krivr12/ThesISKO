@@ -21,8 +21,16 @@ transporter.verify((err) => {
   if (err) {
     console.error('❌ SMTP verification failed:', err && (err.response || err.message || err))
     console.error('📧 Check your email configuration in config.env')
+    console.error('📧 Current SMTP Config:', {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      user: process.env.SMTP_USER,
+      from: process.env.MAIL_FROM
+    })
+  } else {
+    console.log('✅ SMTP Configuration Verified!')
+    console.log(`📧 Email service ready: ${process.env.SMTP_HOST} (${process.env.SMTP_USER})`)
   }
-  // SMTP server ready - console.log removed for production
 })
 
 export { transporter }
