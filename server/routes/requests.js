@@ -196,21 +196,12 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
       }
     );
 
-    await collection.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          status,
-          deanRemarks,
-          approvedChapters,
-          s3Key, // store key, not presigned url
-          updatedAt: new Date(),
-        },
-      }
-    );
+    console.log("✅ MongoDB updated for request:", id);
 
     // 🔹 Update Supabase analytics status as well
     updateRequestStatus(id, status);
+
+    console.log("✅ Supabase analytics updated");
 
     // Send email via SES
     const subject =
@@ -227,12 +218,19 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
         : `<p>Your request for ${request.document_id} was rejected.</p>
            <p>Reason: ${deanRemarks}</p>`;
 
+    console.log("📧 Sending email to:", request.requester.email);
     await sendEmail(request.requester.email, subject, body);
+    console.log("✅ Email sent successfully");
 
     res.json({ message: `Request ${status}`, presignedUrl });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to respond to request" });
+    console.error("❌ Error in /respond route:", err);
+    console.error("❌ Error details:", {
+      message: err.message,
+      stack: err.stack,
+      requestId: req.params.id
+    });
+    res.status(500).json({ error: "Failed to respond to request", details: err.message });
   }
 });
 
