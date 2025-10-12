@@ -88,35 +88,106 @@ export class GoogleCallbackComponent implements OnInit {
 
   private navigateByRole(role: string) {
     console.log('navigateByRole called with role:', role);
-    // Google OAuth should ONLY handle guest users
-    if (role?.toLowerCase() === 'guest') {
+    const roleLower = role?.toLowerCase();
+    
+    // Navigate based on user role
+    if (roleLower === 'guest') {
       console.log('Navigating to home page for guest user');
       this.router.navigate(['/home']).then(success => {
         console.log('Navigation to home successful:', success);
       }).catch(error => {
         console.error('Navigation to home failed:', error);
       });
-    } else {
-      // If somehow a non-guest tries to use Google OAuth, redirect to login
-      console.warn('Google OAuth attempted by non-guest user. Redirecting to login.');
-      this.router.navigate(['/login']);
-    }
-  }
-
-  private navigateByRoleId(roleId: number) {
-    console.log('navigateByRoleId called with role_id:', roleId);
-    // Google OAuth should ONLY handle guest users (role_id = 1)
-    if (roleId === 1) {
-      console.log('Navigating to home page for guest user (role_id = 1)');
+    } else if (roleLower === 'faculty' || roleLower === 'admin_faculty' || roleLower === 'superadmin_faculty') {
+      console.log('Navigating to faculty home for faculty user:', role);
+      this.router.navigate(['/faculty-home']).then(success => {
+        console.log('Navigation to faculty home successful:', success);
+      }).catch(error => {
+        console.error('Navigation to faculty home failed:', error);
+      });
+    } else if (roleLower === 'admin' || roleLower === 'superadmin') {
+      console.log('Navigating to admin dashboard for admin user:', role);
+      this.router.navigate(['/admin-dashboard']).then(success => {
+        console.log('Navigation to admin dashboard successful:', success);
+      }).catch(error => {
+        console.error('Navigation to admin dashboard failed:', error);
+      });
+    } else if (roleLower === 'student') {
+      console.log('Navigating to home page for student user');
       this.router.navigate(['/home']).then(success => {
         console.log('Navigation to home successful:', success);
       }).catch(error => {
         console.error('Navigation to home failed:', error);
       });
     } else {
-      // If somehow a non-guest tries to use Google OAuth, redirect to login
-      console.warn('Google OAuth attempted by non-guest user (role_id = ' + roleId + '). Redirecting to login.');
-      this.router.navigate(['/login']);
+      console.warn('Unknown role:', role, '. Redirecting to home.');
+      this.router.navigate(['/home']);
+    }
+  }
+
+  private navigateByRoleId(roleId: number) {
+    console.log('navigateByRoleId called with role_id:', roleId);
+    
+    // Navigate based on role_id
+    if (roleId === 1) {
+      // Guest
+      console.log('Navigating to home page for guest user (role_id = 1)');
+      this.router.navigate(['/home']).then(success => {
+        console.log('Navigation to home successful:', success);
+      }).catch(error => {
+        console.error('Navigation to home failed:', error);
+      });
+    } else if (roleId === 2) {
+      // Student
+      console.log('Navigating to home page for student user (role_id = 2)');
+      this.router.navigate(['/home']).then(success => {
+        console.log('Navigation to home successful:', success);
+      }).catch(error => {
+        console.error('Navigation to home failed:', error);
+      });
+    } else if (roleId === 3) {
+      // Faculty
+      console.log('Navigating to faculty home for faculty user (role_id = 3)');
+      this.router.navigate(['/faculty-home']).then(success => {
+        console.log('Navigation to faculty home successful:', success);
+      }).catch(error => {
+        console.error('Navigation to faculty home failed:', error);
+      });
+    } else if (roleId === 4) {
+      // Admin
+      console.log('Navigating to admin dashboard for admin user (role_id = 4)');
+      this.router.navigate(['/admin-dashboard']).then(success => {
+        console.log('Navigation to admin dashboard successful:', success);
+      }).catch(error => {
+        console.error('Navigation to admin dashboard failed:', error);
+      });
+    } else if (roleId === 5) {
+      // Superadmin
+      console.log('Navigating to superadmin dashboard for superadmin user (role_id = 5)');
+      this.router.navigate(['/superadmin-dashboard']).then(success => {
+        console.log('Navigation to superadmin dashboard successful:', success);
+      }).catch(error => {
+        console.error('Navigation to superadmin dashboard failed:', error);
+      });
+    } else if (roleId === 7) {
+      // Admin + Faculty
+      console.log('Navigating to admin dashboard for admin+faculty user (role_id = 7)');
+      this.router.navigate(['/admin-dashboard']).then(success => {
+        console.log('Navigation to admin dashboard successful:', success);
+      }).catch(error => {
+        console.error('Navigation to admin dashboard failed:', error);
+      });
+    } else if (roleId === 8) {
+      // Superadmin + Faculty
+      console.log('Navigating to superadmin dashboard for superadmin+faculty user (role_id = 8)');
+      this.router.navigate(['/superadmin-dashboard']).then(success => {
+        console.log('Navigation to superadmin dashboard successful:', success);
+      }).catch(error => {
+        console.error('Navigation to superadmin dashboard failed:', error);
+      });
+    } else {
+      console.warn('Unknown role_id:', roleId, '. Redirecting to home.');
+      this.router.navigate(['/home']);
     }
   }
 
@@ -226,14 +297,9 @@ export class GoogleCallbackComponent implements OnInit {
         
         console.log('Google OAuth API: User authenticated and navbar should update', data.user);
         
-        // Only allow guests to proceed with Google OAuth
+        // Navigate based on user role
         const userRoleId = data.user.role_id || 1;
-        if (userRoleId === 1) {
-          this.router.navigate(['/home']);
-        } else {
-          console.warn('Non-guest user attempted Google OAuth. Redirecting to login.');
-          this.router.navigate(['/login']);
-        }
+        this.navigateByRoleId(userRoleId);
       } else {
         // Authentication failed, redirect to login
         this.router.navigate(['/login']);

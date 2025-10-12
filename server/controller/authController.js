@@ -22,9 +22,12 @@ const googleAuthSuccess = async (req, res) => {
       );
       console.log('Existing users query result:', existingUsers.rows);
       
-      // Also check if email already exists (regardless of role)
+      // Also check if email already exists (regardless of role) - JOIN with roles to get role_name
       const existingEmailUsers = await pool.query(
-        'SELECT * FROM users_info WHERE email = $1 LIMIT 1',
+        `SELECT ui.*, r.role_name 
+         FROM users_info ui
+         LEFT JOIN roles r ON ui.role_id = r.role_id
+         WHERE ui.email = $1 LIMIT 1`,
         [user.email]
       );
       console.log('Existing email users query result:', existingEmailUsers.rows);
@@ -56,27 +59,54 @@ const googleAuthSuccess = async (req, res) => {
         
         console.log('Updated existing guest user:', JSON.stringify(guestUser, null, 2));
       } else if (existingEmailUsers.rows.length > 0) {
-        // Email exists but user is not a guest - update them to be a guest
+        // Email exists - check if it's a privileged user (roles 3-8: faculty/admin)
         const existingUser = existingEmailUsers.rows[0];
-        console.log('Email exists with different role, updating to guest:', existingUser);
+        console.log('Email exists, checking role:', existingUser);
         
-        await pool.query(
-          'UPDATE users_info SET role_id = $1, avatar_url = $2, firstname = $3, lastname = $4, google_id = $5 WHERE user_id = $6',
-          [roleId, user.avatar, user.firstName, user.lastName, user.googleId, existingUser.user_id]
-        );
+        // Protected roles: faculty (3), admin (4), superadmin (5), and combined roles (7, 8)
+        const isPrivilegedUser = existingUser.role_id >= 3;
         
-        guestUser = {
-          id: existingUser.user_id,
-          email: existingUser.email,
-          Status: 'guest',
-          Firstname: user.firstName,
-          Lastname: user.lastName,
-          AvatarUrl: user.avatar,
-          Email: existingUser.email,
-          role_id: roleId // Add role_id for proper guest identification
-        };
-        
-        console.log('Updated existing user to guest:', JSON.stringify(guestUser, null, 2));
+        if (isPrivilegedUser) {
+          // For faculty/admin users, only link Google account WITHOUT changing role
+          console.log('🔒 Privileged user detected (role_id: ' + existingUser.role_id + '), preserving role and linking Google account');
+          await pool.query(
+            'UPDATE users_info SET avatar_url = $1, firstname = $2, lastname = $3, google_id = $4 WHERE user_id = $5',
+            [user.avatar, user.firstName, user.lastName, user.googleId, existingUser.user_id]
+          );
+          
+          guestUser = {
+            id: existingUser.user_id,
+            email: existingUser.email,
+            Status: existingUser.role_name, // Preserve original status (faculty/admin/etc)
+            Firstname: user.firstName,
+            Lastname: user.lastName,
+            AvatarUrl: user.avatar,
+            Email: existingUser.email,
+            role_id: existingUser.role_id // Preserve original role_id
+          };
+          
+          console.log('✅ Google account linked to privileged user without role change:', JSON.stringify(guestUser, null, 2));
+        } else {
+          // For guest/student users (role_id < 3), update to guest
+          console.log('Non-privileged user detected, updating to guest:', existingUser);
+          await pool.query(
+            'UPDATE users_info SET role_id = $1, avatar_url = $2, firstname = $3, lastname = $4, google_id = $5 WHERE user_id = $6',
+            [roleId, user.avatar, user.firstName, user.lastName, user.googleId, existingUser.user_id]
+          );
+          
+          guestUser = {
+            id: existingUser.user_id,
+            email: existingUser.email,
+            Status: 'guest',
+            Firstname: user.firstName,
+            Lastname: user.lastName,
+            AvatarUrl: user.avatar,
+            Email: existingUser.email,
+            role_id: roleId // Add role_id for proper guest identification
+          };
+          
+          console.log('Updated existing user to guest:', JSON.stringify(guestUser, null, 2));
+        }
       } else {
         // Create new guest user
         console.log('Creating new guest user...');
