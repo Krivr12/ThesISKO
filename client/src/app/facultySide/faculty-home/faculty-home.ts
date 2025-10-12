@@ -18,6 +18,18 @@ import { MatInputModule } from '@angular/material/input';
 
 import { Sidenavbar } from '../sidenavbar/sidenavbar';
 
+interface ProgramBlocks {
+  program_id: string;
+  program_name: string;
+  department_id?: string;
+  department_name?: string;
+  blocks: Array<{
+    block_id: string;
+    academic_year: string;
+    block_code: string;
+  }>;
+}
+
 interface Group {
   group_id: string;
   block_id: string;       // e.g., 2425-IT-3B
@@ -71,9 +83,34 @@ export class FacultyHome implements OnInit, AfterViewInit {
   };
   public pendingList: Group[] = [];
 
+  // Faculty blocks data
+  public ficPrograms: ProgramBlocks[] = [];
+  public panelistPrograms: ProgramBlocks[] = [];
+  public isLoadingBlocks = true;
+  public currentUserEmail = '';
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
+    // Get current user email from session storage
+    const userStr = sessionStorage.getItem('currentUser') || sessionStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        this.currentUserEmail = user.email || user.Email || '';
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+
+    // Load faculty blocks
+    if (this.currentUserEmail) {
+      this.loadFacultyBlocks();
+    } else {
+      console.warn('No user email found in session');
+      this.isLoadingBlocks = false;
+    }
+
     // Put groups.json in src/assets/ (or move public/ to project root and use '/groups.json')
     this.http.get<Group[]>('groups.json').subscribe({
       next: (rows) => {
@@ -107,6 +144,28 @@ export class FacultyHome implements OnInit, AfterViewInit {
         this.recalcStats(); // initial stats
       },
       error: (err) => console.error('Could not load assets/groups.json', err),
+    });
+  }
+
+  loadFacultyBlocks(): void {
+    this.isLoadingBlocks = true;
+    this.http.get<{ success: boolean; data: { ficBlocks: ProgramBlocks[], panelistBlocks: ProgramBlocks[] } }>(
+      `http://localhost:5050/blocks/faculty/${encodeURIComponent(this.currentUserEmail)}`
+    ).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.ficPrograms = response.data.ficBlocks || [];
+          this.panelistPrograms = response.data.panelistBlocks || [];
+          console.log('✅ Faculty blocks loaded:', response.data);
+        }
+        this.isLoadingBlocks = false;
+      },
+      error: (err) => {
+        console.error('❌ Error loading faculty blocks:', err);
+        this.ficPrograms = [];
+        this.panelistPrograms = [];
+        this.isLoadingBlocks = false;
+      }
     });
   }
 

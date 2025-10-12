@@ -68,6 +68,7 @@ type Person = { firstName: string; lastName: string; email: string; };
 export class ForFIC implements OnInit, AfterViewInit {
   /* URL-driven program filter */
   program: Program | null = null; // ?program=BSIT or ?program=BSCS
+  program_id: string = ''; // Full program_id (e.g., 'BSIT')
 
   /* Table data */
   groups: GroupRow[] = [];                 // source for current (already program-filtered) list
@@ -92,6 +93,9 @@ export class ForFIC implements OnInit, AfterViewInit {
   leader: Person = { firstName: '', lastName: '', email: '' };
   members: Person[] = [];
 
+  /* Current user */
+  currentUserEmail: string = '';
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -102,70 +106,128 @@ export class ForFIC implements OnInit, AfterViewInit {
 
   /* ---------- Lifecycle ---------- */
   ngOnInit(): void {
-    // read program from query param (?program=BSIT|BSCS)
+    // Get current user email from session storage
+    const userStr = sessionStorage.getItem('currentUser') || sessionStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        this.currentUserEmail = user.email || user.Email || '';
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+
+    // Read program from query param (?program=BSIT|BSCS)
     const raw = (this.route.snapshot.queryParamMap.get('program') || '').toUpperCase();
     this.program = (raw === 'BSIT' || raw === 'BSCS') ? (raw as Program) : null;
+    this.program_id = this.program || '';
 
-    this.http.get<any>('/groups.json').subscribe(rawData => {
-      const arr: any[] = Array.isArray(rawData) ? rawData : (rawData?.groups ?? []);
+    if (!this.currentUserEmail) {
+      console.error('No user email found in session');
+      return;
+    }
 
-      this.allLoadedGroups = arr.map((it) => {
-        const gid = it.group_id ?? it.groupId ?? '';
-        const p = parseGroupId(gid);
+    // Fetch groups from MongoDB API
+    const apiUrl = `http://localhost:5050/groups/by-fic/${encodeURIComponent(this.currentUserEmail)}?program_id=${this.program_id}`;
+    console.log('📚 Fetching FIC groups from:', apiUrl);
 
-        const statusSrc = String(it.status ?? 'Ongoing');
-        const normalizedStatus =
-          (statusSrc[0]?.toUpperCase() ?? '') + statusSrc.slice(1).toLowerCase();
+    this.http.get<{ success: boolean; data: any[] }>(apiUrl).subscribe({
+      next: (response) => {
+        console.log('✅ Groups response:', response);
 
-        // derive program from parsed id; default to BSIT if unclear
-        const derivedCourse: Program =
-          (p.course === 'BSIT' || p.course === 'BSCS') ? p.course : 'BSIT';
-        const courseShort: 'IT' | 'CS' = derivedCourse === 'BSIT' ? 'IT' : 'CS';
+        if (!response.success || !response.data) {
+          console.error('Invalid response format');
+          return;
+        }
 
-        return {
-          group_id: gid,
-          title: it.title ?? '',
-          leader: it.leader ?? '',
-          submitted_at: it.submitted_at ?? it.submission_date ?? '',
+        const arr = response.data;
 
-          // pass-throughs for detail page
-          members: it.members ?? [],
-          leader_email: it.leader_email ?? '',
-          member_emails: it.member_emails ?? [],
+        this.allLoadedGroups = arr.map((it) => {
+          // Map MongoDB group structure to GroupRow
+          const gid = it.group_id || '';
+          
+          // Extract section from block_code
+          // Format can be: "5A", "3B", or just "5", "3" (no section letter)
+          const blockCode = it.block_code || '';
+          
+          // Extract year (first char or first digit)
+          const yearMatch = blockCode.match(/^\d+/);
+          const year = yearMatch ? yearMatch[0] : '';
+          
+          // Extract section (letters after the year)
+          const section = blockCode.replace(/^\d+/, '') || '';
+          
+          // SectionKey is the full block_code (e.g., "5A" or "5")
+          const sectionKey = blockCode || year;
 
-          status: normalizedStatus as GroupRow['status'],
+          // Map progress to status
+          const progressMap: Record<string, 'Ongoing' | 'Rejected' | 'Approved'> = {
+            'not_started': 'Ongoing',
+            'ongoing': 'Ongoing',
+            'completed': 'Approved',
+            'rejected': 'Rejected'
+          };
+          const status = progressMap[it.progress] || 'Ongoing';
 
-          // derived
-          schoolYear: p.schoolYear,
-          course: derivedCourse,
-          courseShort,
-          year: p.year,
-          section: p.section,
-          sectionKey: p.section ? `${p.year}${p.section}` : p.year,
-        } satisfies GroupRow;
-      });
+          // Format leader name from object
+          const leaderName = it.leader 
+            ? `${it.leader.firstname || ''} ${it.leader.surname || ''}`.trim()
+            : '';
 
-      // Apply program filter immediately (BSIT-only or BSCS-only)
-      const programFiltered = this.program
-        ? this.allLoadedGroups.filter(g => g.course === this.program)
-        : this.allLoadedGroups;
+          // Format member names
+          const memberNames = (it.members || []).map((m: any) => 
+            `${m.firstname || ''} ${m.surname || ''}`.trim()
+          );
 
-      this.groups = programFiltered;
+          const memberEmails = (it.members || []).map((m: any) => m.email || '');
 
-      // Build section list from program-filtered data
-      this.sections = Array.from(new Set(programFiltered.map(g => g.sectionKey)))
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+          // Determine course from program_id
+          const derivedCourse: Program = this.program || 'BSIT';
+          const courseShort: 'IT' | 'CS' = derivedCourse === 'BSIT' ? 'IT' : 'CS';
 
-      // Initialize table with section filter (if any)
-      this.applySectionFilter();
+          return {
+            group_id: gid,
+            title: it.title || '',
+            leader: leaderName,
+            submitted_at: it.created_at || '',
 
-      // proper sorting for date & group id
-      this.dataSource.sortingDataAccessor = (item: GroupRow, prop: string) => {
-        if (prop === 'submissionDate') return new Date(item.submitted_at).getTime();
-        if (prop === 'groupId') return item.group_id;
-        return (item as any)[prop];
-      };
+            // pass-throughs for detail page
+            members: memberNames,
+            leader_email: it.leader?.email || '',
+            member_emails: memberEmails,
+
+            status: status,
+
+            // derived
+            schoolYear: it.academic_year || '',
+            course: derivedCourse,
+            courseShort,
+            year: year,
+            section: section,
+            sectionKey: sectionKey,
+          } satisfies GroupRow;
+        });
+
+        this.groups = this.allLoadedGroups;
+
+        // Build section list from loaded data
+        this.sections = Array.from(new Set(this.groups.map(g => g.sectionKey)))
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+        // Initialize table with section filter (if any)
+        this.applySectionFilter();
+
+        // proper sorting for date & group id
+        this.dataSource.sortingDataAccessor = (item: GroupRow, prop: string) => {
+          if (prop === 'submissionDate') return new Date(item.submitted_at).getTime();
+          if (prop === 'groupId') return item.group_id;
+          return (item as any)[prop];
+        };
+      },
+      error: (err) => {
+        console.error('❌ Error fetching FIC groups:', err);
+      }
     });
   }
 

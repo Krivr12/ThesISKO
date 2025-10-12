@@ -106,13 +106,18 @@ export class PanelistApprovalPage implements OnInit {
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.http.get<any>('/groups.json').subscribe({
-        next: (raw) => {
-          const list: any[] = Array.isArray(raw) ? raw : (raw?.groups ?? []);
-          const found = list.find(x => (x.group_id ?? x.groupId) === id);
-          if (found) this.setGroup(this.normalizeGroup(found));
+      console.log('👥 Fetching group data for panelist approval:', id);
+      
+      // Fetch group from MongoDB API
+      this.http.get<any>(`http://localhost:5050/groups/${id}`).subscribe({
+        next: (response) => {
+          console.log('✅ Group response:', response);
+          if (response) {
+            this.setGroup(this.normalizeGroup(response));
+          }
         },
-        error: () => {
+        error: (err) => {
+          console.error('❌ Error fetching group:', err);
           // swallow; empty state will show
         }
       });
@@ -144,8 +149,38 @@ export class PanelistApprovalPage implements OnInit {
   }
 
   private normalizeGroup(it: any): Group {
-    const statusSrc = String(it.status ?? 'Ongoing');
-    const normalizedStatus = (statusSrc[0]?.toUpperCase() ?? '') + statusSrc.slice(1).toLowerCase();
+    // Handle MongoDB format where leader is an object
+    let leaderName = '';
+    let leaderEmail = '';
+    if (typeof it.leader === 'object' && it.leader !== null) {
+      leaderName = `${it.leader.firstname || ''} ${it.leader.surname || ''}`.trim();
+      leaderEmail = it.leader.email || '';
+    } else {
+      leaderName = it.leader || '';
+      leaderEmail = it.leader_email || it.leaderEmail || '';
+    }
+
+    // Handle MongoDB format where members is an array of objects
+    let memberNames: string[] = [];
+    let memberEmails: string[] = [];
+    if (Array.isArray(it.members) && it.members.length > 0 && typeof it.members[0] === 'object') {
+      memberNames = it.members.map((m: any) => `${m.firstname || ''} ${m.surname || ''}`.trim());
+      memberEmails = it.members.map((m: any) => m.email || '');
+    } else {
+      memberNames = it.members || [];
+      memberEmails = it.member_emails || it.memberEmails || [];
+    }
+
+    // Map MongoDB 'progress' field to 'status'
+    const statusSrc = String(it.progress ?? it.status ?? 'Ongoing');
+    const progressMap: Record<string, string> = {
+      'not_started': 'Ongoing',
+      'ongoing': 'Ongoing',
+      'completed': 'Approved',
+      'rejected': 'Rejected'
+    };
+    const mappedStatus = progressMap[statusSrc] || statusSrc;
+    const normalizedStatus = (mappedStatus[0]?.toUpperCase() ?? '') + mappedStatus.slice(1).toLowerCase();
 
     return {
       group_id: it.group_id ?? it.groupId ?? '',
@@ -153,11 +188,11 @@ export class PanelistApprovalPage implements OnInit {
       course: it.course ?? it.parsedCourse ?? '',
       title: it.title ?? '',
       abstract: it.abstract ?? '',
-      submitted_at: it.submitted_at ?? it.submission_date ?? '',
-      leader: it.leader ?? '',
-      members: it.members ?? [],
-      leader_email: it.leader_email ?? it.leaderEmail ?? '',
-      member_emails: it.member_emails ?? it.memberEmails ?? [],
+      submitted_at: it.created_at ?? it.submitted_at ?? it.submission_date ?? '',
+      leader: leaderName,
+      members: memberNames,
+      leader_email: leaderEmail,
+      member_emails: memberEmails,
       status: normalizedStatus,
       panelist: it.panelist ?? it.panelists ?? '',
       facultyid: it.facultyid ?? it.facultyId ?? '',

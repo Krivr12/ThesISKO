@@ -163,6 +163,144 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Route: Get groups by Faculty-in-Charge email
+router.get("/by-fic/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { program_id } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email parameter is required" });
+    }
+
+    console.log(`📚 Fetching FIC groups for: ${email}, program: ${program_id || 'all'}`);
+
+    // Find blocks where faculty is FIC
+    const blockQuery = { faculty_in_charge_email: email };
+    if (program_id) {
+      blockQuery.program_id = program_id;
+    }
+
+    const blocks = await blocksCollection.find(blockQuery).toArray();
+    const blockIds = blocks.map(b => b.block_id);
+
+    console.log(`✅ Found ${blocks.length} blocks:`, blockIds);
+
+    if (blockIds.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Find all groups in these blocks
+    const groups = await groupsCollection.find({ 
+      block_id: { $in: blockIds } 
+    }).toArray();
+
+    console.log(`✅ Found ${groups.length} groups for FIC`);
+
+    // Enrich groups with block info and calculate forApproval
+    const enrichedGroups = groups.map(group => {
+      const block = blocks.find(b => b.block_id === group.block_id);
+      
+      // Calculate forApproval count for FIC
+      // FIC needs to approve upload_manuscript after all panelists
+      const uploadManuscript = group.milestones?.find(m => m.type === "upload_manuscript");
+      const requiredPanelistCount = block?.panelists?.length || 3;
+      
+      let forApproval = 0;
+      if (uploadManuscript) {
+        const panelistsApproved = uploadManuscript.approved_by?.length || 0;
+        const facultyApproved = uploadManuscript.verified?.faculty_in_charge?.approved || false;
+        
+        // If all panelists approved but faculty hasn't
+        if (panelistsApproved >= requiredPanelistCount && !facultyApproved) {
+          forApproval = 1;
+        }
+      }
+
+      return {
+        ...group,
+        block_code: block?.block_code,
+        academic_year: block?.academic_year,
+        forApproval
+      };
+    });
+
+    res.json({ success: true, data: enrichedGroups });
+  } catch (err) {
+    console.error("❌ Error fetching FIC groups:", err);
+    res.status(500).json({ error: "Error fetching groups" });
+  }
+});
+
+// Route: Get groups by Panelist email
+router.get("/by-panelist/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { program_id } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email parameter is required" });
+    }
+
+    console.log(`👥 Fetching panelist groups for: ${email}, program: ${program_id || 'all'}`);
+
+    // Find blocks where faculty is a panelist
+    const blockQuery = { panelists_email: email };
+    if (program_id) {
+      blockQuery.program_id = program_id;
+    }
+
+    const blocks = await blocksCollection.find(blockQuery).toArray();
+    const blockIds = blocks.map(b => b.block_id);
+
+    console.log(`✅ Found ${blocks.length} blocks:`, blockIds);
+
+    if (blockIds.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Find all groups in these blocks
+    const groups = await groupsCollection.find({ 
+      block_id: { $in: blockIds } 
+    }).toArray();
+
+    console.log(`✅ Found ${groups.length} groups for panelist`);
+
+    // Enrich groups with block info and calculate forApproval
+    const enrichedGroups = groups.map(group => {
+      const block = blocks.find(b => b.block_id === group.block_id);
+      
+      // Calculate forApproval count for panelist
+      // Panelist needs to approve upload_manuscript if they haven't yet
+      const uploadManuscript = group.milestones?.find(m => m.type === "upload_manuscript");
+      
+      let forApproval = 0;
+      if (uploadManuscript) {
+        const hasApproved = uploadManuscript.approved_by?.some(
+          approval => approval.panelist_id === email || approval.name?.includes(email)
+        );
+        
+        // If manuscript has files and panelist hasn't approved yet
+        if (uploadManuscript.s3_key?.length > 0 && !hasApproved) {
+          forApproval = 1;
+        }
+      }
+
+      return {
+        ...group,
+        block_code: block?.block_code,
+        academic_year: block?.academic_year,
+        forApproval
+      };
+    });
+
+    res.json({ success: true, data: enrichedGroups });
+  } catch (err) {
+    console.error("❌ Error fetching panelist groups:", err);
+    res.status(500).json({ error: "Error fetching groups" });
+  }
+});
+
 // Route: Get single group by group_id
 router.get("/:group_id", async (req, res) => {
   try {
