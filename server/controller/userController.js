@@ -527,6 +527,7 @@ const loginUser = async (req, res) => {
           ui.faculty_id,
           ui.admin_id,
           ui.block_id,
+          ui.group_id,
           ui.program_id,
           ui.admin_program,
           ui.admin_type,
@@ -640,6 +641,7 @@ const loginUser = async (req, res) => {
       student_id: users[0].student_id,
       faculty_id: users[0].faculty_id,
       admin_id: users[0].admin_id,
+      group_id: users[0].group_id,
       AvatarUrl: users[0].avatar_url
     }
 
@@ -657,7 +659,9 @@ const loginUser = async (req, res) => {
         email: userWithoutPassword.Email,
         Status: userWithoutPassword.Status,
         Firstname: userWithoutPassword.Firstname,
-        Lastname: userWithoutPassword.Lastname
+        Lastname: userWithoutPassword.Lastname,
+        role_id: userWithoutPassword.role_id,
+        group_id: userWithoutPassword.group_id
       };
       
       // Set HttpOnly cookie with user data
@@ -671,6 +675,7 @@ const loginUser = async (req, res) => {
         Department: userWithoutPassword.Department,
         AvatarUrl: userWithoutPassword.AvatarUrl,
         role_id: userWithoutPassword.role_id,
+        group_id: userWithoutPassword.group_id,
         account_type: 'user'
       }), {
         httpOnly: true,
@@ -1122,7 +1127,27 @@ const adminCreateFaculty = async (req, res) => {
                   Polytechnic University of the Philippines | Manila, Philippines
                 </p>
                 <p style="color: #95a5a6; margin: 10px 0 0 0; font-size: 12px;">
-                  Please do not reply to this email
+                  © ${new Date().getFullYear()} ThesISKO. All rights reserved.
+                </p>
+              </div>
+              
+              <!-- Legal Notice -->
+              <div style="background: #fff3cd; border-top: 3px solid #ffc107; padding: 20px; text-align: left;">
+                <p style="margin: 0 0 10px 0; color: #856404; font-size: 13px; font-weight: bold;">
+                  ⚠️ CONFIDENTIALITY NOTICE & LEGAL DISCLAIMER
+                </p>
+                <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
+                  This email and any attachments are confidential and intended solely for the person(s) named above. 
+                  This communication may contain privileged or confidential information.
+                </p>
+                <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
+                  <strong>If you are NOT the intended recipient:</strong><br>
+                  • Please DO NOT read, copy, forward, or use this email<br>
+                  • Delete this email immediately<br>
+                  • Notify us at: <a href="mailto:thesiskopup@gmail.com" style="color: #800000;">thesiskopup@gmail.com</a>
+                </p>
+                <p style="margin: 0; color: #856404; font-size: 11px; line-height: 1.6;">
+                  Unauthorized use, disclosure, or distribution of this communication is strictly prohibited and may be unlawful.
                 </p>
               </div>
             </div>
