@@ -1,34 +1,78 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+
+export interface MilestoneFilesRequest {
+  action: 'add' | 'remove' | 'replace';
+  files: string[]; // Array of S3 keys
+}
+
+export interface GroupResponse {
+  message: string;
+  group: any;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class SubmissionService {
-  private baseUrl = 'https://thesisko-server.vercel.app'; // your backend URL
+  private apiUrl = `${environment.authApiUrl}/groups`;
 
   constructor(private http: HttpClient) {}
 
-  uploadFile(file: File): Observable<number> {
-    const formData = new FormData();
-    formData.append('file', file);
+  /**
+   * Add files to a milestone
+   * @param groupId - Group ID (e.g., "2425-BSIT-5_1")
+   * @param milestoneType - Milestone type (e.g., "upload_manuscript")
+   * @param s3Keys - Array of S3 keys to add
+   * @returns Observable with response
+   */
+  addMilestoneFiles(groupId: string, milestoneType: string, s3Keys: string[]): Observable<GroupResponse> {
+    return this.http.patch<GroupResponse>(
+      `${this.apiUrl}/${groupId}/milestones/${milestoneType}/files`,
+      { action: 'add', files: s3Keys }
+    );
+  }
 
-    return this.http.post(`${this.baseUrl}/s3/upload`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    }).pipe(
-      map((event: HttpEvent<any>) => {
-        switch (event.type) {
-          case HttpEventType.UploadProgress:
-            return Math.round((100 * event.loaded) / (event.total || 1));
-          case HttpEventType.Response:
-            return 100;
-          default:
-            return 0;
-        }
-      })
+  /**
+   * Remove files from a milestone
+   * @param groupId - Group ID
+   * @param milestoneType - Milestone type
+   * @param s3Keys - Array of S3 keys to remove
+   * @returns Observable with response
+   */
+  removeMilestoneFiles(groupId: string, milestoneType: string, s3Keys: string[]): Observable<GroupResponse> {
+    return this.http.patch<GroupResponse>(
+      `${this.apiUrl}/${groupId}/milestones/${milestoneType}/files`,
+      { action: 'remove', files: s3Keys }
+    );
+  }
+
+  /**
+   * Get group details including milestone status
+   * @param groupId - Group ID
+   * @returns Observable with group data
+   */
+  getGroupStatus(groupId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${groupId}`);
+  }
+
+  /**
+   * Update group with title, abstract, tags, access level (Step 5 data)
+   * @param groupId - Group ID
+   * @param data - Group data to update
+   * @returns Observable with response
+   */
+  updateGroupMetadata(groupId: string, data: {
+    title?: string;
+    abstract?: string;
+    tags?: string[];
+    access_level?: 'Full' | 'Partial' | 'Restricted';
+  }): Observable<GroupResponse> {
+    return this.http.patch<GroupResponse>(
+      `${this.apiUrl}/${groupId}`,
+      data
     );
   }
 }

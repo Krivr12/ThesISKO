@@ -15,6 +15,9 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { Sidenavbar } from '../sidenavbar/sidenavbar';
 import { parseGroupId } from '../../shared/utils/group-id';
+import { S3Service } from '../../service/s3.service';
+import { SubmissionService } from '../../service/submission.service';
+import { environment } from '../../../environments/environment';
 
 interface Group {
   group_id: string;
@@ -34,6 +37,9 @@ interface Group {
   fileUrl?: string;
   fileSizeText?: string;
   fileProgress?: number;
+  milestones?: any[];
+  manuscriptS3Key?: string;  // S3 key for the manuscript file
+  manuscriptFileName?: string; // Display name of the manuscript
 }
 
 interface GroupVM extends Group {
@@ -88,13 +94,19 @@ export class PanelistApprovalPage implements OnInit {
   selectedRevisionReasons = new Set<string>();
   revisionComment = '';
 
+  // Loading states
+  pdfLoading = false;
+  pdfError = '';
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private location: Location,
     private http: HttpClient,
     private dialog: MatDialog,
-     private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private s3Service: S3Service,
+    private submissionService: SubmissionService
   ) {}
 
   ngOnInit(): void {
@@ -108,8 +120,8 @@ export class PanelistApprovalPage implements OnInit {
     if (id) {
       console.log('👥 Fetching group data for panelist approval:', id);
       
-      // Fetch group from MongoDB API
-      this.http.get<any>(`http://localhost:5050/groups/${id}`).subscribe({
+      // Fetch group from MongoDB API using environment URL
+      this.submissionService.getGroupStatus(id).subscribe({
         next: (response) => {
           console.log('✅ Group response:', response);
           if (response) {
@@ -171,6 +183,18 @@ export class PanelistApprovalPage implements OnInit {
       memberEmails = it.member_emails || it.memberEmails || [];
     }
 
+    // Extract manuscript file info from milestones
+    let manuscriptS3Key = '';
+    let manuscriptFileName = '';
+    if (Array.isArray(it.milestones)) {
+      const uploadManuscriptMilestone = it.milestones.find((m: any) => m.type === 'upload_manuscript');
+      if (uploadManuscriptMilestone && uploadManuscriptMilestone.s3_key && uploadManuscriptMilestone.s3_key.length > 0) {
+        manuscriptS3Key = uploadManuscriptMilestone.s3_key[0]; // Get first file
+        // Extract filename from S3 key (format: submission/{group_id}/{filename})
+        manuscriptFileName = manuscriptS3Key.split('/').pop() || 'manuscript.pdf';
+      }
+    }
+
     // Map MongoDB 'progress' field to 'status'
     const statusSrc = String(it.progress ?? it.status ?? 'Ongoing');
     const progressMap: Record<string, string> = {
@@ -200,6 +224,9 @@ export class PanelistApprovalPage implements OnInit {
       fileUrl: it.fileUrl ?? it.fileURL,
       fileSizeText: it.fileSizeText ?? it.sizeText,
       fileProgress: it.fileProgress ?? it.progress,
+      milestones: it.milestones,
+      manuscriptS3Key,
+      manuscriptFileName,
     };
   }
 
@@ -247,21 +274,98 @@ export class PanelistApprovalPage implements OnInit {
     ref.close(payload);
   }
 
-  /* ===== Submit (replace with your API) ===== */
+  /* ===== Submit (calls real API) ===== */
   private submitDecision(
     decision: 'Approved' | 'Rejected' | 'For Revision',
     payload: { reasons?: string[]; remarks?: string }
   ) {
     console.log('DECISION:', decision, 'GROUP:', this.group, 'PAYLOAD:', payload);
-    // TODO: call your backend here
-    // Optionally: navigate back or show a toast/snackbar
+    
+    if (!this.group?.group_id) {
+      alert('Group ID not found');
+      return;
+    }
+
+    if (decision === 'Approved') {
+      // Call approve API endpoint
+      // Get panelist info from localStorage or auth service
+      const panelistEmail = localStorage.getItem('userEmail') || 'panelist@example.com';
+      const panelistName = localStorage.getItem('userName') || 'Panelist';
+
+      this.http.patch<any>(
+        `${environment.authApiUrl}/groups/${this.group.group_id}/milestones/upload_manuscript/approve`,
+        {
+          panelist_id: panelistEmail,
+          name: panelistName
+        }
+      ).subscribe({
+        next: (response) => {
+          console.log('✅ Approval recorded:', response);
+          alert('Manuscript approved successfully!');
+          this.router.navigate(['/faculty-home']); // Navigate back to faculty home
+        },
+        error: (error) => {
+          console.error('❌ Error recording approval:', error);
+          alert('Failed to record approval. Please try again.');
+        }
+      });
+    } else if (decision === 'Rejected' || decision === 'For Revision') {
+      // For rejection, we can add a comment/remark
+      // Currently the API doesn't have a reject endpoint for panelists,
+      // so we'll just show a message
+      alert('Rejection functionality coming soon. For now, please contact the group leader directly.');
+      console.log('Rejection payload:', payload);
+    }
   }
 
-  openFilePreview(fileUrl: string, fileName?: string) {
-    if (!fileUrl) return;
-    this.previewTitle = 'Preview Document';
-    this.previewFileName = fileName;
-    this.previewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+  /**
+   * Open file preview for manuscript using S3 signed URL
+   * @param s3Key - S3 key for the file (e.g., "submission/9999-TESTING-TEST_2/manuscript.pdf")
+   * @param fileName - Display name for the file
+   */
+  openFilePreview(s3Key?: string, fileName?: string) {
+    if (!s3Key) {
+      alert('No manuscript file available for preview.');
+      return;
+    }
+
+    this.previewTitle = 'Preview Manuscript';
+    this.previewFileName = fileName || 'manuscript.pdf';
+    this.pdfLoading = true;
+    this.pdfError = '';
+    this.previewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl('');
+
+    // Get signed URL for submission file (uses view-urls endpoint)
+    const groupId = this.group?.group_id;
+    if (!groupId) {
+      this.pdfError = 'Group ID not found';
+      this.pdfLoading = false;
+      return;
+    }
+
+    // Extract filename from S3 key
+    const filename = s3Key.split('/').pop() || '';
+    
+    // Get signed URL using view-urls endpoint
+    this.http.post<any>(`${environment.authApiUrl}/s3/view-urls`, {
+      group_id: groupId,
+      filenames: [filename]
+    }).subscribe({
+      next: (response) => {
+        if (response.urls && response.urls.length > 0) {
+          this.previewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(response.urls[0].signedUrl);
+          this.pdfLoading = false;
+        } else {
+          this.pdfError = 'Failed to generate signed URL';
+          this.pdfLoading = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error getting signed URL:', error);
+        this.pdfError = 'Failed to load document. Please try again.';
+        this.pdfLoading = false;
+      }
+    });
 
     this.dialog.open(this.pdfDialog, {
       panelClass: 'file-viewer-dialog',
