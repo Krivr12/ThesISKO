@@ -53,6 +53,18 @@ router.get("/faculty/:email", async (req, res) => {
     console.log('📚 FIC blocks program_ids:', ficBlocks.map(b => b.program_id));
     console.log('👥 Panelist blocks program_ids:', panelistBlocks.map(b => b.program_id));
 
+    // Get group counts for all blocks
+    const allBlockIds = [...new Set([...ficBlocks.map(b => b.block_id), ...panelistBlocks.map(b => b.block_id)])];
+    const groupCounts = await RepoMongodb.collection("groups").aggregate([
+      { $match: { block_id: { $in: allBlockIds } } },
+      { $group: { _id: "$block_id", count: { $sum: 1 } } }
+    ]).toArray();
+    
+    const groupCountMap = {};
+    groupCounts.forEach(gc => {
+      groupCountMap[gc._id] = gc.count;
+    });
+
     // Group FIC blocks by program
     const ficByProgram = {};
     ficBlocks.forEach(block => {
@@ -72,7 +84,8 @@ router.get("/faculty/:email", async (req, res) => {
       ficByProgram[block.program_id].blocks.push({
         block_id: block.block_id,
         academic_year: block.academic_year,
-        block_code: block.block_code
+        block_code: block.block_code,
+        group_count: groupCountMap[block.block_id] || 0
       });
     });
 
@@ -95,7 +108,8 @@ router.get("/faculty/:email", async (req, res) => {
       panelistByProgram[block.program_id].blocks.push({
         block_id: block.block_id,
         academic_year: block.academic_year,
-        block_code: block.block_code
+        block_code: block.block_code,
+        group_count: groupCountMap[block.block_id] || 0
       });
     });
 

@@ -27,6 +27,7 @@ interface ProgramBlocks {
     block_id: string;
     academic_year: string;
     block_code: string;
+    group_count?: number;
   }>;
 }
 

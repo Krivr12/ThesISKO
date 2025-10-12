@@ -30,16 +30,27 @@
               </thead>
               
           <tbody>
-                      <tr *ngFor="let program of ficPrograms">
-                        <td>{{ program.program_name }}</td>
-                        <td class="action-col">
-                          <button class="btn"
-                                  [routerLink]="['/for-fic']"
-                                  [queryParams]="{ program: program.program_id }">
-                            View Classes
-                          </button>
-                        </td>
-                      </tr>
+                      <ng-container *ngFor="let program of ficPrograms">
+                        <!-- Program header row -->
+                        <tr style="background-color: #f5f5f5;">
+                          <td colspan="2" style="font-weight: bold; color: #800000; padding: 0.75rem 1rem;">
+                            {{ program.program_name }}
+                          </td>
+                        </tr>
+                        <!-- Block rows -->
+                        <tr *ngFor="let block of program.blocks">
+                          <td style="padding-left: 2rem;">
+                            {{ block.block_id }} ({{ block.group_count || 0 }} groups)
+                          </td>
+                          <td class="action-col">
+                            <button class="btn"
+                                    [routerLink]="['/for-fic']"
+                                    [queryParams]="{ block: block.block_id }">
+                              View Classes
+                            </button>
+                          </td>
+                        </tr>
+                      </ng-container>
           </tbody>
         </table>
 
@@ -74,16 +85,27 @@
               </thead>
               
           <tbody>
-                      <tr *ngFor="let program of panelistPrograms">
-                        <td>{{ program.program_name }}</td>
-                        <td class="action-col">
-                          <button class="btn"
-                                  [routerLink]="['/for-panel']"
-                                  [queryParams]="{ program: program.program_id }">
-                            View Classes
-                          </button>
-                        </td>
-                      </tr>
+                      <ng-container *ngFor="let program of panelistPrograms">
+                        <!-- Program header row -->
+                        <tr style="background-color: #f5f5f5;">
+                          <td colspan="2" style="font-weight: bold; color: #800000; padding: 0.75rem 1rem;">
+                            {{ program.program_name }}
+                          </td>
+                        </tr>
+                        <!-- Block rows -->
+                        <tr *ngFor="let block of program.blocks">
+                          <td style="padding-left: 2rem;">
+                            {{ block.block_id }} ({{ block.group_count || 0 }} groups)
+                          </td>
+                          <td class="action-col">
+                            <button class="btn"
+                                    [routerLink]="['/for-panel']"
+                                    [queryParams]="{ block: block.block_id }">
+                              View Classes
+                            </button>
+                          </td>
+                        </tr>
+                      </ng-container>
           </tbody>
         </table>
 

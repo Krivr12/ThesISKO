@@ -8,6 +8,10 @@ import {
   CopyObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
+import pool from "../data/database.js"; // PostgreSQL connection for users_info
+import { transporter } from "../config/mailer.js"; // Email transporter
+import bcrypt from "bcrypt";
+import { generatePassword } from "../utils/passwordGenerator.js";
 
 const router = express.Router();
 const groupsCollection = RepoMongodb.collection("groups");
@@ -152,10 +156,20 @@ async function updateGroupProgress(groupId) {
   }
 }
 
-// Route: Get all groups (limit 50 for safety)
+// Route: Get all groups (limit 50 for safety) or filter by block_id
 router.get("/", async (req, res) => {
   try {
-    const results = await groupsCollection.find({}).limit(50).toArray();
+    const { block_id } = req.query;
+    
+    let query = {};
+    if (block_id) {
+      query = { block_id: block_id };
+      console.log(`📚 Fetching groups for block: ${block_id}`);
+    }
+    
+    const results = await groupsCollection.find(query).limit(50).toArray();
+    console.log(`✅ Found ${results.length} groups`);
+    
     res.status(200).json(results);
   } catch (err) {
     console.error(err);
@@ -328,6 +342,102 @@ router.post("/", async (req, res) => {
         .json({ error: "block_id and leader.email are required" });
     }
 
+    console.log(`\n🔄 Starting group creation for block: ${block_id}`);
+    console.log(`👤 Leader: ${leader.email} (${leader.firstname} ${leader.surname})`);
+
+    // 3. Validate all members are students (role_id = 2) and not in other groups
+    const membersArray = Array.isArray(members) ? members : [];
+    const memberEmails = membersArray.map(m => m.email);
+
+    // Check for duplicate members within this group
+    const uniqueEmails = new Set([leader.email, ...memberEmails]);
+    if (uniqueEmails.size !== memberEmails.length + 1) {
+      return res.status(400).json({ error: "Duplicate members found in group (including leader)" });
+    }
+
+    // Helper function to process a user (create if needed, validate if exists)
+    const processUser = async (user, isLeader = false) => {
+      const roleLabel = isLeader ? 'Leader' : 'Member';
+      console.log(`\n📝 Processing ${roleLabel}: ${user.email}`);
+      
+      // Check if user exists
+      const existingUser = await pool.query(
+        'SELECT user_id, role_id, group_id, firstname, lastname, email FROM users_info WHERE email = $1',
+        [user.email]
+      );
+
+      if (existingUser.rows.length > 0) {
+        // User exists - validate
+        const userData = existingUser.rows[0];
+        console.log(`✅ User exists: ${userData.firstname} ${userData.lastname} (role_id: ${userData.role_id})`);
+
+        // Validate they're a student
+        if (userData.role_id !== 2) {
+          throw new Error(`${roleLabel} ${user.email} must be a student (role_id = 2), but has role_id ${userData.role_id}`);
+        }
+
+        // Validate not in another group
+        if (userData.group_id) {
+          throw new Error(`${roleLabel} ${user.email} is already in group ${userData.group_id}`);
+        }
+
+        return {
+          exists: true,
+          userData,
+          needsCredentialEmail: false
+        };
+      } else {
+        // User doesn't exist - create account
+        console.log(`🆕 User not found. Creating new student account for ${user.email}`);
+        
+        // Validate required fields for new user
+        if (!user.firstname || !user.surname) {
+          throw new Error(`${roleLabel} ${user.email} requires firstname and surname for account creation`);
+        }
+
+        // Generate password
+        const generatedPassword = generatePassword(12);
+        console.log(`🔐 Generated password for ${user.email}`);
+
+        // Hash password
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(generatedPassword, salt);
+
+        // Create user with role_id = 2 (student)
+        const newUserResult = await pool.query(
+          'INSERT INTO users_info (firstname, lastname, email, password_hash, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING user_id, firstname, lastname, email',
+          [user.firstname, user.surname, user.email.toLowerCase(), hashedPassword, 2]
+        );
+
+        const newUser = newUserResult.rows[0];
+        console.log(`✅ Created new student: ${newUser.firstname} ${newUser.lastname} (user_id: ${newUser.user_id})`);
+
+        return {
+          exists: false,
+          userData: newUser,
+          needsCredentialEmail: true,
+          generatedPassword
+        };
+      }
+    };
+
+    // 1. Process leader
+    const leaderProcessed = await processUser(leader, true);
+    const leaderData = leaderProcessed.userData;
+
+    // 2. Process all members
+    const membersProcessed = [];
+    for (const member of membersArray) {
+      const memberProcessed = await processUser(member, false);
+      membersProcessed.push(memberProcessed);
+    }
+
+    // 4. Get block details for email
+    const block = await blocksCollection.findOne({ block_id });
+    if (!block) {
+      return res.status(404).json({ error: "Block not found" });
+    }
+
     const groupCount = await groupsCollection.countDocuments({ block_id });
     const group_id = `${block_id}_${groupCount + 1}`;
 
@@ -338,11 +448,11 @@ router.post("/", async (req, res) => {
       group_id,
       block_id,
       title: title || null,
-      abstract: abstract || null,
-      access_level: access_level || null,
+      abstract: req.body.abstract || null,
+      access_level: req.body.access_level || null,
       tags: [],
       leader,
-      members: Array.isArray(members) ? members : [],
+      members: membersArray,
       milestones: [
         {
           type: "upload_manuscript",
@@ -393,6 +503,253 @@ router.post("/", async (req, res) => {
     };
 
     await groupsCollection.insertOne(newGroup);
+
+    // 5. Update leader's group_id in PostgreSQL users_info
+    await pool.query(
+      'UPDATE users_info SET group_id = $1 WHERE email = $2',
+      [group_id, leader.email]
+    );
+    console.log(`✅ Updated leader's group_id: ${leader.email} → ${group_id}`);
+
+    // 6. Update all members' group_id in PostgreSQL users_info
+    for (const member of membersArray) {
+      await pool.query(
+        'UPDATE users_info SET group_id = $1 WHERE email = $2',
+        [group_id, member.email]
+      );
+      console.log(`✅ Updated member's group_id: ${member.email} → ${group_id}`);
+    }
+
+    // 7. Get program details for email
+    const program = await programsCollection.findOne({ program_id: block.program_id });
+    const programName = program?.program_name || block.program_id;
+
+    // 8. Prepare member list for emails
+    const leaderName = `${leaderData.firstname} ${leaderData.lastname}`;
+    const memberList = membersProcessed.map(mp => 
+      `- ${mp.userData.firstname} ${mp.userData.lastname} (${mp.userData.email})`
+    ).join('\n');
+
+    const panelistList = block.panelists?.map((name, index) => 
+      `- ${name} (${block.panelists_email[index]})`
+    ).join('\n') || 'To be assigned';
+
+    // 9. Send email to leader (credential + group info OR just group info)
+    try {
+      let leaderEmailSubject;
+      let leaderEmailBody;
+
+      if (leaderProcessed.needsCredentialEmail) {
+        // NEW USER: Send credential + group info
+        leaderEmailSubject = `Welcome to ThesISKO - You're the Leader of Group ${group_id}`;
+        leaderEmailBody = `
+Dear ${leaderName},
+
+Your ThesISKO account has been created by your Faculty-in-Charge, and you've been assigned as a Group Leader!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR LOGIN CREDENTIALS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Email: ${leader.email}
+Password: ${leaderProcessed.generatedPassword}
+
+⚠️ IMPORTANT: Please change your password after your first login.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GROUP ASSIGNMENT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You have been assigned as the GROUP LEADER for:
+
+Group ID: ${group_id}
+Block: ${block_id}
+Program: ${programName}
+Academic Year: ${block.academic_year || 'Current'}
+
+Your Group Members:
+${memberList || 'No members yet'}
+
+Faculty-in-Charge:
+${block.faculty_in_charge || 'To be assigned'} (${block.faculty_in_charge_email || ''})
+
+Research Panelists:
+${panelistList}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+As group leader, you can:
+✓ Submit thesis manuscript
+✓ Upload documents
+✓ Track progress
+✓ Manage group information
+
+Login here: ${process.env.FRONTEND_URL || 'http://localhost:4200'}/login
+
+Questions? Contact your Faculty-in-Charge.
+
+Best regards,
+ThesISKO System
+        `;
+      } else {
+        // EXISTING USER: Just group info
+        leaderEmailSubject = `You are now the Leader of Group ${group_id}`;
+        leaderEmailBody = `
+Dear ${leaderName},
+
+Congratulations! You have been assigned as the Group Leader for:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Group ID: ${group_id}
+Block: ${block_id}
+Program: ${programName}
+Academic Year: ${block.academic_year || 'Current'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+As the group leader, you can now:
+✓ Submit your thesis manuscript
+✓ Upload required documents  
+✓ Track milestone progress
+✓ Manage group information
+✓ View faculty feedback
+
+Your group members:
+${memberList || 'No members yet'}
+
+Faculty-in-Charge:
+${block.faculty_in_charge || 'To be assigned'} (${block.faculty_in_charge_email || ''})
+
+Research Panelists:
+${panelistList}
+
+Please log in to your account to get started.
+
+If you have questions, contact your Faculty-in-Charge.
+
+Best regards,
+ThesISKO System
+        `;
+      }
+
+      await transporter.sendMail({
+        from: process.env.SMTP_USER,
+        to: leader.email,
+        subject: leaderEmailSubject,
+        text: leaderEmailBody
+      });
+      console.log(`✅ Leader ${leaderProcessed.needsCredentialEmail ? 'credential + group' : 'group'} email sent to: ${leader.email}`);
+    } catch (emailErr) {
+      console.error('⚠️ Failed to send leader email:', emailErr);
+      // Don't fail the entire operation
+    }
+
+    // 10. Send email to all members (credential + group info OR just group info)
+    for (let i = 0; i < membersArray.length; i++) {
+      const member = membersArray[i];
+      const memberProcessed = membersProcessed[i];
+      const memberData = memberProcessed.userData;
+      const memberName = `${memberData.firstname} ${memberData.lastname}`;
+
+      try {
+        let memberEmailSubject;
+        let memberEmailBody;
+
+        if (memberProcessed.needsCredentialEmail) {
+          // NEW USER: Send credential + group info
+          memberEmailSubject = `Welcome to ThesISKO - You've been added to Group ${group_id}`;
+          memberEmailBody = `
+Dear ${memberName},
+
+Your ThesISKO account has been created by your Faculty-in-Charge, and you've been added to a thesis group!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR LOGIN CREDENTIALS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Email: ${member.email}
+Password: ${memberProcessed.generatedPassword}
+
+⚠️ IMPORTANT: Please change your password after your first login.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GROUP ASSIGNMENT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You have been added to a thesis group:
+
+Group ID: ${group_id}
+Block: ${block_id}
+Program: ${programName}
+Academic Year: ${block.academic_year || 'Current'}
+
+Group Leader:
+${leaderName} (${leader.email})
+
+Your fellow group members:
+${memberList}
+
+Faculty-in-Charge:
+${block.faculty_in_charge || 'To be assigned'} (${block.faculty_in_charge_email || ''})
+
+Research Panelists:
+${panelistList}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your group leader will coordinate thesis submissions and milestone tracking.
+
+Login here: ${process.env.FRONTEND_URL || 'http://localhost:4200'}/login
+
+Questions? Contact your group leader or Faculty-in-Charge.
+
+Best regards,
+ThesISKO System
+          `;
+        } else {
+          // EXISTING USER: Just group info
+          memberEmailSubject = `You have been added to Group ${group_id}`;
+          memberEmailBody = `
+Dear ${memberName},
+
+You have been added to a thesis group!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Group ID: ${group_id}
+Block: ${block_id}
+Program: ${programName}
+Academic Year: ${block.academic_year || 'Current'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Group Leader:
+${leaderName} (${leader.email})
+
+Your fellow group members:
+${memberList}
+
+Faculty-in-Charge:
+${block.faculty_in_charge || 'To be assigned'} (${block.faculty_in_charge_email || ''})
+
+Research Panelists:
+${panelistList}
+
+Your group leader will coordinate thesis submissions and milestone tracking.
+Please log in to your account to view your group details.
+
+If you have questions, contact your group leader or Faculty-in-Charge.
+
+Best regards,
+ThesISKO System
+          `;
+        }
+
+        await transporter.sendMail({
+          from: process.env.SMTP_USER,
+          to: member.email,
+          subject: memberEmailSubject,
+          text: memberEmailBody
+        });
+        console.log(`✅ Member ${memberProcessed.needsCredentialEmail ? 'credential + group' : 'group'} email sent to: ${member.email}`);
+      } catch (emailErr) {
+        console.error(`⚠️ Failed to send email to member ${member.email}:`, emailErr);
+        // Don't fail the entire operation
+      }
+    }
 
     res.status(201).json({
       message: "Group created successfully",
