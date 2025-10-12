@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  authApiUrl: 'https://your-backend-domain.com',   // 👈 replace with deployed backend
-  recordsApiUrl: 'https://your-backend-domain.com/records'
+  authApiUrl: 'https://thesisko-server.vercel.app',   // 👈 replace with deployed backend
+  recordsApiUrl: 'https://thesisko-server.vercel.app/records'
 };

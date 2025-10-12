@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Footer } from "../footer/footer";
 import { Navbar, AuthService } from "../navbar/navbar";
 import { Router } from '@angular/router';
+import { S3Service } from '../../service/s3.service';
+import { SubmissionService } from '../../service/submission.service';
+import { forkJoin } from 'rxjs';
 
 // structure for status update
 interface Status {
@@ -61,7 +64,12 @@ type ViewState =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Submission implements OnInit {
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router, 
+    private authService: AuthService,
+    private s3Service: S3Service,
+    private submissionService: SubmissionService
+  ) {}
 
   ngOnInit() {
     // Role guard: Only group leaders (role_id = 6) can access this page
@@ -95,6 +103,85 @@ export class Submission implements OnInit {
     }
 
     console.log('✅ Access granted. User is a group leader with group_id:', currentUser.group_id);
+    
+    // Load current group status on page load
+    this.loadInitialGroupStatus(currentUser.group_id);
+  }
+  
+  /**
+   * Load initial group status when page loads
+   * This shows the user which milestones are complete and which approvals are pending
+   */
+  private loadInitialGroupStatus(groupId: string) {
+    this.submissionService.getGroupStatus(groupId).subscribe({
+      next: (group) => {
+        console.log('📊 Initial group status loaded:', group);
+        
+        // Check each milestone and update status history
+        if (group.milestones && Array.isArray(group.milestones)) {
+          group.milestones.forEach((milestone: any) => {
+            if (milestone.status === true) {
+              // Milestone has files uploaded
+              const milestoneName = this.getMilestoneDisplayName(milestone.type);
+              
+              // Check for approvals
+              if (milestone.type === 'upload_manuscript') {
+                const panelistApprovals = milestone.approved_by?.length || 0;
+                const facultyApproved = milestone.verified?.faculty_in_charge?.approved || false;
+                
+                if (facultyApproved) {
+                  this.statusHistory.update(history => [...history, { 
+                    text: `${milestoneName}: Approved by Faculty`, 
+                    type: 'success' 
+                  }]);
+                } else if (panelistApprovals > 0) {
+                  this.statusHistory.update(history => [...history, { 
+                    text: `${milestoneName}: ${panelistApprovals}/3 panelists approved`, 
+                    type: 'default' 
+                  }]);
+                } else {
+                  this.statusHistory.update(history => [...history, { 
+                    text: `${milestoneName}: Awaiting panelist review`, 
+                    type: 'default' 
+                  }]);
+                }
+              } else if (milestone.type !== 'describe_work') {
+                const chairpersonApproved = milestone.verified?.chairperson?.some((c: any) => c.approved) || false;
+                
+                if (chairpersonApproved) {
+                  this.statusHistory.update(history => [...history, { 
+                    text: `${milestoneName}: Approved by Chairperson`, 
+                    type: 'success' 
+                  }]);
+                } else {
+                  this.statusHistory.update(history => [...history, { 
+                    text: `${milestoneName}: Awaiting chairperson review`, 
+                    type: 'default' 
+                  }]);
+                }
+              }
+            }
+          });
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error loading initial group status:', error);
+      }
+    });
+  }
+  
+  /**
+   * Get display name for milestone type
+   */
+  private getMilestoneDisplayName(type: string): string {
+    switch(type) {
+      case 'upload_manuscript': return 'Manuscript';
+      case 'complete_copyright': return 'Copyright Form';
+      case 'pass_turnitin': return 'Turnitin Report';
+      case 'upload_all_docs': return 'All Documents';
+      case 'describe_work': return 'Work Description';
+      default: return type;
+    }
   }
   // --- STATE MANAGEMENT SIGNALS ---
 
@@ -118,6 +205,11 @@ export class Submission implements OnInit {
   confirmationChecked = signal<boolean>(false);
   memberInput = signal<string>('');
   memberNamesString = computed(() => this.memberNames().join('\n'));
+  
+  // Upload tracking signals
+  currentS3Keys = signal<string[]>([]); // Store S3 keys for current upload
+  isUploading = signal<boolean>(false); // Track if upload is in progress
+  uploadError = signal<string | null>(null); // Track upload errors
   
   // predefined tags
   predefinedTags = signal<string[]>([
@@ -241,6 +333,7 @@ export class Submission implements OnInit {
     if (!isConfirmed) {
       this.file.set(null);
       this.uploadProgress.set(0);
+      this.uploadError.set(null);
       let nextState: ViewState = 'initial';
       if (currentState === 'revisionConfirming') {
         nextState = 'needsRevision';
@@ -251,19 +344,48 @@ export class Submission implements OnInit {
       return;
     }
 
-    if (currentState === 'confirming') {
-      this.viewState.set('submitted');
-      this.statusHistory.set([{ text: 'Submitted', type: 'default' }]);
-      this.simulateReviewProcess();
-    } else if (currentState === 'revisionConfirming') {
-      this.viewState.set('revisionSubmitted');
-      this.statusHistory.update(history => [...history, { text: 'Revision Submitted', type: 'warning' }]);
-      this.simulateFinalApproval();
+    // Real API integration for file upload
+    const file = this.file();
+    if (!file) {
+      this.uploadError.set('No file selected');
+      return;
+    }
+
+    const currentUser = this.authService.currentUser;
+    const groupId = currentUser?.group_id;
+    
+    if (!groupId) {
+      this.uploadError.set('No group ID found. Please contact your Faculty-in-Charge.');
+      this.statusHistory.update(history => [...history, { 
+        text: 'Error: No group assigned', 
+        type: 'error' 
+      }]);
+      return;
+    }
+
+    // Determine milestone type based on current step
+    let milestoneType = '';
+    if (this.currentStep() === 1) {
+      milestoneType = 'upload_manuscript';
+    } else if (this.currentStep() === 2) {
+      milestoneType = 'complete_copyright';
+    } else if (this.currentStep() === 3) {
+      milestoneType = 'pass_turnitin';
+    }
+
+    // Update UI state
+    if (currentState === 'confirming' || currentState === 'revisionConfirming') {
+      this.viewState.set(currentState === 'confirming' ? 'submitted' : 'revisionSubmitted');
+      this.statusHistory.set([{ text: 'Uploading to server...', type: 'default' }]);
     } else if (currentState === 'step2_confirming') {
       this.viewState.set('step2_submitted');
-      this.statusHistory.set([{ text: 'Submitted', type: 'default' }]);
-      this.simulateStep2Approval();
+      this.statusHistory.set([{ text: 'Uploading to server...', type: 'default' }]);
     }
+    
+    this.isUploading.set(true);
+
+    // Execute upload workflow: Get signed URL → Upload to S3 → Update milestone
+    this.uploadSingleFile(groupId, file, milestoneType);
   }
   
   private goToNextStep() {
@@ -383,6 +505,7 @@ confirmStep4Upload(isConfirmed: boolean) {
   if (!isConfirmed) {
     this.files.set([]);
     this.uploadProgresses.set(new Map());
+    this.uploadError.set(null);
     let nextState: ViewState = 'step4_initial';
     if (currentState === 'step4_revisionConfirming') {
       nextState = 'step4_needsRevision';
@@ -391,15 +514,32 @@ confirmStep4Upload(isConfirmed: boolean) {
     return;
   }
 
-  if (currentState === 'step4_confirming') {
-    this.viewState.set('step4_submitted');
-    this.statusHistory.set([{ text: 'Submitted', type: 'default' }]);
-    this.simulateStep4ReviewProcess();
-  } else if (currentState === 'step4_revisionConfirming') {
-    this.viewState.set('step4_revisionSubmitted');
-    this.statusHistory.update(history => [...history, { text: 'Revision Submitted', type: 'warning' }]);
-    this.simulateStep4FinalApproval();
+  // Real API integration for multiple files
+  const files = this.files();
+  if (!files || files.length === 0) {
+    this.uploadError.set('No files selected');
+    return;
   }
+
+  const currentUser = this.authService.currentUser;
+  const groupId = currentUser?.group_id;
+  
+  if (!groupId) {
+    this.uploadError.set('No group ID found. Please contact your Faculty-in-Charge.');
+    this.statusHistory.update(history => [...history, { 
+      text: 'Error: No group assigned', 
+      type: 'error' 
+    }]);
+    return;
+  }
+
+  // Update UI state
+  this.viewState.set('step4_submitted');
+  this.statusHistory.set([{ text: 'Uploading files to server...', type: 'default' }]);
+  this.isUploading.set(true);
+
+  // Execute upload workflow for multiple files
+  this.uploadMultipleFiles(groupId, files, 'upload_all_docs');
 }
 
 private simulateStep4ReviewProcess() {
@@ -517,11 +657,41 @@ submitStep5() {
 }
 
 confirmStep5(isConfirmed: boolean) {
-  if (isConfirmed) {
-    this.viewState.set('step5_submitted');
-  } else {
+  if (!isConfirmed) {
     this.viewState.set('step5_initial');
+    return;
   }
+
+  // Save metadata to backend
+  const currentUser = this.authService.currentUser;
+  const groupId = currentUser?.group_id;
+  
+  if (!groupId) {
+    alert('No group ID found. Please contact your Faculty-in-Charge.');
+    this.viewState.set('step5_initial');
+    return;
+  }
+
+  // Prepare data
+  const metadata = {
+    title: this.title(),
+    abstract: this.abstract(),
+    tags: this.tags(),
+    access_level: this.accessLevel()
+  };
+
+  // Update group metadata
+  this.submissionService.updateGroupMetadata(groupId, metadata).subscribe({
+    next: (result) => {
+      console.log('✅ Group metadata updated:', result);
+      this.viewState.set('step5_submitted');
+    },
+    error: (error) => {
+      console.error('Error updating group metadata:', error);
+      alert('Failed to save work description. Please try again.');
+      this.viewState.set('step5_initial');
+    }
+  });
 }
 
 submitStep6() {
@@ -630,7 +800,243 @@ resetToHome() {
     // step 6 has different button to avoid duplicates
   }
 
-  
+  // --- UPLOAD METHODS ---
+
+  /**
+   * Upload single file workflow:
+   * 1. Get signed URL from backend
+   * 2. Upload file to S3
+   * 3. Update milestone with S3 key
+   */
+  private uploadSingleFile(groupId: string, file: File, milestoneType: string) {
+    const contentType = file.type || 'application/pdf';
+    
+    // Step 1: Get signed URL
+    this.s3Service.getSignedUrl(groupId, file.name, contentType).subscribe({
+      next: (response) => {
+        const { uploadUrl, key } = response;
+        this.currentS3Keys.set([key]);
+        
+        this.statusHistory.update(history => [...history, { 
+          text: 'Uploading file to storage...', 
+          type: 'default' 
+        }]);
+        
+        // Step 2: Upload to S3
+        this.s3Service.uploadToS3(uploadUrl, file, contentType).subscribe({
+          next: () => {
+            this.statusHistory.update(history => [...history, { 
+              text: 'File uploaded successfully', 
+              type: 'success' 
+            }]);
+            
+            // Step 3: Update milestone
+            this.submissionService.addMilestoneFiles(groupId, milestoneType, [key]).subscribe({
+              next: (result) => {
+                this.isUploading.set(false);
+                this.statusHistory.update(history => [...history, { 
+                  text: 'Milestone updated - Waiting for approval', 
+                  type: 'success' 
+                }]);
+                
+                // Fetch updated group status
+                this.loadGroupStatus(groupId);
+              },
+              error: (error) => {
+                console.error('Error updating milestone:', error);
+                this.isUploading.set(false);
+                this.uploadError.set('Failed to update milestone');
+                this.statusHistory.update(history => [...history, { 
+                  text: 'Error: Failed to update milestone', 
+                  type: 'error' 
+                }]);
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Error uploading to S3:', error);
+            this.isUploading.set(false);
+            this.uploadError.set('Failed to upload file');
+            this.statusHistory.update(history => [...history, { 
+              text: 'Error: File upload failed', 
+              type: 'error' 
+            }]);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error getting signed URL:', error);
+        this.isUploading.set(false);
+        this.uploadError.set('Failed to get upload URL');
+        this.statusHistory.update(history => [...history, { 
+          text: 'Error: Could not prepare upload', 
+          type: 'error' 
+        }]);
+      }
+    });
+  }
+
+  /**
+   * Upload multiple files workflow:
+   * 1. Get signed URLs for all files from backend
+   * 2. Upload all files to S3 in parallel
+   * 3. Update milestone with all S3 keys
+   */
+  private uploadMultipleFiles(groupId: string, files: File[], milestoneType: string) {
+    // Prepare file metadata
+    const fileMetadata = files.map(file => ({
+      filename: file.name,
+      contentType: file.type || 'application/pdf'
+    }));
+    
+    // Step 1: Get signed URLs for all files
+    this.s3Service.getSignedUrls(groupId, fileMetadata).subscribe({
+      next: (response) => {
+        const uploadTasks = response.urls.map((urlData, index) => {
+          const file = files[index];
+          const contentType = fileMetadata[index].contentType;
+          
+          return this.s3Service.uploadToS3(urlData.uploadUrl, file, contentType);
+        });
+        
+        this.statusHistory.update(history => [...history, { 
+          text: `Uploading ${files.length} files to storage...`, 
+          type: 'default' 
+        }]);
+        
+        // Step 2: Upload all files in parallel
+        forkJoin(uploadTasks).subscribe({
+          next: () => {
+            const s3Keys = response.urls.map(u => u.key);
+            this.currentS3Keys.set(s3Keys);
+            
+            this.statusHistory.update(history => [...history, { 
+              text: 'All files uploaded successfully', 
+              type: 'success' 
+            }]);
+            
+            // Step 3: Update milestone with all keys
+            this.submissionService.addMilestoneFiles(groupId, milestoneType, s3Keys).subscribe({
+              next: (result) => {
+                this.isUploading.set(false);
+                this.statusHistory.update(history => [...history, { 
+                  text: 'Milestone updated - Waiting for approval', 
+                  type: 'success' 
+                }]);
+                
+                // Fetch updated group status
+                this.loadGroupStatus(groupId);
+              },
+              error: (error) => {
+                console.error('Error updating milestone:', error);
+                this.isUploading.set(false);
+                this.uploadError.set('Failed to update milestone');
+                this.statusHistory.update(history => [...history, { 
+                  text: 'Error: Failed to update milestone', 
+                  type: 'error' 
+                }]);
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Error uploading files to S3:', error);
+            this.isUploading.set(false);
+            this.uploadError.set('Failed to upload one or more files');
+            this.statusHistory.update(history => [...history, { 
+              text: 'Error: File uploads failed', 
+              type: 'error' 
+            }]);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error getting signed URLs:', error);
+        this.isUploading.set(false);
+        this.uploadError.set('Failed to get upload URLs');
+        this.statusHistory.update(history => [...history, { 
+          text: 'Error: Could not prepare uploads', 
+          type: 'error' 
+        }]);
+      }
+    });
+  }
+
+  /**
+   * Load group status and update UI accordingly
+   */
+  private loadGroupStatus(groupId: string) {
+    this.submissionService.getGroupStatus(groupId).subscribe({
+      next: (group) => {
+        console.log('✅ Group status loaded:', group);
+        
+        // Update status history based on milestone approvals
+        const currentMilestoneType = this.getMilestoneTypeForStep(this.currentStep());
+        const milestone = group.milestones?.find((m: any) => m.type === currentMilestoneType);
+        
+        if (milestone) {
+          // Check for approvals
+          if (currentMilestoneType === 'upload_manuscript') {
+            // Check panelist approvals
+            const panelistApprovals = milestone.approved_by?.length || 0;
+            const requiredPanelists = 3;
+            const facultyApproved = milestone.verified?.faculty_in_charge?.approved || false;
+            
+            if (facultyApproved) {
+              this.statusHistory.update(history => [...history, { 
+                text: 'Approved by Faculty-in-Charge', 
+                type: 'success' 
+              }]);
+              // For step 1, only move to approved after faculty approval
+              if (this.currentStep() === 1) {
+                this.viewState.set('approved');
+              }
+            } else if (panelistApprovals > 0) {
+              this.statusHistory.update(history => [...history, { 
+                text: `Approved by ${panelistApprovals}/${requiredPanelists} panelists`, 
+                type: 'default' 
+              }]);
+            }
+          } else {
+            // Other milestones checked by chairperson
+            const chairpersonApproved = milestone.verified?.chairperson?.some((c: any) => c.approved) || false;
+            
+            if (chairpersonApproved) {
+              this.statusHistory.update(history => [...history, { 
+                text: 'Approved by Chairperson', 
+                type: 'success' 
+              }]);
+              
+              // Update view state based on step
+              if (this.currentStep() === 2) {
+                this.viewState.set('step2_approved');
+              } else if (this.currentStep() === 3) {
+                this.viewState.set('step3_results');
+              } else if (this.currentStep() === 4) {
+                this.viewState.set('step4_approved');
+              }
+            }
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error loading group status:', error);
+      }
+    });
+  }
+
+  /**
+   * Get milestone type for current step
+   */
+  private getMilestoneTypeForStep(step: number): string {
+    switch(step) {
+      case 1: return 'upload_manuscript';
+      case 2: return 'complete_copyright';
+      case 3: return 'pass_turnitin';
+      case 4: return 'upload_all_docs';
+      case 5: return 'describe_work';
+      default: return '';
+    }
+  }
 
   // --- SIMULATION METHODS ---
 
