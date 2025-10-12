@@ -42,6 +42,37 @@ router.get('/faculty', async (req, res) => {
 });
 
 
+// GET /admin/faculty/blocks - Get all faculty for block assignment (includes faculty, admin+faculty, superadmin+faculty)
+router.get('/faculty/blocks', async (req, res) => {
+  try {
+    // Get faculty with role_id 3 (Faculty), 7 (admin_faculty), or 8 (superadmin_faculty)
+    const result = await pool.query(`
+      SELECT 
+        user_id,
+        firstname,
+        lastname,
+        email,
+        faculty_id,
+        role_id,
+        created_at
+      FROM users_info 
+      WHERE role_id IN (3, 7, 8) AND faculty_id IS NOT NULL
+      ORDER BY lastname ASC, firstname ASC
+    `);
+    
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching faculty for blocks:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch faculty members' 
+    });
+  }
+});
+
 // POST /admin/faculty - Create new faculty member (with auto-generated password and email)
 router.post('/faculty', adminCreateFaculty);
 

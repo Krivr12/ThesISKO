@@ -30,56 +30,103 @@
     <mat-dialog-content class="ag-body">
       <form #addForm="ngForm" class="ag-form" (keydown.enter)="$event.preventDefault()">
         <!-- Academic Year -->
-        <div class="ag-field-label">Academic Year <small class="muted"></small></div>
+        <div class="ag-field-label">Academic Year <small class="muted">(e.g., 2425)</small></div>
         <mat-form-field appearance="outline" class="ag-field">
           <input
             id="academic_year"
             matInput
             [(ngModel)]="newForm.academic_year"
             name="academic_year"
-            placeholder="(YYYY, e.g., 2425)"
+            placeholder="2425"
             aria-label="Academic Year"
             required />
         </mat-form-field>
   
-        <!-- Program -->
-        <div class="ag-field-label">Program <small class="muted"></small></div>
+        <!-- Program ID -->
+        <div class="ag-field-label">Program ID <small class="muted">(e.g., IT, CS)</small></div>
         <mat-form-field appearance="outline" class="ag-field">
           <input
-            id="program"
+            id="program_id"
             matInput
-            [(ngModel)]="newForm.program"
-            name="program"
-            placeholder="(e.g., IT, CS)"
-            aria-label="Program"
+            [(ngModel)]="newForm.program_id"
+            name="program_id"
+            placeholder="IT"
+            aria-label="Program ID"
             required />
         </mat-form-field>
   
-        <!-- Code -->
-        <div class="ag-field-label">Code <small class="muted"></small></div>
+        <!-- Block Code -->
+        <div class="ag-field-label">Block Code <small class="muted">(e.g., 3A, 25)</small></div>
         <mat-form-field appearance="outline" class="ag-field">
           <input
-            id="code"
+            id="block_code"
             matInput
-            [(ngModel)]="newForm.code"
-            name="code"
-            placeholder="(e.g., 25)"
-            aria-label="Code"
+            [(ngModel)]="newForm.block_code"
+            name="block_code"
+            placeholder="3A"
+            aria-label="Block Code"
             required />
         </mat-form-field>
   
-        <!-- Faculty-in-Charge -->
-        <div class="ag-field-label">Faculty-in-Charge</div>
+        <!-- Faculty-in-Charge Dropdown -->
+        <div class="ag-field-label">Faculty-in-Charge <span style="color: red;">*</span></div>
         <mat-form-field appearance="outline" class="ag-field">
-          <input
-            id="faculty_in_charge"
-            matInput
-            [(ngModel)]="newForm.faculty_in_charge"
-            name="faculty_in_charge"
-            placeholder="e.g., Kim Mingyu"
-            aria-label="Faculty-in-Charge"
-            required />
+          <mat-select 
+            [(ngModel)]="newForm.faculty_in_charge_email" 
+            name="faculty_in_charge_email"
+            placeholder="Select faculty member"
+            required>
+            <mat-option value="">Select a faculty member</mat-option>
+            <mat-option *ngFor="let faculty of availableFaculty" [value]="faculty.email">
+              {{ getFacultyDisplayName(faculty) }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
+
+        <!-- Panelists Section -->
+        <div class="ag-field-label">Panelists <small class="muted">(Optional)</small></div>
+        
+        <!-- Panelist Selection -->
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+          <mat-form-field appearance="outline" style="flex: 1;">
+            <mat-select 
+              [(ngModel)]="selectedPanelistEmail" 
+              name="panelist_select"
+              placeholder="Select panelist">
+              <mat-option value="">Select a panelist</mat-option>
+              <mat-option *ngFor="let faculty of getAvailablePanelistsForAdd()" [value]="faculty.email">
+                {{ getFacultyDisplayName(faculty) }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button
+            type="button"
+            mat-raised-button
+            color="accent"
+            (click)="addPanelist()"
+            [disabled]="!selectedPanelistEmail">
+            Add
+          </button>
+        </div>
+
+        <!-- Selected Panelists List -->
+        <div *ngIf="selectedPanelists.length > 0" style="margin-top: 8px; padding: 12px; background: #f5f5f5; border-radius: 4px;">
+          <div style="font-weight: 500; margin-bottom: 8px; color: #555;">Selected Panelists:</div>
+          <div *ngFor="let panelist of selectedPanelists" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #ddd;">
+            <span style="font-size: 14px;">{{ panelist.name }}</span>
+            <button
+              type="button"
+              mat-icon-button
+              color="warn"
+              (click)="removePanelist(panelist.email)"
+              style="transform: scale(0.8);">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="selectedPanelists.length === 0" style="margin-top: 8px; padding: 12px; background: #f5f5f5; border-radius: 4px; color: #999; font-size: 14px; text-align: center;">
+          No panelists added yet
+        </div>
       </form>
     </mat-dialog-content>
   
@@ -112,15 +159,64 @@
               <input matInput [value]="editRow.block_id" name="edit_block_id" readonly />
             </mat-form-field>
   
-            <!-- Faculty-in-Charge -->
-            <div class="ag-field-label">Faculty-in-Charge</div>
+            <!-- Faculty-in-Charge Dropdown -->
+            <div class="ag-field-label">Faculty-in-Charge <span style="color: red;">*</span></div>
             <mat-form-field appearance="outline" class="ag-field">
-              <input
-                matInput
-                [(ngModel)]="editRow.faculty_in_charge"
-                name="edit_faculty_in_charge"
-                required />
+              <mat-select 
+                [(ngModel)]="editRow.faculty_in_charge_email" 
+                name="edit_faculty_in_charge_email"
+                placeholder="Select faculty member"
+                required>
+                <mat-option *ngFor="let faculty of availableFaculty" [value]="faculty.email">
+                  {{ getFacultyDisplayName(faculty) }}
+                </mat-option>
+              </mat-select>
             </mat-form-field>
+
+            <!-- Panelists Section -->
+            <div class="ag-field-label">Panelists <small class="muted">(Optional)</small></div>
+            
+            <!-- Panelist Selection -->
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+              <mat-form-field appearance="outline" style="flex: 1;">
+                <mat-select 
+                  [(ngModel)]="selectedPanelistEmail" 
+                  name="edit_panelist_select"
+                  placeholder="Select panelist">
+                  <mat-option value="">Select a panelist</mat-option>
+                  <mat-option *ngFor="let faculty of getAvailablePanelistsForEdit()" [value]="faculty.email">
+                    {{ getFacultyDisplayName(faculty) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button
+                type="button"
+                mat-raised-button
+                color="accent"
+                (click)="addEditPanelist()"
+                [disabled]="!selectedPanelistEmail">
+                Add
+              </button>
+            </div>
+
+            <!-- Selected Panelists List -->
+            <div *ngIf="editSelectedPanelists.length > 0" style="margin-top: 8px; padding: 12px; background: #f5f5f5; border-radius: 4px;">
+              <div style="font-weight: 500; margin-bottom: 8px; color: #555;">Selected Panelists:</div>
+              <div *ngFor="let panelist of editSelectedPanelists" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #ddd;">
+                <span style="font-size: 14px;">{{ panelist.name }}</span>
+                <button
+                  type="button"
+                  mat-icon-button
+                  color="warn"
+                  (click)="removeEditPanelist(panelist.email)"
+                  style="transform: scale(0.8);">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div *ngIf="editSelectedPanelists.length === 0" style="margin-top: 8px; padding: 12px; background: #f5f5f5; border-radius: 4px; color: #999; font-size: 14px; text-align: center;">
+              No panelists assigned
+            </div>
           </form>
         </mat-dialog-content>
   
@@ -131,7 +227,7 @@
             color="primary"
             class="addButton"
             [disabled]="editForm.invalid"
-            (click)="dialogRef.close(editRow)">
+            (click)="confirmEdit(dialogRef)">
             SAVE CHANGES
           </button>
         </div>
@@ -154,7 +250,17 @@
           <!-- Faculty-in-Charge -->
           <ng-container matColumnDef="faculty_in_charge">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Faculty-in-Charge</th>
-            <td mat-cell *matCellDef="let row">{{ row.faculty_in_charge }}</td>
+            <td mat-cell *matCellDef="let row">
+              {{ row.faculty_in_charge || getFacultyNameByEmail(row.faculty_in_charge_email) }}
+            </td>
+          </ng-container>
+
+          <!-- Panelist Count -->
+          <ng-container matColumnDef="panelist_count">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Panelists</th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.panelistCount || 0 }} panelist(s)
+            </td>
           </ng-container>
   
           <!-- Actions -->
@@ -165,8 +271,17 @@
                 mat-button
                 class="link-btn"
                 [disableRipple]="true"
-                (click)="openEditDialog(row)">
-                Edit Info
+                (click)="openEditDialog(row)"
+                style="color: #1976d2;">
+                Edit
+              </button>
+              <button
+                mat-button
+                class="link-btn"
+                [disableRipple]="true"
+                (click)="deleteBlock(row.block_id)"
+                style="color: #d32f2f;">
+                Delete
               </button>
             </td>
           </ng-container>

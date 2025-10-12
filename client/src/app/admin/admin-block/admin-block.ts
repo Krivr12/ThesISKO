@@ -20,22 +20,38 @@ import { FormsModule } from '@angular/forms';
 
 import { AdminSideBar } from '../admin-side-bar/admin-side-bar';
 
-export interface GroupJson {
-  block_id: string;
-  faculty_in_charge?: string;
-  // other fields may exist in groups.json; not used here
-}
-
 export interface BlockRow {
   block_id: string;
+  academic_year?: string;
+  program_id?: string;
+  block_code?: string;
   faculty_in_charge: string;
+  faculty_in_charge_email: string;
+  panelists: string[];
+  panelists_email: string[];
+  panelistCount?: number;  // Computed field for display
 }
 
 interface NewBlockForm {
-  academic_year: string;      // "2425"
-  program: string;            // "IT"
-  code: string;               // "3A"
-  faculty_in_charge: string;  // "Ryan Garcia"
+  academic_year: string;              // "2425"
+  program_id: string;                 // "IT"
+  block_code: string;                 // "3A"
+  faculty_in_charge_email: string;    // Selected faculty email
+  panelists_email: string[];          // Array of selected panelist emails
+}
+
+interface Faculty {
+  user_id: string;
+  email: string;
+  firstname: string;
+  lastname: string;
+  faculty_id: string;
+  role_id: number;
+}
+
+interface SelectedPanelist {
+  email: string;
+  name: string;
 }
 
 @Component({
@@ -51,14 +67,34 @@ interface NewBlockForm {
   styleUrl: './admin-block.css'
 })
 export class AdminBlock implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['block_id', 'faculty_in_charge', 'actions'];
+  displayedColumns: string[] = ['block_id', 'faculty_in_charge', 'panelist_count', 'actions'];
   dataSource = new MatTableDataSource<BlockRow>([]);
 
+  // Faculty data
+  availableFaculty: Faculty[] = [];
+  
   // Add dialog form model
-  newForm: NewBlockForm = { academic_year: '', program: '', code: '', faculty_in_charge: '' };
+  newForm: NewBlockForm = { 
+    academic_year: '', 
+    program_id: '', 
+    block_code: '', 
+    faculty_in_charge_email: '',
+    panelists_email: []
+  };
+
+  // Panelist selection
+  selectedPanelistEmail: string = '';
+  selectedPanelists: SelectedPanelist[] = [];
 
   // Edit dialog row model
-  editRow: BlockRow = { block_id: '', faculty_in_charge: '' };
+  editRow: BlockRow = { 
+    block_id: '', 
+    faculty_in_charge: '',
+    faculty_in_charge_email: '',
+    panelists: [],
+    panelists_email: []
+  };
+  editSelectedPanelists: SelectedPanelist[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -74,18 +110,8 @@ export class AdminBlock implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    // Adjust path if your file is in /assets:
-    // this.http.get<GroupJson[]>('assets/groups.json')
-    this.http.get<GroupJson[]>('groups.json').subscribe({
-      next: (rows) => {
-        const tableRows = this.toBlockRows(rows ?? []);
-        this.dataSource.data = tableRows;
-      },
-      error: (err) => {
-        console.error('Failed to load groups.json:', err);
-        this.dataSource.data = [];
-      }
-    });
+    this.loadBlocks();
+    this.loadAvailableFaculty();
   }
 
   ngAfterViewInit(): void {
@@ -97,86 +123,273 @@ export class AdminBlock implements OnInit, AfterViewInit {
     this.router.navigate(['/admin-dashboard']);
   }
 
-  /** Convert raw groups into unique Block rows (one row per block_id). */
-  private toBlockRows(groups: GroupJson[]): BlockRow[] {
-    const byBlock = new Map<string, string>();
-
-    for (const g of groups) {
-      if (!g?.block_id) continue;
-      // Keep the first seen faculty_in_charge for each block_id
-      if (!byBlock.has(g.block_id)) {
-        byBlock.set(g.block_id, g.faculty_in_charge ?? '');
+  /** Load blocks from API */
+  loadBlocks(): void {
+    this.http.get<BlockRow[]>('http://localhost:5050/blocks').subscribe({
+      next: (blocks) => {
+        // Add computed panelistCount field
+        const processedBlocks = blocks.map(block => ({
+          ...block,
+          panelists: block.panelists || [],
+          panelists_email: block.panelists_email || [],
+          panelistCount: (block.panelists_email || []).length
+        }));
+        this.dataSource.data = processedBlocks;
+      },
+      error: (err) => {
+        console.error('Failed to load blocks:', err);
+        alert('Failed to load blocks from server');
+        this.dataSource.data = [];
       }
-    }
+    });
+  }
 
-    return Array.from(byBlock.entries()).map(([block_id, faculty_in_charge]) => ({
-      block_id,
-      faculty_in_charge: faculty_in_charge || ''
-    }));
+  /** Load available faculty from API */
+  loadAvailableFaculty(): void {
+    this.http.get<{ success: boolean; data: Faculty[] }>('http://localhost:5050/admin/faculty/blocks').subscribe({
+      next: (response) => {
+        this.availableFaculty = response.data || [];
+      },
+      error: (err) => {
+        console.error('Error loading faculty:', err);
+        alert('Failed to load faculty list');
+      }
+    });
+  }
+
+  /** Get display name for faculty dropdown */
+  getFacultyDisplayName(faculty: Faculty): string {
+    return `${faculty.lastname}, ${faculty.firstname} (${faculty.email})`;
+  }
+
+  /** Get faculty name by email */
+  getFacultyNameByEmail(email: string): string {
+    const faculty = this.availableFaculty.find(f => f.email === email);
+    if (faculty) {
+      return `${faculty.lastname}, ${faculty.firstname}`;
+    }
+    return email; // Fallback to email if faculty not found
+  }
+
+  /** Get available faculty for panelists (exclude faculty in charge) */
+  getAvailablePanelistsForAdd(): Faculty[] {
+    return this.availableFaculty.filter(f => 
+      f.email !== this.newForm.faculty_in_charge_email && 
+      !this.selectedPanelists.some(p => p.email === f.email)
+    );
+  }
+
+  /** Get available faculty for panelists in edit mode */
+  getAvailablePanelistsForEdit(): Faculty[] {
+    return this.availableFaculty.filter(f => 
+      f.email !== this.editRow.faculty_in_charge_email && 
+      !this.editSelectedPanelists.some(p => p.email === f.email)
+    );
+  }
+
+  /** ---------------- Panelist Management (Add Mode) ---------------- */
+  addPanelist(): void {
+    if (!this.selectedPanelistEmail) return;
+    
+    const faculty = this.availableFaculty.find(f => f.email === this.selectedPanelistEmail);
+    if (!faculty) return;
+    
+    // Check if already added
+    if (this.selectedPanelists.some(p => p.email === faculty.email)) {
+      alert('This panelist has already been added');
+      return;
+    }
+    
+    // Check if it's the faculty in charge
+    if (faculty.email === this.newForm.faculty_in_charge_email) {
+      alert('Faculty in Charge cannot also be a panelist');
+      return;
+    }
+    
+    this.selectedPanelists.push({
+      email: faculty.email,
+      name: this.getFacultyDisplayName(faculty)
+    });
+    
+    this.selectedPanelistEmail = '';
+  }
+
+  removePanelist(email: string): void {
+    this.selectedPanelists = this.selectedPanelists.filter(p => p.email !== email);
+  }
+
+  /** ---------------- Panelist Management (Edit Mode) ---------------- */
+  addEditPanelist(): void {
+    if (!this.selectedPanelistEmail) return;
+    
+    const faculty = this.availableFaculty.find(f => f.email === this.selectedPanelistEmail);
+    if (!faculty) return;
+    
+    // Check if already added
+    if (this.editSelectedPanelists.some(p => p.email === faculty.email)) {
+      alert('This panelist has already been added');
+      return;
+    }
+    
+    // Check if it's the faculty in charge
+    if (faculty.email === this.editRow.faculty_in_charge_email) {
+      alert('Faculty in Charge cannot also be a panelist');
+      return;
+    }
+    
+    this.editSelectedPanelists.push({
+      email: faculty.email,
+      name: this.getFacultyDisplayName(faculty)
+    });
+    
+    this.selectedPanelistEmail = '';
+  }
+
+  removeEditPanelist(email: string): void {
+    this.editSelectedPanelists = this.editSelectedPanelists.filter(p => p.email !== email);
   }
 
   /** ---------------- Add ---------------- */
   openAddDialog(): void {
-    this.newForm = { academic_year: '', program: '', code: '', faculty_in_charge: '' };
+    this.newForm = { 
+      academic_year: '', 
+      program_id: '', 
+      block_code: '', 
+      faculty_in_charge_email: '',
+      panelists_email: []
+    };
+    this.selectedPanelists = [];
+    this.selectedPanelistEmail = '';
 
     const ref = this.dialog.open(this.addFacultyDialogTpl, {
-      width: '560px',
+      width: '700px',
       autoFocus: false,
       panelClass: 'add-group-dialog'
     });
 
-    // We close via confirmAdd(); no need to handle afterClosed here.
     ref.afterClosed().subscribe();
   }
 
   confirmAdd(dialogRef: any) {
-    // Form-level guard; template already disables ADD when invalid
-    if (!this.newForm.academic_year || !this.newForm.program || !this.newForm.code) return;
-
-    const block_id = this.composeBlockId(this.newForm);
-    const newRow: BlockRow = {
-      block_id,
-      faculty_in_charge: this.newForm.faculty_in_charge || ''
-    };
-
-    const existsIdx = this.dataSource.data.findIndex(r => r.block_id === newRow.block_id);
-    const copy = [...this.dataSource.data];
-
-    if (existsIdx > -1) {
-      copy[existsIdx] = { ...copy[existsIdx], faculty_in_charge: newRow.faculty_in_charge };
-    } else {
-      copy.push(newRow);
+    // Form-level guard
+    if (!this.newForm.academic_year || !this.newForm.program_id || !this.newForm.block_code) {
+      alert('Please fill in all required fields');
+      return;
     }
 
-    this.dataSource.data = copy;
-    dialogRef.close();
-  }
+    // Get faculty name for storage
+    const faculty = this.availableFaculty.find(f => f.email === this.newForm.faculty_in_charge_email);
+    const faculty_in_charge = faculty ? `${faculty.lastname}, ${faculty.firstname}` : '';
 
-  private composeBlockId(form: NewBlockForm): string {
-    const year = (form.academic_year || '').trim();
-    const prog = (form.program || '').trim().toUpperCase().replace(/\s+/g, '');
-    const code = (form.code || '').trim().toUpperCase().replace(/\s+/g, '');
-    return `${year}-${prog}-${code}`;
+    // Prepare panelists arrays
+    const panelists = this.selectedPanelists.map(p => {
+      const f = this.availableFaculty.find(fac => fac.email === p.email);
+      return f ? `${f.lastname}, ${f.firstname}` : p.name;
+    });
+    const panelists_email = this.selectedPanelists.map(p => p.email);
+
+    const payload = {
+      academic_year: this.newForm.academic_year,
+      program_id: this.newForm.program_id.toUpperCase(),
+      block_code: this.newForm.block_code.toUpperCase(),
+      faculty_in_charge,
+      faculty_in_charge_email: this.newForm.faculty_in_charge_email,
+      panelists,
+      panelists_email
+    };
+
+    this.http.post('http://localhost:5050/blocks', payload).subscribe({
+      next: (response: any) => {
+        console.log('Block created successfully:', response);
+        alert('Block created successfully!');
+        this.loadBlocks(); // Reload the table
+        dialogRef.close();
+      },
+      error: (err) => {
+        console.error('Error creating block:', err);
+        const errorMessage = err.error?.error || 'Failed to create block';
+        alert(`Error: ${errorMessage}`);
+      }
+    });
   }
 
   /** ---------------- Edit ---------------- */
   openEditDialog(row: BlockRow): void {
     this.editRow = { ...row };
+    
+    // Initialize edit panelists list from row data
+    this.editSelectedPanelists = [];
+    if (row.panelists_email && row.panelists) {
+      for (let i = 0; i < row.panelists_email.length; i++) {
+        this.editSelectedPanelists.push({
+          email: row.panelists_email[i],
+          name: row.panelists[i] || row.panelists_email[i]
+        });
+      }
+    }
+    this.selectedPanelistEmail = '';
 
     const ref = this.dialog.open(this.editFacultyDialogTpl, {
-      width: '560px',
+      width: '700px',
       autoFocus: false,
       panelClass: 'add-group-dialog'
     });
 
-    ref.afterClosed().subscribe((updated?: BlockRow) => {
-      if (!updated) return;
-      const idx = this.dataSource.data.findIndex(r => r.block_id === row.block_id);
-      if (idx > -1) {
-        const copy = [...this.dataSource.data];
-        // keep block_id stable; only update faculty_in_charge (or any returned fields)
-        copy[idx] = { ...copy[idx], ...updated, block_id: row.block_id };
-        this.dataSource.data = copy;
+    ref.afterClosed().subscribe();
+  }
+
+  confirmEdit(dialogRef: any): void {
+    if (!this.editRow.block_id) return;
+
+    // Get faculty name for storage
+    const faculty = this.availableFaculty.find(f => f.email === this.editRow.faculty_in_charge_email);
+    const faculty_in_charge = faculty ? `${faculty.lastname}, ${faculty.firstname}` : this.editRow.faculty_in_charge;
+
+    // Prepare panelists arrays
+    const panelists = this.editSelectedPanelists.map(p => {
+      const f = this.availableFaculty.find(fac => fac.email === p.email);
+      return f ? `${f.lastname}, ${f.firstname}` : p.name;
+    });
+    const panelists_email = this.editSelectedPanelists.map(p => p.email);
+
+    const payload = {
+      faculty_in_charge,
+      faculty_in_charge_email: this.editRow.faculty_in_charge_email,
+      panelists,
+      panelists_email
+    };
+
+    this.http.put(`http://localhost:5050/blocks/${this.editRow.block_id}`, payload).subscribe({
+      next: (response: any) => {
+        console.log('Block updated successfully:', response);
+        alert('Block updated successfully!');
+        this.loadBlocks(); // Reload the table
+        dialogRef.close();
+      },
+      error: (err) => {
+        console.error('Error updating block:', err);
+        const errorMessage = err.error?.error || 'Failed to update block';
+        alert(`Error: ${errorMessage}`);
+      }
+    });
+  }
+
+  /** ---------------- Delete ---------------- */
+  deleteBlock(block_id: string): void {
+    if (!confirm(`Are you sure you want to delete block "${block_id}"?`)) {
+      return;
+    }
+
+    this.http.delete(`http://localhost:5050/blocks/${block_id}`).subscribe({
+      next: (response: any) => {
+        console.log('Block deleted successfully:', response);
+        alert('Block deleted successfully!');
+        this.loadBlocks(); // Reload the table
+      },
+      error: (err) => {
+        console.error('Error deleting block:', err);
+        const errorMessage = err.error?.error || 'Failed to delete block';
+        alert(`Error: ${errorMessage}`);
       }
     });
   }
