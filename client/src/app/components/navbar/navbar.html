@@ -27,10 +27,10 @@
         label="Submit" 
         text 
         plain 
-        [routerLink]="(isGuestUser() || isStudentUser() || !isUserLoggedIn()) ? null : '/submission'"
-        [disabled]="isGuestUser() || isStudentUser() || !isUserLoggedIn()"
-        [title]="!isUserLoggedIn() ? 'Please log in to submit your thesis' : isGuestUser() ? 'Submit feature is not available for guest users' : isStudentUser() ? 'Submit feature is not available for students' : 'Submit your thesis'"
-        [styleClass]="(isGuestUser() || isStudentUser() || !isUserLoggedIn()) ? 'p-button-text p-button-plain disabled-button' : ''">
+        [routerLink]="isGroupLeader() ? '/submission' : null"
+        [disabled]="!isGroupLeader()"
+        [title]="!isUserLoggedIn() ? 'Please log in to submit your thesis' : isGroupLeader() ? 'Submit your thesis' : 'Only group leaders can submit'"
+        [styleClass]="!isGroupLeader() ? 'p-button-text p-button-plain disabled-button' : ''">
       </p-button>
     </div>
   </ng-template>

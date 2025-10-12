@@ -371,9 +371,10 @@ router.post("/", async (req, res) => {
         const userData = existingUser.rows[0];
         console.log(`✅ User exists: ${userData.firstname} ${userData.lastname} (role_id: ${userData.role_id})`);
 
-        // Validate they're a student
-        if (userData.role_id !== 2) {
-          throw new Error(`${roleLabel} ${user.email} must be a student (role_id = 2), but has role_id ${userData.role_id}`);
+        // Validate they're a student (role_id = 2) or group leader (role_id = 6)
+        // Leaders can be role_id = 6 if they're switching groups or re-creating
+        if (userData.role_id !== 2 && userData.role_id !== 6) {
+          throw new Error(`${roleLabel} ${user.email} must be a student (role_id = 2 or 6), but has role_id ${userData.role_id}`);
         }
 
         // Validate not in another group
@@ -381,10 +382,16 @@ router.post("/", async (req, res) => {
           throw new Error(`${roleLabel} ${user.email} is already in group ${userData.group_id}`);
         }
 
+        // If this is a leader, they should have the proper role
+        if (isLeader && userData.role_id === 2) {
+          console.log(`🔄 Promoting ${user.email} from student (2) to group leader (6)`);
+        }
+
         return {
           exists: true,
           userData,
-          needsCredentialEmail: false
+          needsCredentialEmail: false,
+          needsRoleUpdate: isLeader && userData.role_id !== 6 // Leader needs role update to 6
         };
       } else {
         // User doesn't exist - create account
@@ -403,20 +410,26 @@ router.post("/", async (req, res) => {
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(generatedPassword, salt);
 
-        // Create user with role_id = 2 (student)
+        // Create user with appropriate role:
+        // Leader: role_id = 6 (Group Leader)
+        // Member: role_id = 2 (Student)
+        const roleId = isLeader ? 6 : 2;
+        const roleLabel = isLeader ? 'group leader' : 'student';
+        
         const newUserResult = await pool.query(
-          'INSERT INTO users_info (firstname, lastname, email, password_hash, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING user_id, firstname, lastname, email',
-          [user.firstname, user.surname, user.email.toLowerCase(), hashedPassword, 2]
+          'INSERT INTO users_info (firstname, lastname, email, password_hash, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING user_id, firstname, lastname, email, role_id',
+          [user.firstname, user.surname, user.email.toLowerCase(), hashedPassword, roleId]
         );
 
         const newUser = newUserResult.rows[0];
-        console.log(`✅ Created new student: ${newUser.firstname} ${newUser.lastname} (user_id: ${newUser.user_id})`);
+        console.log(`✅ Created new ${roleLabel}: ${newUser.firstname} ${newUser.lastname} (user_id: ${newUser.user_id}, role_id: ${newUser.role_id})`);
 
         return {
           exists: false,
           userData: newUser,
           needsCredentialEmail: true,
-          generatedPassword
+          generatedPassword,
+          needsRoleUpdate: false // Already created with correct role
         };
       }
     };
@@ -504,20 +517,20 @@ router.post("/", async (req, res) => {
 
     await groupsCollection.insertOne(newGroup);
 
-    // 5. Update leader's group_id in PostgreSQL users_info
+    // 5. Update leader's role_id to 6 (Group Leader) and set group_id
     await pool.query(
-      'UPDATE users_info SET group_id = $1 WHERE email = $2',
+      'UPDATE users_info SET group_id = $1, role_id = 6 WHERE email = $2',
       [group_id, leader.email]
     );
-    console.log(`✅ Updated leader's group_id: ${leader.email} → ${group_id}`);
+    console.log(`✅ Updated leader: ${leader.email} → group_id: ${group_id}, role_id: 6 (Group Leader)`);
 
-    // 6. Update all members' group_id in PostgreSQL users_info
+    // 6. Update all members' group_id (members stay as role_id = 2)
     for (const member of membersArray) {
       await pool.query(
         'UPDATE users_info SET group_id = $1 WHERE email = $2',
         [group_id, member.email]
       );
-      console.log(`✅ Updated member's group_id: ${member.email} → ${group_id}`);
+      console.log(`✅ Updated member's group_id: ${member.email} → ${group_id} (role_id: 2)`);
     }
 
     // 7. Get program details for email
@@ -533,6 +546,31 @@ router.post("/", async (req, res) => {
     const panelistList = block.panelists?.map((name, index) => 
       `- ${name} (${block.panelists_email[index]})`
     ).join('\n') || 'To be assigned';
+
+    // Legal/Privacy footer for all emails
+    const emailFooter = `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ CONFIDENTIALITY NOTICE & LEGAL DISCLAIMER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This email and any attachments are confidential and intended solely for 
+the person(s) named above. This communication may contain privileged or 
+confidential information.
+
+If you are NOT the intended recipient:
+• Please DO NOT read, copy, forward, or use this email
+• Delete this email immediately
+• Notify us at: thesiskopup@gmail.com
+
+Unauthorized use, disclosure, or distribution of this communication is 
+strictly prohibited and may be unlawful.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+© ${new Date().getFullYear()} ThesISKO - Polytechnic University of the Philippines
+For support: thesiskopup@gmail.com
+    `;
 
     // 9. Send email to leader (credential + group info OR just group info)
     try {
@@ -588,6 +626,7 @@ Questions? Contact your Faculty-in-Charge.
 
 Best regards,
 ThesISKO System
+${emailFooter}
         `;
       } else {
         // EXISTING USER: Just group info
@@ -626,6 +665,7 @@ If you have questions, contact your Faculty-in-Charge.
 
 Best regards,
 ThesISKO System
+${emailFooter}
         `;
       }
 
@@ -700,6 +740,7 @@ Questions? Contact your group leader or Faculty-in-Charge.
 
 Best regards,
 ThesISKO System
+${emailFooter}
           `;
         } else {
           // EXISTING USER: Just group info
@@ -735,6 +776,7 @@ If you have questions, contact your group leader or Faculty-in-Charge.
 
 Best regards,
 ThesISKO System
+${emailFooter}
           `;
         }
 
@@ -1035,6 +1077,34 @@ router.patch("/:group_id", async (req, res) => {
       return res.status(404).json({ error: "Group not found" });
     }
 
+    // Handle leader change - update roles in PostgreSQL
+    if (req.body.leader && req.body.leader.email !== existingDoc.leader?.email) {
+      const oldLeaderEmail = existingDoc.leader?.email;
+      const newLeaderEmail = req.body.leader.email;
+
+      console.log(`\n👑 Leader change detected for group ${group_id}`);
+      console.log(`   Old leader: ${oldLeaderEmail}`);
+      console.log(`   New leader: ${newLeaderEmail}`);
+
+      // Revert old leader: role_id 6 → 2, keep group_id
+      if (oldLeaderEmail) {
+        await pool.query(
+          'UPDATE users_info SET role_id = 2 WHERE email = $1 AND role_id = 6',
+          [oldLeaderEmail]
+        );
+        console.log(`   ✅ Demoted old leader ${oldLeaderEmail}: role_id 6 → 2`);
+      }
+
+      // Promote new leader: role_id 2 → 6, ensure group_id is set
+      if (newLeaderEmail) {
+        await pool.query(
+          'UPDATE users_info SET role_id = 6, group_id = $1 WHERE email = $2',
+          [group_id, newLeaderEmail]
+        );
+        console.log(`   ✅ Promoted new leader ${newLeaderEmail}: role_id 2 → 6`);
+      }
+    }
+
     const updateFields = {};
     if (req.body.title !== undefined) updateFields.title = req.body.title;
      if (req.body.access_level !== undefined) updateFields.access_level = req.body.access_level;
@@ -1080,18 +1150,48 @@ router.patch("/:group_id", async (req, res) => {
 // Route: Delete group
 router.delete("/:group_id", async (req, res) => {
   try {
-    const result = await groupsCollection.deleteOne({ group_id: req.params.group_id });
+    const { group_id } = req.params;
+    console.log(`\n🗑️ Deleting group: ${group_id}`);
 
-    if (result.deletedCount === 0) {
+    // 1. Get group details first (before deleting)
+    const group = await groupsCollection.findOne({ group_id });
+    if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }
 
+    // 2. Revert leader's role from 6 (Group Leader) to 2 (Student) and clear group_id
+    if (group.leader && group.leader.email) {
+      await pool.query(
+        'UPDATE users_info SET role_id = 2, group_id = NULL WHERE email = $1 AND role_id = 6',
+        [group.leader.email]
+      );
+      console.log(`✅ Reverted leader ${group.leader.email}: role_id 6 → 2, group_id cleared`);
+    }
+
+    // 3. Clear group_id for all members (they're already role_id = 2)
+    if (Array.isArray(group.members)) {
+      for (const member of group.members) {
+        if (member.email) {
+          await pool.query(
+            'UPDATE users_info SET group_id = NULL WHERE email = $1',
+            [member.email]
+          );
+          console.log(`✅ Cleared group_id for member: ${member.email}`);
+        }
+      }
+    }
+
+    // 4. Delete group from MongoDB
+    const result = await groupsCollection.deleteOne({ group_id });
+
     res.status(200).json({
-      message: `Group ${req.params.group_id} deleted successfully`,
-      deletedId: req.params.group_id,
+      message: `Group ${group_id} deleted successfully. Leader reverted to student role.`,
+      deletedId: group_id,
+      leaderReverted: group.leader?.email || null,
+      membersCleared: group.members?.length || 0
     });
   } catch (err) {
-    console.error(err);
+    console.error('❌ Error deleting group:', err);
     res.status(500).json({ error: "Error deleting group" });
   }
 });

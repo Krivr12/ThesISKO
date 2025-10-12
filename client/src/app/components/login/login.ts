@@ -78,8 +78,9 @@ onLogin() {
         console.log('User Status:', userStatus);
         console.log('User Role ID:', userRoleId);
         
-        // Only allow student (role_id: 2) and guest (role_id: 1) roles to login through this component
-        if (userRoleId === 3 || userRoleId === 4 || userRoleId === 5) {
+        // Only allow student (role_id: 2), group leader (role_id: 6), and guest (role_id: 1) roles to login through this component
+        // Block faculty (3), admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
+        if (userRoleId === 3 || userRoleId === 4 || userRoleId === 5 || userRoleId === 7 || userRoleId === 8) {
           console.log('Access denied - User role not allowed for this login page');
           this.messageService.add({
             severity: 'error',
@@ -89,9 +90,9 @@ onLogin() {
           return;
         }
         
-        console.log('Access granted - User role allowed for this login page');
+        console.log('Access granted - User role allowed for this login page (role_id:', userRoleId, ')');
         
-        // Regular user login (student and guest only)
+        // Regular user login (student, group leader, and guest)
         const userData = {
           id: user.StudentID || user.user_id || user.id,
           email: user.Email || email,
@@ -99,7 +100,8 @@ onLogin() {
           Firstname: user.Firstname,
           Lastname: user.Lastname,
           AvatarUrl: user.AvatarUrl,
-          role_id: user.role_id
+          role_id: user.role_id,
+          group_id: user.group_id // Include group_id for group leaders
         };
         
         console.log('Created userData object:', userData);

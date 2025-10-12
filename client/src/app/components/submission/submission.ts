@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Footer } from "../footer/footer";
-import { Navbar } from "../navbar/navbar";
+import { Navbar, AuthService } from "../navbar/navbar";
 import { Router } from '@angular/router';
 
 // structure for status update
@@ -60,8 +60,42 @@ type ViewState =
   styleUrls: ['./submission.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Submission {
-  constructor(private router: Router) {}
+export class Submission implements OnInit {
+  constructor(private router: Router, private authService: AuthService) {}
+
+  ngOnInit() {
+    // Role guard: Only group leaders (role_id = 6) can access this page
+    const currentUser = this.authService.currentUser;
+    
+    console.log('🔒 Submission Page Access Check:', {
+      user: currentUser?.email,
+      role_id: currentUser?.role_id,
+      group_id: currentUser?.group_id
+    });
+
+    if (!currentUser) {
+      console.warn('❌ No user logged in. Redirecting to login.');
+      alert('Please log in to access the submission page.');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (currentUser.role_id !== 6) {
+      console.warn(`❌ Access denied. User has role_id ${currentUser.role_id}, but needs role_id 6 (Group Leader).`);
+      alert('Only group leaders can submit thesis manuscripts.');
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    if (!currentUser.group_id) {
+      console.warn('❌ User is group leader but has no group_id.');
+      alert('You are not assigned to a group. Please contact your Faculty-in-Charge.');
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    console.log('✅ Access granted. User is a group leader with group_id:', currentUser.group_id);
+  }
   // --- STATE MANAGEMENT SIGNALS ---
 
   viewState = signal<ViewState>('initial');

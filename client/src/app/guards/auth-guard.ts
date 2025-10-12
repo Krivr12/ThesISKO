@@ -43,8 +43,8 @@ export const authGuard: CanActivateFn = (route, state) => {
               const userRole = user.role_id;
               if (userRole === 1) {
                 router.navigate(['/home']); // guest
-              } else if (userRole === 2) {
-                router.navigate(['/home']); // student
+              } else if (userRole === 2 || userRole === 6) {
+                router.navigate(['/home']); // student or group leader
               } else if (userRole === 3) {
                 router.navigate(['/faculty-home']); // faculty
               } else if (userRole === 4 || userRole === 5) {
@@ -109,6 +109,9 @@ export const authGuard: CanActivateFn = (route, state) => {
       if (userRole === 1) {
         userRoleCategory = 'guest';
       } else if (userRole === 2) {
+        userRoleCategory = 'student';
+      } else if (userRole === 6) {
+        // Group Leader - treated like student with extra permissions
         userRoleCategory = 'student';
       } else if (userRole === 3) {
         userRoleCategory = 'faculty';

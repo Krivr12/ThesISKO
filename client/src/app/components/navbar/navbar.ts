@@ -336,6 +336,15 @@ export class Navbar implements OnInit {
     return currentUser.Status?.toLowerCase() === 'student';
   }
 
+  /** Check if current user is a group leader (role_id = 6) */
+  isGroupLeader(): boolean {
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) return false;
+    
+    // Check if role_id is 6 (Group Leader)
+    return currentUser.role_id === 6;
+  }
+
   /** Check if any user is logged in */
   isUserLoggedIn(): boolean {
     const currentUser = this.auth.currentUser;
