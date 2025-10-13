@@ -673,12 +673,16 @@ confirmStep5(isConfirmed: boolean) {
   }
 
   // Prepare data
-  const metadata = {
+  const metadata: any = {
     title: this.title(),
     abstract: this.abstract(),
-    tags: this.tags(),
-    access_level: this.accessLevel()
+    tags: this.tags()
   };
+
+  // Only add access_level if it's not null
+  if (this.accessLevel()) {
+    metadata.access_level = this.accessLevel();
+  }
 
   // Update group metadata
   this.submissionService.updateGroupMetadata(groupId, metadata).subscribe({
