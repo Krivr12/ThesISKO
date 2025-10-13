@@ -1,12 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
-
-// Default fallback config
-const defaultConfig = {
-  authApiUrl: 'http://localhost:5050',
-  recordsApiUrl: 'http://localhost:5050/records'
-};
+import { environment } from './environments/environment';
 
 // Fetch runtime config before Angular starts
 fetch('/config.json')
@@ -18,10 +13,10 @@ fetch('/config.json')
     return response.json();
   })
   .then(config => {
-    // Validate config has required properties
+    // Validate config has required properties, fallback to environment config
     const finalConfig = {
-      authApiUrl: config.authApiUrl || defaultConfig.authApiUrl,
-      recordsApiUrl: config.recordsApiUrl || defaultConfig.recordsApiUrl
+      authApiUrl: config.authApiUrl || environment.authApiUrl,
+      recordsApiUrl: config.recordsApiUrl || environment.recordsApiUrl
     };
     
     // Store config globally so services can access it
@@ -32,13 +27,17 @@ fetch('/config.json')
     return bootstrapApplication(App, appConfig);
   })
   .catch(err => {
-    console.error('⚠️ Failed to load config.json, using defaults:', err);
+    console.error('⚠️ Failed to load config.json, using environment defaults:', err);
     
-    // Use default config if fetch fails
-    (window as any).__env = defaultConfig;
-    console.log('🔄 Using default config:', defaultConfig);
+    // Use environment config if fetch fails
+    const envConfig = {
+      authApiUrl: environment.authApiUrl,
+      recordsApiUrl: environment.recordsApiUrl
+    };
+    (window as any).__env = envConfig;
+    console.log('🔄 Using environment config:', envConfig);
     
-    // Bootstrap Angular with default config
+    // Bootstrap Angular with environment config
     return bootstrapApplication(App, appConfig);
   })
   .catch((err) => console.error('❌ Failed to bootstrap Angular:', err));
