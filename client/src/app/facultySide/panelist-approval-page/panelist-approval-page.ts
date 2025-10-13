@@ -18,6 +18,7 @@ import { parseGroupId } from '../../shared/utils/group-id';
 import { S3Service } from '../../service/s3.service';
 import { SubmissionService } from '../../service/submission.service';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../components/navbar/navbar';
 
 interface Group {
   group_id: string;
@@ -106,16 +107,13 @@ export class PanelistApprovalPage implements OnInit {
     private dialog: MatDialog,
     private sanitizer: DomSanitizer,
     private s3Service: S3Service,
-    private submissionService: SubmissionService
+    private submissionService: SubmissionService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    const fromState = (history.state && history.state.group) ? history.state.group : null;
-    if (fromState) {
-      this.setGroup(this.normalizeGroup(fromState));
-      return;
-    }
-
+    // Always fetch from API to ensure we have fresh milestone data
+    // (history.state may have cached data without milestones)
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       console.log('👥 Fetching group data for panelist approval:', id);
@@ -287,10 +285,19 @@ export class PanelistApprovalPage implements OnInit {
     }
 
     if (decision === 'Approved') {
-      // Call approve API endpoint
-      // Get panelist info from localStorage or auth service
-      const panelistEmail = localStorage.getItem('userEmail') || 'panelist@example.com';
-      const panelistName = localStorage.getItem('userName') || 'Panelist';
+      // Get current logged-in user (panelist) information
+      const currentUser = this.authService.currentUser;
+      
+      if (!currentUser || !currentUser.email) {
+        alert('Unable to identify panelist. Please log in again.');
+        return;
+      }
+
+      // Use actual user's email and name from AuthService
+      const panelistEmail = currentUser.email || currentUser.Email || '';
+      const panelistName = `${currentUser.Firstname || ''} ${currentUser.Lastname || ''}`.trim() || 'Panelist';
+
+      console.log('📝 Panelist approval by:', { email: panelistEmail, name: panelistName, user_id: currentUser.id });
 
       this.http.patch<any>(
         `${environment.authApiUrl}/groups/${this.group.group_id}/milestones/upload_manuscript/approve`,
@@ -369,8 +376,10 @@ export class PanelistApprovalPage implements OnInit {
 
     this.dialog.open(this.pdfDialog, {
       panelClass: 'file-viewer-dialog',
-      width: '90vw',
-      maxWidth: '95vw'
+      width: '80vw',
+      maxWidth: '1200px',
+      height: 'auto',
+      maxHeight: '95vh'
     });
   }
 }
