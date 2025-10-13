@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  authApiUrl: 'https://thesisko-server.vercel.app',  
-  recordsApiUrl: 'https://thesisko-server.vercel.app/records'
+  authApiUrl: 'https://server.thesisko.online',  
+  recordsApiUrl: 'https://server.thesisko.online/records'
 };
