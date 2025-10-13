@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Auth } from '../../service/auth';
+import { environment } from '../../../environments/environment';
 
 /* PrimeNG */
 import { ToolbarModule } from 'primeng/toolbar';
@@ -53,7 +54,7 @@ export class AuthService {
 
   private async initializeUser() {
     try {
-      const response = await this.http.get<{user: AuthUser}>('http://localhost:5050/auth/me', {
+      const response = await this.http.get<{user: AuthUser}>(`${environment.authApiUrl}/auth/me`, {
         withCredentials: true
       }).toPromise();
       
@@ -83,7 +84,7 @@ export class AuthService {
   async logout() {
     try {
       // Call backend logout endpoint to clear HttpOnly cookie
-      await this.http.post('http://localhost:5050/auth/logout', {}, {
+      await this.http.post(`${environment.authApiUrl}/auth/logout`, {}, {
         withCredentials: true
       }).toPromise();
     } catch (error) {
@@ -157,7 +158,7 @@ export class AuthService {
       const logoutData = new Blob([JSON.stringify({ reason: 'browser_close' })], {
         type: 'application/json'
       });
-      navigator.sendBeacon('http://localhost:5050/auth/logout', logoutData);
+      navigator.sendBeacon(`${environment.authApiUrl}/auth/logout`, logoutData);
       
       // Clear local state immediately
       this.userSubject.next(null);

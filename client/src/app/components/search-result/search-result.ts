@@ -2,6 +2,7 @@ import { Component, TemplateRef, ViewChild, HostListener, OnInit, AfterViewInit 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 /* Angular Material */
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -89,9 +90,9 @@ export class SearchResult implements OnInit, AfterViewInit {
   loadThesisDetails(document_id: string): void {
     this.isLoading = true; // Show spinner
     console.log('🔍 [LOAD-THESIS] Starting to fetch details for document_id:', document_id);
-    console.log('🔍 [LOAD-THESIS] API URL:', `http://localhost:5050/records/${document_id}`);
+    console.log('🔍 [LOAD-THESIS] API URL:', `${environment.recordsApiUrl}/${document_id}`);
     
-    this.http.get<any>(`http://localhost:5050/records/${document_id}`).subscribe({
+    this.http.get<any>(`${environment.recordsApiUrl}/${document_id}`).subscribe({
       next: (data) => {
         console.log('✅ [LOAD-THESIS] API call successful, received data:', data);
         this.thesis = data;
@@ -531,7 +532,7 @@ export class SearchResult implements OnInit, AfterViewInit {
     console.log('📤 [FINALIZE] Submitting to backend:', requestPayload);
 
     // Call backend API
-    this.http.post('http://localhost:5050/requests/', requestPayload).subscribe({
+    this.http.post(`${environment.authApiUrl}/requests/`, requestPayload).subscribe({
       next: (response: any) => {
         console.log('✅ [FINALIZE] Success response:', response);
         this.isSubmittingRequest = false;

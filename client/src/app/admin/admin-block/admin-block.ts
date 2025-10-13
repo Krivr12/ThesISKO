@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef } from '@angul
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 /* Angular Material (standalone) */
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -125,7 +126,7 @@ export class AdminBlock implements OnInit, AfterViewInit {
 
   /** Load blocks from API */
   loadBlocks(): void {
-    this.http.get<BlockRow[]>('http://localhost:5050/blocks').subscribe({
+    this.http.get<BlockRow[]>(`${environment.authApiUrl}/blocks`).subscribe({
       next: (blocks) => {
         // Add computed panelistCount field
         const processedBlocks = blocks.map(block => ({
@@ -146,7 +147,7 @@ export class AdminBlock implements OnInit, AfterViewInit {
 
   /** Load available faculty from API */
   loadAvailableFaculty(): void {
-    this.http.get<{ success: boolean; data: Faculty[] }>('http://localhost:5050/admin/faculty/blocks').subscribe({
+    this.http.get<{ success: boolean; data: Faculty[] }>(`${environment.authApiUrl}/admin/faculty/blocks`).subscribe({
       next: (response) => {
         this.availableFaculty = response.data || [];
       },
@@ -298,7 +299,7 @@ export class AdminBlock implements OnInit, AfterViewInit {
       panelists_email
     };
 
-    this.http.post('http://localhost:5050/blocks', payload).subscribe({
+    this.http.post(`${environment.authApiUrl}/blocks`, payload).subscribe({
       next: (response: any) => {
         console.log('Block created successfully:', response);
         alert('Block created successfully!');
@@ -359,7 +360,7 @@ export class AdminBlock implements OnInit, AfterViewInit {
       panelists_email
     };
 
-    this.http.put(`http://localhost:5050/blocks/${this.editRow.block_id}`, payload).subscribe({
+    this.http.put(`${environment.authApiUrl}/blocks/${this.editRow.block_id}`, payload).subscribe({
       next: (response: any) => {
         console.log('Block updated successfully:', response);
         alert('Block updated successfully!');
@@ -380,7 +381,7 @@ export class AdminBlock implements OnInit, AfterViewInit {
       return;
     }
 
-    this.http.delete(`http://localhost:5050/blocks/${block_id}`).subscribe({
+    this.http.delete(`${environment.authApiUrl}/blocks/${block_id}`).subscribe({
       next: (response: any) => {
         console.log('Block deleted successfully:', response);
         alert('Block deleted successfully!');

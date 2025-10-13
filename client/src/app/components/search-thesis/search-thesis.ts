@@ -5,6 +5,7 @@ import { Navbar } from '../navbar/navbar';
 import { Footer } from "../footer/footer";
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface Thesis {
   _id: string;
@@ -80,7 +81,7 @@ export class SearchThesis implements OnInit {
 
   loadTheses(): void {
     this.isLoading = true; // Show spinner
-    this.http.get<Thesis[]>('http://localhost:5050/records/').subscribe({
+    this.http.get<Thesis[]>(`${environment.recordsApiUrl}/`).subscribe({
       next: (data) => {
         this.allTheses = data;
         this.updateAvailableYears();
@@ -106,7 +107,7 @@ export class SearchThesis implements OnInit {
     }
 
     this.isLoading = true; // Show spinner
-    this.http.post<{results: any[]}>('http://localhost:5050/records/search', {
+    this.http.post<{results: any[]}>(`${environment.recordsApiUrl}/search`, {
       query: query.trim(),
       topK: 20 // Get more results for better filtering
     }).subscribe({
