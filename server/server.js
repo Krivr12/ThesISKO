@@ -74,8 +74,8 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Allow production domain
-    if (origin === 'https://thesisko.vercel.app') {
+    // Allow production domains
+    if (origin === 'https://thesisko.vercel.app' || origin === 'https://thesisko.online') {
       return callback(null, true);
     }
     
