@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 /* PrimeNG Components */
 import { CardModule } from 'primeng/card';
@@ -90,7 +91,7 @@ export class GuestProfile implements OnInit {
         lastname: formData.lastName
       };
 
-      this.http.put(`http://localhost:5050/api/users/${this.currentUser?.id}`, updateData).subscribe({
+      this.http.put(`${environment.authApiUrl}/api/users/${this.currentUser?.id}`, updateData).subscribe({
         next: (response: any) => {
           this.isLoading = false;
           

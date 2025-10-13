@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../navbar/navbar';
 import { Auth } from '../../service/auth';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-google-callback',
@@ -194,7 +195,7 @@ export class GoogleCallbackComponent implements OnInit {
   fetchUserFromDatabase(userId: string) {
     console.log('fetchUserFromDatabase called with userId:', userId);
     // Fetch user data from database using the user ID
-    fetch(`http://localhost:5050/api/users/${userId}`, {
+    fetch(`${environment.authApiUrl}/api/users/${userId}`, {
       credentials: 'include'
     })
     .then(response => {
@@ -266,7 +267,7 @@ export class GoogleCallbackComponent implements OnInit {
 
   checkAuthStatus() {
     // Make a request to check if user is logged in
-    fetch('http://localhost:5050/auth/me', {
+    fetch(`${environment.authApiUrl}/auth/me`, {
       credentials: 'include' // Include cookies for session
     })
     .then(response => response.json())

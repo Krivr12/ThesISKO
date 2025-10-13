@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 /* Angular Material (standalone) */
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -120,7 +121,7 @@ export class ForPanel implements OnInit, AfterViewInit {
     console.log('👥 Fetching groups for block:', this.block_id);
 
     // Fetch groups for this specific block
-    const apiUrl = `http://localhost:5050/groups?block_id=${encodeURIComponent(this.block_id)}`;
+    const apiUrl = `${environment.authApiUrl}/groups?block_id=${encodeURIComponent(this.block_id)}`;
 
     this.http.get<any[]>(apiUrl).subscribe({
       next: (response) => {

@@ -10,6 +10,7 @@ import { AuthService } from '../navbar/navbar';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { take } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -163,6 +164,6 @@ onLogin() {
 
 loginWithGoogle() {
   // Redirect to Google OAuth endpoint
-  window.location.href = 'http://localhost:5050/auth/google';
+  window.location.href = `${environment.authApiUrl}/auth/google`;
 }
 }

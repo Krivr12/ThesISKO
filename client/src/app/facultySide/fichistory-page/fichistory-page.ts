@@ -6,6 +6,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Sidenavbar } from '../sidenavbar/sidenavbar';
 import { MatIconModule } from '@angular/material/icon';
+import { environment } from '../../../environments/environment';
 
 type Status = 'Approved' | 'Not Approved' | 'Pending';
 
@@ -69,7 +70,7 @@ export class FICHistoryPage implements OnInit {
     console.log('📚 Fetching group data for:', gid);
 
     // Fetch group from MongoDB API
-    this.http.get<any>(`http://localhost:5050/groups/${gid}`).pipe(
+    this.http.get<any>(`${environment.authApiUrl}/groups/${gid}`).pipe(
       catchError((err) => {
         console.error('❌ Error fetching group:', err);
         return of(null);
@@ -105,7 +106,7 @@ export class FICHistoryPage implements OnInit {
 
       // Fetch block to get panelist names
       if (response.block_id) {
-        this.http.get<any>(`http://localhost:5050/blocks/${response.block_id}`).pipe(
+        this.http.get<any>(`${environment.authApiUrl}/blocks/${response.block_id}`).pipe(
           catchError(() => of(null))
         ).subscribe((block: any) => {
           if (block && block.panelists) {

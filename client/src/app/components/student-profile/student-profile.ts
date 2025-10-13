@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractContro
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 /* PrimeNG Components */
 import { CardModule } from 'primeng/card';
@@ -122,7 +123,7 @@ export class StudentProfile implements OnInit {
   private loadUserData() {
     if (this.currentUser) {
       // Get additional user data from the server
-        this.http.get(`http://localhost:5050/api/users/${this.currentUser.id}`).subscribe({
+        this.http.get(`${environment.authApiUrl}/api/users/${this.currentUser.id}`).subscribe({
         next: (userData: any) => {
           this.profileForm.patchValue({
             firstName: userData.Firstname || this.currentUser?.Firstname,
@@ -162,7 +163,7 @@ export class StudentProfile implements OnInit {
         updateData.newPassword = formData.newPassword;
       }
 
-      this.http.put(`http://localhost:5050/api/users/${this.currentUser?.id}`, updateData).subscribe({
+      this.http.put(`${environment.authApiUrl}/api/users/${this.currentUser?.id}`, updateData).subscribe({
         next: (response: any) => {
           this.isLoading = false;
           

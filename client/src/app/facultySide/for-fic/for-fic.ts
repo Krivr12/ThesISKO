@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef } from '@angul
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 /* Angular Material (standalone) */
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -137,7 +138,7 @@ export class ForFIC implements OnInit, AfterViewInit {
     console.log('📚 Fetching groups for block:', this.block_id);
 
     // Fetch groups for this specific block
-    const apiUrl = `http://localhost:5050/groups?block_id=${encodeURIComponent(this.block_id)}`;
+    const apiUrl = `${environment.authApiUrl}/groups?block_id=${encodeURIComponent(this.block_id)}`;
 
     this.http.get<any[]>(apiUrl).subscribe({
       next: (response) => {
@@ -347,7 +348,7 @@ export class ForFIC implements OnInit, AfterViewInit {
 
     console.log('🔨 Creating group with payload:', payload);
 
-    this.http.post('http://localhost:5050/groups', payload).subscribe({
+    this.http.post(`${environment.authApiUrl}/groups`, payload).subscribe({
       next: (response: any) => {
         console.log('✅ Group created successfully:', response);
         alert(`Group created successfully! 
