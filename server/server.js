@@ -171,14 +171,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-// Local run
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => {
-    console.log(`✅ Server running locally on port ${PORT}`);
-    console.log("🗄️ Database configuration: Supabase PostgreSQL");
-    console.log("🔗 Ready to accept connections...");
-  });
-}
+// Start server (works for both local and Render)
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log("🗄️ Database configuration: Supabase PostgreSQL");
+  console.log("🔗 Ready to accept connections...");
+});
 
-// ✅ Export handler for Vercel
+// Export app for compatibility
 export default app;
