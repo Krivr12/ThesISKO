@@ -572,13 +572,38 @@ strictly prohibited and may be unlawful.
 For support: thesiskopup@gmail.com
     `;
 
-    // 9. Send email to leader (credential + group info OR just group info)
+    // 9. Send email to leader using unified email service
     try {
-      let leaderEmailSubject;
-      let leaderEmailBody;
+      // Use unified email service
+      const { sendEmail } = await import('../services/emailService.js');
 
       if (leaderProcessed.needsCredentialEmail) {
         // NEW USER: Send credential + group info
+        await sendEmail({
+          to: leader.email,
+          subject: `Welcome to ThesISKO - You're the Leader of Group ${group_id}`,
+          template: 'groupCreation',
+          data: {
+            headerIcon: '👑',
+            headerTitle: `Welcome to ThesISKO!`,
+            recipientName: leaderName,
+            message: `Your ThesISKO account has been created and you've been assigned as a Group Leader!`,
+            isLeader: true,
+            hasCredentials: true,
+            username: leader.email,
+            password: leaderProcessed.generatedPassword,
+            groupId: group_id,
+            blockId: block_id,
+            programName: programName,
+            academicYear: block.academic_year || 'Current',
+            membersLabel: 'Your Group Members',
+            membersList: memberList || 'No members yet',
+            facultyInfo: `${block.faculty_in_charge || 'To be assigned'} (${block.faculty_in_charge_email || ''})`,
+            panelistsList: panelistList,
+            loginUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+          }
+        });
+        /* OLD EMAIL TEMPLATE - Kept for reference
         leaderEmailSubject = `Welcome to ThesISKO - You're the Leader of Group ${group_id}`;
         leaderEmailBody = `
 Dear ${leaderName},
@@ -627,9 +652,32 @@ Questions? Contact your Faculty-in-Charge.
 Best regards,
 ThesISKO System
 ${emailFooter}
-        `;
+        `; */
       } else {
         // EXISTING USER: Just group info
+        await sendEmail({
+          to: leader.email,
+          subject: `You are now the Leader of Group ${group_id}`,
+          template: 'groupCreation',
+          data: {
+            headerIcon: '👑',
+            headerTitle: `Group Assignment`,
+            recipientName: leaderName,
+            message: `Congratulations! You have been assigned as the Group Leader.`,
+            isLeader: true,
+            hasCredentials: false,
+            groupId: group_id,
+            blockId: block_id,
+            programName: programName,
+            academicYear: block.academic_year || 'Current',
+            membersLabel: 'Your Group Members',
+            membersList: memberList || 'No members yet',
+            facultyInfo: `${block.faculty_in_charge || 'To be assigned'} (${block.faculty_in_charge_email || ''})`,
+            panelistsList: panelistList,
+            loginUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+          }
+        });
+        /* OLD EMAIL TEMPLATE - Kept for reference
         leaderEmailSubject = `You are now the Leader of Group ${group_id}`;
         leaderEmailBody = `
 Dear ${leaderName},
@@ -666,22 +714,16 @@ If you have questions, contact your Faculty-in-Charge.
 Best regards,
 ThesISKO System
 ${emailFooter}
-        `;
+        `; */
       }
 
-      await transporter.sendMail({
-        from: process.env.SMTP_USER,
-        to: leader.email,
-        subject: leaderEmailSubject,
-        text: leaderEmailBody
-      });
       console.log(`✅ Leader ${leaderProcessed.needsCredentialEmail ? 'credential + group' : 'group'} email sent to: ${leader.email}`);
     } catch (emailErr) {
       console.error('⚠️ Failed to send leader email:', emailErr);
       // Don't fail the entire operation
     }
 
-    // 10. Send email to all members (credential + group info OR just group info)
+    // 10. Send email to all members using unified email service
     for (let i = 0; i < membersArray.length; i++) {
       const member = membersArray[i];
       const memberProcessed = membersProcessed[i];
@@ -689,11 +731,37 @@ ${emailFooter}
       const memberName = `${memberData.firstname} ${memberData.lastname}`;
 
       try {
-        let memberEmailSubject;
-        let memberEmailBody;
+        // Use unified email service (already imported above)
+        const { sendEmail } = await import('../services/emailService.js');
 
         if (memberProcessed.needsCredentialEmail) {
           // NEW USER: Send credential + group info
+          await sendEmail({
+            to: member.email,
+            subject: `Welcome to ThesISKO - You've been added to Group ${group_id}`,
+            template: 'groupCreation',
+            data: {
+              headerIcon: '🎓',
+              headerTitle: 'Welcome to ThesISKO!',
+              recipientName: memberName,
+              message: `Your ThesISKO account has been created and you've been added to a thesis group!`,
+              isLeader: false,
+              hasCredentials: true,
+              username: member.email,
+              password: memberProcessed.generatedPassword,
+              groupId: group_id,
+              blockId: block_id,
+              programName: programName,
+              academicYear: block.academic_year || 'Current',
+              leaderInfo: `${leaderName} (${leader.email})`,
+              membersLabel: 'Your fellow group members',
+              membersList: memberList,
+              facultyInfo: `${block.faculty_in_charge || 'To be assigned'} (${block.faculty_in_charge_email || ''})`,
+              panelistsList: panelistList,
+              loginUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+            }
+          });
+          /* OLD EMAIL TEMPLATE - Kept for reference
           memberEmailSubject = `Welcome to ThesISKO - You've been added to Group ${group_id}`;
           memberEmailBody = `
 Dear ${memberName},
@@ -741,9 +809,33 @@ Questions? Contact your group leader or Faculty-in-Charge.
 Best regards,
 ThesISKO System
 ${emailFooter}
-          `;
+          `; */
         } else {
           // EXISTING USER: Just group info
+          await sendEmail({
+            to: member.email,
+            subject: `You have been added to Group ${group_id}`,
+            template: 'groupCreation',
+            data: {
+              headerIcon: '🎓',
+              headerTitle: 'Group Assignment',
+              recipientName: memberName,
+              message: `You have been added to a thesis group!`,
+              isLeader: false,
+              hasCredentials: false,
+              groupId: group_id,
+              blockId: block_id,
+              programName: programName,
+              academicYear: block.academic_year || 'Current',
+              leaderInfo: `${leaderName} (${leader.email})`,
+              membersLabel: 'Your fellow group members',
+              membersList: memberList,
+              facultyInfo: `${block.faculty_in_charge || 'To be assigned'} (${block.faculty_in_charge_email || ''})`,
+              panelistsList: panelistList,
+              loginUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+            }
+          });
+          /* OLD EMAIL TEMPLATE - Kept for reference
           memberEmailSubject = `You have been added to Group ${group_id}`;
           memberEmailBody = `
 Dear ${memberName},
@@ -777,15 +869,9 @@ If you have questions, contact your group leader or Faculty-in-Charge.
 Best regards,
 ThesISKO System
 ${emailFooter}
-          `;
+          `; */
         }
 
-        await transporter.sendMail({
-          from: process.env.SMTP_USER,
-          to: member.email,
-          subject: memberEmailSubject,
-          text: memberEmailBody
-        });
         console.log(`✅ Member ${memberProcessed.needsCredentialEmail ? 'credential + group' : 'group'} email sent to: ${member.email}`);
       } catch (emailErr) {
         console.error(`⚠️ Failed to send email to member ${member.email}:`, emailErr);

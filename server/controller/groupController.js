@@ -137,11 +137,38 @@ export const createStudentGroup = async (req, res) => {
       return `${member.firstname} ${member.lastname} (${member.email}) - ${memberText}`;
     }).join('<br>');
 
-    // Send email to leader with group credentials (outside transaction)
+    // Send email to leader with group credentials using unified email service
     let emailSent = false;
     let emailError = null;
     
     try {
+      // Use unified email service
+      const { sendEmail } = await import('../services/emailService.js');
+      
+      const emailResult = await sendEmail({
+        to: leader_email,
+        subject: `Group Account Created - ${group_id}`,
+        template: 'groupCreation',
+        data: {
+          headerIcon: '👥',
+          headerTitle: 'Group Account Created!',
+          recipientName: `${leader.firstname} ${leader.lastname}`,
+          message: 'Your student group account has been created successfully in the ThesISKO system!',
+          isLeader: true,
+          hasCredentials: true,
+          username: group_id,
+          password: plainPassword,
+          groupId: group_id,
+          blockId: 'N/A',
+          programName: 'N/A',
+          membersLabel: 'Group Members',
+          membersList: memberList,
+          loginUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+        }
+      });
+
+      emailSent = true;
+      /* OLD EMAIL TEMPLATE - Kept for reference
     const emailSubject = `Group Account Created - ${group_id}`;
     const emailBody = `
 Dear ${leader.firstname} ${leader.lastname},
@@ -161,19 +188,10 @@ Please keep this information secure and share the login credentials with your gr
 
 Best regards,
 ThesISKO System
-    `;
+    `; 
 
-      // Attempting to send email to group leader
-
-      // Lazy import transporter to ensure environment variables are loaded
-      const { transporter } = await import('../config/mailer.js');
-      
-      const emailOptions = {
-        from: `"ThesISKO System" <${process.env.MAIL_FROM || process.env.SMTP_USER}>`,
-      to: leader_email,
-      subject: emailSubject,
-        text: emailBody,
-        html: `
+      // Old HTML template also preserved for reference
+      const oldHtmlTemplate = `
           <!DOCTYPE html>
           <html lang="en">
           <head>
@@ -281,14 +299,9 @@ ThesISKO System
             </div>
           </body>
           </html>
-        `
-      };
+        `; */
       
-      const result = await transporter.sendMail(emailOptions);
-      // Email sent successfully
-
-      emailSent = true;
-      // Email sent successfully to group leader
+      // Email sent successfully to group leader via unified service
     } catch (error) {
       emailError = error;
       console.error('Failed to send email:', error);

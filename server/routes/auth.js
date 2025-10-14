@@ -394,31 +394,34 @@ router.get('/google/debug', (req, res) => {
 // Test email route
 router.post('/test-email', async (req, res) => {
   try {
-    const { to, subject, text } = req.body;
+    const { to, subject, message } = req.body;
     
-    // Lazy import transporter to ensure environment variables are loaded
-    const { transporter } = await import('../config/mailer.js');
+    // Use unified email service
+    const { sendEmail } = await import('../services/emailService.js');
     
-    const mailOptions = {
-      from: process.env.MAIL_FROM || 'thesiskopup@gmail.com',
+    const result = await sendEmail({
       to: to || 'test@example.com',
-      subject: subject || 'Test Email',
-      text: text || 'This is a test email from ThesISKO server'
-    };
-
-    const result = await transporter.sendMail(mailOptions);
-    // Email sent successfully
+      subject: subject || 'Test Email - ThesISKO',
+      template: 'general',
+      data: {
+        recipientName: 'Test User',
+        message: message || 'This is a test email from ThesISKO unified email service.',
+        mainContent: 'If you received this email, the email service is working correctly!',
+        footerNote: 'This is an automated test. Please disregard if received in error.'
+      }
+    });
     
     res.json({ 
       success: true, 
       message: 'Email sent successfully',
+      provider: result.provider,
       messageId: result.messageId 
     });
   } catch (error) {
     console.error('Email sending failed:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to send email',
+      error: 'Failed to send email via all providers',
       details: error.message 
     });
   }
@@ -458,41 +461,33 @@ router.post('/resend-verification', async (req, res) => {
     
     const verifyUrl = `${req.protocol}://${req.get('host')}/verify-student?token=${user.token}&email=${encodeURIComponent(email)}`;
     
-    // Resending verification email
+    // Use unified email service
+    const { sendEmail } = await import('../services/emailService.js');
     
-    // Lazy import transporter
-    const { transporter } = await import('../config/mailer.js');
+    const expiryHours = Math.round((new Date(user.expiresat) - new Date()) / (1000 * 60 * 60));
     
-    const emailOptions = {
-      from: process.env.MAIL_FROM || process.env.SMTP_USER,
+    const emailResult = await sendEmail({
       to: email,
       subject: 'Resend: Verify your email - ThesISKO',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #800000;">Verification Email Resent</h2>
-          <p>Hello ${user.firstname},</p>
-          <p>You requested to resend your verification email. Please verify your email by clicking the button below:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verifyUrl}"
-              style="display:inline-block;background:#4CAF50;color:white;
-                     padding:15px 30px;text-decoration:none;border-radius:5px;
-                     font-weight:bold;font-size:16px;">
-              Verify Email Address
-            </a>
-          </div>
-          <p>This link will expire in ${Math.round((new Date(user.expiresat) - new Date()) / (1000 * 60 * 60))} hours.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        </div>
-      `
-    };
-    
-    const emailResult = await transporter.sendMail(emailOptions);
-    
-    // Verification email resent successfully
+      template: 'verification',
+      data: {
+        headerIcon: '✉️',
+        headerTitle: 'Verification Email Resent',
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: email,
+        verifyUrl: verifyUrl,
+        status: user.status,
+        department: user.department,
+        course: user.course,
+        warningMessage: `This verification link will expire in ${expiryHours} hours.`
+      }
+    });
     
     res.json({ 
       success: true, 
       message: 'Verification email resent successfully',
+      provider: emailResult.provider,
       messageId: emailResult.messageId 
     });
     
