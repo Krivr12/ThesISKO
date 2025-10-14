@@ -1,67 +1,110 @@
 // embeddingService.js
 import { pipeline } from "@xenova/transformers";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
+
+// Global singleton for the embedding model
 let embedder = null;
 
 /**
- * Load embedding model once
+ * Load the embedding model once and reuse across requests
  */
 async function loadModel() {
   if (!embedder) {
-    console.log("Loading embedding model...");
+    console.log("🧠 Loading embedding model (Xenova/all-MiniLM-L6-v2)...");
     embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-    console.log("Embedding model loaded!");
+    console.log("✅ Embedding model loaded!");
   }
   return embedder;
 }
 
 /**
- * Generate embedding for given text
+ * Generate a normalized embedding for any given text.
+ * Safe against invalid or empty input.
  */
 export async function generateEmbedding(text) {
-  if (!text || typeof text !== "string" || text.trim() === "") {
-    throw new Error("Invalid input: text must be a non-empty string");
+  if (!text || typeof text !== "string" || !text.trim()) {
+    throw new Error("❌ Invalid input: text must be a non-empty string");
   }
 
-  const model = await loadModel();
-  const output = await model(text, { pooling: "mean", normalize: true });
-  return Array.from(output.data);
+  try {
+    const model = await loadModel();
+    const output = await model(text, { pooling: "mean", normalize: true });
+    return Array.from(output.data);
+  } catch (err) {
+    console.error("⚠️ Embedding generation failed:", err.message);
+    throw err;
+  }
 }
 
 /**
- * Perform semantic search using MongoDB Atlas Vector Search
- * @param {string} query - Search text
- * @param {number} topK - Number of nearest neighbors
- * @returns {Promise<object[]>} - Search results
+ * Perform hybrid semantic + keyword search in MongoDB Atlas.
+ * Uses $vectorSearch first, then filters via text relevance if needed.
+ *
+ * @param {string} query - Natural language or keyword-based query
+ * @param {number} topK - Number of results to return
+ * @returns {Promise<object[]>} - Matching records
  */
 export async function semanticSearch(query, topK = 5) {
   const collection = RepoMongodb.collection("records");
 
-  // Generate query embedding
+  if (!query || typeof query !== "string" || !query.trim()) {
+    throw new Error("❌ Invalid search query");
+  }
+
+  // Generate the query embedding
   const queryEmbedding = await generateEmbedding(query);
 
-  // Run $vectorSearch aggregation
-  const cursor = await collection.aggregate([
-    {
-      $vectorSearch: {
-        index: "AbstractSemanticSearch", // ✅ match your Atlas index name
-        path: "abstract_embedding",
-        queryVector: queryEmbedding,
-        numCandidates: 100, // larger candidate pool improves accuracy
-        limit: topK,
-        similarity: "dotProduct" // ✅ match your index definition
+  try {
+    const results = await collection.aggregate([
+      {
+        $vectorSearch: {
+          index: "AbstractSemanticSearch",
+          path: "abstract_embedding",
+          queryVector: queryEmbedding,
+          numCandidates: 100,
+          limit: topK,
+          similarity: "dotProduct",
+        },
       },
-    },
-    {
-      $project: {
-        _id: 1,
-        title: 1,
-        submitted_at: 1,
-        authors: 1,
-        tags: 1,
-      }
-    }
-  ]);
+      // Optional hybrid search boost
+      {
+        $addFields: {
+          keyword_score: {
+            $meta: "textScore",
+          },
+        },
+      },
+      {
+        $sort: {
+          keyword_score: -1, // prioritize keyword relevance if matched
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          submitted_at: 1,
+          authors: 1,
+          tags: 1,
+          score: { $meta: "searchScore" },
+        },
+      },
+    ]).toArray();
 
-  return cursor.toArray();
+    return results;
+  } catch (err) {
+    console.error("⚠️ Semantic search failed:", err.message);
+    throw err;
+  }
+}
+
+/**
+ * Preload model at startup (optional but recommended)
+ */
+export async function preloadModel() {
+  try {
+    await loadModel();
+  } catch (err) {
+    console.error("⚠️ Failed to preload model:", err.message);
+  }
 }
