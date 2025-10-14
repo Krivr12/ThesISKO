@@ -707,6 +707,22 @@ router.post("/", async (req, res) => {
         },
       ],
       progress: "not_started",
+      chairperson_approval: {
+        approved: false,
+        approved_by: null,
+        approved_at: null,
+        rejected: false,
+        rejection_reason: null,
+        rejected_milestone: null
+      },
+      dean_approval: {
+        approved: false,
+        approved_by: null,
+        approved_at: null,
+        rejected: false,
+        rejection_reason: null,
+        rejected_milestone: null
+      },
       created_at: now,
       updated_at: now,
     };
@@ -1446,6 +1462,334 @@ router.patch("/:groupId/milestones/upload_manuscript/approve", async (req, res) 
   }
 });
 
+// Route: Chairperson final approval (approves all milestones 2-5 at once)
+router.patch("/:groupId/chairperson-approve-final", async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: "name is required" });
+    }
+
+    console.log(`\n👨‍💼 Chairperson approval for group: ${groupId}`);
+
+    // Validate: All milestones 1-5 must be complete
+    const group = await groupsCollection.findOne({ group_id: groupId });
+    if (!group) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    // Check if FIC approved manuscript (milestone 1)
+    const manuscript = group.milestones.find(m => m.type === 'upload_manuscript');
+    if (!manuscript?.verified?.faculty_in_charge?.approved) {
+      return res.status(400).json({ error: "Manuscript must be approved by Faculty-in-Charge first" });
+    }
+
+    // Check if milestones 2-5 are submitted (have files or data)
+    const copyright = group.milestones.find(m => m.type === 'complete_copyright');
+    const turnitin = group.milestones.find(m => m.type === 'pass_turnitin');
+    const allDocs = group.milestones.find(m => m.type === 'upload_all_docs');
+    const describeWork = group.milestones.find(m => m.type === 'describe_work');
+
+    if (!copyright?.s3_key?.length) {
+      return res.status(400).json({ error: "Copyright form not uploaded" });
+    }
+    if (!turnitin?.s3_key?.length) {
+      return res.status(400).json({ error: "Turnitin result not uploaded" });
+    }
+    if (!allDocs?.s3_key?.length) {
+      return res.status(400).json({ error: "All documents not uploaded" });
+    }
+    if (!describeWork?.status) {
+      return res.status(400).json({ error: "Work description not submitted" });
+    }
+
+    // Approve at group level
+    await groupsCollection.updateOne(
+      { group_id: groupId },
+      {
+        $set: {
+          "chairperson_approval.approved": true,
+          "chairperson_approval.approved_by": name,
+          "chairperson_approval.approved_at": new Date(),
+          "chairperson_approval.rejected": false,
+          "chairperson_approval.rejection_reason": null,
+          "chairperson_approval.rejected_milestone": null,
+          "updated_at": new Date()
+        }
+      }
+    );
+
+    console.log(`✅ Chairperson ${name} approved group ${groupId}`);
+
+    res.json({ 
+      message: "Chairperson approval recorded. Group ready for Dean review.",
+      group_id: groupId 
+    });
+  } catch (err) {
+    console.error("❌ Error recording chairperson approval:", err);
+    res.status(500).json({ error: "Error recording chairperson approval" });
+  }
+});
+
+// Route: Chairperson rejection (specify milestone to fix)
+router.patch("/:groupId/chairperson-reject", async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { name, reason, milestone } = req.body;
+
+    if (!name || !reason || !milestone) {
+      return res.status(400).json({ error: "name, reason, and milestone are required" });
+    }
+
+    const validMilestones = ['complete_copyright', 'pass_turnitin', 'upload_all_docs', 'describe_work'];
+    if (!validMilestones.includes(milestone)) {
+      return res.status(400).json({ error: "Invalid milestone. Must be one of: complete_copyright, pass_turnitin, upload_all_docs, describe_work" });
+    }
+
+    console.log(`\n❌ Chairperson rejecting group: ${groupId}, milestone: ${milestone}`);
+
+    // Mark as rejected at group level
+    await groupsCollection.updateOne(
+      { group_id: groupId },
+      {
+        $set: {
+          "chairperson_approval.approved": false,
+          "chairperson_approval.rejected": true,
+          "chairperson_approval.rejection_reason": reason,
+          "chairperson_approval.rejected_milestone": milestone,
+          "chairperson_approval.rejected_by": name,
+          "chairperson_approval.rejected_at": new Date(),
+          "updated_at": new Date()
+        }
+      }
+    );
+
+    // Also mark the specific milestone as incomplete so it can be resubmitted
+    await groupsCollection.updateOne(
+      { group_id: groupId, "milestones.type": milestone },
+      {
+        $set: {
+          "milestones.$.status": false,
+          "milestones.$.updated_at": new Date()
+        }
+      }
+    );
+
+    console.log(`✅ Chairperson rejection recorded for group ${groupId}`);
+
+    res.json({ 
+      message: `Group rejected. Student must resubmit: ${milestone}`,
+      milestone,
+      reason 
+    });
+  } catch (err) {
+    console.error("❌ Error recording chairperson rejection:", err);
+    res.status(500).json({ error: "Error recording chairperson rejection" });
+  }
+});
+
+// Route: Dean approval (triggers automatic archiving)
+router.patch("/:groupId/dean-approve", async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: "name is required" });
+    }
+
+    console.log(`\n👨‍💼 Dean approval for group: ${groupId}`);
+
+    // Validate: Chairperson must have approved first
+    const group = await groupsCollection.findOne({ group_id: groupId });
+    if (!group) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    if (!group.chairperson_approval?.approved) {
+      return res.status(400).json({ error: "Chairperson must approve first" });
+    }
+
+    // Approve at group level
+    await groupsCollection.updateOne(
+      { group_id: groupId },
+      {
+        $set: {
+          "dean_approval.approved": true,
+          "dean_approval.approved_by": name,
+          "dean_approval.approved_at": new Date(),
+          "dean_approval.rejected": false,
+          "dean_approval.rejection_reason": null,
+          "dean_approval.rejected_milestone": null,
+          "updated_at": new Date()
+        }
+      }
+    );
+
+    console.log(`✅ Dean ${name} approved group ${groupId}`);
+
+    // Update group progress
+    await updateGroupProgress(groupId);
+
+    // Trigger automatic archiving (internal call to repository endpoint)
+    console.log(`📦 Triggering automatic archiving for group ${groupId}...`);
+    
+    try {
+      // Get updated group with all data
+      const updatedGroup = await groupsCollection.findOne({ group_id: groupId });
+      
+      // Resolve block → program
+      const block = await blocksCollection.findOne({ block_id: updatedGroup.block_id });
+      if (!block) throw new Error("Block not found");
+
+      const program = await programsCollection.findOne({ program_id: block.program_id });
+      if (!program) throw new Error("Program not found");
+
+      // Build authors array
+      const authors = [];
+      if (updatedGroup.leader) {
+        authors.push(`${updatedGroup.leader.surname}, ${updatedGroup.leader.firstname}`);
+      }
+      if (Array.isArray(updatedGroup.members)) {
+        updatedGroup.members.forEach((m) => {
+          if (m.surname && m.firstname) {
+            authors.push(`${m.surname}, ${m.firstname}`);
+          }
+        });
+      }
+
+      // Get manuscript file
+      const manuscript = updatedGroup.milestones.find(m => m.type === "upload_manuscript");
+      if (!manuscript || !manuscript.s3_key?.length) {
+        throw new Error("No manuscript found");
+      }
+
+      const originalKey = manuscript.s3_key[0];
+      const fileName = originalKey.split("/").pop();
+
+      // Generate document_id
+      const document_id = await generateDocumentId(block.program_id);
+
+      // Move file to repository bucket with group_id in path
+      const sourceBucket = process.env.THESISKO_DOCUMENTS_BUCKET;
+      const destBucket = process.env.THESISKO_REPOSITORY_BUCKET;
+      const newKey = `repository-files/${groupId}/${document_id}/${fileName}`;
+
+      await moveFileBetweenBuckets(sourceBucket, destBucket, originalKey, newKey);
+
+      // Generate embedding
+      const textToEmbed = `${updatedGroup.title || ""} ${updatedGroup.abstract || ""}`.trim();
+      let embedding = null;
+      if (textToEmbed.length > 0) {
+        embedding = await generateEmbedding(textToEmbed);
+      }
+
+      // Build repository doc
+      const recordDoc = {
+        _id: new ObjectId(),
+        document_id,
+        title: updatedGroup.title || null,
+        abstract: updatedGroup.abstract || null,
+        tags: Array.isArray(updatedGroup.tags) ? updatedGroup.tags : [],
+        access_level: updatedGroup.access_level || "restricted",
+        authors,
+        file_key: newKey,
+        program_id: block.program_id,
+        program_name: program.program_name,
+        department: program.department,
+        created_at: new Date(),
+        updated_at: new Date(),
+        abstract_embedding: embedding,
+      };
+
+      // Insert into records
+      await recordsCollection.insertOne(recordDoc);
+
+      console.log(`✅ Archived successfully: ${document_id}`);
+
+      res.json({ 
+        message: "Dean approval recorded and thesis archived successfully",
+        group_id: groupId,
+        document_id,
+        archived: true
+      });
+    } catch (archiveErr) {
+      console.error("❌ Archiving failed:", archiveErr);
+      // Approval still recorded, but archiving failed
+      res.status(500).json({ 
+        error: "Dean approval recorded but archiving failed. Please contact administrator.",
+        group_id: groupId,
+        approved: true,
+        archived: false,
+        archiveError: archiveErr.message
+      });
+    }
+  } catch (err) {
+    console.error("❌ Error recording dean approval:", err);
+    res.status(500).json({ error: "Error recording dean approval" });
+  }
+});
+
+// Route: Dean rejection (specify milestone to fix)
+router.patch("/:groupId/dean-reject", async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { name, reason, milestone } = req.body;
+
+    if (!name || !reason || !milestone) {
+      return res.status(400).json({ error: "name, reason, and milestone are required" });
+    }
+
+    const validMilestones = ['complete_copyright', 'pass_turnitin', 'upload_all_docs', 'describe_work'];
+    if (!validMilestones.includes(milestone)) {
+      return res.status(400).json({ error: "Invalid milestone. Must be one of: complete_copyright, pass_turnitin, upload_all_docs, describe_work" });
+    }
+
+    console.log(`\n❌ Dean rejecting group: ${groupId}, milestone: ${milestone}`);
+
+    // Mark as rejected at group level
+    await groupsCollection.updateOne(
+      { group_id: groupId },
+      {
+        $set: {
+          "dean_approval.approved": false,
+          "dean_approval.rejected": true,
+          "dean_approval.rejection_reason": reason,
+          "dean_approval.rejected_milestone": milestone,
+          "dean_approval.rejected_by": name,
+          "dean_approval.rejected_at": new Date(),
+          "chairperson_approval.approved": false, // Reset chairperson approval
+          "updated_at": new Date()
+        }
+      }
+    );
+
+    // Also mark the specific milestone as incomplete so it can be resubmitted
+    await groupsCollection.updateOne(
+      { group_id: groupId, "milestones.type": milestone },
+      {
+        $set: {
+          "milestones.$.status": false,
+          "milestones.$.updated_at": new Date()
+        }
+      }
+    );
+
+    console.log(`✅ Dean rejection recorded for group ${groupId}`);
+
+    res.json({ 
+      message: `Group rejected. Student must resubmit: ${milestone}`,
+      milestone,
+      reason 
+    });
+  } catch (err) {
+    console.error("❌ Error recording dean rejection:", err);
+    res.status(500).json({ error: "Error recording dean rejection" });
+  }
+});
+
 // Route: Manually refresh group progress
 router.patch("/:groupId/refresh-progress", async (req, res) => {
   try {
@@ -1598,7 +1942,7 @@ router.delete("/:group_id", async (req, res) => {
 });
 
 
-// -------- Route: Copy to Repository --------
+// -------- Route: Copy to Repository (Manual trigger - requires dean approval) --------
 router.post("/:group_id/repository", async (req, res) => {
   try {
     const { group_id } = req.params;
@@ -1606,6 +1950,16 @@ router.post("/:group_id/repository", async (req, res) => {
     // 1. Get group
     const group = await groupsCollection.findOne({ group_id });
     if (!group) return res.status(404).json({ error: "Group not found" });
+
+    // 1.5 VALIDATE: Must have chairperson AND dean approval
+    if (!group.chairperson_approval?.approved) {
+      return res.status(403).json({ error: "Chairperson approval required before archiving" });
+    }
+    if (!group.dean_approval?.approved) {
+      return res.status(403).json({ error: "Dean approval required before archiving" });
+    }
+
+    console.log(`📦 Manual archiving triggered for group: ${group_id}`);
 
     // 2. Resolve block → program
     const block = await blocksCollection.findOne({ block_id: group.block_id });
@@ -1639,10 +1993,10 @@ router.post("/:group_id/repository", async (req, res) => {
     // 5. Generate document_id
     const document_id = await generateDocumentId(block.program_id);
 
-    // 6. Move file to repository bucket
+    // 6. Move file to repository bucket with group_id in path
     const sourceBucket = process.env.THESISKO_DOCUMENTS_BUCKET;
     const destBucket = process.env.THESISKO_REPOSITORY_BUCKET;
-    const newKey = `repository-files/${document_id}/${fileName}`;
+    const newKey = `repository-files/${group_id}/${document_id}/${fileName}`;
 
     await moveFileBetweenBuckets(sourceBucket, destBucket, originalKey, newKey);
 
