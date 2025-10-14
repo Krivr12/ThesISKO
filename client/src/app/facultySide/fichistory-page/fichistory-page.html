@@ -74,10 +74,15 @@
 
     <!-- Cohesive action buttons (same sizing/weight/rounded) -->
     <div class="actions">
-      <button class="btn primary" (click)="approveManuscript()">
-        Approve Manuscript
+      <button class="btn" 
+              [class.primary]="canApprove"
+              [class.secondary]="!canApprove"
+              (click)="approveManuscript()"
+              [disabled]="!canApprove">
+        {{ facultyApproved ? 'Already Approved' : 'Approve Manuscript' }}
       </button>
-      <button class="btn ghost" (click)="rejectManuscript()">
+      <button class="btn ghost" 
+              (click)="rejectManuscript()">
         Reject Manuscript
       </button>
     </div>

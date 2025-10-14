@@ -110,6 +110,10 @@ async function updateGroupProgress(groupId) {
       m.verified?.chairperson?.some?.(c => c.approved === true)
     );
 
+    // Get block once for panelist count (used in upload_manuscript verification)
+    const block = await blocksCollection.findOne({ block_id: group.block_id });
+    const requiredPanelistCount = block?.panelists?.length || 0;
+
     // Check if all milestones are fully completed
     const allMilestonesComplete = group.milestones.every(m => {
       const hasFiles = m.s3_key && m.s3_key.length > 0;
@@ -118,9 +122,8 @@ async function updateGroupProgress(groupId) {
       let hasVerification = false;
       if (m.type === "upload_manuscript") {
         // Needs all panelist approvals AND faculty approval
-        const requiredPanelistCount = 3;
         hasVerification = m.approved_by?.length >= requiredPanelistCount && 
-                         m.verified?.faculty_in_charge?.approved === true;
+                          m.verified?.faculty_in_charge?.approved === true;
       } else if (m.type === "describe_work") {
         // describe_work doesn't need files, just verification
         hasVerification = m.verified?.chairperson?.some?.(c => c.approved === true);
@@ -246,6 +249,93 @@ router.get("/by-fic/:email", async (req, res) => {
   }
 });
 
+// Route: Get groups by Chairperson email (for Stage 6 approval)
+router.get("/by-chairperson/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email parameter is required" });
+    }
+
+    console.log(`📋 Fetching chairperson groups for: ${email}`);
+
+    // Step 1: Get chairperson's program_id from programs collection
+    const program = await programsCollection.findOne({ chairperson_email: email });
+    
+    if (!program) {
+      console.log(`⚠️ No program found where ${email} is chairperson`);
+      return res.json({ success: true, data: [] });
+    }
+
+    console.log(`✅ Chairperson manages program: ${program.program_id}`);
+
+    // Step 2: Get all blocks in that program
+    const blocks = await blocksCollection.find({ 
+      program_id: program.program_id 
+    }).toArray();
+    
+    const blockIds = blocks.map(b => b.block_id);
+    console.log(`✅ Found ${blocks.length} blocks in program`);
+
+    if (blockIds.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Step 3: Get all groups in those blocks
+    const groups = await groupsCollection.find({ 
+      block_id: { $in: blockIds } 
+    }).toArray();
+
+    console.log(`✅ Found ${groups.length} total groups in program`);
+
+    // Step 4: Filter groups where milestones 2-5 are complete (need chairperson approval)
+    const pendingGroups = groups.filter(g => {
+      const m1 = g.milestones?.find(m => m.type === 'upload_manuscript');
+      const m2 = g.milestones?.find(m => m.type === 'complete_copyright');
+      const m3 = g.milestones?.find(m => m.type === 'pass_turnitin');
+      const m4 = g.milestones?.find(m => m.type === 'upload_all_docs');
+      const m5 = g.milestones?.find(m => m.type === 'describe_work');
+      
+      // Must have: FIC approved manuscript + all other milestones completed
+      const manuscriptApproved = m1?.verified?.faculty_in_charge?.approved === true;
+      const copyrightComplete = m2?.status === true;
+      const turnitinComplete = m3?.status === true;
+      const allDocsComplete = m4?.status === true;
+      const workDescribed = m5?.status === true;
+      
+      // Not yet approved by chairperson
+      const notApprovedByChairperson = 
+        !m2?.verified?.chairperson?.some(c => c.approved) &&
+        !m3?.verified?.chairperson?.some(c => c.approved) &&
+        !m4?.verified?.chairperson?.some(c => c.approved) &&
+        !m5?.verified?.chairperson?.some(c => c.approved);
+      
+      return manuscriptApproved && copyrightComplete && turnitinComplete && 
+             allDocsComplete && workDescribed && notApprovedByChairperson;
+    });
+
+    console.log(`📊 ${pendingGroups.length} groups pending chairperson approval`);
+
+    // Enrich groups with block info and forApproval count
+    const enrichedGroups = pendingGroups.map(group => {
+      const block = blocks.find(b => b.block_id === group.block_id);
+      
+      return {
+        ...group,
+        block_code: block?.block_code,
+        academic_year: block?.academic_year,
+        forApproval: 1 // All groups in this list need approval
+      };
+    });
+
+    res.json({ success: true, data: enrichedGroups });
+  } catch (err) {
+    console.error("❌ Error fetching chairperson groups:", err);
+    res.status(500).json({ error: "Error fetching groups" });
+  }
+});
+
 // Route: Get groups by Panelist email
 router.get("/by-panelist/:email", async (req, res) => {
   try {
@@ -311,6 +401,112 @@ router.get("/by-panelist/:email", async (req, res) => {
     res.json({ success: true, data: enrichedGroups });
   } catch (err) {
     console.error("❌ Error fetching panelist groups:", err);
+    res.status(500).json({ error: "Error fetching groups" });
+  }
+});
+
+// Route: Get groups by Dean email (for final Stage 6 approval & archiving)
+router.get("/by-dean/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email parameter is required" });
+    }
+
+    console.log(`👨‍💼 Fetching dean groups for: ${email}`);
+
+    // Step 1: Get dean's department_id from users_info (where department_head matches)
+    const deanResult = await pool.query(
+      'SELECT department_head FROM users_info WHERE email = $1',
+      [email]
+    );
+
+    if (deanResult.rows.length === 0 || !deanResult.rows[0].department_head) {
+      console.log(`⚠️ No department found for dean: ${email}`);
+      return res.json({ success: true, data: [] });
+    }
+
+    const departmentId = deanResult.rows[0].department_head;
+    console.log(`✅ Dean manages department: ${departmentId}`);
+
+    // Step 2: Get all programs in that department
+    const programs = await programsCollection.find({ 
+      department_id: departmentId 
+    }).toArray();
+    
+    const programIds = programs.map(p => p.program_id);
+    console.log(`✅ Found ${programs.length} programs in department`);
+
+    if (programIds.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Step 3: Get all blocks in those programs
+    const blocks = await blocksCollection.find({ 
+      program_id: { $in: programIds } 
+    }).toArray();
+    
+    const blockIds = blocks.map(b => b.block_id);
+    console.log(`✅ Found ${blocks.length} blocks in programs`);
+
+    if (blockIds.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Step 4: Get all groups in those blocks
+    const groups = await groupsCollection.find({ 
+      block_id: { $in: blockIds } 
+    }).toArray();
+
+    console.log(`✅ Found ${groups.length} total groups in department`);
+
+    // Step 5: Filter groups where chairperson approved all milestones (ready for dean approval)
+    const pendingGroups = groups.filter(g => {
+      const m1 = g.milestones?.find(m => m.type === 'upload_manuscript');
+      const m2 = g.milestones?.find(m => m.type === 'complete_copyright');
+      const m3 = g.milestones?.find(m => m.type === 'pass_turnitin');
+      const m4 = g.milestones?.find(m => m.type === 'upload_all_docs');
+      const m5 = g.milestones?.find(m => m.type === 'describe_work');
+      
+      // Must have: FIC approved manuscript + all milestones complete + chairperson approved all
+      const manuscriptApproved = m1?.verified?.faculty_in_charge?.approved === true;
+      const copyrightComplete = m2?.status === true;
+      const turnitinComplete = m3?.status === true;
+      const allDocsComplete = m4?.status === true;
+      const workDescribed = m5?.status === true;
+      
+      // All milestones approved by chairperson
+      const chairpersonApprovedAll = 
+        m2?.verified?.chairperson?.some(c => c.approved) &&
+        m3?.verified?.chairperson?.some(c => c.approved) &&
+        m4?.verified?.chairperson?.some(c => c.approved) &&
+        m5?.verified?.chairperson?.some(c => c.approved);
+      
+      return manuscriptApproved && copyrightComplete && turnitinComplete && 
+             allDocsComplete && workDescribed && chairpersonApprovedAll;
+    });
+
+    console.log(`📊 ${pendingGroups.length} groups pending dean approval`);
+
+    // Enrich groups with block info and forApproval count
+    const enrichedGroups = pendingGroups.map(group => {
+      const block = blocks.find(b => b.block_id === group.block_id);
+      const program = programs.find(p => p.program_id === block?.program_id);
+      
+      return {
+        ...group,
+        block_code: block?.block_code,
+        academic_year: block?.academic_year,
+        program_name: program?.program_name,
+        department_name: program?.department_name,
+        forApproval: 1 // All groups in this list need approval
+      };
+    });
+
+    res.json({ success: true, data: enrichedGroups });
+  } catch (err) {
+    console.error("❌ Error fetching dean groups:", err);
     res.status(500).json({ error: "Error fetching groups" });
   }
 });
@@ -995,6 +1191,107 @@ router.patch("/:groupId/milestones/:milestoneType/files", async (req, res) => {
   }
 });
 
+// Route: Faculty rejection for upload_manuscript milestone
+router.patch("/:groupId/milestones/upload_manuscript/faculty-reject", async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { name, reason } = req.body;
+
+    if (!name || !reason) {
+      return res.status(400).json({ error: "name and reason are required" });
+    }
+
+    // Set rejection status and clear faculty approval (but preserve panelist approvals)
+    const updateResult = await groupsCollection.updateOne(
+      { group_id: groupId, "milestones.type": "upload_manuscript" },
+      {
+        $set: {
+          "milestones.$.status": false, // Mark as incomplete so group can resubmit
+          "milestones.$.verified.faculty_in_charge.approved": false,
+          "milestones.$.verified.faculty_in_charge.rejected": true,
+          "milestones.$.verified.faculty_in_charge.rejection_reason": reason,
+          "milestones.$.verified.faculty_in_charge.rejected_by": name,
+          "milestones.$.verified.faculty_in_charge.rejected_at": new Date(),
+          "milestones.$.updated_at": new Date()
+        }
+        // NOTE: We do NOT clear "milestones.$.approved_by" array
+        // This preserves panelist approvals so they don't need to re-approve
+      }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ error: "Group or milestone not found" });
+    }
+
+    // Update group progress
+    updateGroupProgress(groupId).catch(err => 
+      console.error(`Background progress update failed for group ${groupId}:`, err)
+    );
+
+    res.json({ 
+      message: "Manuscript rejected. Group can resubmit. Panelist approvals preserved.",
+      reason 
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error recording faculty rejection" });
+  }
+});
+
+// Route: Panelist rejection for upload_manuscript milestone
+router.patch("/:groupId/milestones/upload_manuscript/panelist-reject", async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { panelist_id, name, reason } = req.body;
+
+    if (!panelist_id || !name || !reason) {
+      return res.status(400).json({ error: "panelist_id, name, and reason are required" });
+    }
+
+    // Remove this panelist's approval if they had approved before
+    // Then add rejection record
+    await groupsCollection.updateOne(
+      { group_id: groupId, "milestones.type": "upload_manuscript" },
+      {
+        $pull: {
+          "milestones.$.approved_by": { panelist_id }
+        }
+      }
+    );
+
+    // Add rejection record
+    const updateResult = await groupsCollection.updateOne(
+      { group_id: groupId, "milestones.type": "upload_manuscript" },
+      {
+        $push: {
+          "milestones.$.rejected_by": {
+            panelist_id,
+            name,
+            reason,
+            rejected_at: new Date()
+          }
+        },
+        $set: {
+          "milestones.$.status": false, // Mark as incomplete so group can resubmit
+          "milestones.$.updated_at": new Date()
+        }
+      }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ error: "Group or milestone not found" });
+    }
+
+    res.json({ 
+      message: "Panelist rejection recorded. Group can resubmit.",
+      reason 
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error recording panelist rejection" });
+  }
+});
+
 // Route: Faculty approval for upload_manuscript milestone
 router.patch("/:groupId/milestones/upload_manuscript/faculty-approve", async (req, res) => {
   try {
@@ -1011,8 +1308,20 @@ router.patch("/:groupId/milestones/upload_manuscript/faculty-approve", async (re
       return res.status(404).json({ error: "Group not found" });
     }
 
+    // Get the block to find actual panelist count (flexible)
+    const block = await blocksCollection.findOne({ block_id: group.block_id });
+    if (!block) {
+      return res.status(404).json({ error: "Block not found" });
+    }
+
     const milestone = group.milestones.find(m => m.type === "upload_manuscript");
-    const requiredPanelistCount = 3; // Based on your block data
+    const requiredPanelistCount = block.panelists?.length || 0;
+    
+    console.log(`🔍 Backend - Group: ${groupId}, Block: ${group.block_id}`);
+    console.log(`📊 Backend - Required panelist count: ${requiredPanelistCount}`);
+    console.log(`✅ Backend - Approved count: ${milestone.approved_by?.length || 0}`);
+    console.log(`👥 Backend - Panelists in block:`, block.panelists);
+    console.log(`📧 Backend - Panelist emails:`, block.panelists_email);
     
     if (milestone.approved_by.length < requiredPanelistCount) {
       return res.status(400).json({ 
@@ -1027,7 +1336,13 @@ router.patch("/:groupId/milestones/upload_manuscript/faculty-approve", async (re
           "milestones.$.verified.faculty_in_charge.approved": true,
           "milestones.$.verified.faculty_in_charge.approved_at": new Date(),
           "milestones.$.verified.faculty_in_charge.approved_by": name,
+          "milestones.$.verified.faculty_in_charge.rejected": false, // Clear rejection flag
           "milestones.$.updated_at": new Date()
+        },
+        $unset: {
+          "milestones.$.verified.faculty_in_charge.rejection_reason": "",
+          "milestones.$.verified.faculty_in_charge.rejected_by": "",
+          "milestones.$.verified.faculty_in_charge.rejected_at": ""
         }
       }
     );
