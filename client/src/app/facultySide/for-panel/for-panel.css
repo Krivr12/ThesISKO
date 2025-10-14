@@ -1,0 +1,163 @@
+/* Base */
+html, body { height: 100%; margin: 0; }
+.container { display: flex; height: 100vh; width: 100%; }
+app-sidenavbar { width: 200px; flex-shrink: 0; }
+
+/* Main content */
+mat-sidenav-content.content {
+  flex: 1;
+  overflow: auto;
+  background: #f9f9f9;
+  padding: 0;
+  margin: 0;
+}
+
+/* One centered column for header + card */
+.page {
+  max-width: 1200px;
+  width: 100%;
+  margin: 24px auto;
+  padding: 0 16px;         /* same left inset for Return + card */
+  box-sizing: border-box;
+}
+
+/* Return button */
+button.return {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin: 0 0 12px;        /* sits right on top of the card */
+  color: #800000;
+  text-decoration: none;
+}
+button.return:hover,
+button.return:focus { text-decoration: none; }
+
+
+
+/* Controls row */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+.section-filter { min-width: 200px; }
+
+/* Table basics */
+table { width: 100%; }
+.mat-mdc-table { table-layout: fixed; width: 100%; }
+.mat-mdc-header-cell,
+.mat-mdc-cell { padding: 8px 16px; }
+.mat-mdc-header-row::after,
+.mat-mdc-row::after { display: none !important; }
+
+/* Column widths for stable layout */
+.mat-column-status { width: 260px; }
+.mat-column-forApproval { width: 140px; text-align: center; }
+
+/*dito naayos yung sa status cell*/
+.mat-mdc-cell.mat-column-status,
+.mat-cell.mat-column-status {
+  display: table-cell !important;
+  overflow: visible;        
+  white-space: normal;
+  vertical-align: middle;
+  padding: 16px;           
+}
+
+/* Status cell + dot */
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.status-text { flex: 0 1 auto; min-width: 0; }
+.status-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  display: inline-block; flex: 0 0 auto;
+}
+.status-dot.ongoing { background: gold; }
+.status-dot.rejected { background: red; }
+.status-dot.approved { background: green; }
+
+/* Verify button cell */
+.for-approval-cell { text-align: center; }
+
+/* Optional: clean typography for the app sidebar (if needed) */
+.nav-links a { color: white; display: block; margin: .5rem 0; }
+.logo { color: white; font-weight: bold; margin-bottom: 1rem; }
+
+
+/* ========== PAGINATOR: CENTER & NO BACKGROUND ========== */
+.paginator {
+  display: flex;
+  justify-content: center;   /* centers the paginator */
+  padding: 2px 0;
+  margin-top: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
+
+:host ::ng-deep .paginator .mat-mdc-paginator {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  color: #800000;
+}
+
+/* Optional: make the select & inputs flat/transparent too */
+:host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+:host ::ng-deep .paginator .mdc-notched-outline__leading,
+:host ::ng-deep .paginator .mdc-notched-outline__trailing,
+:host ::ng-deep .paginator .mdc-notched-outline__notch {
+  border: 0 !important;
+  color: #800000;
+}
+:host ::ng-deep .paginator .mat-mdc-select-trigger,
+:host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
+.documents-table {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+table.mat-mdc-table th.mat-mdc-header-cell,
+  table.mat-mdc-table td.mat-mdc-cell,
+  table.mat-mdc-table td.mat-mdc-footer-cell {
+    padding: 14px 12px;
+    vertical-align: middle;
+    font-size: 14px;border-bottom: 1px solid #eee;
+    background-color: #fff;color: #800000;
+  }
+  
+  /* Header look */
+  th.mat-mdc-header-cell {
+    font-weight: 700;
+    color: #800000;
+    border-bottom: 2px solid #f0f0f0;
+    background-color: #fff;
+    
+  }
+  
+  /* Row hover */
+  .mdc-data-table__row:hover td {
+    background: #fafafa;
+    background-color: #fff;
+  }
+  
+  .mat-column-groupId { width: 15%; }
+  .mat-column-title      { width: 25%; }
+  .mat-column-forApproval      { width: 10%; }
+  .mat-column-submissionDate  { width: 15%; }
+  .mat-column-leader   { width: 15%; }
+  .mat-column-status   { width: 10%; }

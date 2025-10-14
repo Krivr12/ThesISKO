@@ -1,0 +1,254 @@
+/* Global override for this component - ensure all inputs use maroon text */
+:host {
+  color: #800000;
+}
+
+:host input {
+  color: #800000 !important;
+}
+
+:host ::ng-deep input {
+  color: #800000 !important;
+}
+
+:host ::ng-deep .p-inputtext {
+  color: #800000 !important;
+}
+
+.profile-container {
+  min-height: calc(100vh - 140px);
+  background-color: #800000;
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.profile-content {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.profile-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: white;
+}
+
+.profile-card :deep(.p-card-header) {
+  background: #800000;
+  color: white;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 1.5rem;
+  border-radius: 12px 12px 0 0;
+}
+
+.profile-card :deep(.p-card-body) {
+  padding: 2rem;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.form-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #800000;
+}
+
+.form-section h3 {
+  margin: 0 0 1.5rem 0;
+  color: #800000;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field label {
+  font-weight: 600;
+  color: #800000;
+  font-size: 0.9rem;
+}
+
+.form-field input[pInputText] {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #800000;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  padding: 0.5rem;
+  color: #800000;
+  background-color: white;
+}
+
+.form-field input[pInputText]:focus {
+  border-color: #a00000;
+  box-shadow: none;
+}
+
+.form-field input[readonly] {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #800000;
+  font-size: 0.875rem;
+}
+
+.info-message {
+  color: #666;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.guest-info {
+  background-color: #fff8e1;
+  border-left: 4px solid #ffd966;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.guest-info .info-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: #666;
+}
+
+.guest-info .pi-info-circle {
+  color: #ffd966;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.cancel-button :deep(.p-button) {
+  background: white;
+  border: 2px solid #800000;
+  color: #800000;
+  padding: 0.75rem 2rem;
+  font-weight: bold;
+  border-radius: 10px;
+}
+
+.cancel-button :deep(.p-button:hover:not(:disabled)) {
+  background: #f9f9f9;
+  border-color: #a00000;
+  color: #a00000;
+}
+
+.save-button :deep(.p-button:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .profile-content {
+    max-width: 100%;
+  }
+
+  .profile-card :deep(.p-card-header) {
+    padding: 1rem;
+    font-size: 1.25rem;
+  }
+
+  .profile-card :deep(.p-card-body) {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-actions .p-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .form-section h3 {
+    font-size: 1.125rem;
+  }
+
+  .form-field input[pInputText] {
+    height: 38px;
+    padding: 0.625rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Force input text color overrides */
+:host input,
+:host ::ng-deep input,
+:host ::ng-deep .p-inputtext {
+  color: #800000 !important;
+}
+
+:host ::ng-deep .p-inputtext:focus {
+  color: #800000 !important;
+  background-color: white !important;
+}
+
+:host ::ng-deep .p-inputtext:hover {
+  color: #800000 !important;
+  background-color: white !important;
+}
+
+:host ::ng-deep .p-inputtext.ng-invalid {
+  color: #800000 !important;
+  background-color: white !important;
+}
+
+

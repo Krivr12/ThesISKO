@@ -1,28 +1,28 @@
 <app-navbar></app-navbar>
+
 <div class="page-wrapper">
   <div class="hero">
-    <div class="hero-content">
-      <div class="text-content">
-        <h1>Ensuring each Thesis are Stored for Future Iskolars</h1>
-        <p>
-          ThesISKO is the official thesis repository of the Polytechnic University of the
-          Philippines (PUP), built to archive, preserve, and showcase student research
-          across all disciplines. It serves as a digital library where students, faculty, and
-          researchers can easily access a wide range of academic works produced
-          within the university.
-        </p>
-        <div class="search-container">
-          <input type="text" [(ngModel)]="query" placeholder="Look for a thesis" class="search-input" />
-          <button class="search-button" (click)="search()">Search</button>
-        </div>
-      </div>
-      <div class="image-gallery">
-        <div class="image-placeholder main-image"></div>
-        <div class="side-images">
-          <div class="image-placeholder top-image"></div>
-          <div class="image-placeholder bottom-image"></div>
-        </div>
-      </div>
+    <img src="ccislogo.png" alt="PUP" class="bgimg">
+
+    <h1>
+      Ensuring each Thesis are <span class="break"> Stored for Future Iskolars</span>
+    </h1>
+
+    <p>
+      ThesISKO is the official thesis repository of the Polytechnic University of the
+      Philippines (PUP), built to archive, preserve, and showcase student research
+      across all disciplines. It serves as a digital library where students, faculty, and
+      researchers can easily access a wide range of academic works produced
+      within the university.
+    </p>
+
+    <div class="search-container">
+      <input
+        type="text"
+        placeholder="Look for a thesis"
+        [(ngModel)]="homeQuery"
+        (keyup.enter)="goSearch()" />
+      <button pButton class="search" type="button" (click)="goSearch()">Search</button>
     </div>
   </div>
 
@@ -33,42 +33,20 @@
         <div class="mission-text">
           <h2 class="sub-title">Our Mission</h2>
           <p class="mission-description">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-            tempor incididunt ut labore et dolore magna aliqua.
+            ThesISKO exists to make research accessible to everyone. 
+            We preserve the hard work of every student and give it a space to be discovered, 
+            cited, and shared. Guided by six pillars, we ensure access for all by making 
+            research easy to find and read; Preservation by providing a lasting home for 
+            student work; Recognition through clear authorship and proper citation; 
+            Integrity via ethical sharing, plagiarism awareness, and accurate metadata; Security & Consent
+            by honoring privacy levels and authors’ choices; and Community by connecting students, faculty, 
+            and future researchers. By opening doors to knowledge, we help ideas travel farther connecting learners, 
+            empowering future projects, and recognizing the authors who make it possible.
           </p>
         </div>
-        <div class="mission-image"></div>
-      </div>
 
-      <div class="strategic-goals-section">
-        <h2 class="strategic-goals-title">Strategic Goals</h2>
-        <div class="pillars-container">
-          <div class="pillar">
-            <h3 class="pillar-title">Pillar 1: Teaching and Learning</h3>
-            <ul class="goal-list">
-              <li>SG 1: Innovative Curricula and Instruction</li>
-              <li>SG 2: Empowered, Expert, and Productive Faculty Members</li>
-              <li>SG 3: Holistic Student Development</li>
-            </ul>
-          </div>
-          <div class="pillar">
-            <h3 class="pillar-title">Pillar 2: Research and Extension</h3>
-            <ul class="goal-list">
-              <li>SG 4: Intensified Research Innovation, Dissemination and Utilization</li>
-              <li>SG 5: Strengthened Sustainable and Impactful Extension Program</li>
-              <li>SG 6: Expanded Research and Extension Networks with Local, National, and International Partners</li>
-            </ul>
-          </div>
-          <div class="pillar">
-            <h3 class="pillar-title">Pillar 3: Internal Governance</h3>
-            <ul class="goal-list">
-              <li>SG 7: Transformational University Leadership</li>
-              <li>SG 8: Judicious and Ethical Stewardship of Physical and Financial Resources</li>
-              <li>SG 9: Effective and Efficient Human Resource Management</li>
-              <li>SG 10: Excellent Citizen/Client Satisfaction</li>
-              <li>SG 11: Smart Campuses</li>
-            </ul>
-          </div>
+        <div class="mission-image">
+          <img src="thesiskoLogo.png" alt="thesISKO" class="bgimg">
         </div>
       </div>
     </div>
@@ -76,37 +54,68 @@
 
   <section class="officials-and-staffs">
     <div class="content-container">
-      <h1>Officials and Staffs</h1>
+      <h1>Meet the Developers</h1>
       <div class="staff-cards">
         <div class="staff-card">
           <div class="profile-image-container">
-            <div class="profile-image john-doe"></div>
+            <div class="profile-image Esplana">
+              <img src="Esplana.jpg" alt="developer"  class="profile-img" >
+            </div>
           </div>
           <div class="staff-info">
-            <h3>John Doe, RL, MLIS</h3>
-            <p>College Librarian IV</p>
+            <h3>Vincent Esplana</h3>
+            <p>Frontend Developer</p>
           </div>
         </div>
+
         <div class="staff-card">
           <div class="profile-image-container">
-            <div class="profile-image stacy-white"></div>
+            <div class="profile-image Evangelista">
+              <img src="Evangelista.JPG" alt="developer"  class="profile-img" >
+            </div>
           </div>
           <div class="staff-info">
-            <h3>Stacy White, RL, MLIS</h3>
-            <p>College Librarian IV</p>
+            <h3>Christopher Bryan Evangelista</h3>
+            <p>Full Stack Developer</p>
           </div>
         </div>
+
         <div class="staff-card">
           <div class="profile-image-container">
-            <div class="profile-image steven-santos"></div>
+            <div class="profile-image Galicia">
+              <img src="Galicia.jpg" alt="developer"  class="profile-img" >
+            </div>
           </div>
           <div class="staff-info">
-            <h3>Steven Santos, RL, MLIS</h3>
-            <p>College Librarian IV</p>
+            <h3>Ma. Angela Galicia</h3>
+            <p>Backend Developer</p>
+          </div>
+        </div>
+
+        <div class="staff-card">
+          <div class="profile-image-container">
+            <div class="profile-image SanGabriel">
+              <img src="SanGabriel.jpeg" alt="developer"  class="profile-img" >
+            </div>
+          </div>
+          <div class="staff-info">
+            <h3>Yasmine Reign San Gabriel</h3>
+            <p>Frontend Developer & UI/UX</p>
+          </div>
+        </div>
+
+        <div class="staff-card">
+          <div class="profile-image-container">
+            <div class="profile-image Tabagan">
+              <img src="Tabagan.png" alt="developer" class="profile-img">
+            </div>
+          </div>
+          <div class="staff-info">
+            <h3>Keila Tabagan</h3>
+            <p>Backend Developer & UI/UX</p>
           </div>
         </div>
       </div>
-      <button class="view-team-button">View the Team</button>
     </div>
   </section>
 
@@ -137,7 +146,7 @@
         </div>
       </form>
     </div>
-</section>
+  </section>
 </div>
 
-<app-footer> </app-footer>
+<app-footer></app-footer>

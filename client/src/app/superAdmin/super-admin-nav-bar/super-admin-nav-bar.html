@@ -1,0 +1,36 @@
+<mat-sidenav-container class="sidenav-container">
+
+    <mat-sidenav mode="side" opened class="sidenav">
+        <h2 class="logo">ThesISKO</h2>
+      
+        <div class="nav-links">
+          <a mat-button class="Dashboard" routerLink="/superadmin-dashboard">Dashboard</a>
+          <a mat-button class="Documents" routerLink="/superadmin-documents">Documents</a>
+          <a mat-button class="Programs" routerLink="/superadmin-programs">Programs</a>
+          <a mat-button class="Faculties" routerLink="/superadmin-faculties">Faculties</a>
+          <a mat-button class="Request" routerLink="/superadmin-request">Request</a>
+          <a mat-button class="Templates" routerLink="/superadmin-templates">Templates</a>
+        </div>
+
+        <button mat-button class="logout" (click)="openLogoutDialog($event)">Logout</button>
+
+      </mat-sidenav>
+      
+  </mat-sidenav-container>
+
+<!-- ===== Logout confirm dialog (inline template) ===== -->
+<ng-template #logoutConfirm let-dialogRef="dialogRef">
+  <h2 mat-dialog-title style="color: #800000; font-weight: 600;">Confirm Logout</h2>
+
+  <mat-dialog-content style="padding: 20px 24px;">
+    <p style="margin: 0; font-size: 15px; line-height: 1.5;">
+      Are you sure you want to logout?
+    </p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions style="padding: 12px 24px; justify-content: flex-end; gap: 8px;">
+    <button mat-button (click)="dialogRef.close(false)" style="color: #666;">Cancel</button>
+    <button mat-flat-button color="warn" (click)="dialogRef.close(true)">Logout</button>
+  </mat-dialog-actions>
+</ng-template>
+  

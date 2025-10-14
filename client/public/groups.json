@@ -1,0 +1,641 @@
+[
+  {
+    "group_id": "2425-IT-3A-01",
+    "block_id": "2425-IT-3A",
+    "course": "BSIT",
+    "title": "Mobile App for Canteen Ordering",
+    "abstract": "A mobile-first interface is implemented for BSIT students. The system leverages open-source tools.",
+    "submitted_at": "2024-08-01T10:00:00+08:00",
+    "leader": "Olive Bautista",
+    "members": [
+      "Bea Zamora",
+      "Rica Torres",
+      "Owen Garcia"
+    ],
+    "leader_email": "olive.bautista@students.pup.edu.ph",
+    "member_emails": [
+      "bea.zamora@students.pup.edu.ph",
+      "rica.torres@students.pup.edu.ph",
+      "owen.garcia@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "faculty_in_charge": "Ryan Garcia",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3A-02",
+    "block_id": "2425-IT-3A",
+    "course": "BSIT",
+    "title": "IoT-Based Energy Monitor for Campus",
+    "abstract": "An admin dashboard enables monitoring for BSIT students. The approach supports offline operation.",
+    "submitted_at": "2024-08-12T10:00:00+08:00",
+    "leader": "Vince Bautista",
+    "members": [
+      "Ralph Zamora",
+      "Iris Cruz",
+      "Liam Mendoza"
+    ],
+    "leader_email": "vince.bautista@students.pup.edu.ph",
+    "member_emails": [
+      "ralph.zamora@students.pup.edu.ph",
+      "iris.cruz@students.pup.edu.ph",
+      "liam.mendoza@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3A-03",
+    "block_id": "2425-IT-3A",
+    "course": "BSIT",
+    "title": "Image-Based Plant Disease Detector",
+    "abstract": "A mobile-first interface is implemented for BSIT students. This study develops a lightweight prototype.",
+    "submitted_at": "2024-08-23T10:00:00+08:00",
+    "leader": "Carlo Santos",
+    "members": [
+      "Faye Gonzales",
+      "Owen Villanueva",
+      "Mika Santos"
+    ],
+    "leader_email": "carlo.santos@students.pup.edu.ph",
+    "member_emails": [
+      "faye.gonzales@students.pup.edu.ph",
+      "owen.villanueva@students.pup.edu.ph",
+      "mika.santos@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "faculty_in_charge": "Ryan Garcia",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3A-04",
+    "block_id": "2425-IT-3A",
+    "course": "BSIT",
+    "title": "Vehicle Plate Detector at Gates",
+    "abstract": "This study develops a lightweight prototype for BSIT students. A mobile-first interface is implemented.",
+    "submitted_at": "2024-08-28T10:00:00+08:00",
+    "leader": "Jude Gonzales",
+    "members": [
+      "Troy Trinidad",
+      "Sofia Gutierrez",
+      "Amie Torres"
+    ],
+    "leader_email": "jude.gonzales@students.pup.edu.ph",
+    "member_emails": [
+      "troy.trinidad@students.pup.edu.ph",
+      "sofia.gutierrez@students.pup.edu.ph",
+      "amie.torres@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3A-05",
+    "block_id": "2425-IT-3A",
+    "course": "BSIT",
+    "title": "Smart Library Queueing System",
+    "abstract": "Results show improved user experience for BSIT students. The system leverages open-source tools.",
+    "submitted_at": "2024-09-08T10:00:00+08:00",
+    "leader": "Cielo Salazar",
+    "members": [
+      "Rica Santos",
+      "Willow Flores",
+      "Sofia Mendoza"
+    ],
+    "leader_email": "cielo.salazar@students.pup.edu.ph",
+    "member_emails": [
+      "rica.santos@students.pup.edu.ph",
+      "willow.flores@students.pup.edu.ph",
+      "sofia.mendoza@students.pup.edu.ph"
+    ],
+    "status": "rejected",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "faculty_in_charge": "Ryan Garcia",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3B-01",
+    "block_id": "2425-IT-3B",
+    "course": "BSIT",
+    "title": "Mobile App for Canteen Ordering",
+    "abstract": "The design follows privacy-by-default principles for BSIT students. Deployment guidelines are provided.",
+    "submitted_at": "2024-09-19T10:00:00+08:00",
+    "leader": "Vera Ramos",
+    "members": [
+      "Jessa Gonzales",
+      "Willow Navarro",
+      "Gio Cruz"
+    ],
+    "leader_email": "vera.ramos@students.pup.edu.ph",
+    "member_emails": [
+      "jessa.gonzales@students.pup.edu.ph",
+      "willow.navarro@students.pup.edu.ph",
+      "gio.cruz@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3B-02",
+    "block_id": "2425-IT-3B",
+    "course": "BSIT",
+    "title": "Grade Predictor using Regression",
+    "abstract": "We evaluate performance on real campus data for BSIT students. An admin dashboard enables monitoring.",
+    "submitted_at": "2024-09-24T10:00:00+08:00",
+    "leader": "Yara Bautista",
+    "members": [
+      "Wes DelosSantos",
+      "Mika Ramos",
+      "Zara Reyes"
+    ],
+    "leader_email": "yara.bautista@students.pup.edu.ph",
+    "member_emails": [
+      "wes.delossantos@students.pup.edu.ph",
+      "mika.ramos@students.pup.edu.ph",
+      "zara.reyes@students.pup.edu.ph"
+    ],
+    "status": "rejected",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "faculty_in_charge": "Ryan Garcia",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3B-03",
+    "block_id": "2425-IT-3B",
+    "course": "BSIT",
+    "title": "Dormitory Utilities Tracker",
+    "abstract": "A mobile-first interface is implemented for BSIT students. Deployment guidelines are provided.",
+    "submitted_at": "2024-10-05T10:00:00+08:00",
+    "leader": "Una Vergara",
+    "members": [
+      "Iris Bautista",
+      "Yara Cruz",
+      "Jude Aquino"
+    ],
+    "leader_email": "una.vergara@students.pup.edu.ph",
+    "member_emails": [
+      "iris.bautista@students.pup.edu.ph",
+      "yara.cruz@students.pup.edu.ph",
+      "jude.aquino@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3B-04",
+    "block_id": "2425-IT-3B",
+    "course": "BSIT",
+    "title": "Thesis Repository Search Engine",
+    "abstract": "The system leverages open-source tools for BSIT students. The system leverages open-source tools.",
+    "submitted_at": "2024-10-16T10:00:00+08:00",
+    "leader": "Olive Nieves",
+    "members": [
+      "Xian Salazar",
+      "Marco Yap",
+      "Evan Reyes"
+    ],
+    "leader_email": "olive.nieves@students.pup.edu.ph",
+    "member_emails": [
+      "xian.salazar@students.pup.edu.ph",
+      "marco.yap@students.pup.edu.ph",
+      "evan.reyes@students.pup.edu.ph"
+    ],
+    "status": "rejected",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf",
+    "faculty_in_charge": "Ryan Garcia"
+  },
+  {
+    "group_id": "2425-IT-3B-05",
+    "block_id": "2425-IT-3B",
+    "course": "BSIT",
+    "title": "Peer Evaluation Portal",
+    "abstract": "Results show improved user experience for BSIT students. We report latency and accuracy benchmarks.",
+    "submitted_at": "2024-10-21T10:00:00+08:00",
+    "leader": "Queenie Torres",
+    "members": [
+      "Xenia Aquino",
+      "Faye Torres",
+      "Gio Castillo"
+    ],
+    "leader_email": "queenie.torres@students.pup.edu.ph",
+    "member_emails": [
+      "xenia.aquino@students.pup.edu.ph",
+      "faye.torres@students.pup.edu.ph",
+      "gio.castillo@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf",
+    "faculty_in_charge": "Ryan Garcia"
+  },
+  {
+    "group_id": "2425-IT-3C-01",
+    "block_id": "2425-IT-3C",
+    "course": "BSIT",
+    "title": "QR-Based Facility Booking",
+    "abstract": "This study develops a lightweight prototype for BSIT students. The system leverages open-source tools.",
+    "submitted_at": "2024-11-01T10:00:00+08:00",
+    "leader": "Rica Vergara",
+    "members": [
+      "Olive DelosSantos",
+      "Ken DelosSantos",
+      "Wes Gonzales"
+    ],
+    "leader_email": "rica.vergara@students.pup.edu.ph",
+    "member_emails": [
+      "olive.delossantos@students.pup.edu.ph",
+      "ken.delossantos@students.pup.edu.ph",
+      "wes.gonzales@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "faculty_in_charge": "Ryan Garcia",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3C-02",
+    "block_id": "2425-IT-3C",
+    "course": "BSIT",
+    "title": "Lost & Found Item Classifier",
+    "abstract": "Results show improved user experience for BSIT students. The system leverages open-source tools.",
+    "submitted_at": "2024-11-12T10:00:00+08:00",
+    "leader": "Queenie Ramos",
+    "members": [
+      "Sofia Valdez",
+      "Pio Cruz",
+      "Mika Trinidad"
+    ],
+    "leader_email": "queenie.ramos@students.pup.edu.ph",
+    "member_emails": [
+      "sofia.valdez@students.pup.edu.ph",
+      "pio.cruz@students.pup.edu.ph",
+      "mika.trinidad@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3C-03",
+    "block_id": "2425-IT-3C",
+    "course": "BSIT",
+    "title": "Thesis Repository Search Engine",
+    "abstract": "A mobile-first interface is implemented for BSIT students. The approach supports offline operation.",
+    "submitted_at": "2024-11-17T10:00:00+08:00",
+    "leader": "Ken Gutierrez",
+    "members": [
+      "Una Torres",
+      "Ken Vergara",
+      "Yara Ramos"
+    ],
+    "leader_email": "ken.gutierrez@students.pup.edu.ph",
+    "member_emails": [
+      "una.torres@students.pup.edu.ph",
+      "ken.vergara@students.pup.edu.ph",
+      "yara.ramos@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "faculty_in_charge": "Ryan Garcia",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3C-04",
+    "block_id": "2425-IT-3C",
+    "course": "BSIT",
+    "title": "RFID Attendance with Face Recognition",
+    "abstract": "We report latency and accuracy benchmarks for BSIT students. We evaluate performance on real campus data.",
+    "submitted_at": "2024-11-28T10:00:00+08:00",
+    "leader": "Olive Yap",
+    "members": [
+      "Jude Torres",
+      "Ralph Navarro",
+      "Xenia Reyes"
+    ],
+    "leader_email": "olive.yap@students.pup.edu.ph",
+    "member_emails": [
+      "jude.torres@students.pup.edu.ph",
+      "ralph.navarro@students.pup.edu.ph",
+      "xenia.reyes@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-IT-3C-05",
+    "block_id": "2425-IT-3C",
+    "course": "BSIT",
+    "title": "QR-Based Facility Booking",
+    "abstract": "A mobile-first interface is implemented for BSIT students. The system leverages open-source tools.",
+    "submitted_at": "2024-12-09T10:00:00+08:00",
+    "leader": "Owen Reyes",
+    "members": [
+      "Zara Navarro",
+      "Zed Ramos",
+      "Evan Gonzales"
+    ],
+    "leader_email": "owen.reyes@students.pup.edu.ph",
+    "member_emails": [
+      "zara.navarro@students.pup.edu.ph",
+      "zed.ramos@students.pup.edu.ph",
+      "evan.gonzales@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "faculty_in_charge": "Ryan Garcia",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-CS-3A-01",
+    "block_id": "2425-CS-3A",
+    "course": "BSCS",
+    "title": "Thesis Similarity Visualizer",
+    "abstract": "The approach supports offline operation for BSCS students. The system leverages open-source tools.",
+    "submitted_at": "2024-12-14T10:00:00+08:00",
+    "leader": "Kaye Yap",
+    "members": [
+      "Uly Gonzales",
+      "Pio Domingo",
+      "Zed Trinidad"
+    ],
+    "leader_email": "kaye.yap@students.pup.edu.ph",
+    "member_emails": [
+      "uly.gonzales@students.pup.edu.ph",
+      "pio.domingo@students.pup.edu.ph",
+      "zed.trinidad@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-CS-3A-02",
+    "block_id": "2425-CS-3A",
+    "course": "BSCS",
+    "title": "Alumni Tracer Analytics Dashboard",
+    "abstract": "The approach supports offline operation for BSCS students. This study develops a lightweight prototype.",
+    "submitted_at": "2024-12-25T10:00:00+08:00",
+    "leader": "Drei Garcia",
+    "members": [
+      "Quinn Garcia",
+      "Paula Zamora",
+      "Jude Gutierrez"
+    ],
+    "leader_email": "drei.garcia@students.pup.edu.ph",
+    "member_emails": [
+      "quinn.garcia@students.pup.edu.ph",
+      "paula.zamora@students.pup.edu.ph",
+      "jude.gutierrez@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf",
+    "faculty_in_charge": "Ryan Garcia"
+  },
+  {
+    "group_id": "2425-CS-3A-03",
+    "block_id": "2425-CS-3A",
+    "course": "BSCS",
+    "title": "Campus Event Recommender System",
+    "abstract": "A mobile-first interface is implemented for BSCS students. We evaluate performance on real campus data.",
+    "submitted_at": "2025-01-05T10:00:00+08:00",
+    "leader": "Quinn Zamora",
+    "members": [
+      "Liam Castillo",
+      "Xian Torres",
+      "Ivan Villanueva"
+    ],
+    "leader_email": "quinn.zamora@students.pup.edu.ph",
+    "member_emails": [
+      "liam.castillo@students.pup.edu.ph",
+      "xian.torres@students.pup.edu.ph",
+      "ivan.villanueva@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-CS-3A-04",
+    "block_id": "2425-CS-3A",
+    "course": "BSCS",
+    "title": "Dormitory Utilities Tracker",
+    "abstract": "Deployment guidelines are provided for BSCS students. A mobile-first interface is implemented.",
+    "submitted_at": "2025-01-10T10:00:00+08:00",
+    "leader": "Faith Cruz",
+    "members": [
+      "Willow Reyes",
+      "Hannah Garcia",
+      "Olive Flores"
+    ],
+    "leader_email": "faith.cruz@students.pup.edu.ph",
+    "member_emails": [
+      "willow.reyes@students.pup.edu.ph",
+      "hannah.garcia@students.pup.edu.ph",
+      "olive.flores@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf",
+    "faculty_in_charge": "Ryan Garcia"
+  },
+  {
+    "group_id": "2425-CS-3A-05",
+    "block_id": "2425-CS-3A",
+    "course": "BSCS",
+    "title": "Smart Library Queueing System",
+    "abstract": "We evaluate performance on real campus data for BSCS students. We report latency and accuracy benchmarks.",
+    "submitted_at": "2025-01-21T10:00:00+08:00",
+    "leader": "Yuri Valdez",
+    "members": [
+      "Brix Nieves",
+      "Evan Castillo",
+      "Yara Nieves"
+    ],
+    "leader_email": "yuri.valdez@students.pup.edu.ph",
+    "member_emails": [
+      "brix.nieves@students.pup.edu.ph",
+      "evan.castillo@students.pup.edu.ph",
+      "yara.nieves@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-CS-3B-01",
+    "block_id": "2425-CS-3B",
+    "course": "BSCS",
+    "title": "Lost & Found Item Classifier",
+    "abstract": "The design follows privacy-by-default principles for BSCS students. Deployment guidelines are provided.",
+    "submitted_at": "2025-02-01T10:00:00+08:00",
+    "leader": "Drei Villanueva",
+    "members": [
+      "Quinn Gutierrez",
+      "Alex Valdez",
+      "Una Bautista"
+    ],
+    "leader_email": "drei.villanueva@students.pup.edu.ph",
+    "member_emails": [
+      "quinn.gutierrez@students.pup.edu.ph",
+      "alex.valdez@students.pup.edu.ph",
+      "una.bautista@students.pup.edu.ph"
+    ],
+    "status": "ongoing",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf",
+    "faculty_in_charge": "Ryan Garcia"
+  },
+  {
+    "group_id": "2425-CS-3B-02",
+    "block_id": "2425-CS-3B",
+    "course": "BSCS",
+    "title": "Peer Evaluation Portal",
+    "abstract": "The approach supports offline operation for BSCS students. Deployment guidelines are provided.",
+    "submitted_at": "2025-02-06T10:00:00+08:00",
+    "leader": "Ralph Gutierrez",
+    "members": [
+      "Willow Ramos",
+      "Xenia Trinidad",
+      "Vera Bautista"
+    ],
+    "leader_email": "ralph.gutierrez@students.pup.edu.ph",
+    "member_emails": [
+      "willow.ramos@students.pup.edu.ph",
+      "xenia.trinidad@students.pup.edu.ph",
+      "vera.bautista@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-CS-3B-03",
+    "block_id": "2425-CS-3B",
+    "course": "BSCS",
+    "title": "Thesis Repository Search Engine",
+    "abstract": "The design follows privacy-by-default principles for BSCS students. A mobile-first interface is implemented.",
+    "submitted_at": "2025-02-17T10:00:00+08:00",
+    "leader": "Seth Mendoza",
+    "members": [
+      "Alex Zamora",
+      "Una Ramos",
+      "Gavin Flores"
+    ],
+    "leader_email": "seth.mendoza@students.pup.edu.ph",
+    "member_emails": [
+      "alex.zamora@students.pup.edu.ph",
+      "una.ramos@students.pup.edu.ph",
+      "gavin.flores@students.pup.edu.ph"
+    ],
+    "status": "approved",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf",
+    "faculty_in_charge": "Ryan Garcia"
+  },
+  {
+    "group_id": "2425-CS-3B-04",
+    "block_id": "2425-CS-3B",
+    "course": "BSCS",
+    "title": "Image-Based Plant Disease Detector",
+    "abstract": "The approach supports offline operation for BSCS students. This study develops a lightweight prototype.",
+    "submitted_at": "2025-02-28T10:00:00+08:00",
+    "leader": "Gavin Bautista",
+    "members": [
+      "Olive Aquino",
+      "Olive Villanueva",
+      "Mika Gonzales"
+    ],
+    "leader_email": "gavin.bautista@students.pup.edu.ph",
+    "member_emails": [
+      "olive.aquino@students.pup.edu.ph",
+      "olive.villanueva@students.pup.edu.ph",
+      "mika.gonzales@students.pup.edu.ph"
+    ],
+    "status": "rejected",
+    "panelist": "Ryan Garcia",
+    "facultyid": "110521",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf"
+  },
+  {
+    "group_id": "2425-CS-3B-05",
+    "block_id": "2425-CS-3B",
+    "course": "BSCS",
+    "title": "Document Summarizer for Research",
+    "abstract": "This study develops a lightweight prototype for BSCS students. This study develops a lightweight prototype.",
+    "submitted_at": "2025-03-05T10:00:00+08:00",
+    "leader": "Jessa DelosSantos",
+    "members": [
+      "Iris Villanueva",
+      "Alex Nieves",
+      "Uly Domingo"
+    ],
+    "leader_email": "jessa.delossantos@students.pup.edu.ph",
+    "member_emails": [
+      "iris.villanueva@students.pup.edu.ph",
+      "alex.nieves@students.pup.edu.ph",
+      "uly.domingo@students.pup.edu.ph"
+    ],
+    "status": "rejected",
+    "panelist": "Kim Mingyu",
+    "facultyid": "060304",
+    "pdf_url": "https://drive.google.com/file/d/115p0z_Z-60XVfkUqTbXWZyF-q186J8lG/view?usp=sharing",
+    "file_type": "pdf",
+    "faculty_in_charge": "Ryan Garcia"
+  }
+]

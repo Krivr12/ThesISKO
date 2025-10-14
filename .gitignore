@@ -4,14 +4,18 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Environment variables
 .env
 *.env
 config.env
+server/config.env
 
 # Logs
-logs
+logs/
 *.log
 logs/*.log
 
@@ -25,9 +29,24 @@ build/
 .cache/
 .next/
 out/
+.angular/
+coverage/          # test coverage reports
+.tmp/
+temp/
 
 # IDE/editor settings
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# Ignore Thesisko folder
+/Thesisko/
+server/config.env
+.vercel
+
+
+# Angular & Vite cache
+client/.angular/cache/
+client/vite/
+client/*.tsbuildinfo

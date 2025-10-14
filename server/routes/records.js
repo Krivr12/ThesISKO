@@ -1,168 +1,202 @@
 import express from "express";
-import RepoMongodb from "../RepoMongodb/connection.js";
+import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
+import { generateEmbedding, semanticSearch  } from "../controller/embeddingService.js";
 import { ObjectId } from "mongodb";
-import { generateAbstractEmbedding } from "../controller/abstractEmbedding.js";
-import { generateEmbedding } from "../controller/searchEmbeddings.js";
+import s3 from "../databaseConnections/AWS/s3_connection.js";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const router = express.Router();
+const VECTOR_INDEX = "AbstractSemanticSearch"; // replace with your Atlas vector index
+const collection = RepoMongodb ? RepoMongodb.collection("records") : null;
 
-const VECTOR_INDEX = "AbstractSemanticSearch"; // replace with your vector index name
-const collection = RepoMongodb.collection("records");
+// Helper function to check MongoDB availability
+const checkMongoDB = (res) => {
+  if (!collection) {
+    res.status(503).json({ error: "MongoDB not available" });
+    return false;
+  }
+  return true;
+};
 
-async function semanticSearch(query, limit = 5) {
-  const embedding = await generateEmbedding(query);
-  console.log("Embedding length:", embedding.length); // Should be 384 (or 768, etc.)
+// -------------------- Routes --------------------
 
-  const results = await collection
-    .aggregate([
-      {
-        $vectorSearch: {
-          queryVector: embedding,
-          path: "abstract_embedding", // must match your stored field
-          numCandidates: 100,
-          limit: limit,
-          index: VECTOR_INDEX,
-        },
-      },
-    ])
-    .toArray();
-
-    return results.map((r) => ({
-    title: r.title,
-    authors: r.authors,
-    submitted_at: r.submitted_at,
-    tags: r.tags,
-  }));
-}
-
-
-
-// GET all records
+// GET all records (full data for admin, or minimal for search based on query param)
 router.get("/", async (req, res) => {
+  if (!checkMongoDB(res)) return;
   try {
-    const collection = RepoMongodb.collection("records");
     const results = await collection.find({}).toArray();
-    res.status(200).send(results);
+    
+    // Check if request wants full data (for admin pages)
+    const fullData = req.query.full === 'true';
+    
+    if (fullData) {
+      // Return full records excluding only the large embedding field
+      const fullResults = results.map(doc => {
+        const { abstract_embedding, ...recordData } = doc;
+        return recordData;
+      });
+      return res.status(200).json(fullResults);
+    }
+    
+    // Transform to minimal data for search page
+    const transformedResults = results.map(doc => {
+      // Handle empty authors array
+      const firstAuthor = doc.authors && doc.authors.length > 0 
+        ? doc.authors[0] 
+        : "Unknown Author";
+      
+      // Extract year from created_at or submitted_at, handle null/undefined
+      let year = null;
+      const dateField = doc.created_at || doc.submitted_at;
+      if (dateField) {
+        try {
+          year = new Date(dateField).getFullYear();
+        } catch (dateError) {
+          console.warn(`Invalid date for document ${doc._id}:`, dateField);
+          year = new Date().getFullYear(); // Fallback to current year
+        }
+      } else {
+        year = new Date().getFullYear(); // Fallback to current year
+      }
+      
+      return {
+        _id: doc._id || doc.id, // Handle both _id and id fields
+        document_id: doc.document_id || doc.doc_id || (doc._id || doc.id)?.toString(), // Handle doc_id field
+        title: doc.title || "Untitled",
+        author: firstAuthor, // Transform to single author string for search-thesis
+        year: year, // Transform to year number for search-thesis
+        keywords: doc.tags || [] // Transform tags to keywords for search-thesis
+      };
+    });
+    
+    res.status(200).json(transformedResults);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error fetching records");
+    res.status(500).json({ error: "Error fetching records" });
   }
 });
 
-// GET latest 6 records (exclude embedding for efficiency)
+// GET latest 6 records
 router.get("/latest", async (req, res) => {
+  if (!checkMongoDB(res)) return;
   try {
-    const collection = RepoMongodb.collection("records");
-
     const results = await collection
-      .find({}, { 
-        projection: { 
-          title: 1,
-          submitted_at: 1,
-          authors: 1,
-          access_level: 1,
-          tags: 1,
-          _id: 0 // exclude _id if you don't need it, or set to 1 if you do
-        } 
-      })
-      .sort({ submitted_at: -1 }) // newest first
+      .find({})
+      .sort({ submitted_at: -1 })
       .limit(6)
       .toArray();
-
-    res.status(200).json(results);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error fetching latest records");
-  }
-});
-
-// GET single record by Document_Id
-router.get("/:id", async (req, res) => {
-  try {
-    const collection = RepoMongodb.collection("records");
-    const query = { _id: req.params.id }; // 👈 use _id not Document_Id
-    const result = await collection.findOne(query);
-
-    if (!result) {
-      res.status(404).send("Not Found");
-    } else {
-      res.status(200).send(result);
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error fetching record");
-  }
-});
-
-
- 
-// POST new record
-router.post("/", async (req, res) => {
-  try {
-    const collection = RepoMongodb.collection("records");
-
-    const year = new Date().getFullYear();
-    const countForYear = await collection.countDocuments({
-      _id: { $regex: `^${year}-` },
+    
+    // Transform to same format as /records/ endpoint
+    const transformedResults = results.map(doc => {
+      return {
+        _id: doc._id || doc.id, // Handle both _id and id fields
+        document_id: doc.document_id || doc.doc_id || (doc._id || doc.id)?.toString(), // Handle doc_id field
+        title: doc.title || "Untitled",
+        submitted_at: doc.submitted_at, // Keep original field name for frontend
+        authors: doc.authors || [], // Keep original field name for frontend
+        tags: doc.tags || [] // Keep original field name for frontend
+      };
     });
 
-    const newId = `${year}-${String(countForYear + 1).padStart(4, "0")}`;
+    res.status(200).json(transformedResults);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error fetching latest records" });
+  }
+});
 
-    // Generate embedding for semantic search (combine title + abstract)
+// GET single record by _id (full data for detail page)
+router.get("/:_id", async (req, res) => {
+  try {
+    const result = await collection.findOne({ _id: new ObjectId(req.params._id) });
+
+    if (!result) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+    
+    // Exclude unnecessary fields for detail page
+    const { abstract_embedding, updated_at, ...filteredResult } = result;
+    
+    res.status(200).json(filteredResult);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error fetching record" });
+  }
+});
+
+// POST new record (FOR TESTING ONLY NOT UPDATED ANYMORE)
+router.post("/", async (req, res) => {
+  try {
+    const year = new Date().getFullYear();
+    const countForYear = await collection.countDocuments({
+      doc_id: { $regex: `^${year}-` },
+    });
+
+    const newDocId = `${year}-${String(countForYear + 1).padStart(4, "0")}`;
+
+    // Generate embedding (title + abstract)
     const textToEmbed = `${req.body.title} ${req.body.abstract}`;
     const embedding = await generateEmbedding(textToEmbed);
 
     const newDocument = {
-      _id: newId,
+      doc_id: newDocId,
       title: req.body.title,
       abstract: req.body.abstract,
       submitted_at: new Date(),
       access_level: req.body.access_level,
-      authors: req.body.authors,
-      tags: req.body.tags,
-      embedding: embedding // <--- store embedding here
+      authors: Array.isArray(req.body.authors) ? req.body.authors : [],
+      tags: Array.isArray(req.body.tags) ? req.body.tags : [],
+      program: req.body.program,
+      document_type: req.body.document_type,
+      abstract_embedding: embedding,
     };
 
     const result = await collection.insertOne(newDocument);
-    res.status(201).send(result);
+    res.status(201).json({
+      insertedId: result.insertedId,
+      doc_id: newDocId,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error adding record");
+    res.status(500).json({ error: "Error adding record" });
   }
 });
 
-// POST new records (bulk insert)
+// POST bulk insert (FOR TESTING ONLY NOT UPDATED ANYMORE)
 router.post("/bulk", async (req, res) => {
   try {
-    const collection = RepoMongodb.collection("records");
-    const year = new Date().getFullYear();
-
-    let countForYear = await collection.countDocuments({
-      _id: { $regex: `^${year}-` },
-    });
-
     if (!Array.isArray(req.body)) {
-      return res.status(400).send("Request body must be an array of records");
+      return res
+        .status(400)
+        .json({ error: "Request body must be an array of records" });
     }
+
+    const year = new Date().getFullYear();
+    let countForYear = await collection.countDocuments({
+      doc_id: { $regex: `^${year}-` },
+    });
 
     const newDocuments = await Promise.all(
       req.body.map(async (doc, index) => {
-        const newId = `${year}-${String(countForYear + index + 1).padStart(4, "0")}`;
-        const textToEmbed = `${doc.title} ${doc.abstract}`;
-        const embedding = await generateEmbedding(textToEmbed);
+      const newDocId = `${year}-${String(countForYear + index + 1).padStart(4, "0")}`;
+      const textToEmbed = `${doc.title} ${doc.abstract}`;
+      const embedding = await generateEmbedding(textToEmbed);
 
-        return {
-          _id: newId,
-          title: doc.title,
-          abstract: doc.abstract,
-          submitted_at: new Date(),
-          access_level: doc.access_level,
-          authors: Array.isArray(doc.authors) ? doc.authors : [],
-          tags: Array.isArray(doc.tags) ? doc.tags : [],
-          embedding: embedding // <--- store embedding here
-        };
-      })
-    );
+    return {
+      doc_id: newDocId,
+      title: doc.title,
+      abstract: doc.abstract,
+      submitted_at: new Date(),
+      access_level: doc.access_level,
+      authors: Array.isArray(doc.authors) ? doc.authors : [],
+      tags: Array.isArray(doc.tags) ? doc.tags : [],
+      program: doc.program,            // ✅ fixed
+      document_type: doc.document_type, // ✅ fixed
+      abstract_embedding: embedding,
+    };
+  })
+);
+
 
     const result = await collection.insertMany(newDocuments);
 
@@ -172,50 +206,111 @@ router.post("/bulk", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error adding records");
+    res.status(500).json({ error: "Error adding records" });
   }
 });
 
-//POST search document
+// POST semantic search
 router.post("/search", async (req, res) => {
   try {
-    const { query } = req.body;
-    if (!query) {
-      return res.status(400).json({ error: "Query is required" });
+    const { query, topK = 5 } = req.body;
+
+    if (!query || typeof query !== "string") {
+      return res.status(400).json({ error: "Query (string) is required" });
     }
 
-    const results = await semanticSearch(query, 5);
-    res.json(results);
+    const results = await semanticSearch(query, topK);
+    return res.json({ results });
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Error performing semantic search");
+    console.error("❌ Semantic search error:", err);
+    return res.status(500).json({ error: "Error performing semantic search" });
   }
 });
 
-// DELETE a document
-router.delete("/:id", async (req, res) => {
-  try {
-    const collection = RepoMongodb.collection("records");
 
-    const result = await collection.deleteOne({ _id: req.params.id });
+// POST get single document
+router.post("/theses/by-ids", async (req, res) => {
+  try {
+    const { ids } = req.body;
+    
+    if (!ids || !Array.isArray(ids)) {
+      return res.status(400).json({ error: "IDs array is required" });
+    }
+
+    // Convert string IDs to ObjectIds
+    const objectIds = ids.map(id => new ObjectId(id));
+    
+    const results = await collection.find({
+      _id: { $in: objectIds }
+    }).toArray();
+    
+    res.status(200).json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error fetching theses by IDs" });
+  }
+});
+
+// DELETE a record by _id (also deletes associated S3 file)
+router.delete("/:_id", async (req, res) => {
+  try {
+    const { _id } = req.params;
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(_id)) {
+      return res.status(400).json({ error: "Invalid record ID" });
+    }
+
+    // 1. Find the record first to get file_key for S3 deletion
+    const record = await collection.findOne({ _id: new ObjectId(_id) });
+
+    if (!record) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    // 2. Delete file from S3 if file_key exists
+    if (record.file_key) {
+      try {
+        const deleteCommand = new DeleteObjectCommand({
+          Bucket: process.env.THESISKO_REPOSITORY_BUCKET || process.env.THESISKO_DOCUMENTS_BUCKET,
+          Key: record.file_key,
+        });
+        await s3.send(deleteCommand);
+        console.log(`✅ S3 file deleted: ${record.file_key}`);
+      } catch (s3Error) {
+        // Log S3 error but continue with MongoDB deletion
+        console.warn(`⚠️ S3 deletion failed for ${record.file_key}:`, s3Error.message);
+      }
+    }
+
+    // 3. Delete record from MongoDB
+    const result = await collection.deleteOne({ _id: new ObjectId(_id) });
 
     if (result.deletedCount === 0) {
-      return res.status(404).send("Record not found");
+      return res.status(404).json({ error: "Record not found" });
     }
 
-    res.status(200).send(`Record ${req.params.id} deleted successfully`);
+    res.status(200).json({
+      message: `Record deleted successfully`,
+      deletedId: _id,
+      document_id: record.document_id,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Error deleting record");
+    console.error("❌ Error deleting record:", err);
+    res.status(500).json({ error: "Error deleting record" });
   }
 });
 
-// PUT update a record by ID
-router.put("/:id", async (req, res) => {
+// PUT update record by doc_id
+router.put("/:doc_id", async (req, res) => {
   try {
-    const collection = RepoMongodb.collection("records");
+    const { doc_id } = req.params;
 
-    const { id } = req.params;
+    // Find existing record (needed for embedding regeneration)
+    const existingDoc = await collection.findOne({ doc_id });
+    if (!existingDoc) {
+      return res.status(404).json({ error: "Record not found" });
+    }
 
     // Build update object
     const updateFields = {};
@@ -225,18 +320,18 @@ router.put("/:id", async (req, res) => {
     if (req.body.authors) updateFields.authors = req.body.authors;
     if (req.body.tags) updateFields.tags = req.body.tags;
 
-    if (Object.keys(updateFields).length === 0) {
-      return res.status(400).send("No fields provided to update");
+    // Regenerate embedding if title/abstract changes
+    if (req.body.title || req.body.abstract) {
+      const textToEmbed = `${req.body.title || existingDoc.title} ${
+        req.body.abstract || existingDoc.abstract
+      }`;
+      updateFields.abstract_embedding = await generateEmbedding(textToEmbed);
     }
 
     const result = await collection.updateOne(
-      { _id: id },
+      { doc_id },
       { $set: updateFields }
     );
-
-    if (result.matchedCount === 0) {
-      return res.status(404).send("Record not found");
-    }
 
     res.json({
       message: "Record updated successfully",
@@ -244,11 +339,11 @@ router.put("/:id", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error updating record");
+    res.status(500).json({ error: "Error updating record" });
   }
 });
 
-
-
-
 export default router;
+
+
+//node --env-file=config.env server.js
