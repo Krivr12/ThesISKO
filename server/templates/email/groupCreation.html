@@ -1,0 +1,117 @@
+<div style="text-align: center; margin-bottom: 30px;">
+  <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">
+    Hello {{recipientName}}! 👋
+  </h2>
+  <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+    {{message}}
+  </p>
+</div>
+
+{{#if isLeader}}
+<!-- Group Credentials (Leader Only) -->
+{{#if hasCredentials}}
+<div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #800000; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative;">
+  <div style="position: absolute; top: -12px; left: 20px; background: #800000; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold;">
+    👥 Group Login Credentials
+  </div>
+  
+  <div style="margin-top: 15px;">
+    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #800000;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">🆔 Group ID:</strong>
+      <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">{{groupId}}</span>
+    </div>
+    
+    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #007bff;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">👤 Username:</strong>
+      <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">{{username}}</span>
+    </div>
+    
+    <div style="padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #28a745;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">🔑 Password:</strong>
+      <span style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 8px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; display: inline-block;">{{password}}</span>
+    </div>
+  </div>
+</div>
+{{/if}}
+{{/if}}
+
+<!-- Group Information -->
+<div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #495057; margin: 0 0 15px 0; font-size: 18px;">
+    📋 Group Details:
+  </h3>
+  <div style="color: #333; line-height: 1.8;">
+    <p style="margin: 5px 0;"><strong>Group ID:</strong> {{groupId}}</p>
+    <p style="margin: 5px 0;"><strong>Block:</strong> {{blockId}}</p>
+    <p style="margin: 5px 0;"><strong>Program:</strong> {{programName}}</p>
+    {{#if academicYear}}
+    <p style="margin: 5px 0;"><strong>Academic Year:</strong> {{academicYear}}</p>
+    {{/if}}
+  </div>
+</div>
+
+{{#if leaderInfo}}
+<!-- Leader Information -->
+<div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #1976d2; margin: 0 0 10px 0; font-size: 18px;">
+    👑 Group Leader:
+  </h3>
+  <p style="color: #333; margin: 0; font-size: 16px;">{{leaderInfo}}</p>
+</div>
+{{/if}}
+
+{{#if membersList}}
+<!-- Members List -->
+<div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #495057; margin: 0 0 15px 0; font-size: 18px;">
+    👥 {{membersLabel}}:
+  </h3>
+  <div style="color: #333; line-height: 1.8; white-space: pre-line;">{{membersList}}</div>
+</div>
+{{/if}}
+
+{{#if facultyInfo}}
+<!-- Faculty Information -->
+<div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #495057; margin: 0 0 15px 0; font-size: 18px;">
+    👨‍🏫 Faculty-in-Charge:
+  </h3>
+  <p style="color: #333; margin: 0;">{{facultyInfo}}</p>
+</div>
+{{/if}}
+
+{{#if panelistsList}}
+<!-- Panelists List -->
+<div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #495057; margin: 0 0 15px 0; font-size: 18px;">
+    🎓 Research Panelists:
+  </h3>
+  <div style="color: #333; line-height: 1.8; white-space: pre-line;">{{panelistsList}}</div>
+</div>
+{{/if}}
+
+<!-- Important Notice -->
+{{#if isLeader}}
+<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0;">
+  <p style="margin: 0; color: #856404; font-size: 14px;">
+    <strong>🔒 Important:</strong> As group leader, you can submit thesis manuscripts, upload documents, track progress, and manage group information. Please share the login credentials with your group members as needed.
+  </p>
+</div>
+{{else}}
+<div style="background: #d1ecf1; border: 1px solid #0c5460; border-radius: 8px; padding: 15px; margin: 20px 0;">
+  <p style="margin: 0; color: #0c5460; font-size: 14px;">
+    <strong>ℹ️ Note:</strong> Your group leader will coordinate thesis submissions and milestone tracking. Please coordinate with your leader for group activities.
+  </p>
+</div>
+{{/if}}
+
+{{#if loginUrl}}
+<!-- Login Button -->
+<div style="text-align: center; margin: 30px 0;">
+  <a href="{{loginUrl}}" 
+     style="display: inline-block; background: linear-gradient(135deg, #800000, #a00000); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 5px 15px rgba(128, 0, 0, 0.3);">
+    {{#if hasCredentials}}Login to ThesISKO{{else}}View Group Details{{/if}}
+  </a>
+</div>
+{{/if}}
+

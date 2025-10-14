@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 import multer from "multer";
 import db from "../databaseConnections/MongoDB/mongodb_connection.js";
 import s3 from "../databaseConnections/AWS/s3_connection.js";
-import { sendEmail } from "../services/sesService.js";
+// AWS SES service removed - now using unified email service
 import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { uploadRequestersData, updateRequestStatus } from "../services/analyticsService.js";
@@ -203,24 +203,43 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
 
     console.log("✅ Supabase analytics updated");
 
-    // Send email via SES
+    // Send email via unified email service
+    const { sendEmail: unifiedSendEmail } = await import('../services/emailService.js');
+    
     const subject =
       status === "approved"
         ? "Your document request has been approved"
         : "Your document request has been rejected";
-
-    const body =
-      status === "approved"
-        ? `<p>Your request for ${request.document_id} was approved.</p>
-           <p>Remarks: ${deanRemarks}</p>
-           <p>You can download the file here (valid for 2 days): 
-              <a href="${presignedUrl}">${presignedUrl}</a></p>`
-        : `<p>Your request for ${request.document_id} was rejected.</p>
-           <p>Reason: ${deanRemarks}</p>`;
+    
+    const expiryTime = status === "approved" ? "2 days" : "";
 
     console.log("📧 Sending email to:", request.requester.email);
-    await sendEmail(request.requester.email, subject, body);
-    console.log("✅ Email sent successfully");
+    
+    await unifiedSendEmail({
+      to: request.requester.email,
+      subject: subject,
+      template: 'requestApproval',
+      data: {
+        headerIcon: status === "approved" ? '✅' : '❌',
+        headerTitle: status === "approved" ? 'Request Approved' : 'Request Rejected',
+        status: status,
+        statusText: status === "approved" ? 'APPROVED' : 'REJECTED',
+        statusIcon: status === "approved" ? '✅' : '❌',
+        statusColor: status === "approved" ? '#4caf50' : '#f44336',
+        documentId: request.document_id,
+        remarks: deanRemarks || (status === "approved" ? "Your request has been approved." : "Your request has been rejected."),
+        remarksLabel: status === "approved" ? 'Dean\'s Remarks' : 'Rejection Reason',
+        remarksBackground: status === "approved" ? '#e8f5e9' : '#ffebee',
+        remarksBorder: status === "approved" ? '#c8e6c9' : '#ffcdd2',
+        remarksColor: status === "approved" ? '#2e7d32' : '#c62828',
+        approvedChapters: status === "approved" ? approvedChapters : null,
+        downloadUrl: status === "approved" ? presignedUrl : null,
+        expiryTime: expiryTime,
+        isRejected: status !== "approved"
+      }
+    });
+    
+    console.log("✅ Email sent successfully via unified service");
 
     res.json({ message: `Request ${status}`, presignedUrl });
   } catch (err) {
@@ -258,12 +277,29 @@ router.post("/:id/reject", async (req, res) => {
     // Update Supabase analytics status
     updateRequestStatus(id, "rejected");
 
-    // Send email via SES
-    const subject = "Your document request has been rejected";
-    const body = `<p>Your request for ${request.document_id} was rejected.</p>
-                  <p>Reason: ${reason || "Not specified"}</p>`;
+    // Send email via unified email service
+    const { sendEmail: unifiedSendEmail } = await import('../services/emailService.js');
 
-    await sendEmail(request.requester.email, subject, body);
+    await unifiedSendEmail({
+      to: request.requester.email,
+      subject: "Your document request has been rejected",
+      template: 'requestApproval',
+      data: {
+        headerIcon: '❌',
+        headerTitle: 'Request Rejected',
+        status: 'rejected',
+        statusText: 'REJECTED',
+        statusIcon: '❌',
+        statusColor: '#f44336',
+        documentId: request.document_id,
+        remarks: reason || "Not specified",
+        remarksLabel: 'Rejection Reason',
+        remarksBackground: '#ffebee',
+        remarksBorder: '#ffcdd2',
+        remarksColor: '#c62828',
+        isRejected: true
+      }
+    });
 
     res.json({ message: "Request rejected" });
   } catch (err) {

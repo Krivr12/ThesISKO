@@ -34,7 +34,7 @@ import requests from "./routes/requests.js";
 import programs from "./routes/programs.js";
 import groups from "./routes/groups.js";
 import blocks from "./routes/blocks.js";
-import { preloadModel } from "./services/embeddingService.js";
+import { preloadModel } from "./controller/embeddingService.js";
 preloadModel();
 
 

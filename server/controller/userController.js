@@ -424,55 +424,33 @@ const signupUser = async (req, res) => {
 
     const verifyUrl = `${req.protocol}://${req.get('host')}/verify-student?token=${token}&email=${encodeURIComponent(email)}`
     
-    // Sending verification email
-    
+    // Use unified email service
     try {
-      // Lazy import transporter to ensure environment variables are loaded
-      const { transporter } = await import('../config/mailer.js');
+      const { sendEmail } = await import('../services/emailService.js');
       
-      // Transporter loaded, sending email
-      
-      const emailOptions = {
-        from: process.env.MAIL_FROM || process.env.SMTP_USER,
+      await sendEmail({
         to: email,
         subject: 'Verify your email - ThesISKO',
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #800000;">Welcome to ThesISKO!</h2>
-              <p>Hello ${firstname},</p>
-              <p>Thank you for registering as a student. Please verify your email by clicking the button below:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${verifyUrl}"
-                  style="display:inline-block;background:#4CAF50;color:white;
-                         padding:15px 30px;text-decoration:none;border-radius:5px;
-                         font-weight:bold;font-size:16px;">
-                  Verify Email Address
-                </a>
-              </div>
-              <p>This link will expire in 24 hours.</p>
-              <p>If you didn't create this account, please ignore this email.</p>
-              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-              <p style="color: #666; font-size: 12px;">
-                This email was sent from ThesISKO System. Please do not reply to this email.
-              </p>
-            </div>
-        `
-      };
-      
-      const result = await transporter.sendMail(emailOptions);
-      // Email sent successfully
+        template: 'verification',
+        data: {
+          headerIcon: '🎓',
+          headerTitle: 'Welcome to ThesISKO!',
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          verifyUrl: verifyUrl,
+          status: status,
+          department: department,
+          course: course
+        }
+      });
       
     } catch (e) {
       console.error('❌ Failed to send verification email:', e);
       console.error('❌ Error details:', {
-        message: e.message,
-        code: e.code,
-        command: e.command,
-        response: e.response,
-        responseCode: e.responseCode,
-        stack: e.stack
+        message: e.message
       });
-      console.warn('📧 Email not sent. Manual verification link:', verifyUrl);
+      console.warn('📧 Email not sent via any provider. Manual verification link:', verifyUrl);
       console.log('🔗 COPY THIS LINK TO VERIFY:', verifyUrl);
     }
     return res.status(202).json({ 
@@ -1049,114 +1027,28 @@ const adminCreateFaculty = async (req, res) => {
 
     // Send email with credentials
     try {
-      // Lazy import transporter to ensure environment variables are loaded
-      const { transporter } = await import('../config/mailer.js');
+      // Use unified email service
+      const { sendEmail } = await import('../services/emailService.js');
       
-      await transporter.sendMail({
-        from: process.env.MAIL_FROM || process.env.SMTP_USER,
+      await sendEmail({
         to: email,
         subject: 'Faculty Account Created - ThesISKO',
-        html: `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Welcome to ThesISKO</title>
-          </head>
-          <body style="margin: 0; padding: 20px; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-              
-              <!-- Header -->
-              <div style="background: linear-gradient(135deg, #800000 0%, #a52a2a 100%); padding: 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                  🎓 Welcome to ThesISKO!
-                </h1>
-                <p style="color: #f8f8f8; margin: 10px 0 0 0; font-size: 16px;">
-                  Polytechnic University of the Philippines
-                </p>
-              </div>
-              
-              <!-- Main Content -->
-              <div style="padding: 40px 30px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                  <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">
-                    Hello ${firstname} ${lastname}! 👋
-                  </h2>
-                  <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
-                    Your faculty account has been created successfully. You're now part of the ThesISKO system!
-                  </p>
-                </div>
-                
-                <!-- Credentials Card -->
-                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #800000; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative;">
-                  <div style="position: absolute; top: -12px; left: 20px; background: #800000; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold;">
-                    🔐 Login Credentials
-                  </div>
-                  
-                  <div style="margin-top: 15px;">
-                    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #800000;">
-                      <strong style="color: #495057; display: block; margin-bottom: 5px;">📧 Email:</strong>
-                      <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">${email}</span>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #28a745;">
-                      <strong style="color: #495057; display: block; margin-bottom: 5px;">🔑 Password:</strong>
-                      <span style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 8px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; display: inline-block;">${generatedPassword}</span>
-                    </div>
-                    
-                    <div style="padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #007bff;">
-                      <strong style="color: #495057; display: block; margin-bottom: 5px;">🆔 Faculty ID:</strong>
-                      <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">${faculty_id}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Security Note -->
-                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                  <p style="margin: 0; color: #856404; font-size: 14px;">
-                    <strong>🔒 Security Note:</strong> Please change your password after your first login for enhanced security.
-                  </p>
-                </div>
-              </div>
-              
-              <!-- Footer -->
-              <div style="background: #2c3e50; padding: 20px; text-align: center;">
-                <p style="color: #bdc3c7; margin: 0; font-size: 13px;">
-                  This is an automated message from the ThesISKO System<br>
-                  Polytechnic University of the Philippines | Manila, Philippines
-                </p>
-                <p style="color: #95a5a6; margin: 10px 0 0 0; font-size: 12px;">
-                  © ${new Date().getFullYear()} ThesISKO. All rights reserved.
-                </p>
-              </div>
-              
-              <!-- Legal Notice -->
-              <div style="background: #fff3cd; border-top: 3px solid #ffc107; padding: 20px; text-align: left;">
-                <p style="margin: 0 0 10px 0; color: #856404; font-size: 13px; font-weight: bold;">
-                  ⚠️ CONFIDENTIALITY NOTICE & LEGAL DISCLAIMER
-                </p>
-                <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
-                  This email and any attachments are confidential and intended solely for the person(s) named above. 
-                  This communication may contain privileged or confidential information.
-                </p>
-                <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
-                  <strong>If you are NOT the intended recipient:</strong><br>
-                  • Please DO NOT read, copy, forward, or use this email<br>
-                  • Delete this email immediately<br>
-                  • Notify us at: <a href="mailto:thesiskopup@gmail.com" style="color: #800000;">thesiskopup@gmail.com</a>
-                </p>
-                <p style="margin: 0; color: #856404; font-size: 11px; line-height: 1.6;">
-                  Unauthorized use, disclosure, or distribution of this communication is strictly prohibited and may be unlawful.
-                </p>
-              </div>
-            </div>
-          </body>
-          </html>
-        `
+        template: 'credentials',
+        data: {
+          headerIcon: '🎓',
+          headerTitle: 'Welcome to ThesISKO!',
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          password: generatedPassword,
+          accountType: 'Faculty',
+          identifier: faculty_id,
+          identifierLabel: 'Faculty ID',
+          loginUrl: process.env.FRONTEND_URL || 'https://thesisko.online'
+        }
       });
 
-      // Faculty account created and email sent
+      // Faculty account created and email sent via unified service
     } catch (emailError) {
       console.error('Failed to send faculty credentials email:', emailError);
       // Don't fail the entire operation if email fails
@@ -1182,7 +1074,7 @@ const adminCreateFaculty = async (req, res) => {
       details: error.message
     });
   }
-};
+}
 
 export {
   getAllUsers,
@@ -1195,3 +1087,108 @@ export {
   updateUser,
   adminCreateFaculty
 }
+
+/* 
+  OLD HTML TEMPLATE - KEPT FOR REFERENCE ONLY
+  This template has been replaced by the unified email service templates
+  Located in: server/templates/email/credentials.html
+  
+  html: `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to ThesISKO</title>
+    </head>
+    <body style="margin: 0; padding: 20px; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #800000 0%, #a52a2a 100%); padding: 30px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+            🎓 Welcome to ThesISKO!
+          </h1>
+          <p style="color: #f8f8f8; margin: 10px 0 0 0; font-size: 16px;">
+            Polytechnic University of the Philippines
+          </p>
+        </div>
+        
+        <!-- Main Content -->
+        <div style="padding: 40px 30px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">
+              Hello ${firstname} ${lastname}! 👋
+            </h2>
+            <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+              Your faculty account has been created successfully. You're now part of the ThesISKO system!
+            </p>
+          </div>
+          
+          <!-- Credentials Card -->
+          <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #800000; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative;">
+            <div style="position: absolute; top: -12px; left: 20px; background: #800000; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold;">
+              🔐 Login Credentials
+            </div>
+            
+            <div style="margin-top: 15px;">
+              <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #800000;">
+                <strong style="color: #495057; display: block; margin-bottom: 5px;">📧 Email:</strong>
+                <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">${email}</span>
+              </div>
+              
+              <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #28a745;">
+                <strong style="color: #495057; display: block; margin-bottom: 5px;">🔑 Password:</strong>
+                <span style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 8px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; display: inline-block;">${generatedPassword}</span>
+              </div>
+              
+              <div style="padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #007bff;">
+                <strong style="color: #495057; display: block; margin-bottom: 5px;">🆔 Faculty ID:</strong>
+                <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">${faculty_id}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Security Note -->
+          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #856404; font-size: 14px;">
+              <strong>🔒 Security Note:</strong> Please change your password after your first login for enhanced security.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: #2c3e50; padding: 20px; text-align: center;">
+          <p style="color: #bdc3c7; margin: 0; font-size: 13px;">
+            This is an automated message from the ThesISKO System<br>
+            Polytechnic University of the Philippines | Manila, Philippines
+          </p>
+          <p style="color: #95a5a6; margin: 10px 0 0 0; font-size: 12px;">
+            © ${new Date().getFullYear()} ThesISKO. All rights reserved.
+          </p>
+        </div>
+        
+        <!-- Legal Notice -->
+        <div style="background: #fff3cd; border-top: 3px solid #ffc107; padding: 20px; text-align: left;">
+          <p style="margin: 0 0 10px 0; color: #856404; font-size: 13px; font-weight: bold;">
+            ⚠️ CONFIDENTIALITY NOTICE & LEGAL DISCLAIMER
+          </p>
+          <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
+            This email and any attachments are confidential and intended solely for the person(s) named above. 
+            This communication may contain privileged or confidential information.
+          </p>
+          <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
+            <strong>If you are NOT the intended recipient:</strong><br>
+            • Please DO NOT read, copy, forward, or use this email<br>
+            • Delete this email immediately<br>
+            • Notify us at: <a href="mailto:thesiskopup@gmail.com" style="color: #800000;">thesiskopup@gmail.com</a>
+          </p>
+          <p style="margin: 0; color: #856404; font-size: 11px; line-height: 1.6;">
+            Unauthorized use, disclosure, or distribution of this communication is strictly prohibited and may be unlawful.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+*/
