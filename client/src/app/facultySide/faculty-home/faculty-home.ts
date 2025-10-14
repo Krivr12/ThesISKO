@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 /* Angular Material */
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -151,7 +152,7 @@ export class FacultyHome implements OnInit, AfterViewInit {
   loadFacultyBlocks(): void {
     this.isLoadingBlocks = true;
     this.http.get<{ success: boolean; data: { ficBlocks: ProgramBlocks[], panelistBlocks: ProgramBlocks[] } }>(
-      `http://localhost:5050/blocks/faculty/${encodeURIComponent(this.currentUserEmail)}`
+      `${environment.authApiUrl}/blocks/faculty/${encodeURIComponent(this.currentUserEmail)}`
     ).subscribe({
       next: (response) => {
         if (response.success) {
