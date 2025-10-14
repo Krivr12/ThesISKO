@@ -42,7 +42,7 @@ const getVerificationTemplate = (templateName, data = {}) => {
           <p style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
             Your account has been created and you can now log in to access ThesISKO.
           </p>
-          <a href="http://localhost:4201/login" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4); transition: transform 0.3s ease;">
+          <a href="${process.env.FRONTEND_URL || 'https://thesisko.online'}/login" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4); transition: transform 0.3s ease;">
             Go to Login Page
           </a>
           <div style="margin-top: 30px; color: #999; font-size: 0.9em;">
@@ -68,7 +68,7 @@ const getVerificationTemplate = (templateName, data = {}) => {
           <div style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
             The verification link you clicked is invalid or malformed. Please check the link and try again.
           </div>
-          <a href="http://localhost:4201/signup" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
+          <a href="${process.env.FRONTEND_URL || 'https://thesisko.online'}/signup" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
             Sign Up Again
           </a>
         </div>
@@ -90,7 +90,7 @@ const getVerificationTemplate = (templateName, data = {}) => {
           <div style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
             This verification link has expired. Please request a new verification email to complete your registration.
           </div>
-          <a href="http://localhost:4201/signup" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
+          <a href="${process.env.FRONTEND_URL || 'https://thesisko.online'}/signup" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
             Sign Up Again
           </a>
         </div>
@@ -112,7 +112,7 @@ const getVerificationTemplate = (templateName, data = {}) => {
           <div style="color: #666; font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">
             This email has already been verified. You can now log in to your account.
           </div>
-          <a href="http://localhost:4201/login" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
+          <a href="${process.env.FRONTEND_URL || 'https://thesisko.online'}/login" style="display: inline-block; background: #ffd966; color: #800000; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.1em; box-shadow: 0 5px 15px rgba(255, 217, 102, 0.4);">
             Go to Login
           </a>
         </div>
@@ -132,7 +132,7 @@ const getVerificationTemplate = (templateName, data = {}) => {
         <h1 style="color: #800000;">ThesISKO</h1>
         <h2>Email Verification</h2>
         <p>Unknown template: ${templateName}</p>
-        <a href="http://localhost:4201/login" style="background: #ffd966; color: #800000; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Login</a>
+        <a href="${process.env.FRONTEND_URL || 'https://thesisko.online'}/login" style="background: #ffd966; color: #800000; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Login</a>
       </body>
       </html>
     `;

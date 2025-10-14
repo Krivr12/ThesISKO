@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, TemplateRef } from '@angul
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 /* Angular Material (standalone) */
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -69,7 +70,7 @@ export class AdminFaculties implements OnInit, AfterViewInit {
   }
 
   loadFaculties(): void {
-    this.http.get<Faculty[]>('http://localhost:5050/admin/faculty').subscribe({
+    this.http.get<Faculty[]>(`${environment.authApiUrl}/admin/faculty`).subscribe({
       next: (faculties) => {
         this.dataSource.data = faculties ?? [];
         console.log('Loaded faculties from database:', faculties);
@@ -136,7 +137,7 @@ export class AdminFaculties implements OnInit, AfterViewInit {
 
   /** ---------- Create Faculty ---------- */
   createFaculty(faculty: Faculty): void {
-    this.http.post('http://localhost:5050/admin/faculty', {
+    this.http.post(`${environment.authApiUrl}/admin/faculty`, {
       firstname: faculty.firstname,
       lastname: faculty.lastname,
       email: faculty.email,

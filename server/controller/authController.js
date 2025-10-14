@@ -149,7 +149,7 @@ const googleAuthSuccess = async (req, res) => {
           console.log('Created new guest user:', JSON.stringify(guestUser, null, 2));
         } catch (insertError) {
           console.error('Error inserting guest user:', insertError);
-          res.redirect('http://localhost:4200/google-callback?error=insert_failed');
+          res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=insert_failed`);
           return;
         }
       }
@@ -168,12 +168,13 @@ const googleAuthSuccess = async (req, res) => {
       console.log('User data object:', JSON.stringify(userData, null, 2));
       const encodedData = encodeURIComponent(JSON.stringify(userData));
       console.log('Encoded data length:', encodedData.length);
-      const redirectUrl = `http://localhost:4200/google-callback?data=${encodedData}`;
+      const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
+      const redirectUrl = `${frontendUrl}/google-callback?data=${encodedData}`;
       console.log('Redirect URL:', redirectUrl);
       res.redirect(redirectUrl);
     } else {
       console.log('No user data received from Google OAuth');
-      res.redirect('http://localhost:4200/google-callback?error=auth_failed');
+      res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=auth_failed`);
     }
   } catch (error) {
     console.error('Google auth success error:', error);
@@ -183,14 +184,14 @@ const googleAuthSuccess = async (req, res) => {
       name: error.name,
       code: error.code
     });
-    res.redirect('http://localhost:4200/google-callback?error=server_error');
+    res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=server_error`);
   }
 };
 
 // Google OAuth failure handler
 const googleAuthFailure = (req, res) => {
   console.log('Google OAuth failed');
-  res.redirect('http://localhost:4200/login?error=oauth_failed');
+  res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/login?error=oauth_failed`);
 };
 
 export {
