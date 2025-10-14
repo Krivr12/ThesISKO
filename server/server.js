@@ -34,6 +34,9 @@ import requests from "./routes/requests.js";
 import programs from "./routes/programs.js";
 import groups from "./routes/groups.js";
 import blocks from "./routes/blocks.js";
+import { preloadModel } from "./services/embeddingService.js";
+preloadModel();
+
 
 const PORT = process.env.PORT || 5050;
 const app = express();
