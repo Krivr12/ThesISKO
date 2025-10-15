@@ -111,8 +111,8 @@ export class ForFIC implements OnInit, AfterViewInit {
 
   /* ---------- Lifecycle ---------- */
   ngOnInit(): void {
-    // Get current user email from session storage
-    const userStr = sessionStorage.getItem('currentUser') || sessionStorage.getItem('user');
+    // Get current user email from local storage
+    const userStr = localStorage.getItem('currentUser') || localStorage.getItem('user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
