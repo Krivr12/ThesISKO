@@ -75,34 +75,6 @@ const googleAuthSuccess = async (req, res) => {
             [user.avatar, user.googleId, existingUser.user_id]
           );
           
-          // For students (role_id = 2), check if they belong to a group
-          let groupId = null;
-          if (existingUser.role_id === 2) {
-            try {
-              // Import MongoDB client
-              const { getDb } = await import('../data/mongodb.js');
-              const db = getDb();
-              const groupsCollection = db.collection('groups');
-              
-              // Find group where student is either leader or member
-              const group = await groupsCollection.findOne({
-                $or: [
-                  { 'leader.email': existingUser.email },
-                  { 'members.email': existingUser.email }
-                ]
-              });
-              
-              if (group) {
-                groupId = group.group_id;
-                console.log('✅ Found group for student:', groupId);
-              } else {
-                console.log('⚠️ No group found for student:', existingUser.email);
-              }
-            } catch (groupError) {
-              console.error('Error fetching group for student:', groupError);
-            }
-          }
-          
           guestUser = {
             id: existingUser.user_id,
             email: existingUser.email,
@@ -115,7 +87,7 @@ const googleAuthSuccess = async (req, res) => {
             StudentID: existingUser.student_id, // Include student_id if exists
             Department: existingUser.department_id,
             Course: existingUser.course_id,
-            group_id: groupId // Include group_id for students
+            group_id: existingUser.group_id // Get group_id directly from users_info table
           };
           
           console.log('✅ Google account linked to registered user without role change:', JSON.stringify(guestUser, null, 2));
