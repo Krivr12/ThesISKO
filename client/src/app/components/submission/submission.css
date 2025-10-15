@@ -25,65 +25,6 @@
   margin-bottom: 3rem;
 }
 
-/* Rejection Banner */
-.rejection-banner {
-  background-color: #fef2f2;
-  border: 2px solid #dc2626;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  display: flex;
-  gap: 1rem;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.rejection-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
-}
-
-.rejection-content {
-  flex: 1;
-}
-
-.rejection-title {
-  color: #dc2626;
-  font-size: 1.25rem;
-  margin: 0 0 0.5rem 0;
-  font-weight: 600;
-}
-
-.rejection-message {
-  margin: 0.5rem 0;
-  color: #374151;
-}
-
-.rejection-reason {
-  background-color: white;
-  border-left: 4px solid #dc2626;
-  padding: 0.75rem;
-  margin: 1rem 0;
-  font-style: italic;
-  color: #1f2937;
-}
-
-.rejection-action {
-  margin: 0.5rem 0 0 0;
-  color: #374151;
-  font-weight: 500;
-}
-
 .main-title {
   font-family: 'Inter', Arial, sans-serif;
   font-size: 3.75rem;
@@ -138,45 +79,12 @@
 .step-item {
   font-size: 1rem;
   color: #6b7280;
-  cursor: default;
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .step-item.active {
   color: #800000;
   font-weight: 600;
-  background-color: #f5f5f5;
-}
-
-.step-item.completed {
-  color: #059669;
-  font-weight: 500;
-}
-
-.step-item.completed::before {
-  content: '✓ ';
-  margin-right: 0.25rem;
-}
-
-.step-item.locked {
-  color: #d1d5db;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.step-item.clickable {
-  cursor: pointer;
-}
-
-.step-item.clickable:hover:not(.active) {
-  background-color: #f9fafb;
-  color: #4b5563;
-}
-
-.step-item.locked:hover {
-  background-color: transparent;
 }
 
 .main-content {
@@ -467,7 +375,7 @@
   cursor: not-allowed;
 }
 
-/* Dual button layout */
+/* Dual buttons for Step 6 */
 .button-container-dual {
   width: 100%;
   display: flex;
@@ -694,7 +602,7 @@
   margin: 0.5rem 0;
 }
 
-/* Box containers for metadata */
+/* Box containers for Step 6 */
 .member-box, .tags-box {
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
@@ -872,4 +780,158 @@ radio-group {
   font-weight: 600;
 }
 
+/* new styles for dropdown button */
+.dropdown-button-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-main-btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-right: 1px;
+}
+
+.dropdown-toggle-btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding: 0.75rem 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dropdown-toggle-btn.dropdown-open {
+  background-color: #910101;
+}
+
+.faculty-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 300px;
+  margin-top: 0.5rem;
+}
+
+.dropdown-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dropdown-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #800000;
+  cursor: pointer;
+  font-size: 0.875rem;
+  text-decoration: underline;
+}
+
+.link-btn:hover {
+  color: #910101;
+}
+
+.faculty-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.faculty-option {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.faculty-option:hover {
+  background-color: #f9fafb;
+}
+
+.faculty-option input[type="checkbox"] {
+  margin-right: 0.75rem;
+}
+
+.faculty-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.faculty-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.faculty-role {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.selected-faculty {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Status list enhancements for faculty feedback */
+.status-item.faculty-feedback {
+  align-items: flex-start;
+}
+
+.status-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.faculty-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.faculty-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: #800000;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.faculty-decision {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.status-item.faculty-feedback {
+  align-items: flex-start;
+}
+
+.status-item.faculty-feedback .status-dot {
+  margin-top: 0.5rem;
+}
 

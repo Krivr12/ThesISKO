@@ -1,21 +1,13 @@
 .sidenav-container {
     height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 250px;
-    z-index: 1000;
   }
   
   .sidenav {
-    width: 250px;
+    width: 200px;
     background-color: #800000;
     padding-top: 2rem;
     padding-left: 1rem;
     padding-right: 1rem;
-    position: fixed;
-    height: 100vh;
-    overflow-y: auto;
   }
   
   .logo {
@@ -29,6 +21,10 @@
     margin: 0.5rem 0;
     color: white;
     margin-top: 10px;
+  }
+
+  .sidenav-container {
+    height: 100vh;
   }
   
 /* Make buttons fill the sidenav width nicely (optional) */

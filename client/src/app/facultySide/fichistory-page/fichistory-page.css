@@ -83,11 +83,9 @@ app-sidenavbar { width:200px; flex-shrink:0; }
 }
 .btn.primary{ background:#800000; color:#fff; }
 .btn.primary:hover{ opacity:.9; }
-.btn.secondary{ background:#e0e0e0; color:#666; border:2px solid #ccc; }
-.btn.secondary:hover{ background:#d0d0d0; }
 .btn.ghost{ background:#fff; border:2px solid #800000; color:#800000; }
 .btn.ghost:hover{ background:#fde9e9; }
-.btn:disabled{ cursor:not-allowed; }
+.btn:disabled{ opacity:.6; cursor:not-allowed; }
 
 .loading{ color:#6b6b6b; padding:20px; }
 

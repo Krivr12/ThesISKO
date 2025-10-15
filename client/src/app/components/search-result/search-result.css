@@ -322,6 +322,109 @@
   padding: 8px 16px 16px;
   gap: 8px;
 }
+/* MODIFIED CSS for modal <<start>> - vincent */
+:host ::ng-deep .mat-mdc-dialog-surface[aria-labelledby*="login"] {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* modal overlay */
+:host ::ng-deep .cdk-overlay-pane[aria-labelledby*="login"] {
+  z-index: 50;
+}
+
+/* modal header */
+:host ::ng-deep .mat-mdc-dialog-title[id*="login"] {
+  background-color: #800000 !important;
+  color: white !important;
+  padding: 1.25rem !important;
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  border-top-left-radius: 1rem !important;
+  border-top-right-radius: 1rem !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+/* modal body */
+:host ::ng-deep .mat-mdc-dialog-content[aria-labelledby*="login"] {
+  color: #374151 !important;
+  padding: 2rem !important;
+  text-align: center !important;
+  font-size: 1.125rem !important;
+  margin: 0 !important;
+}
+
+/* modal actions */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 1rem !important;
+  padding: 0 2rem 2rem 2rem !important;
+  margin: 0 !important;
+}
+
+/* BUTTONS */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-button {
+  font-weight: 700 !important;
+  padding: 0.75rem 2.5rem !important;
+  border-radius: 0.5rem !important;
+  transition: background-color 0.2s !important;
+  cursor: pointer !important;
+  border: none !important;
+  font-size: 1rem !important;
+  min-width: 120px !important;
+}
+
+/* primary button (login) */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-raised-button.mat-primary {
+  background-color: #800000 !important;
+  color: white !important;
+}
+/* hovered version */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-raised-button.mat-primary:hover {
+  background-color: #910101 !important;
+}
+
+/* cancel button */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-button:not(.mat-mdc-raised-button) {
+  background-color: white !important;
+  color: #800000 !important;
+  border: 2px solid #800000 !important;
+  padding: calc(0.75rem - 2px) calc(2.5rem - 2px) !important;
+}
+/* hovered version */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-button:not(.mat-mdc-raised-button):hover {
+  background-color: #fef2f2 !important;
+}
+
+/* text styles */
+:host ::ng-deep .mat-mdc-dialog-content[aria-labelledby*="login"] .mb-2 {
+  margin-bottom: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+:host ::ng-deep .mat-mdc-dialog-content[aria-labelledby*="login"] .muted {
+  color: #6b7280 !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  margin-top: 1rem !important;
+}
+
+:host ::ng-deep .mat-mdc-dialog-content[aria-labelledby*="login"] strong {
+  color: #800000 !important;
+  font-weight: 600 !important;
+}
+
+/* similar modal size as submission modal */
+:host ::ng-deep .cdk-overlay-pane[aria-labelledby*="login"] {
+  max-width: 500px !important;
+  width: calc(100% - 2rem) !important;
+}
+/* MODIFIED CSS for modal <<end>> - vincent */
 
 /* Make the primary (accent) action maroon like your brand */
 :host ::ng-deep .mat-mdc-raised-button.mat-accent:not(:disabled) {
