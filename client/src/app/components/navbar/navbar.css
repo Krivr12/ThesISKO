@@ -197,6 +197,98 @@ h2 {
     margin-right: 0.5rem !important;
   }
 
+/* MODIFIED CSS - vincent */
+/* dropdown menu of profile card*/
+:host ::ng-deep .user-profile-card + .p-menu-overlay {
+  margin-top: 8px !important;
+}
 
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  padding: 8px !important;
+  min-width: 200px !important;
+}
+
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem {
+  margin: 2px 0 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link {
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  color: #800000 !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+}
+
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link:hover {
+  background-color: rgba(128, 0, 0, 0.1) !important;
+  color: #800000 !important;
+  transform: translateY(-1px) !important;
+}
+
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link:active {
+  background-color: rgba(128, 0, 0, 0.15) !important;
+  transform: translateY(0) !important;
+}
+
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-icon {
+  color: #800000 !important;
+  font-size: 14px !important;
+  margin-right: 12px !important;
+}
+
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-text {
+  color: #800000 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+/* making sign out stand out */
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link {
+  border-top: 1px solid rgba(128, 0, 0, 0.1) !important;
+  margin-top: 4px !important;
+  padding-top: 14px !important;
+}
+
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link:hover {
+  background-color: rgba(220, 53, 69, 0.1) !important;
+  color: #dc3545 !important;
+}
+
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-icon,
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-text {
+  color: #dc3545 !important;
+}
+
+/* removes default setting */
+:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-submenu-header {
+  background: transparent !important;
+  border: none !important;
+  color: #800000 !important;
+}
+
+/* dropdown animation */
+:host ::ng-deep .user-profile-card + .p-menu-overlay {
+  animation: slideDown 0.2s ease-out !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 
