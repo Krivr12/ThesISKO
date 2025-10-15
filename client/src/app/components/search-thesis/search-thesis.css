@@ -483,79 +483,54 @@ body {
   color: #d32f2f;
 }
 
-/* Angular Material Paginator Styling */
-::ng-deep .paginator .mat-mdc-paginator {
-  background-color: transparent;
-  color: #333;
-  margin-top: 30px;
-}
-
-::ng-deep .paginator .mat-mdc-paginator-container {
+/* ===== PAGINATOR ===== */
+.paginator {
+  display: flex;
   justify-content: center;
-  padding: 15px 0;
+  padding: 20px 0;
+  margin-top: 30px;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+  min-height: 56px;
 }
 
-::ng-deep .paginator .mat-mdc-icon-button {
+:host ::ng-deep .paginator .mat-mdc-paginator {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
   color: #800000;
 }
 
-::ng-deep .paginator .mat-mdc-icon-button:hover:not([disabled]) {
-  background-color: rgba(128, 0, 0, 0.1);
+:host ::ng-deep .paginator .mat-mdc-paginator-container {
+  justify-content: center;
+  padding: 0 16px;
+  min-height: 56px;
 }
 
-::ng-deep .paginator .mat-mdc-icon-button[disabled] {
+:host ::ng-deep .paginator .mat-mdc-paginator-range-label {
+  margin: 0 32px;
+  min-width: 100px;
+  text-align: center;
+  color: #800000;
+}
+
+:host ::ng-deep .paginator .mat-mdc-paginator-page-size-label {
+  margin-right: 8px;
+  color: #800000;
+}
+
+:host ::ng-deep .paginator .mat-mdc-icon-button {
+  color: #800000;
+  width: 40px;
+  height: 40px;
+}
+
+:host ::ng-deep .paginator .mat-mdc-icon-button:hover:not([disabled]) {
+  background-color: rgba(128, 0, 0, 0.08);
+}
+
+:host ::ng-deep .paginator .mat-mdc-icon-button[disabled] {
   color: rgba(128, 0, 0, 0.3);
 }
-
-::ng-deep .paginator .mat-mdc-paginator-page-size-label,
-::ng-deep .paginator .mat-mdc-paginator-range-label {
-  color: #333;
-  font-weight: 500;
-  margin: 0 15px;
-}
-
-::ng-deep .paginator .mat-mdc-form-field {
-  margin: 0 10px;
-}
-
-::ng-deep .paginator .mat-mdc-text-field-wrapper {
-  padding-bottom: 0;
-}
-
-::ng-deep .paginator .mat-mdc-select {
-  color: #800000;
-  font-weight: 600;
-}
-
-::ng-deep .paginator .mat-mdc-select-value {
-  color: #800000;
-}
-
-::ng-deep .paginator .mat-mdc-select-arrow {
-  color: #800000;
-}
-
-/* Dropdown panel styling */
-::ng-deep .mat-mdc-select-panel {
-  background-color: white;
-  border: 1px solid #800000;
-}
-
-::ng-deep .mat-mdc-option {
-  color: #333;
-}
-
-::ng-deep .mat-mdc-option:hover {
-  background-color: rgba(128, 0, 0, 0.1);
-}
-
-::ng-deep .mat-mdc-option.mat-mdc-option-active {
-  background-color: rgba(128, 0, 0, 0.15);
-  color: #800000;
-}
-
-::ng-deep .mat-mdc-option.mdc-list-item--selected {
-  background-color: rgba(128, 0, 0, 0.2);
-  color: #800000;
-  font-weight: 600;
 }

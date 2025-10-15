@@ -71,31 +71,33 @@ export class Auth {
       return;
     }
     
-    const userData = sessionStorage.getItem('currentUser');
+    const userData = localStorage.getItem('currentUser');
     console.log('🔍 AuthService initializeUser called');
-    console.log('  - userData from sessionStorage:', userData ? 'exists' : 'null');
+    console.log('  - userData from localStorage:', userData ? 'exists' : 'null');
     if (userData) {
       try {
         const user = JSON.parse(userData);
         console.log('  - Parsed user:', user);
         this.currentUserSubject.next(user);
       } catch (error) {
-        console.error('Error parsing user data from session storage:', error);
-        sessionStorage.removeItem('currentUser');
+        console.error('Error parsing user data from local storage:', error);
+        localStorage.removeItem('currentUser');
       }
     }
   }
 
   logout(): void {
     console.log('🔍 Main AuthService logout - Before clear:');
-    console.log('  - sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
+    console.log('  - localStorage currentUser:', localStorage.getItem('currentUser'));
     console.log('  - currentUserSubject value:', this.currentUserSubject.value);
     
     // Set logout flag to prevent re-initialization
     this.isLoggingOut = true;
     
-    // Clear session storage first
-    sessionStorage.removeItem('currentUser');
+    // Clear local storage first
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
     
     // Force clear the observable
     this.currentUserSubject.next(null);
@@ -103,7 +105,7 @@ export class Auth {
     // Double-check by clearing again after a small delay
     setTimeout(() => {
       console.log('🔍 Main AuthService logout - Double check after delay:');
-      console.log('  - sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
+      console.log('  - localStorage currentUser:', localStorage.getItem('currentUser'));
       console.log('  - currentUserSubject value:', this.currentUserSubject.value);
       
       // Force clear again if needed
@@ -120,7 +122,7 @@ export class Auth {
     }, 100);
     
     console.log('🔍 Main AuthService logout - After clear:');
-    console.log('  - sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
+    console.log('  - localStorage currentUser:', localStorage.getItem('currentUser'));
     console.log('  - currentUserSubject value:', this.currentUserSubject.value);
   }
   

@@ -52,7 +52,7 @@ export class LoginFaculty {
             role_id: user.role_id
           };
           
-          sessionStorage.setItem('currentUser', JSON.stringify(userData));
+          localStorage.setItem('currentUser', JSON.stringify(userData));
           
           // Set user in both auth services
           this.authService.setUser(userData);

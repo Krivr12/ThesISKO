@@ -36,7 +36,8 @@ export class LoginAdmin {
         if (response.user) {
           this.authService.setUser(response.user);
           this.navAuthService.setUser(response.user);
-          sessionStorage.setItem('email', email);
+          localStorage.setItem('email', email);
+          localStorage.setItem('currentUser', JSON.stringify(response.user));
           
           // Redirect based on role
           if (response.user.role_id === 4 || response.user.role_id === 7) {

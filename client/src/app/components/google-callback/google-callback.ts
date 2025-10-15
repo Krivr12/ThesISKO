@@ -225,11 +225,11 @@ export class GoogleCallbackComponent implements OnInit {
             : (userData.Email || userData.email)
         };
         
-        // Store user data in session storage
-        sessionStorage.setItem('currentUser', JSON.stringify(authUser));
-        sessionStorage.setItem('user', JSON.stringify(userData));
-        sessionStorage.setItem('role', userData.Status || userData.status || 'guest');
-        sessionStorage.setItem('email', userData.Email || userData.email);
+        // Store user data in local storage for persistence
+        localStorage.setItem('currentUser', JSON.stringify(authUser));
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('role', userData.Status || userData.status || 'guest');
+        localStorage.setItem('email', userData.Email || userData.email);
         
         console.log('Google Callback - Raw userData from database:', JSON.stringify(userData, null, 2));
         console.log('Google Callback - Mapped authUser:', JSON.stringify(authUser, null, 2));
@@ -287,11 +287,11 @@ export class GoogleCallbackComponent implements OnInit {
           role_id: data.user.role_id || 1
         };
         
-        // Store user data in session storage
-        sessionStorage.setItem('currentUser', JSON.stringify(authUser));
-        sessionStorage.setItem('user', JSON.stringify(data.user));
-        sessionStorage.setItem('role', data.user.Status || 'guest');
-        sessionStorage.setItem('email', data.user.Email);
+        // Store user data in local storage for persistence
+        localStorage.setItem('currentUser', JSON.stringify(authUser));
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('role', data.user.Status || 'guest');
+        localStorage.setItem('email', data.user.Email);
         
         this.authService.setUser(authUser);
         this.mainAuthService.setUser(authUser);
