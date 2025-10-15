@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { SuperAdminNavBar } from '../super-admin-nav-bar/super-admin-nav-bar';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Auth } from '../../service/auth';
 import { User } from '../../interface/auth';
@@ -41,12 +42,13 @@ type GroupRow = {
   templateUrl: './dean-approval.html',
   styleUrl: './dean-approval.css'
 })
-export class DeanApproval implements OnInit, AfterViewInit {
+export class DeanApproval implements OnInit, OnDestroy, AfterViewInit {
   displayedColumns: string[] = ['group_id', 'title', 'leader', 'program', 'block', 'actions'];
   dataSource = new MatTableDataSource<GroupRow>([]);
   loading = true;
   currentUserEmail = '';
   currentUser: User | null = null;
+  private userSubscription?: Subscription;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -62,7 +64,7 @@ export class DeanApproval implements OnInit, AfterViewInit {
     console.log('🔍 [Dean Approval] ngOnInit started');
     
     // Subscribe to current user from Auth service
-    this.authService.currentUser$.subscribe(user => {
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
       console.log('👤 [Dean Approval] User from Auth service:', user);
       
       if (user) {
@@ -70,11 +72,6 @@ export class DeanApproval implements OnInit, AfterViewInit {
         this.currentUserEmail = user.email || user.Email || '';
         console.log('✅ [Dean Approval] User identified');
         console.log('📧 [Dean Approval] Email:', this.currentUserEmail);
-        console.log('🔑 [Dean Approval] Email type:', typeof this.currentUserEmail);
-        console.log('🔑 [Dean Approval] Email length:', this.currentUserEmail?.length);
-        console.log('🔑 [Dean Approval] User keys:', Object.keys(user));
-        console.log('🔑 [Dean Approval] User.email:', user.email);
-        console.log('🔑 [Dean Approval] User.Email:', user.Email);
         
         // Load groups once we have user data
         if (this.currentUserEmail) {
@@ -84,11 +81,17 @@ export class DeanApproval implements OnInit, AfterViewInit {
           console.error('❌ [Dean Approval] Email is empty!');
         }
       } else {
-        console.error('❌ [Dean Approval] No user from Auth service!');
-        alert('Unable to identify current user. Please log in again.');
-        this.router.navigate(['/login-admin']);
+        console.log('⚠️ [Dean Approval] No user from Auth service (user logged out or not authenticated)');
+        // Don't show alert or navigate - let auth guard handle it
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscription to prevent memory leaks and multiple alerts on logout
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
   }
 
   ngAfterViewInit(): void {
