@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
@@ -6,6 +6,7 @@ import { Footer } from "../footer/footer";
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 interface Thesis {
   _id: string;
@@ -19,11 +20,13 @@ interface Thesis {
 @Component({
   selector: 'app-search-thesis',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar, Footer, HttpClientModule],
+  imports: [CommonModule, FormsModule, Navbar, Footer, HttpClientModule, MatPaginatorModule],
   templateUrl: './search-thesis.html',
   styleUrl: './search-thesis.css'
 })
 export class SearchThesis implements OnInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  
   constructor(private router: Router, private http: HttpClient, private route: ActivatedRoute) {}
   totalItems: number = 0;
   itemsPerPage: number = 8;
@@ -290,6 +293,12 @@ export class SearchThesis implements OnInit {
       this.calculatePagination();
       this.updateDisplayedTheses();
     }
+  }
+
+  onPage(event: PageEvent): void {
+    this.itemsPerPage = event.pageSize;
+    this.currentPage = event.pageIndex + 1; // convert 0-based -> 1-based
+    this.updateDisplayedTheses();
   }
 
   viewThesis(thesis: Thesis): void {

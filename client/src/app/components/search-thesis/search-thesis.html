@@ -121,9 +121,15 @@
           </div>
         </div>
 
-        <div class="paginator" *ngIf="totalPages > 1">
-          <!-- Your existing paginator code -->
-        </div>
+        <mat-paginator
+          class="paginator"
+          [length]="totalItems"
+          [pageIndex]="currentPage - 1"
+          [pageSize]="itemsPerPage"
+          [pageSizeOptions]="[5, 8, 10, 20]"
+          (page)="onPage($event)"
+          *ngIf="totalItems > 0">
+        </mat-paginator>
       </div>
     </div>
       </div> <!-- End main-content -->
