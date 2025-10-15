@@ -533,4 +533,3 @@ body {
 :host ::ng-deep .paginator .mat-mdc-icon-button[disabled] {
   color: rgba(128, 0, 0, 0.3);
 }
-}
