@@ -505,7 +505,7 @@
     font-size: 0.95rem;
 }
 
-.form-input, .file-input {
+.form-input, .form-textarea, .file-input {
     padding: 0.75rem;
     border: 1px solid #d1d5db;
     border-radius: 0.375rem;
@@ -513,7 +513,12 @@
     font-family: inherit;
 }
 
-.form-input:focus, .file-input:focus {
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-input:focus, .form-textarea:focus, .file-input:focus {
     outline: none;
     border-color: #800000;
 }

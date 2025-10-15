@@ -3,11 +3,15 @@ import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 import { generateEmbedding, semanticSearch  } from "../controller/embeddingService.js";
 import { ObjectId } from "mongodb";
 import s3 from "../databaseConnections/AWS/s3_connection.js";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import multer from "multer";
 
 const router = express.Router();
 const VECTOR_INDEX = "AbstractSemanticSearch"; // replace with your Atlas vector index
 const collection = RepoMongodb ? RepoMongodb.collection("records") : null;
+
+// Multer setup for file uploads
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Helper function to check MongoDB availability
 const checkMongoDB = (res) => {
@@ -301,7 +305,175 @@ router.delete("/:_id", async (req, res) => {
   }
 });
 
-// PUT update record by doc_id
+// PUT update record by _id (without file)
+router.put("/:_id", async (req, res) => {
+  try {
+    const { _id } = req.params;
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(_id)) {
+      return res.status(400).json({ error: "Invalid record ID" });
+    }
+
+    // Find existing record
+    const existingDoc = await collection.findOne({ _id: new ObjectId(_id) });
+    if (!existingDoc) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    // Build update object
+    const updateFields = {};
+    if (req.body.title) updateFields.title = req.body.title;
+    if (req.body.abstract) updateFields.abstract = req.body.abstract;
+    if (req.body.authors) {
+      updateFields.authors = Array.isArray(req.body.authors) 
+        ? req.body.authors 
+        : JSON.parse(req.body.authors);
+    }
+    if (req.body.tags) updateFields.tags = req.body.tags;
+    if (req.body.access_level) updateFields.access_level = req.body.access_level;
+    
+    updateFields.updated_at = new Date();
+
+    // Regenerate embedding if title/abstract changes
+    if (req.body.title || req.body.abstract) {
+      const textToEmbed = `${req.body.title || existingDoc.title} ${
+        req.body.abstract || existingDoc.abstract
+      }`;
+      updateFields.abstract_embedding = await generateEmbedding(textToEmbed);
+    }
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(_id) },
+      { $set: updateFields }
+    );
+
+    res.json({
+      message: "Record updated successfully",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (err) {
+    console.error("❌ Error updating record:", err);
+    res.status(500).json({ error: "Error updating record" });
+  }
+});
+
+// PUT update record by _id (with file upload)
+router.put("/:_id/with-file", upload.single("manuscript"), async (req, res) => {
+  try {
+    const { _id } = req.params;
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(_id)) {
+      return res.status(400).json({ error: "Invalid record ID" });
+    }
+
+    // Find existing record
+    const existingDoc = await collection.findOne({ _id: new ObjectId(_id) });
+    if (!existingDoc) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    console.log("📄 Updating record with file:", {
+      _id,
+      document_id: existingDoc.document_id,
+      hasExistingFile: !!existingDoc.file_key,
+      existingFileKey: existingDoc.file_key
+    });
+
+    // Build update object
+    const updateFields = {};
+    if (req.body.title) updateFields.title = req.body.title;
+    if (req.body.abstract) updateFields.abstract = req.body.abstract;
+    if (req.body.authors) {
+      updateFields.authors = Array.isArray(req.body.authors) 
+        ? req.body.authors 
+        : JSON.parse(req.body.authors);
+    }
+    if (req.body.tags) updateFields.tags = req.body.tags;
+    if (req.body.access_level) updateFields.access_level = req.body.access_level;
+    
+    updateFields.updated_at = new Date();
+
+    // Handle file upload if provided
+    if (req.file) {
+      const bucket = process.env.THESISKO_REPOSITORY_BUCKET || process.env.THESISKO_DOCUMENTS_BUCKET;
+      
+      // Delete old file if exists
+      if (existingDoc.file_key) {
+        try {
+          console.log(`🗑️ Deleting old file: ${existingDoc.file_key}`);
+          const deleteCommand = new DeleteObjectCommand({
+            Bucket: bucket,
+            Key: existingDoc.file_key,
+          });
+          await s3.send(deleteCommand);
+          console.log(`✅ Old file deleted successfully`);
+        } catch (deleteError) {
+          console.warn(`⚠️ Failed to delete old file:`, deleteError.message);
+          // Continue with upload even if delete fails
+        }
+      }
+
+      // Determine file path
+      // For documents without group_id, use document_id
+      let fileKey;
+      if (existingDoc.group_id) {
+        // Use group_id if available
+        fileKey = `repository-files/${existingDoc.group_id}/${req.file.originalname}`;
+      } else if (existingDoc.document_id) {
+        // Fall back to document_id for older documents
+        fileKey = `repository-files/${existingDoc.document_id}/${req.file.originalname}`;
+      } else {
+        // Last resort: use _id
+        fileKey = `repository-files/${_id}/${req.file.originalname}`;
+      }
+
+      console.log(`📤 Uploading new file to: ${fileKey}`);
+
+      // Upload new file
+      const putCommand = new PutObjectCommand({
+        Bucket: bucket,
+        Key: fileKey,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+      });
+
+      await s3.send(putCommand);
+      console.log(`✅ New file uploaded successfully`);
+
+      // Update file_key in database
+      updateFields.file_key = fileKey;
+    }
+
+    // Regenerate embedding if title/abstract changes
+    if (req.body.title || req.body.abstract) {
+      const textToEmbed = `${req.body.title || existingDoc.title} ${
+        req.body.abstract || existingDoc.abstract
+      }`;
+      updateFields.abstract_embedding = await generateEmbedding(textToEmbed);
+    }
+
+    // Update record
+    const result = await collection.updateOne(
+      { _id: new ObjectId(_id) },
+      { $set: updateFields }
+    );
+
+    console.log(`✅ Record updated successfully`);
+
+    res.json({
+      message: "Record updated successfully with file",
+      modifiedCount: result.modifiedCount,
+      file_key: updateFields.file_key,
+    });
+  } catch (err) {
+    console.error("❌ Error updating record with file:", err);
+    res.status(500).json({ error: "Error updating record with file" });
+  }
+});
+
+// PUT update record by doc_id (DEPRECATED - keeping for backwards compatibility)
 router.put("/:doc_id", async (req, res) => {
   try {
     const { doc_id } = req.params;
