@@ -8,23 +8,55 @@ import { environment } from '../../../environments/environment';
   selector: 'app-google-callback',
   standalone: true,
   template: `
-    <div class="flex justify-content-center align-items-center min-h-screen">
-      <div class="text-center">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <h3 class="mt-3">Processing Google Login...</h3>
-        <p>Please wait while we complete your authentication.</p>
+    <div class="loading-overlay">
+      <div class="loading-card">
+        <div class="spinner"></div>
+        <p class="loading-text">Signing you in...</p>
       </div>
     </div>
   `,
   styles: [`
-    .min-h-screen {
-      min-height: 100vh;
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
     }
-    .spinner-border {
-      width: 3rem;
-      height: 3rem;
+    
+    .loading-card {
+      background: white;
+      padding: 40px 60px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f0f0f0;
+      border-top: 3px solid #800000;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: #333;
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0;
     }
   `]
 })
