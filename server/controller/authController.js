@@ -59,36 +59,69 @@ const googleAuthSuccess = async (req, res) => {
         
         console.log('Updated existing guest user:', JSON.stringify(guestUser, null, 2));
       } else if (existingEmailUsers.rows.length > 0) {
-        // Email exists - check if it's a privileged user (roles 3-8: faculty/admin)
+        // Email exists - check if it's a registered user (students, faculty, admin)
         const existingUser = existingEmailUsers.rows[0];
         console.log('Email exists, checking role:', existingUser);
         
-        // Protected roles: faculty (3), admin (4), superadmin (5), and combined roles (7, 8)
-        const isPrivilegedUser = existingUser.role_id >= 3;
+        // Protected roles: Student (2), Faculty (3), Admin (4), SuperAdmin (5), and combined roles (6, 7, 8)
+        // Only role_id = 1 (guest) or null should be converted to guest
+        const isRegisteredUser = existingUser.role_id >= 2;
         
-        if (isPrivilegedUser) {
-          // For faculty/admin users, only link Google account WITHOUT changing role
-          console.log('🔒 Privileged user detected (role_id: ' + existingUser.role_id + '), preserving role and linking Google account');
+        if (isRegisteredUser) {
+          // For registered users (students, faculty, admin), link Google account WITHOUT changing role or names
+          console.log('🔒 Registered user detected (role_id: ' + existingUser.role_id + '), preserving role and linking Google account');
           await pool.query(
-            'UPDATE users_info SET avatar_url = $1, firstname = $2, lastname = $3, google_id = $4 WHERE user_id = $5',
-            [user.avatar, user.firstName, user.lastName, user.googleId, existingUser.user_id]
+            'UPDATE users_info SET avatar_url = $1, google_id = $2 WHERE user_id = $3',
+            [user.avatar, user.googleId, existingUser.user_id]
           );
+          
+          // For students (role_id = 2), check if they belong to a group
+          let groupId = null;
+          if (existingUser.role_id === 2) {
+            try {
+              // Import MongoDB client
+              const { getDb } = await import('../data/mongodb.js');
+              const db = getDb();
+              const groupsCollection = db.collection('groups');
+              
+              // Find group where student is either leader or member
+              const group = await groupsCollection.findOne({
+                $or: [
+                  { 'leader.email': existingUser.email },
+                  { 'members.email': existingUser.email }
+                ]
+              });
+              
+              if (group) {
+                groupId = group.group_id;
+                console.log('✅ Found group for student:', groupId);
+              } else {
+                console.log('⚠️ No group found for student:', existingUser.email);
+              }
+            } catch (groupError) {
+              console.error('Error fetching group for student:', groupError);
+            }
+          }
           
           guestUser = {
             id: existingUser.user_id,
             email: existingUser.email,
-            Status: existingUser.role_name, // Preserve original status (faculty/admin/etc)
-            Firstname: user.firstName,
-            Lastname: user.lastName,
+            Status: existingUser.role_name, // Preserve original status (student/faculty/admin/etc)
+            Firstname: existingUser.firstname, // Use DB firstname, not Google's
+            Lastname: existingUser.lastname,   // Use DB lastname, not Google's
             AvatarUrl: user.avatar,
             Email: existingUser.email,
-            role_id: existingUser.role_id // Preserve original role_id
+            role_id: existingUser.role_id, // Preserve original role_id
+            StudentID: existingUser.student_id, // Include student_id if exists
+            Department: existingUser.department_id,
+            Course: existingUser.course_id,
+            group_id: groupId // Include group_id for students
           };
           
-          console.log('✅ Google account linked to privileged user without role change:', JSON.stringify(guestUser, null, 2));
+          console.log('✅ Google account linked to registered user without role change:', JSON.stringify(guestUser, null, 2));
         } else {
-          // For guest/student users (role_id < 3), update to guest
-          console.log('Non-privileged user detected, updating to guest:', existingUser);
+          // For true guests (role_id = 1 or null), update their info
+          console.log('Guest user detected, updating info:', existingUser);
           await pool.query(
             'UPDATE users_info SET role_id = $1, avatar_url = $2, firstname = $3, lastname = $4, google_id = $5 WHERE user_id = $6',
             [roleId, user.avatar, user.firstName, user.lastName, user.googleId, existingUser.user_id]
@@ -96,16 +129,16 @@ const googleAuthSuccess = async (req, res) => {
           
           guestUser = {
             id: existingUser.user_id,
-            email: existingUser.email,
+            email: user.email,
             Status: 'guest',
             Firstname: user.firstName,
             Lastname: user.lastName,
             AvatarUrl: user.avatar,
-            Email: existingUser.email,
-            role_id: roleId // Add role_id for proper guest identification
+            Email: user.email,
+            role_id: roleId
           };
           
-          console.log('Updated existing user to guest:', JSON.stringify(guestUser, null, 2));
+          console.log('Updated existing guest user:', JSON.stringify(guestUser, null, 2));
         }
       } else {
         // Create new guest user
