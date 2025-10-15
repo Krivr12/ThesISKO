@@ -65,6 +65,7 @@ export class Documents implements OnInit {
   // Update form
   updateForm = {
     title: '',
+    abstract: '',
     authorsString: '',
     manuscriptFile: null as File | null,
     manuscriptFileName: ''
@@ -444,6 +445,7 @@ export class Documents implements OnInit {
   openUpdateModal(doc: Thesis): void {
     this.selectedDocument = doc;
     this.updateForm.title = doc.title;
+    this.updateForm.abstract = doc.abstract;
     this.updateForm.authorsString = doc.authors.join(', ');
     this.updateForm.manuscriptFile = null;
     this.updateForm.manuscriptFileName = '';
@@ -478,6 +480,7 @@ export class Documents implements OnInit {
 
   isUpdateFormValid(): boolean {
     return this.updateForm.title.trim().length > 0 && 
+           this.updateForm.abstract.trim().length > 0 &&
            this.updateForm.authorsString.trim().length > 0;
   }
 
@@ -497,6 +500,7 @@ export class Documents implements OnInit {
     const updateData: any = {
       document_id: this.selectedDocument.id,
       title: this.updateForm.title.trim(),
+      abstract: this.updateForm.abstract.trim(),
       authors: authorsArray
     };
 
@@ -514,6 +518,7 @@ export class Documents implements OnInit {
           const doc = this.documents.find(d => d._id === this.selectedDocument!._id);
           if (doc) {
             doc.title = this.updateForm.title.trim();
+            doc.abstract = this.updateForm.abstract.trim();
             doc.authors = authorsArray;
             // Update file key if provided in response
             if (response.file_key) {
@@ -544,6 +549,7 @@ export class Documents implements OnInit {
           const doc = this.documents.find(d => d._id === this.selectedDocument!._id);
           if (doc) {
             doc.title = this.updateForm.title.trim();
+            doc.abstract = this.updateForm.abstract.trim();
             doc.authors = authorsArray;
           }
           
@@ -566,6 +572,7 @@ export class Documents implements OnInit {
   private resetUpdateForm(): void {
     this.updateForm = {
       title: '',
+      abstract: '',
       authorsString: '',
       manuscriptFile: null,
       manuscriptFileName: ''

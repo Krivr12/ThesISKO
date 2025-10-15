@@ -227,6 +227,11 @@
                         </div>
 
                         <div class="form-group">
+                            <label class="form-label">Abstract</label>
+                            <textarea class="form-textarea" [(ngModel)]="updateForm.abstract" placeholder="Enter document abstract" rows="4"></textarea>
+                        </div>
+
+                        <div class="form-group">
                             <label class="form-label">Authors (comma-separated)</label>
                             <input type="text" class="form-input" [(ngModel)]="updateForm.authorsString" placeholder="e.g., John Doe, Jane Smith">
                         </div>
