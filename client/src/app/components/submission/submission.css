@@ -25,6 +25,65 @@
   margin-bottom: 3rem;
 }
 
+/* Rejection Banner */
+.rejection-banner {
+  background-color: #fef2f2;
+  border: 2px solid #dc2626;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rejection-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.rejection-content {
+  flex: 1;
+}
+
+.rejection-title {
+  color: #dc2626;
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.rejection-message {
+  margin: 0.5rem 0;
+  color: #374151;
+}
+
+.rejection-reason {
+  background-color: white;
+  border-left: 4px solid #dc2626;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #1f2937;
+}
+
+.rejection-action {
+  margin: 0.5rem 0 0 0;
+  color: #374151;
+  font-weight: 500;
+}
+
 .main-title {
   font-family: 'Inter', Arial, sans-serif;
   font-size: 3.75rem;
@@ -408,7 +467,7 @@
   cursor: not-allowed;
 }
 
-/* Dual buttons for Step 6 */
+/* Dual button layout */
 .button-container-dual {
   width: 100%;
   display: flex;
@@ -635,7 +694,7 @@
   margin: 0.5rem 0;
 }
 
-/* Box containers for Step 6 */
+/* Box containers for metadata */
 .member-box, .tags-box {
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;

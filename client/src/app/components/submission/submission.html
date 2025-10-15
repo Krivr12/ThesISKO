@@ -6,6 +6,21 @@
       <h1 class="main-title">Submission</h1>
     </header>
 
+    <!-- Rejection Banner -->
+    @if (hasRejection()) {
+      <div class="rejection-banner">
+        <div class="rejection-icon">⚠️</div>
+        <div class="rejection-content">
+          <h3 class="rejection-title">Submission Rejected</h3>
+          <p class="rejection-message">
+            <strong>{{ rejectionType() === 'fic' ? 'Faculty-in-Charge' : rejectionType() === 'panelist' ? 'Panelist' : rejectionType() === 'chairperson' ? 'Chairperson' : 'Dean' }}</strong> has requested changes:
+          </p>
+          <p class="rejection-reason">"{{ rejectionReason() }}"</p>
+          <p class="rejection-action">Please make the requested changes to <strong>{{ getMilestoneDisplayName(rejectedMilestone()!) }}</strong> and resubmit.</p>
+        </div>
+      </div>
+    }
+
     <main class="content-grid">
       
       <aside class="sidebar">
@@ -346,88 +361,9 @@
               }
             </div>
           }
-          <!-- step 6 archive theses-->
-          @case (6) {
-            <h2 class="content-title">Archive Submission</h2>
-            <div class="content-body">
-              @switch (viewState()) {
-                @case ('step6_initial') {
-                  <div class="archive-container">
-                    <!-- displays answers from step 5-->
-                    <div class="review-info">
-                      <!-- tags -->
-                      @if (tags().length > 0) {
-                        <h3>Tags</h3>
-                        <div class="tags-box">
-                          <div class="tags-grid">
-                            @for (tag of tags(); track tag; let i = $index) {
-                              <span class="tag-pill">{{ tag }}</span>
-                            }
-                          </div>
-                        </div>
-                      }
-                      
-                      <!-- title -->
-                      @if (title()) {
-                        <h3>Title</h3>
-                        <div class="title-review">
-                          <p><strong>{{ title() }}</strong></p>
-                        </div>
-                      }
-                      
-                      <!-- abstract -->
-                      @if (abstract()) {
-                        <h3>Abstract</h3>
-                        <div class="abstract-review">
-                          <p>{{ abstract() }}</p>
-                        </div>
-                      }
-                      
-                      <!-- access level -->
-                      @if (accessLevel()) {
-                        <h3>Access Level</h3>
-                        <div class="access-review">
-                          <p>{{ accessLevel() }}</p>
-                        </div>
-                      }
-                      
-                      <!-- confirm archive -->
-                      <div class="confirmation-checkbox">
-                        <label>
-                          <input type="checkbox" 
-                                [checked]="confirmationChecked()"
-                                (change)="toggleConfirmation()">
-                          I confirm that all information is correct and ready for archiving.
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- return button and confirm -->
-                  <div class="button-container-dual">
-                    <button class="btn btn-secondary" (click)="backToStep5()">Back</button>
-                    <button class="btn btn-primary" 
-                            [class.btn-disabled]="!confirmationChecked()"
-                            [disabled]="!confirmationChecked()"
-                            (click)="submitStep6()">
-                      Archive
-                    </button>
-                  </div>
-                }
-                <!-- dont remove, might break but after this it will lead to separate thank you page -->
-                @case('step6_archived') { 
-                  <div class="submission-feedback">
-                    <h3 class="text-success">Thank you so much, Iskolar!</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod</p>
-                    <p>tempor incididunt ut labore et dolore magna aliqua.</p>
-                  </div> 
-                }
-              }
-            </div>
-          }
         }
-<!-- to avoid duplicate buttons when in step 6 -->
-        @if (currentStep() !== 6) {
+        <!-- Main action button -->
+        @if (true) {
         <div class="button-container">
           <button class="btn"
                   [class.btn-primary]="!isButtonDisabled()"
@@ -504,22 +440,6 @@
       <div class="modal-actions">
         <button (click)="confirmStep5(true)" class="btn btn-primary">Yes</button>
         <button (click)="confirmStep5(false)" class="btn btn-secondary">No</button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- step 6 modal -->
-@if (viewState() === 'step6_confirming') {
-  <div class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title">Archive Confirmation</h3>
-      </div>
-      <p class="modal-body">Are you sure you want to archive?</p>
-      <div class="modal-actions">
-        <button (click)="confirmStep6(true)" class="btn btn-primary">Yes</button>
-        <button (click)="confirmStep6(false)" class="btn btn-secondary">No</button>
       </div>
     </div>
   </div>

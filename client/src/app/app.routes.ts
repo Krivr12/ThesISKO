@@ -21,6 +21,7 @@ import { AdminRequest } from './admin/admin-request/admin-request';
 import { AdminTemplate } from './admin/admin-template/admin-template';
 import { AdminSideBar } from './admin/admin-side-bar/admin-side-bar';
 import { AdminChairpersonApproval } from './admin/admin-chairperson-approval/admin-chairperson-approval';
+import { AdminChairpersonDetails } from './admin/admin-chairperson-details/admin-chairperson-details';
 import { adminGuard } from './guards/admin-guard';
 import { superadminGuard } from './guards/superadmin-guard';
 import { facultyGuard } from './guards/faculty-guard';
@@ -32,6 +33,7 @@ import { Request } from './superAdmin/request/request';
 import { Templates } from './superAdmin/templates/templates';
 import { Faculties } from './superAdmin/faculties/faculties';
 import { DeanApproval } from './superAdmin/dean-approval/dean-approval';
+import { DeanDetails } from './superAdmin/dean-details/dean-details';
 import { RoleTestComponent } from './components/role-test/role-test';
 import { FacultyHome } from './facultySide/faculty-home/faculty-home';
 import { FICHistoryPage } from './facultySide/fichistory-page/fichistory-page';
@@ -81,7 +83,7 @@ export const routes: Routes = [
     {path: 'admin-template', component: AdminTemplate, canActivate: [adminGuard]},
     {path: 'admin-side-bar', component: AdminSideBar, canActivate: [adminGuard]},
     {path: 'admin-chairperson-approval', component: AdminChairpersonApproval, canActivate: [adminGuard]},
-    {path: 'admin-chairperson-approval/:id', component: AdminChairpersonApproval, canActivate: [adminGuard]},
+    {path: 'admin-chairperson-approval/:group_id', component: AdminChairpersonDetails, canActivate: [adminGuard]},
     
     // SuperAdmin routes (role_id = 5, 8 can access)
     {path: 'superadmin-dashboard', component: SuperAdminDashboard, canActivate: [superadminGuard]},
@@ -91,7 +93,7 @@ export const routes: Routes = [
     {path: 'superadmin-templates', component: Templates, canActivate: [superadminGuard]},
     {path: 'superadmin-faculties', component: Faculties, canActivate: [superadminGuard]},
     {path: 'dean-approval', component: DeanApproval, canActivate: [superadminGuard]},
-    {path: 'dean-approval/:id', component: DeanApproval, canActivate: [superadminGuard]},
+    {path: 'dean-approval/:group_id', component: DeanDetails, canActivate: [superadminGuard]},
     
     // Backwards compatibility redirects
     {path: 'admin-programs', redirectTo: '/superadmin-programs', pathMatch: 'full'},

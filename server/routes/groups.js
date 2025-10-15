@@ -114,7 +114,7 @@ async function updateGroupProgress(groupId) {
     const block = await blocksCollection.findOne({ block_id: group.block_id });
     const requiredPanelistCount = block?.panelists?.length || 0;
 
-    // Check if all milestones are fully completed
+    // Check if all milestones are fully completed AND approved by chairperson AND dean
     const allMilestonesComplete = group.milestones.every(m => {
       const hasFiles = m.s3_key && m.s3_key.length > 0;
       const hasStatus = m.status === true;
@@ -125,16 +125,17 @@ async function updateGroupProgress(groupId) {
         hasVerification = m.approved_by?.length >= requiredPanelistCount && 
                           m.verified?.faculty_in_charge?.approved === true;
       } else if (m.type === "describe_work") {
-        // describe_work doesn't need files, just verification
-        hasVerification = m.verified?.chairperson?.some?.(c => c.approved === true);
-        return hasVerification; // Skip file check for describe_work
+        // describe_work doesn't need files, just status
+        return hasStatus;
       } else {
-        // Other milestones need chairperson approval
-        hasVerification = m.verified?.chairperson?.some?.(c => c.approved === true);
+        // Other milestones need files and status
+        return hasFiles && hasStatus;
       }
       
       return hasFiles && hasStatus && hasVerification;
-    });
+    }) && 
+    group.chairperson_approval?.approved === true &&
+    group.dean_approval?.approved === true;
 
     if (allMilestonesComplete) {
       newProgress = "completed";
@@ -304,12 +305,8 @@ router.get("/by-chairperson/:email", async (req, res) => {
       const allDocsComplete = m4?.status === true;
       const workDescribed = m5?.status === true;
       
-      // Not yet approved by chairperson
-      const notApprovedByChairperson = 
-        !m2?.verified?.chairperson?.some(c => c.approved) &&
-        !m3?.verified?.chairperson?.some(c => c.approved) &&
-        !m4?.verified?.chairperson?.some(c => c.approved) &&
-        !m5?.verified?.chairperson?.some(c => c.approved);
+      // Check group-level chairperson approval (not milestone-level)
+      const notApprovedByChairperson = g.chairperson_approval?.approved !== true;
       
       return manuscriptApproved && copyrightComplete && turnitinComplete && 
              allDocsComplete && workDescribed && notApprovedByChairperson;
@@ -476,15 +473,14 @@ router.get("/by-dean/:email", async (req, res) => {
       const allDocsComplete = m4?.status === true;
       const workDescribed = m5?.status === true;
       
-      // All milestones approved by chairperson
-      const chairpersonApprovedAll = 
-        m2?.verified?.chairperson?.some(c => c.approved) &&
-        m3?.verified?.chairperson?.some(c => c.approved) &&
-        m4?.verified?.chairperson?.some(c => c.approved) &&
-        m5?.verified?.chairperson?.some(c => c.approved);
+      // Check group-level chairperson approval (not milestone-level)
+      const chairpersonApproved = g.chairperson_approval?.approved === true;
+      
+      // Not yet approved by dean
+      const notApprovedByDean = g.dean_approval?.approved !== true;
       
       return manuscriptApproved && copyrightComplete && turnitinComplete && 
-             allDocsComplete && workDescribed && chairpersonApprovedAll;
+             allDocsComplete && workDescribed && chairpersonApproved && notApprovedByDean;
     });
 
     console.log(`📊 ${pendingGroups.length} groups pending dean approval`);
@@ -514,16 +510,26 @@ router.get("/by-dean/:email", async (req, res) => {
 // Route: Get single group by group_id
 router.get("/:group_id", async (req, res) => {
   try {
-    const result = await groupsCollection.findOne({ group_id: req.params.group_id });
+    const group = await groupsCollection.findOne({ group_id: req.params.group_id });
 
-    if (!result) {
-      return res.status(404).json({ error: "Group not found" });
+    if (!group) {
+      return res.status(404).json({ success: false, error: "Group not found" });
     }
 
-    res.status(200).json(result);
+    // Fetch block information for additional context
+    const block = await blocksCollection.findOne({ block_id: group.block_id });
+    
+    // Enrich group data with block information
+    const enrichedGroup = {
+      ...group,
+      academic_year: block?.academic_year,
+      block_code: block?.block_code
+    };
+
+    res.status(200).json({ success: true, data: enrichedGroup });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error fetching group" });
+    res.status(500).json({ success: false, error: "Error fetching group" });
   }
 });
 
@@ -1466,13 +1472,13 @@ router.patch("/:groupId/milestones/upload_manuscript/approve", async (req, res) 
 router.patch("/:groupId/chairperson-approve-final", async (req, res) => {
   try {
     const { groupId } = req.params;
-    const { name } = req.body;
+    const { chairperson_name } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ error: "name is required" });
+    if (!chairperson_name) {
+      return res.status(400).json({ error: "chairperson_name is required" });
     }
 
-    console.log(`\n👨‍💼 Chairperson approval for group: ${groupId}`);
+    console.log(`\n👨‍💼 Chairperson approval for group: ${groupId} by ${chairperson_name}`);
 
     // Validate: All milestones 1-5 must be complete
     const group = await groupsCollection.findOne({ group_id: groupId });
@@ -1511,7 +1517,7 @@ router.patch("/:groupId/chairperson-approve-final", async (req, res) => {
       {
         $set: {
           "chairperson_approval.approved": true,
-          "chairperson_approval.approved_by": name,
+          "chairperson_approval.approved_by": chairperson_name,
           "chairperson_approval.approved_at": new Date(),
           "chairperson_approval.rejected": false,
           "chairperson_approval.rejection_reason": null,
@@ -1521,9 +1527,10 @@ router.patch("/:groupId/chairperson-approve-final", async (req, res) => {
       }
     );
 
-    console.log(`✅ Chairperson ${name} approved group ${groupId}`);
+    console.log(`✅ Chairperson ${chairperson_name} approved group ${groupId}`);
 
     res.json({ 
+      success: true,
       message: "Chairperson approval recorded. Group ready for Dean review.",
       group_id: groupId 
     });
@@ -1537,18 +1544,18 @@ router.patch("/:groupId/chairperson-approve-final", async (req, res) => {
 router.patch("/:groupId/chairperson-reject", async (req, res) => {
   try {
     const { groupId } = req.params;
-    const { name, reason, milestone } = req.body;
+    const { chairperson_name, reason, milestone_to_fix } = req.body;
 
-    if (!name || !reason || !milestone) {
-      return res.status(400).json({ error: "name, reason, and milestone are required" });
+    if (!chairperson_name || !reason || !milestone_to_fix) {
+      return res.status(400).json({ error: "chairperson_name, reason, and milestone_to_fix are required" });
     }
 
     const validMilestones = ['complete_copyright', 'pass_turnitin', 'upload_all_docs', 'describe_work'];
-    if (!validMilestones.includes(milestone)) {
+    if (!validMilestones.includes(milestone_to_fix)) {
       return res.status(400).json({ error: "Invalid milestone. Must be one of: complete_copyright, pass_turnitin, upload_all_docs, describe_work" });
     }
 
-    console.log(`\n❌ Chairperson rejecting group: ${groupId}, milestone: ${milestone}`);
+    console.log(`\n❌ Chairperson ${chairperson_name} rejecting group: ${groupId}, milestone: ${milestone_to_fix}`);
 
     // Mark as rejected at group level
     await groupsCollection.updateOne(
@@ -1558,8 +1565,8 @@ router.patch("/:groupId/chairperson-reject", async (req, res) => {
           "chairperson_approval.approved": false,
           "chairperson_approval.rejected": true,
           "chairperson_approval.rejection_reason": reason,
-          "chairperson_approval.rejected_milestone": milestone,
-          "chairperson_approval.rejected_by": name,
+          "chairperson_approval.rejected_milestone": milestone_to_fix,
+          "chairperson_approval.rejected_by": chairperson_name,
           "chairperson_approval.rejected_at": new Date(),
           "updated_at": new Date()
         }
@@ -1568,7 +1575,7 @@ router.patch("/:groupId/chairperson-reject", async (req, res) => {
 
     // Also mark the specific milestone as incomplete so it can be resubmitted
     await groupsCollection.updateOne(
-      { group_id: groupId, "milestones.type": milestone },
+      { group_id: groupId, "milestones.type": milestone_to_fix },
       {
         $set: {
           "milestones.$.status": false,
@@ -1580,8 +1587,9 @@ router.patch("/:groupId/chairperson-reject", async (req, res) => {
     console.log(`✅ Chairperson rejection recorded for group ${groupId}`);
 
     res.json({ 
-      message: `Group rejected. Student must resubmit: ${milestone}`,
-      milestone,
+      success: true,
+      message: `Group rejected. Student must resubmit: ${milestone_to_fix}`,
+      milestone: milestone_to_fix,
       reason 
     });
   } catch (err) {
@@ -1594,13 +1602,13 @@ router.patch("/:groupId/chairperson-reject", async (req, res) => {
 router.patch("/:groupId/dean-approve", async (req, res) => {
   try {
     const { groupId } = req.params;
-    const { name } = req.body;
+    const { dean_name } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ error: "name is required" });
+    if (!dean_name) {
+      return res.status(400).json({ error: "dean_name is required" });
     }
 
-    console.log(`\n👨‍💼 Dean approval for group: ${groupId}`);
+    console.log(`\n👨‍💼 Dean approval for group: ${groupId} by ${dean_name}`);
 
     // Validate: Chairperson must have approved first
     const group = await groupsCollection.findOne({ group_id: groupId });
@@ -1618,7 +1626,7 @@ router.patch("/:groupId/dean-approve", async (req, res) => {
       {
         $set: {
           "dean_approval.approved": true,
-          "dean_approval.approved_by": name,
+          "dean_approval.approved_by": dean_name,
           "dean_approval.approved_at": new Date(),
           "dean_approval.rejected": false,
           "dean_approval.rejection_reason": null,
@@ -1628,7 +1636,7 @@ router.patch("/:groupId/dean-approve", async (req, res) => {
       }
     );
 
-    console.log(`✅ Dean ${name} approved group ${groupId}`);
+    console.log(`✅ Dean ${dean_name} approved group ${groupId}`);
 
     // Update group progress
     await updateGroupProgress(groupId);
@@ -1710,6 +1718,7 @@ router.patch("/:groupId/dean-approve", async (req, res) => {
       console.log(`✅ Archived successfully: ${document_id}`);
 
       res.json({ 
+        success: true,
         message: "Dean approval recorded and thesis archived successfully",
         group_id: groupId,
         document_id,
@@ -1736,18 +1745,18 @@ router.patch("/:groupId/dean-approve", async (req, res) => {
 router.patch("/:groupId/dean-reject", async (req, res) => {
   try {
     const { groupId } = req.params;
-    const { name, reason, milestone } = req.body;
+    const { dean_name, reason, milestone_to_fix } = req.body;
 
-    if (!name || !reason || !milestone) {
-      return res.status(400).json({ error: "name, reason, and milestone are required" });
+    if (!dean_name || !reason || !milestone_to_fix) {
+      return res.status(400).json({ error: "dean_name, reason, and milestone_to_fix are required" });
     }
 
     const validMilestones = ['complete_copyright', 'pass_turnitin', 'upload_all_docs', 'describe_work'];
-    if (!validMilestones.includes(milestone)) {
+    if (!validMilestones.includes(milestone_to_fix)) {
       return res.status(400).json({ error: "Invalid milestone. Must be one of: complete_copyright, pass_turnitin, upload_all_docs, describe_work" });
     }
 
-    console.log(`\n❌ Dean rejecting group: ${groupId}, milestone: ${milestone}`);
+    console.log(`\n❌ Dean ${dean_name} rejecting group: ${groupId}, milestone: ${milestone_to_fix}`);
 
     // Mark as rejected at group level
     await groupsCollection.updateOne(
@@ -1757,8 +1766,8 @@ router.patch("/:groupId/dean-reject", async (req, res) => {
           "dean_approval.approved": false,
           "dean_approval.rejected": true,
           "dean_approval.rejection_reason": reason,
-          "dean_approval.rejected_milestone": milestone,
-          "dean_approval.rejected_by": name,
+          "dean_approval.rejected_milestone": milestone_to_fix,
+          "dean_approval.rejected_by": dean_name,
           "dean_approval.rejected_at": new Date(),
           "chairperson_approval.approved": false, // Reset chairperson approval
           "updated_at": new Date()
@@ -1768,7 +1777,7 @@ router.patch("/:groupId/dean-reject", async (req, res) => {
 
     // Also mark the specific milestone as incomplete so it can be resubmitted
     await groupsCollection.updateOne(
-      { group_id: groupId, "milestones.type": milestone },
+      { group_id: groupId, "milestones.type": milestone_to_fix },
       {
         $set: {
           "milestones.$.status": false,
@@ -1780,8 +1789,9 @@ router.patch("/:groupId/dean-reject", async (req, res) => {
     console.log(`✅ Dean rejection recorded for group ${groupId}`);
 
     res.json({ 
-      message: `Group rejected. Student must resubmit: ${milestone}`,
-      milestone,
+      success: true,
+      message: `Group rejected. Student must resubmit: ${milestone_to_fix}`,
+      milestone: milestone_to_fix,
       reason 
     });
   } catch (err) {
