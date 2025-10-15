@@ -482,3 +482,80 @@ body {
   font-weight: 700;
   color: #d32f2f;
 }
+
+/* Angular Material Paginator Styling */
+::ng-deep .paginator .mat-mdc-paginator {
+  background-color: transparent;
+  color: #333;
+  margin-top: 30px;
+}
+
+::ng-deep .paginator .mat-mdc-paginator-container {
+  justify-content: center;
+  padding: 15px 0;
+}
+
+::ng-deep .paginator .mat-mdc-icon-button {
+  color: #800000;
+}
+
+::ng-deep .paginator .mat-mdc-icon-button:hover:not([disabled]) {
+  background-color: rgba(128, 0, 0, 0.1);
+}
+
+::ng-deep .paginator .mat-mdc-icon-button[disabled] {
+  color: rgba(128, 0, 0, 0.3);
+}
+
+::ng-deep .paginator .mat-mdc-paginator-page-size-label,
+::ng-deep .paginator .mat-mdc-paginator-range-label {
+  color: #333;
+  font-weight: 500;
+  margin: 0 15px;
+}
+
+::ng-deep .paginator .mat-mdc-form-field {
+  margin: 0 10px;
+}
+
+::ng-deep .paginator .mat-mdc-text-field-wrapper {
+  padding-bottom: 0;
+}
+
+::ng-deep .paginator .mat-mdc-select {
+  color: #800000;
+  font-weight: 600;
+}
+
+::ng-deep .paginator .mat-mdc-select-value {
+  color: #800000;
+}
+
+::ng-deep .paginator .mat-mdc-select-arrow {
+  color: #800000;
+}
+
+/* Dropdown panel styling */
+::ng-deep .mat-mdc-select-panel {
+  background-color: white;
+  border: 1px solid #800000;
+}
+
+::ng-deep .mat-mdc-option {
+  color: #333;
+}
+
+::ng-deep .mat-mdc-option:hover {
+  background-color: rgba(128, 0, 0, 0.1);
+}
+
+::ng-deep .mat-mdc-option.mat-mdc-option-active {
+  background-color: rgba(128, 0, 0, 0.15);
+  color: #800000;
+}
+
+::ng-deep .mat-mdc-option.mdc-list-item--selected {
+  background-color: rgba(128, 0, 0, 0.2);
+  color: #800000;
+  font-weight: 600;
+}
