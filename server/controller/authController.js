@@ -24,13 +24,16 @@ const googleAuthSuccess = async (req, res) => {
       
       // Also check if email already exists (regardless of role) - JOIN with roles to get role_name
       const existingEmailUsers = await pool.query(
-        `SELECT ui.*, r.role_name 
+        `SELECT ui.user_id, ui.email, ui.firstname, ui.lastname, ui.role_id, ui.student_id, 
+                ui.course_id, ui.department_id, ui.group_id, ui.block_id, ui.avatar_url, 
+                r.role_name 
          FROM users_info ui
          LEFT JOIN roles r ON ui.role_id = r.role_id
          WHERE ui.email = $1 LIMIT 1`,
         [user.email]
       );
       console.log('Existing email users query result:', existingEmailUsers.rows);
+      console.log('🔍 group_id from query:', existingEmailUsers.rows[0]?.group_id);
       
       // Get Guest role ID
       const roleResult = await pool.query('SELECT role_id FROM roles WHERE role_name = $1', ['guest']);
@@ -90,6 +93,8 @@ const googleAuthSuccess = async (req, res) => {
             group_id: existingUser.group_id // Get group_id directly from users_info table
           };
           
+          console.log('🔍 existingUser.group_id:', existingUser.group_id);
+          console.log('🔍 guestUser.group_id:', guestUser.group_id);
           console.log('✅ Google account linked to registered user without role change:', JSON.stringify(guestUser, null, 2));
         } else {
           // For true guests (role_id = 1 or null), update their info
