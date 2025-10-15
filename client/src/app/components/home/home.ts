@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CarouselModule } from 'primeng/carousel';
 import { Footer } from '../footer/footer';
 import { RecordsService } from '../../service/records.service';
-import { DatePipe, SlicePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 
@@ -31,7 +31,6 @@ interface UpdateItem {
     ButtonModule,
     CarouselModule,
     DatePipe,
-    SlicePipe,
     FormsModule
   ],
   providers: [DatePipe],

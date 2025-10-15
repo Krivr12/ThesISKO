@@ -171,8 +171,24 @@ router.post("/view-repository-file", async (req, res) => {
       return res.status(400).json({ error: "Missing file_key" });
     }
 
+    // Smart bucket selection based on key prefix
+    let bucket;
+    if (file_key.startsWith('submission/')) {
+      // Submission files are in the documents bucket
+      bucket = process.env.THESISKO_DOCUMENTS_BUCKET;
+      console.log(`📄 [S3] Viewing submission file from documents bucket: ${file_key}`);
+    } else if (file_key.startsWith('repository-files/')) {
+      // Repository files are in the repository bucket
+      bucket = process.env.THESISKO_REPOSITORY_BUCKET || process.env.THESISKO_DOCUMENTS_BUCKET;
+      console.log(`📚 [S3] Viewing repository file from repository bucket: ${file_key}`);
+    } else {
+      // Fallback to documents bucket for unknown prefixes
+      bucket = process.env.THESISKO_DOCUMENTS_BUCKET;
+      console.log(`⚠️ [S3] Unknown prefix, using documents bucket: ${file_key}`);
+    }
+
     const command = new GetObjectCommand({
-      Bucket: process.env.THESISKO_REPOSITORY_BUCKET || process.env.THESISKO_DOCUMENTS_BUCKET,
+      Bucket: bucket,
       Key: file_key,
     });
 
@@ -183,7 +199,8 @@ router.post("/view-repository-file", async (req, res) => {
       expiresIn: 300  // 5 minutes
     });
   } catch (err) {
-    console.error("View repository file error:", err);
+    console.error("❌ [S3] View file error:", err);
+    console.error("❌ [S3] File key:", file_key);
     res.status(500).json({ error: "Failed to generate signed URL for viewing" });
   }
 });

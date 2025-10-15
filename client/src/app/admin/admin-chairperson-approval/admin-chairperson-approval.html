@@ -62,6 +62,10 @@
               <mat-icon>check_circle</mat-icon>
               Approve All
             </button>
+            <button mat-raised-button color="warn" (click)="rejectGroup(row)" class="action-button reject-button">
+              <mat-icon>cancel</mat-icon>
+              Reject
+            </button>
             <button mat-button (click)="viewGroup(row)" class="action-button">
               <mat-icon>visibility</mat-icon>
               View Details

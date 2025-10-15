@@ -1,5 +1,5 @@
 .sidenav {
-    width: 200px;
+    width: 250px;
     height: 100vh;
     background-color: #800000;
     padding-top: 2rem;
@@ -9,6 +9,7 @@
     left: 0;
     top: 0;
     z-index: 1000;
+    overflow-y: auto;
   }
   
   .logout{

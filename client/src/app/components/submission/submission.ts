@@ -49,11 +49,7 @@ type ViewState =
   // stp 5
   | 'step5_initial'
   | 'step5_confirming'
-  | 'step5_submitted'
-  // step 6
-  | 'step6_initial'
-  | 'step6_confirming'
-  | 'step6_archived';
+  | 'step5_submitted';
 
 @Component({
   selector: 'app-submission',
@@ -117,6 +113,27 @@ export class Submission implements OnInit {
       next: (group) => {
         console.log('📊 Initial group status loaded:', group);
         
+        // Check for group-level rejections first (Chairperson or Dean)
+        if (group.chairperson_approval?.rejected) {
+          this.hasRejection.set(true);
+          this.rejectionReason.set(group.chairperson_approval.rejection_reason);
+          this.rejectedMilestone.set(group.chairperson_approval.rejected_milestone);
+          this.rejectionType.set('chairperson');
+          this.statusHistory.set([{ 
+            text: `REJECTED by Chairperson: ${group.chairperson_approval.rejection_reason}. Please fix ${this.getMilestoneDisplayName(group.chairperson_approval.rejected_milestone)}.`,
+            type: 'error' 
+          }]);
+        } else if (group.dean_approval?.rejected) {
+          this.hasRejection.set(true);
+          this.rejectionReason.set(group.dean_approval.rejection_reason);
+          this.rejectedMilestone.set(group.dean_approval.rejected_milestone);
+          this.rejectionType.set('dean');
+          this.statusHistory.set([{ 
+            text: `REJECTED by Dean: ${group.dean_approval.rejection_reason}. Please fix ${this.getMilestoneDisplayName(group.dean_approval.rejected_milestone)}.`,
+            type: 'error' 
+          }]);
+        }
+        
         // Determine which step to show based on milestone completion
         let nextIncompleteStep = 1;
         
@@ -127,8 +144,35 @@ export class Submission implements OnInit {
           if (manuscriptMilestone) {
             const panelistApprovals = manuscriptMilestone.approved_by?.length || 0;
             const facultyApproved = manuscriptMilestone.verified?.faculty_in_charge?.approved || false;
+            const facultyRejected = manuscriptMilestone.verified?.faculty_in_charge?.rejected || false;
+            const panelistRejections = manuscriptMilestone.rejected_by || [];
             
-            if (facultyApproved) {
+            // Check for FIC rejection
+            if (facultyRejected) {
+              this.hasRejection.set(true);
+              this.rejectionReason.set(manuscriptMilestone.verified.faculty_in_charge.rejection_reason);
+              this.rejectedMilestone.set('upload_manuscript');
+              this.rejectionType.set('fic');
+              this.statusHistory.set([{ 
+                text: `REJECTED by Faculty: ${manuscriptMilestone.verified.faculty_in_charge.rejection_reason}. Please resubmit.`,
+                type: 'error' 
+              }]);
+              this.viewState.set('initial'); // Reset to allow resubmission
+              nextIncompleteStep = 1;
+            } else if (panelistRejections.length > 0) {
+              // Check for panelist rejections
+              const latestRejection = panelistRejections[panelistRejections.length - 1];
+              this.hasRejection.set(true);
+              this.rejectionReason.set(latestRejection.reason);
+              this.rejectedMilestone.set('upload_manuscript');
+              this.rejectionType.set('panelist');
+              this.statusHistory.set([{ 
+                text: `REJECTED by Panelist (${latestRejection.name}): ${latestRejection.reason}. Please resubmit.`,
+                type: 'error' 
+              }]);
+              this.viewState.set('initial'); // Reset to allow resubmission
+              nextIncompleteStep = 1;
+            } else if (facultyApproved) {
               this.statusHistory.update(history => [...history, { 
                 text: `Manuscript: Approved by Faculty`, 
                 type: 'success' 
@@ -193,7 +237,17 @@ export class Submission implements OnInit {
           }
         }
         
-        // Update current step to the next incomplete one
+        // Handle rejection navigation - override nextIncompleteStep if there's a chairperson/dean rejection
+        if (this.hasRejection() && this.rejectedMilestone() && 
+            (this.rejectionType() === 'chairperson' || this.rejectionType() === 'dean')) {
+          const rejectedStep = this.getMilestoneStep(this.rejectedMilestone()!);
+          if (rejectedStep) {
+            nextIncompleteStep = rejectedStep;
+            console.log(`📍 Navigating to rejected milestone: ${this.rejectedMilestone()} (Step ${rejectedStep})`);
+          }
+        }
+        
+        // Update current step to the next incomplete one (or rejected step)
         if (nextIncompleteStep > 1) {
           this.currentStep.set(nextIncompleteStep);
           
@@ -211,9 +265,6 @@ export class Submission implements OnInit {
             case 5:
               this.viewState.set('step5_initial');
               break;
-            case 6:
-              this.viewState.set('step6_initial');
-              break;
           }
         }
         
@@ -227,9 +278,23 @@ export class Submission implements OnInit {
   }
   
   /**
+   * Get step number for milestone type
+   */
+  private getMilestoneStep(type: string): number | null {
+    switch(type) {
+      case 'upload_manuscript': return 1;
+      case 'complete_copyright': return 2;
+      case 'pass_turnitin': return 3;
+      case 'upload_all_docs': return 4;
+      case 'describe_work': return 5;
+      default: return null;
+    }
+  }
+  
+  /**
    * Get display name for milestone type
    */
-  private getMilestoneDisplayName(type: string): string {
+  getMilestoneDisplayName(type: string): string {
     switch(type) {
       case 'upload_manuscript': return 'Manuscript';
       case 'complete_copyright': return 'Copyright Form';
@@ -262,6 +327,12 @@ export class Submission implements OnInit {
   currentS3Keys = signal<string[]>([]); // Store S3 keys for current upload
   isUploading = signal<boolean>(false); // Track if upload is in progress
   uploadError = signal<string | null>(null); // Track upload errors
+  
+  // Rejection tracking
+  hasRejection = signal<boolean>(false); // Track if any rejection exists
+  rejectionReason = signal<string | null>(null); // Reason for rejection
+  rejectedMilestone = signal<string | null>(null); // Which milestone was rejected
+  rejectionType = signal<'panelist' | 'fic' | 'chairperson' | 'dean' | null>(null); // Who rejected
   
   // predefined tags
   predefinedTags = signal<string[]>([
@@ -460,8 +531,6 @@ export class Submission implements OnInit {
       this.viewState.set('step4_initial');
     } else if (this.currentStep() === 5) {
       this.viewState.set('step5_initial');
-    } else if (this.currentStep() === 6) {
-      this.viewState.set('step6_initial');
     } else {
       this.viewState.set('initial'); 
     }
@@ -495,9 +564,6 @@ export class Submission implements OnInit {
         break;
       case 5:
         this.viewState.set('step5_initial');
-        break;
-      case 6:
-        this.viewState.set('step6_initial');
         break;
     }
 
@@ -733,15 +799,6 @@ isStep5Valid(): boolean {
 }
 
 // step 6 validation
-isStep6Valid(): boolean {
-  return this.isStep5Valid() && this.confirmationChecked();
-}
-
-backToStep5() {
-  this.currentStep.update(() => 5);
-  this.viewState.set('step5_initial');
-}
-
 submitStep5() {
   if (this.isStep5Valid()) {
     this.viewState.set('step5_confirming');
@@ -804,21 +861,6 @@ confirmStep5(isConfirmed: boolean) {
   });
 }
 
-submitStep6() {
-  if (this.isStep6Valid()) {
-    this.viewState.set('step6_confirming');
-  }
-}
-
-//THIS WILL BRING IT TO THANK YOU PAGE
-confirmStep6(isConfirmed: boolean) {
-  if (isConfirmed) {
-    this.router.navigate(['/thank-you']);//route to thank you pageee
-  } else {
-    this.viewState.set('step6_initial');
-  }
-}
-
 resetToHome() {
   // clear data and states
   this.tags.set([]);
@@ -843,8 +885,6 @@ resetToHome() {
     case 'step4_filesSelected': return 'Submit';
     case 'step4_revisionFilesSelected': return 'Submit Revision';
     case 'step5_initial': return 'Submit';
-    case 'step6_initial': return 'Archive';
-    case 'step6_archived': return 'Back to Home';
     case 'approved':
     case 'step2_approved':
     case 'step3_approved':
@@ -874,19 +914,13 @@ resetToHome() {
       return !this.isStep5Valid();
     }
     
-    //step 6
-    if (state === 'step6_initial') {
-      return !this.isStep6Valid();
-    }
-    
     // main button
     return ![
       'approved', 
       'step2_approved', 
       'step3_approved', 
       'step4_approved',
-      'step5_submitted',
-      'step6_archived'
+      'step5_submitted'
     ].includes(state);
   }
 
