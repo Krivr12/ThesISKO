@@ -34,6 +34,7 @@ import requests from "./routes/requests.js";
 import programs from "./routes/programs.js";
 import groups from "./routes/groups.js";
 import blocks from "./routes/blocks.js";
+import analytics from "./routes/analytics.js";
 import { preloadModel } from "./controller/embeddingService.js";
 preloadModel();
 
@@ -129,6 +130,7 @@ app.use("/requests", requests);
 app.use("/programs", programs);
 app.use("/groups", groups);
 app.use("/blocks", blocks);
+app.use("/analytics", analytics);
 
 // Direct verification route (for email links)
 app.get("/verify-student", async (req, res) => {
