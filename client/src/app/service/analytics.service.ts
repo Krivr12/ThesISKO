@@ -43,7 +43,7 @@ export interface RequestsByType {
   providedIn: 'root'
 })
 export class AnalyticsService {
-  private apiUrl = `${environment.apiBaseUrl}/analytics`;
+  private apiUrl = `${environment.authApiUrl}/analytics`;
 
   constructor(private http: HttpClient) {}
 

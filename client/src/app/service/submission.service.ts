@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface MilestoneFilesRequest {
@@ -52,10 +53,12 @@ export class SubmissionService {
   /**
    * Get group details including milestone status
    * @param groupId - Group ID
-   * @returns Observable with group data
+   * @returns Observable with group data (extracts from { success, data } wrapper)
    */
   getGroupStatus(groupId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${groupId}`);
+    return this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/${groupId}`).pipe(
+      map(response => response.data)
+    );
   }
 
   /**
