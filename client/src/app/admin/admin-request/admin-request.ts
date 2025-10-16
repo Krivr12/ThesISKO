@@ -67,32 +67,6 @@ interface RequestItem {
   fileURL?: string; file_url?: string; pdf?: string;
 }
 
-/** Shape expected from groups.json */
-interface GroupEntry {
-  group_id?: string;
-  block_id?: string;
-  course?: string;
-  program?: string;
-  status?: string;
-  title: string;
-  abstract?: string;
-  leader?: string;
-  members?: string[];
-  leader_email?: string;
-  member_emails?: string[];
-  panelist?: string;
-  facultyid?: string;
-  faculty_in_charge?: string;
-  file_type?: string;
-
-  publication_date?: string;
-  date_published?: string;
-  pub_date?: string;
-
-  pdfLink?: string; pdf_link?: string; pdfUrl?: string; pdf_url?: string;
-  fileURL?: string; file_url?: string; pdf?: string;
-}
-
 @Component({
   selector: 'app-admin-request',
   standalone: true,
@@ -116,10 +90,6 @@ export class AdminRequest implements OnInit, AfterViewInit {
 
   verifyNote = '';
 
-  /** Cached groups + title index for fast lookup */
-  private groups: GroupEntry[] = [];
-  private titleIndex = new Map<string, GroupEntry[]>(); // normalizedTitle -> entries[]
-
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -128,37 +98,25 @@ export class AdminRequest implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    // Load requests from JSON file
+    // Load requests from database
     this.loadRequestData();
-
-    // Load groups once, then index by normalized title
-    this.http.get<GroupEntry[]>('groups.json').subscribe({
-      next: (rows) => {
-        this.groups = rows ?? [];
-        this.buildTitleIndex(this.groups);
-      },
-      error: () => {
-        this.groups = [];
-        this.titleIndex.clear();
-      }
-    });
 
     // Case-insensitive filter across a few fields
     this.dataSource.filterPredicate = (d, f) => (
-      [d.requestor_name, d.purpose, d.title, d.selected_chapter, d.date, d.time]
+      [d.email, d.department, d.program, d.status, d.user_type, d.country, d.city, d.school]
         .filter(Boolean).join(' ').toLowerCase()
     ).includes((f || '').toLowerCase());
   }
 
   private loadRequestData(): void {
-    // Load requests from JSON file
-    this.http.get<RequestItem[]>('requestsample.json').subscribe({
+    // Load requests from Supabase via API
+    this.http.get<any[]>('/api/requests/analytics').subscribe({
       next: rows => {
         this.dataSource.data = rows ?? [];
-        console.log('Request data loaded from JSON:', rows);
+        console.log('✅ Request data loaded from database:', rows.length, 'requests');
       },
       error: (error) => {
-        console.error('Error loading request data:', error);
+        console.error('❌ Error loading request data:', error);
         this.dataSource.data = [];
       }
     });
@@ -193,13 +151,7 @@ export class AdminRequest implements OnInit, AfterViewInit {
   openVerifyDialog(row: RequestItem): void {
     this.verifyNote = '';
 
-    // 1) Enrich the request row with metadata from groups.json by title (+ requestor heuristic)
-    const enriched = this.mergeWithBestGroup(row);
-
-    // 2) Build PDF info for dialog
-    const pdf = this.buildPdfData(enriched);
-
-    // 3) Open dialog with merged data
+    // Open dialog with request data
     this.dialog.open(this.verifyTpl, {
       panelClass: 'thesisko-dialog',
       width: 'min(1100px, 96vw)',
@@ -207,7 +159,7 @@ export class AdminRequest implements OnInit, AfterViewInit {
       maxHeight: '90vh',
       autoFocus: false,
       restoreFocus: false,
-      data: { row: enriched, ...pdf }
+      data: { row }
     }).afterClosed().subscribe(() => {});
   }
   approveRequest(row: RequestItem): void {
@@ -262,184 +214,9 @@ export class AdminRequest implements OnInit, AfterViewInit {
       if (ok) this.rejectRequest(row);
     });
   }
-  /** ===================== Helpers ===================== */
-
-  /** Build a normalized, loose key for matching titles */
-  private normTitle(s: string | undefined | null): string {
-    if (!s) return '';
-    return s
-      .toLowerCase()
-      .replace(/[\s\-_]+/g, ' ')
-      .replace(/[^\p{L}\p{N}\s]/gu, '')
-      .trim();
-  }
-
-  /** Build index: normalizedTitle -> [GroupEntry, ...] */
-  private buildTitleIndex(groups: GroupEntry[]) {
-    this.titleIndex.clear();
-    for (const g of groups) {
-      const key = this.normTitle(g.title);
-      if (!key) continue;
-      const bucket = this.titleIndex.get(key);
-      if (bucket) bucket.push(g);
-      else this.titleIndex.set(key, [g]);
-    }
-  }
-
-  /** Choose the best group by (1) exact title, then (2) requestor involvement */
-  private pickBestCandidate(title: string, reqName?: string, reqEmail?: string): GroupEntry | undefined {
-    const key = this.normTitle(title);
-    const candidates = (key && this.titleIndex.get(key)) ? [...this.titleIndex.get(key)!] : [];
-
-    if (!candidates.length) {
-      // loose fallback: contains
-      const all = this.groups.filter(g => this.normTitle(g.title).includes(key));
-      candidates.push(...all);
-    }
-    if (!candidates.length) return undefined;
-
-    // If only one, done
-    if (candidates.length === 1) return candidates[0];
-
-    // Score by involvement of requestor (name/email) in leader/members/panelist/faculty
-    const nReqName = (reqName || '').toLowerCase().trim();
-    const nReqEmail = (reqEmail || '').toLowerCase().trim();
-
-    const score = (g: GroupEntry): number => {
-      let s = 0;
-
-      const inStr = (hay?: string) =>
-        !!hay && nReqName && hay.toLowerCase().includes(nReqName);
-
-      const eqEmail = (hay?: string) =>
-        !!hay && nReqEmail && hay.toLowerCase() === nReqEmail;
-
-      // Leader name / email
-      if (inStr(g.leader)) s += 5;
-      if (eqEmail(g.leader_email)) s += 6;
-
-      // Members
-      if (g.members?.some(m => inStr(m))) s += 4;
-      if (g.member_emails?.some(e => e && nReqEmail && e.toLowerCase() === nReqEmail)) s += 5;
-
-      // Panelist / Faculty
-      if (inStr(g.panelist)) s += 2;
-      if (inStr(g.faculty_in_charge)) s += 2;
-
-      // Exact (case-insensitive) title equality gets a small boost
-      if ((g.title || '').toLowerCase() === (title || '').toLowerCase()) s += 1;
-
-      return s;
-      };
-
-    candidates.sort((a, b) => score(b) - score(a));
-    return candidates[0];
-  }
-
-  /** Merge request row with the best group match (by title + involvement) */
-  private mergeWithBestGroup(row: RequestItem): RequestItem {
-    const title = row.title || '';
-    const match = this.pickBestCandidate(title, row.requestor_name, row.email);
-    if (!match) return row;
-
-    // Date precedence (group date fields or keep original)
-    const mergedPubDate =
-      match.publication_date || match.date_published || match.pub_date ||
-      row.publication_date || row.date_published || row.pub_date;
-
-    // Prefer program->course fallback
-    const mergedProgram = match.program || match.course || row.program || row.course;
-
-    // Merge (group fills in blanks and adds metadata)
-    const merged: RequestItem = {
-      ...row,
-
-      // Core metadata
-      group_id: row.group_id ?? match.group_id,
-      block_id: row.block_id ?? match.block_id,
-      course: row.course ?? (match.course || mergedProgram),
-      program: row.program ?? (match.program || mergedProgram),
-      status: row.status ?? match.status,
-      abstract: row.abstract ?? match.abstract,
-      leader: row.leader ?? match.leader,
-      members: row.members ?? match.members,
-      leader_email: row.leader_email ?? match.leader_email,
-      member_emails: row.member_emails ?? match.member_emails,
-      panelist: row.panelist ?? match.panelist,
-      facultyid: row.facultyid ?? match.facultyid,
-      faculty_in_charge: row.faculty_in_charge ?? match.faculty_in_charge,
-      file_type: row.file_type ?? match.file_type,
-
-      // Dates
-      publication_date: mergedPubDate ?? row.publication_date,
-      date_published: mergedPubDate ?? row.date_published,
-      pub_date: mergedPubDate ?? row.pub_date,
-
-      // PDF / File links
-      pdfLink: row.pdfLink ?? match.pdfLink,
-      pdf_link: row.pdf_link ?? match.pdf_link,
-      pdfUrl: row.pdfUrl ?? match.pdfUrl,
-      pdf_url: row.pdf_url ?? match.pdf_url,
-      fileURL: row.fileURL ?? match.fileURL,
-      file_url: row.file_url ?? match.file_url,
-      pdf: row.pdf ?? match.pdf,
-    };
-
-    // If groups use only pdf_url, make sure it is surfaced
-    if (!merged.pdfLink && !merged.pdfUrl && !merged.fileURL && !merged.file_url && !merged.pdf && match.pdf_url) {
-      merged.pdf_url = match.pdf_url;
-    }
-
-    return merged;
-  }
-
-  private buildPdfData(row: RequestItem): {
-    pdfHref: string | null;
-    pdfDisplayName: string;
-    pdfSafeUrl: SafeResourceUrl | null;
-  } {
-    const raw =
-      (row as any)?.pdfLink ||
-      (row as any)?.pdf_link ||
-      (row as any)?.pdfUrl ||
-      (row as any)?.pdf_url ||
-      (row as any)?.fileURL ||
-      (row as any)?.file_url ||
-      (row as any)?.pdf ||
-      null;
-
-    if (typeof raw === 'string' && raw.trim()) {
-      const href = this.ensureProtocol(raw.trim());
-      return {
-        pdfHref: href,
-        pdfDisplayName: this.readableName(href),
-        pdfSafeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(href),
-      };
-    }
-    return { pdfHref: null, pdfDisplayName: 'Open PDF', pdfSafeUrl: null };
-  }
-
   toList(value: unknown): string {
     if (Array.isArray(value)) return value.length ? value.join(', ') : '—';
     if (typeof value === 'string') return value.trim() || '—';
     return '—';
   }
-
-  private ensureProtocol(url: string): string {
-    if (/^https?:\/\//i.test(url)) return url;
-    return `https://${url}`;
-  }
-
-  private readableName(url: string): string {
-    try {
-      const u = new URL(url);
-      const last = u.pathname.split('/').filter(Boolean).pop();
-      if (last) return decodeURIComponent(last);
-      return u.host;
-    } catch {
-      return url;
-    }
-  }
-
-
 }

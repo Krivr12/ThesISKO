@@ -66,8 +66,8 @@ export class AdminDocuments implements OnInit {
    totalPages = 0;
    pages: (number | string)[] = []; 
 
-  // Filter
-  currentFilter: 'For Approval' | 'With Issues' | 'Approved' = 'For Approval';
+  // Filter - Only show approved documents
+  currentFilter: 'For Approval' | 'With Issues' | 'Approved' = 'Approved';
 
   // Sorting
   sortColumn: keyof Thesis | null = null;
