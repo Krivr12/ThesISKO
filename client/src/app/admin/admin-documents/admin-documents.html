@@ -27,6 +27,9 @@
                     <div class="row-item">{{ doc.submissionDate }}</div>
                     <div class="row-item">{{ doc.id }}</div>
                     <div class="row-item action-cell">
+                        <button class="edit-btn" (click)="openEditModal(doc)" title="Edit Document">
+                            ✏️
+                        </button>
                         <span class="status-tag clickable" 
                               [ngClass]="doc.status.split(' ')[0].toLowerCase()"
                               (click)="showDetailsView(doc)">
@@ -202,6 +205,63 @@
                 <div class="modal-actions">
                     <button class="modal-btn confirm-btn" (click)="deleteDocument()">Yes, Delete</button>
                     <button class="modal-btn cancel-btn" (click)="closeDeleteModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Document Modal -->
+        <div class="modal-overlay" *ngIf="isEditModalVisible">
+            <div class="modal-content edit-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Document</h3>
+                    <button class="modal-close-btn" (click)="closeEditModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="edit-form">
+                        <div class="form-group">
+                            <label for="edit-title">Title</label>
+                            <input 
+                                type="text" 
+                                id="edit-title" 
+                                [(ngModel)]="editTitle" 
+                                class="form-input"
+                                placeholder="Enter document title">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-abstract">Abstract</label>
+                            <textarea 
+                                id="edit-abstract" 
+                                [(ngModel)]="editAbstract" 
+                                class="form-textarea"
+                                rows="6"
+                                placeholder="Enter document abstract"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-file">Manuscript File (PDF) - Optional</label>
+                            <input 
+                                type="file" 
+                                id="edit-file" 
+                                accept=".pdf" 
+                                (change)="onEditFileSelected($event)"
+                                class="form-file-input"
+                                #editFileInput>
+                            <p *ngIf="editSelectedFile" class="file-selected">
+                                Selected: {{ editSelectedFile.name }}
+                            </p>
+                            <p class="file-note">Leave empty to keep the existing file</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button 
+                        class="modal-btn confirm-btn" 
+                        (click)="saveDocumentEdit()" 
+                        [disabled]="isUpdating || !editTitle || !editAbstract">
+                        {{ isUpdating ? 'Saving...' : 'Save Changes' }}
+                    </button>
+                    <button class="modal-btn cancel-btn" (click)="closeEditModal()">Cancel</button>
                 </div>
             </div>
         </div>

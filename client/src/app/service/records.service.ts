@@ -53,10 +53,21 @@ export class RecordsService {
     return this.http.delete(`${this.apiUrl}/${_id}`);
   }
 
-  // Update record manuscript file
+  // Update record manuscript file only
   updateRecordFile(_id: string, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('manuscript', file);
+    return this.http.put(`${this.apiUrl}/${_id}/with-file`, formData);
+  }
+
+  // Update record with title, abstract, and optionally file
+  updateRecord(_id: string, title: string, abstract: string, file?: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('abstract', abstract);
+    if (file) {
+      formData.append('manuscript', file);
+    }
     return this.http.put(`${this.apiUrl}/${_id}/with-file`, formData);
   }
 }

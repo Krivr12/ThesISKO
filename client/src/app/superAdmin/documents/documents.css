@@ -91,6 +91,25 @@
 
 .action-cell {
     text-align: right;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.edit-btn {
+    background-color: transparent;
+    border: 1px solid #800000;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.edit-btn:hover {
+    background-color: #800000;
+    transform: scale(1.05);
 }
 
 .verify-btn {
@@ -515,3 +534,69 @@
     box-shadow: none !important;
     color: #800000;
   }
+
+/* Edit Modal Styles */
+.edit-modal {
+    max-width: 600px;
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #800000;
+    font-size: 0.95rem;
+}
+
+.form-input,
+.form-textarea {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #800000;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-file-input {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.file-selected {
+    margin-top: 0.5rem;
+    color: #059669;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.file-note {
+    margin-top: 0.25rem;
+    color: #6b7280;
+    font-size: 0.85rem;
+    font-style: italic;
+}

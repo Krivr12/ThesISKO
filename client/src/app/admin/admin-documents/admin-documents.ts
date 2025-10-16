@@ -38,6 +38,7 @@ export class AdminDocuments implements OnInit {
   isApproveModalVisible = false;
   isRejectModalVisible = false;
   isDeleteModalVisible = false;
+  isEditModalVisible = false;
   isPdfViewerVisible = false;
   
   // PDF Viewer state
@@ -45,6 +46,13 @@ export class AdminDocuments implements OnInit {
   currentPdfUrl: SafeResourceUrl | null = null;
   pdfLoading = false;
   pdfError = '';
+  
+  // Edit modal state
+  editingDocument: Thesis | null = null;
+  editTitle: string = '';
+  editAbstract: string = '';
+  editSelectedFile: File | null = null;
+  isUpdating: boolean = false;
   
   // Data for page
   documents: Thesis[] = [];
@@ -267,6 +275,68 @@ export class AdminDocuments implements OnInit {
 
   closeDeleteModal(): void {
     this.isDeleteModalVisible = false;
+  }
+
+  openEditModal(doc: Thesis): void {
+    this.editingDocument = doc;
+    this.editTitle = doc.title;
+    this.editAbstract = doc.abstract;
+    this.editSelectedFile = null;
+    this.isEditModalVisible = true;
+  }
+
+  closeEditModal(): void {
+    this.isEditModalVisible = false;
+    this.editingDocument = null;
+    this.editTitle = '';
+    this.editAbstract = '';
+    this.editSelectedFile = null;
+    this.isUpdating = false;
+  }
+
+  onEditFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      this.editSelectedFile = file;
+    } else {
+      alert('Please select a valid PDF file.');
+      event.target.value = '';
+    }
+  }
+
+  saveDocumentEdit(): void {
+    if (!this.editingDocument || !this.editTitle || !this.editAbstract) return;
+
+    this.isUpdating = true;
+
+    this.recordsService.updateRecord(
+      this.editingDocument._id,
+      this.editTitle,
+      this.editAbstract,
+      this.editSelectedFile || undefined
+    ).subscribe({
+      next: (response: any) => {
+        console.log('✅ Document updated successfully:', response);
+        
+        // Update the document in the local array
+        const docIndex = this.documents.findIndex(d => d._id === this.editingDocument!._id);
+        if (docIndex !== -1) {
+          this.documents[docIndex].title = this.editTitle;
+          this.documents[docIndex].abstract = this.editAbstract;
+        }
+        
+        // Refresh the filtered view
+        this.filterAndSortDocuments();
+        
+        alert('Document updated successfully!');
+        this.closeEditModal();
+      },
+      error: (error: any) => {
+        console.error('❌ Error updating document:', error);
+        alert('Failed to update document. Please try again.');
+        this.isUpdating = false;
+      }
+    });
   }
 
   // Data handling
