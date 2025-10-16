@@ -301,7 +301,7 @@ export class Documents implements OnInit {
     this.isUploading = true;
 
     this.recordsService.updateRecordFile(this.selectedDocument._id, this.selectedFile).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         console.log('✅ Manuscript updated successfully:', response);
         alert('Manuscript updated successfully!');
         
@@ -310,7 +310,7 @@ export class Documents implements OnInit {
         this.closeUpdateModal();
         this.showListView();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('❌ Error updating manuscript:', error);
         alert('Failed to update manuscript. Please try again.');
         this.isUploading = false;

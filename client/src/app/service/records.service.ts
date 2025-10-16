@@ -52,4 +52,11 @@ export class RecordsService {
   deleteRecord(_id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${_id}`);
   }
+
+  // Update record manuscript file
+  updateRecordFile(_id: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('manuscript', file);
+    return this.http.put(`${this.apiUrl}/${_id}/with-file`, formData);
+  }
 }
