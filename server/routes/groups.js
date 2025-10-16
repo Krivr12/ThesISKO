@@ -290,6 +290,23 @@ router.get("/by-chairperson/:email", async (req, res) => {
 
     console.log(`✅ Found ${groups.length} total groups in program`);
 
+    // Log each group's milestone status for debugging
+    groups.forEach(g => {
+      console.log(`\n📋 Group ${g.group_id}:`);
+      const m1 = g.milestones?.find(m => m.type === 'upload_manuscript');
+      const m2 = g.milestones?.find(m => m.type === 'complete_copyright');
+      const m3 = g.milestones?.find(m => m.type === 'pass_turnitin');
+      const m4 = g.milestones?.find(m => m.type === 'upload_all_docs');
+      const m5 = g.milestones?.find(m => m.type === 'describe_work');
+      
+      console.log(`  - Stage 1 (Manuscript): ${m1?.verified?.faculty_in_charge?.approved === true ? '✅' : '❌'}`);
+      console.log(`  - Stage 2 (Copyright): ${m2 ? (m2.status === true || (m2.s3_key && m2.s3_key.length > 0) ? '✅' : '❌') : '❌ (not found)'}`);
+      console.log(`  - Stage 3 (Turnitin): ${m3 ? (m3.status === true || (m3.s3_key && m3.s3_key.length > 0) ? '✅' : '❌') : '❌ (not found)'}`);
+      console.log(`  - Stage 4 (All Docs): ${m4 ? (m4.status === true || (m4.s3_key && m4.s3_key.length > 0) ? '✅' : '❌') : '❌ (not found)'}`);
+      console.log(`  - Stage 5 (Work Desc): ${m5 ? (m5.status === true || (m5.description && m5.description.trim() !== '') ? '✅' : '❌') : '❌ (not found)'}`);
+      console.log(`  - Chairperson Approved: ${g.chairperson_approval?.approved === true ? 'Yes (skip)' : 'No (needs approval)'}`);
+    });
+
     // Step 4: Filter groups where milestones 2-5 are complete (need chairperson approval)
     const pendingGroups = groups.filter(g => {
       const m1 = g.milestones?.find(m => m.type === 'upload_manuscript');
@@ -298,15 +315,28 @@ router.get("/by-chairperson/:email", async (req, res) => {
       const m4 = g.milestones?.find(m => m.type === 'upload_all_docs');
       const m5 = g.milestones?.find(m => m.type === 'describe_work');
       
-      // Must have: FIC approved manuscript + all other milestones completed
+      // Must have: FIC approved manuscript (Stage 1)
       const manuscriptApproved = m1?.verified?.faculty_in_charge?.approved === true;
-      const copyrightComplete = m2?.status === true;
-      const turnitinComplete = m3?.status === true;
-      const allDocsComplete = m4?.status === true;
-      const workDescribed = m5?.status === true;
+      
+      // Stage 2: Copyright - check if s3_key exists or status is true
+      const copyrightComplete = m2 && (m2.status === true || (m2.s3_key && m2.s3_key.length > 0));
+      
+      // Stage 3: Turnitin - check if s3_key exists or status is true
+      const turnitinComplete = m3 && (m3.status === true || (m3.s3_key && m3.s3_key.length > 0));
+      
+      // Stage 4: All docs - check if s3_key exists or status is true
+      const allDocsComplete = m4 && (m4.status === true || (m4.s3_key && m4.s3_key.length > 0));
+      
+      // Stage 5: Work description - check if description exists or status is true
+      const workDescribed = m5 && (m5.status === true || (m5.description && m5.description.trim() !== ''));
       
       // Check group-level chairperson approval (not milestone-level)
       const notApprovedByChairperson = g.chairperson_approval?.approved !== true;
+      
+      // Log each group's milestone status for debugging
+      if (manuscriptApproved && copyrightComplete && turnitinComplete && allDocsComplete && workDescribed && notApprovedByChairperson) {
+        console.log(`✅ Group ${g.group_id} ready for chairperson approval`);
+      }
       
       return manuscriptApproved && copyrightComplete && turnitinComplete && 
              allDocsComplete && workDescribed && notApprovedByChairperson;
