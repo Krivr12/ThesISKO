@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
@@ -12,6 +12,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Auth } from '../../service/auth';
 import { User } from '../../interface/auth';
+import { Subscription } from 'rxjs';
 
 type GroupRow = {
   group_id: string;
@@ -41,7 +42,7 @@ type GroupRow = {
   templateUrl: './dean-approval.html',
   styleUrl: './dean-approval.css'
 })
-export class DeanApproval implements OnInit, AfterViewInit {
+export class DeanApproval implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['group_id', 'title', 'leader', 'program', 'block', 'actions'];
   dataSource = new MatTableDataSource<GroupRow>([]);
   loading = true;
@@ -52,6 +53,7 @@ export class DeanApproval implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   private authService = inject(Auth);
+  private userSubscription?: Subscription;
 
   constructor(
     private router: Router,
@@ -59,34 +61,16 @@ export class DeanApproval implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('🔍 [Dean Approval] ngOnInit started');
-    
     // Subscribe to current user from Auth service
-    this.authService.currentUser$.subscribe(user => {
-      console.log('👤 [Dean Approval] User from Auth service:', user);
-      
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.currentUser = user;
-        this.currentUserEmail = user.email || user.Email || '';
-        console.log('✅ [Dean Approval] User identified');
-        console.log('📧 [Dean Approval] Email:', this.currentUserEmail);
-        console.log('🔑 [Dean Approval] Email type:', typeof this.currentUserEmail);
-        console.log('🔑 [Dean Approval] Email length:', this.currentUserEmail?.length);
-        console.log('🔑 [Dean Approval] User keys:', Object.keys(user));
-        console.log('🔑 [Dean Approval] User.email:', user.email);
-        console.log('🔑 [Dean Approval] User.Email:', user.Email);
+        this.currentUserEmail = user.email || (user as any).Email || '';
         
         // Load groups once we have user data
         if (this.currentUserEmail) {
-          console.log('✅ [Dean Approval] Email is valid, calling loadGroups()...');
           this.loadGroups();
-        } else {
-          console.error('❌ [Dean Approval] Email is empty!');
         }
-      } else {
-        console.error('❌ [Dean Approval] No user from Auth service!');
-        alert('Unable to identify current user. Please log in again.');
-        this.router.navigate(['/login-admin']);
       }
     });
   }
@@ -96,21 +80,18 @@ export class DeanApproval implements OnInit, AfterViewInit {
     this.dataSource.sort = this.sort;
   }
 
+  ngOnDestroy(): void {
+    // Unsubscribe to prevent memory leaks and errors on logout
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
+  }
+
   loadGroups(): void {
-    console.log(`📋 [loadGroups] Starting...`);
-    console.log(`📧 [loadGroups] Email: "${this.currentUserEmail}"`);
-    console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-dean/${this.currentUserEmail}`);
-    
     this.http.get<any>(`${environment.authApiUrl}/groups/by-dean/${this.currentUserEmail}`)
       .subscribe({
         next: (response) => {
-          console.log('✅ [loadGroups] API Response:', response);
-          console.log('✅ [loadGroups] Response success:', response?.success);
-          console.log('✅ [loadGroups] Response data length:', response?.data?.length);
-          
           if (response.success && response.data) {
-            console.log(`📊 [loadGroups] Mapping ${response.data.length} groups...`);
-            
             // Map groups to table rows
             const groups: GroupRow[] = response.data.map((g: any) => ({
               group_id: g.group_id,
@@ -123,21 +104,13 @@ export class DeanApproval implements OnInit, AfterViewInit {
               forApproval: g.forApproval || 0
             }));
 
-            console.log('📊 [loadGroups] Mapped groups:', groups);
             this.dataSource.data = groups;
-            console.log('✅ [loadGroups] DataSource updated');
-          } else {
-            console.warn('⚠️ [loadGroups] Response format unexpected:', response);
           }
-
           this.loading = false;
-          console.log('✅ [loadGroups] Loading complete');
         },
         error: (error) => {
-          console.error('❌ [loadGroups] API Error:', error);
-          console.error('❌ [loadGroups] Error status:', error?.status);
-          console.error('❌ [loadGroups] Error message:', error?.message);
-          alert('Failed to load groups. Please try again.');
+          console.error('❌ Failed to load groups:', error);
+          alert('Failed to load groups. Please check your connection and try again.');
           this.loading = false;
         }
       });
