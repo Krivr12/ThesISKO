@@ -38,6 +38,7 @@ export class Documents implements OnInit {
   isApproveModalVisible = false;
   isRejectModalVisible = false;
   isDeleteModalVisible = false;
+  isUpdateModalVisible = false;
   isPdfViewerVisible = false;
   
   // PDF Viewer state
@@ -45,6 +46,10 @@ export class Documents implements OnInit {
   currentPdfUrl: SafeResourceUrl | null = null;
   pdfLoading = false;
   pdfError = '';
+  
+  // Update manuscript state
+  selectedFile: File | null = null;
+  isUploading = false;
   
   // Data for page
   documents: Thesis[] = [];
@@ -66,8 +71,8 @@ export class Documents implements OnInit {
    totalPages = 0;
    pages: (number | string)[] = []; 
 
-  // Filter
-  currentFilter: 'For Approval' | 'With Issues' | 'Approved' = 'For Approval';
+  // Filter - Only show approved documents
+  currentFilter: 'For Approval' | 'With Issues' | 'Approved' = 'Approved';
 
   // Sorting
   sortColumn: keyof Thesis | null = null;
@@ -267,6 +272,50 @@ export class Documents implements OnInit {
 
   closeDeleteModal(): void {
     this.isDeleteModalVisible = false;
+  }
+
+  openUpdateModal(): void {
+    this.isUpdateModalVisible = true;
+    this.selectedFile = null;
+  }
+
+  closeUpdateModal(): void {
+    this.isUpdateModalVisible = false;
+    this.selectedFile = null;
+    this.isUploading = false;
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      this.selectedFile = file;
+    } else {
+      alert('Please select a valid PDF file.');
+      event.target.value = '';
+    }
+  }
+
+  updateManuscript(): void {
+    if (!this.selectedFile || !this.selectedDocument) return;
+
+    this.isUploading = true;
+
+    this.recordsService.updateRecordFile(this.selectedDocument._id, this.selectedFile).subscribe({
+      next: (response) => {
+        console.log('✅ Manuscript updated successfully:', response);
+        alert('Manuscript updated successfully!');
+        
+        // Refresh the document data
+        this.loadRecordsFromDatabase();
+        this.closeUpdateModal();
+        this.showListView();
+      },
+      error: (error) => {
+        console.error('❌ Error updating manuscript:', error);
+        alert('Failed to update manuscript. Please try again.');
+        this.isUploading = false;
+      }
+    });
   }
 
   // Data handling

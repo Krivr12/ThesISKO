@@ -5,11 +5,6 @@
         <div *ngIf="view === 'list'" class="list-view-container">
             <header class="page-header">
                 <h1 class="page-title">Documents</h1>
-                <div class="filter-buttons">
-                    <button [class.active]="currentFilter === 'For Approval'" (click)="setFilter('For Approval')">For Approval</button>
-                    <button [class.active]="currentFilter === 'With Issues'" (click)="setFilter('With Issues')">With Issues</button>
-                    <button [class.active]="currentFilter === 'Approved'" (click)="setFilter('Approved')">Approved</button>
-                </div>
             </header>
 
             <div class="documents-table">
@@ -33,9 +28,7 @@
                     <div class="row-item">{{ doc.submissionDate }}</div>
                     <div class="row-item">{{ doc.id }}</div>
                     <div class="row-item action-cell">
-                        <button *ngIf="doc.status === 'For Approval'" class="verify-btn" (click)="showDetailsView(doc)">Verify</button>
-                        <span *ngIf="doc.status !== 'For Approval'" 
-                              class="status-tag clickable" 
+                        <span class="status-tag clickable" 
                               [ngClass]="doc.status.split(' ')[0].toLowerCase()"
                               (click)="showDetailsView(doc)">
                             {{ doc.status }}
@@ -152,18 +145,12 @@
             </div>
 
             <footer class="details-footer">
-                <!-- Show Delete button only for Approved documents -->
-                <button *ngIf="selectedDocument.status === 'Approved'" 
-                        class="reject-btn" 
-                        (click)="openDeleteModal()">
+                <button class="approve-btn" (click)="openUpdateModal()">
+                    Update Manuscript
+                </button>
+                <button class="reject-btn" (click)="openDeleteModal()">
                     Delete Document
                 </button>
-                
-                <!-- Show Approve/Reject buttons for non-Approved documents -->
-                <ng-container *ngIf="selectedDocument.status !== 'Approved'">
-                    <button class="approve-btn" (click)="openApproveModal()">Approve Submission</button>
-                    <button class="reject-btn" (click)="openRejectModal()">Reject Submission</button>
-                </ng-container>
             </footer>
         </div>
 
@@ -219,6 +206,35 @@
                 <div class="modal-actions">
                     <button class="modal-btn confirm-btn" (click)="deleteDocument()">Yes, Delete</button>
                     <button class="modal-btn cancel-btn" (click)="closeDeleteModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Manuscript Modal -->
+        <div class="modal-overlay" *ngIf="isUpdateModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Update Manuscript</h3>
+                    <button class="modal-close-btn" (click)="closeUpdateModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <p>Upload a new version of the manuscript for this document.</p>
+                    <input type="file" 
+                           accept=".pdf" 
+                           (change)="onFileSelected($event)"
+                           #fileInput
+                           style="margin-top: 1rem;">
+                    <p *ngIf="selectedFile" style="margin-top: 0.5rem; color: #666;">
+                        Selected: {{ selectedFile.name }}
+                    </p>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" 
+                            (click)="updateManuscript()" 
+                            [disabled]="!selectedFile || isUploading">
+                        {{ isUploading ? 'Uploading...' : 'Update' }}
+                    </button>
+                    <button class="modal-btn cancel-btn" (click)="closeUpdateModal()">Cancel</button>
                 </div>
             </div>
         </div>
