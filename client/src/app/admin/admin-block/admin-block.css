@@ -30,7 +30,7 @@
   .content {
     flex: 1;
     padding: 50px;  
-    margin-left: 200px;             /* top/right/bottom/left = 50px */
+    margin-left: 250px;             /* top/right/bottom/left = 50px */
   }
   button.return {
     display: inline-flex;

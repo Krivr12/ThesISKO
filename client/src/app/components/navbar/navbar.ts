@@ -94,29 +94,21 @@ export class AuthService {
       this.userSubject.next(null);
       // Also clear the main AuthService
       this.mainAuthService.logout();
-      // Clear any remaining session/local storage for guest mode
+      // Clear any remaining session storage for guest mode
       if (typeof window !== 'undefined') {
-        console.log('🧹 Clearing storage...');
-        console.log('Before clear - localStorage keys:', Object.keys(localStorage));
+        console.log('🧹 Clearing session storage...');
         console.log('Before clear - sessionStorage keys:', Object.keys(sessionStorage));
         
-        // Clear sessionStorage
         sessionStorage.removeItem('guestMode');
         sessionStorage.removeItem('user');
         sessionStorage.removeItem('role');
         sessionStorage.removeItem('loginTimestamp');
         sessionStorage.removeItem('pageHiddenAt');
         sessionStorage.removeItem('currentUser');
-        
-        // Clear localStorage
-        localStorage.removeItem('currentUser');
         localStorage.removeItem('user');
-        localStorage.removeItem('role');
-        localStorage.removeItem('email');
         
-        console.log('After clear - localStorage keys:', Object.keys(localStorage));
         console.log('After clear - sessionStorage keys:', Object.keys(sessionStorage));
-        console.log('After clear - localStorage currentUser:', localStorage.getItem('currentUser'));
+        console.log('After clear - sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
       }
     }
   }
@@ -136,11 +128,16 @@ export class AuthService {
       return;
     }
 
-    // DISABLED: beforeunload fires on page refresh, not just browser close
-    // This was causing users to be logged out on page refresh
-    // Modern browsers keep localStorage persistent, so manual logout is preferred
-    
-    // Handle page visibility change for session timeout
+    // Handle browser/tab close
+    window.addEventListener('beforeunload', (event) => {
+      // Only logout if user is authenticated
+      if (this.currentUser) {
+        // Use sendBeacon for reliable logout on page unload
+        this.logoutOnBrowserClose();
+      }
+    });
+
+    // Handle page visibility change (when tab becomes hidden)
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden' && this.currentUser) {
         // Store a timestamp when the page becomes hidden
@@ -166,10 +163,7 @@ export class AuthService {
       // Clear local state immediately
       this.userSubject.next(null);
       sessionStorage.clear();
-      localStorage.removeItem('currentUser');
       localStorage.removeItem('user');
-      localStorage.removeItem('role');
-      localStorage.removeItem('email');
       
       console.log('Browser close logout initiated');
     } catch (error) {
@@ -240,9 +234,8 @@ export class Navbar implements OnInit {
 
   private async performLogout() {
     await this.auth.logout();
-    // Clear guest mode from both storages
+    // Clear guest mode
     sessionStorage.removeItem('guestMode');
-    localStorage.removeItem('guestMode');
     
     // Navigate all users to signup-choose after logout
     this.router.navigate(['/signup-choose']);

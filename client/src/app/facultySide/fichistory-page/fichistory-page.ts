@@ -59,8 +59,8 @@ export class FICHistoryPage implements OnInit {
   ) {}
   
   ngOnInit(): void {
-    // Get current user from local storage
-    const userStr = localStorage.getItem('currentUser');
+    // Get current user from session storage
+    const userStr = sessionStorage.getItem('currentUser');
     if (userStr) {
       const user = JSON.parse(userStr);
       this.currentUserEmail = user.email || '';
@@ -92,7 +92,7 @@ export class FICHistoryPage implements OnInit {
         return of(null);
       })
     ).subscribe((response: any) => {
-      if (!response || !response.data) {
+      if (!response) {
         console.error('Group not found');
         this.loading = false;
         return;
@@ -100,27 +100,24 @@ export class FICHistoryPage implements OnInit {
 
       console.log('✅ Group response:', response);
 
-      // Extract data from response wrapper
-      const groupData = response.data;
-
       // Map MongoDB group structure to GroupMeta
-      const leaderName = groupData.leader 
-        ? `${groupData.leader.firstname || ''} ${groupData.leader.surname || ''}`.trim()
+      const leaderName = response.leader 
+        ? `${response.leader.firstname || ''} ${response.leader.surname || ''}`.trim()
         : '';
 
-      const memberNames = (groupData.members || []).map((m: any) => 
+      const memberNames = (response.members || []).map((m: any) => 
         `${m.firstname || ''} ${m.surname || ''}`.trim()
       );
 
       this.group = {
-        group_id: groupData.group_id,
-        title: groupData.title || '',
+        group_id: response.group_id,
+        title: response.title || '',
         leader: leaderName,
         members: memberNames
       };
 
       // Extract panelists from milestones
-      const uploadManuscript = groupData.milestones?.find((m: any) => m.type === 'upload_manuscript');
+      const uploadManuscript = response.milestones?.find((m: any) => m.type === 'upload_manuscript');
       const approvedBy = uploadManuscript?.approved_by || [];
       
       // Track manuscript files and FIC approval status
@@ -128,8 +125,8 @@ export class FICHistoryPage implements OnInit {
       this.facultyApproved = uploadManuscript?.verified?.faculty_in_charge?.approved || false;
 
       // Fetch block to get panelist names
-      if (groupData.block_id) {
-        this.http.get<any>(`${environment.authApiUrl}/blocks/${groupData.block_id}`).pipe(
+      if (response.block_id) {
+        this.http.get<any>(`${environment.authApiUrl}/blocks/${response.block_id}`).pipe(
           catchError(() => of(null))
         ).subscribe((block: any) => {
           if (block && block.panelists) {
@@ -162,13 +159,10 @@ export class FICHistoryPage implements OnInit {
             console.log('📄 Frontend - Has manuscript?', hasManuscript);
             console.log('🎯 Frontend - Can approve?', allPanelistsApproved && hasManuscript && !this.facultyApproved);
             
-            // ✅ BUTTON LOGIC: "Approve Manuscript" button is ENABLED when:
+            // FIC can approve only if:
             // 1. All panelists have approved (based on block's panelist count)
-            // 2. Manuscript has been uploaded (s3_key array has files)
-            // 3. FIC hasn't already approved (!facultyApproved = true means NOT YET APPROVED)
-            // 
-            // When facultyApproved = false (FIC hasn't approved yet), the button will be ENABLED
-            // When facultyApproved = true (FIC already approved), the button will be DISABLED
+            // 2. Manuscript has been uploaded
+            // 3. FIC hasn't already approved
             this.canApprove = allPanelistsApproved && hasManuscript && !this.facultyApproved;
             
             // Set approval message for display (optional)

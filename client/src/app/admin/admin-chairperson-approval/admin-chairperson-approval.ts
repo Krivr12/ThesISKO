@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
@@ -9,7 +9,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { AdminSideBar } from '../admin-side-bar/admin-side-bar';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Auth } from '../../service/auth';
 import { User } from '../../interface/auth';
@@ -40,13 +39,12 @@ type GroupRow = {
   templateUrl: './admin-chairperson-approval.html',
   styleUrl: './admin-chairperson-approval.css'
 })
-export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewInit {
+export class AdminChairpersonApproval implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['group_id', 'title', 'leader', 'block', 'actions'];
   dataSource = new MatTableDataSource<GroupRow>([]);
   loading = true;
   currentUserEmail = '';
   currentUser: User | null = null;
-  private userSubscription?: Subscription;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -62,8 +60,11 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
     console.log('🔍 [Chairperson Approval] ngOnInit started');
     
     // Subscribe to current user from Auth service
-    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe(user => {
       console.log('👤 [Chairperson Approval] User from Auth service:', user);
+      console.log('🔑 [Chairperson Approval] User keys:', user ? Object.keys(user) : 'null');
+      console.log('🔑 [Chairperson Approval] User.email:', user?.email);
+      console.log('🔑 [Chairperson Approval] User.Email:', (user as any)?.Email);
       
       if (user) {
         this.currentUser = user;
@@ -71,6 +72,8 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
         this.currentUserEmail = user.email || (user as any).Email || '';
         console.log('✅ [Chairperson Approval] User identified');
         console.log('📧 [Chairperson Approval] Email:', this.currentUserEmail);
+        console.log('🔑 [Chairperson Approval] Email type:', typeof this.currentUserEmail);
+        console.log('🔑 [Chairperson Approval] Email length:', this.currentUserEmail?.length);
         
         // Load groups once we have user data
         if (this.currentUserEmail) {
@@ -80,17 +83,11 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
           console.error('❌ [Chairperson Approval] Email is empty!');
         }
       } else {
-        console.log('⚠️ [Chairperson Approval] No user from Auth service (user logged out or not authenticated)');
-        // Don't show alert or navigate - let auth guard handle it
+        console.error('❌ [Chairperson Approval] No user from Auth service!');
+        alert('Unable to identify current user. Please log in again.');
+        this.router.navigate(['/login-admin']);
       }
     });
-  }
-
-  ngOnDestroy(): void {
-    // Clean up subscription to prevent memory leaks and multiple alerts on logout
-    if (this.userSubscription) {
-      this.userSubscription.unsubscribe();
-    }
   }
 
   ngAfterViewInit(): void {

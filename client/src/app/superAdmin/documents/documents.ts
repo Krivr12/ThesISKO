@@ -39,8 +39,6 @@ export class Documents implements OnInit {
   isRejectModalVisible = false;
   isDeleteModalVisible = false;
   isPdfViewerVisible = false;
-  isUpdateModalVisible = false;
-  isConfirmUpdateModalVisible = false;
   
   // PDF Viewer state
   currentPdfDocument: { name: string; file: string } | null = null;
@@ -61,15 +59,6 @@ export class Documents implements OnInit {
     incorrect: false
   };
   rejectionComment = '';
-
-  // Update form
-  updateForm = {
-    title: '',
-    abstract: '',
-    authorsString: '',
-    manuscriptFile: null as File | null,
-    manuscriptFileName: ''
-  };
   
    // Pagination (manual; synced with <mat-paginator>)
    currentPage = 1; // 1-based
@@ -359,8 +348,22 @@ export class Documents implements OnInit {
   }
   
   filterAndSortDocuments(): void {
-    // 1. Filtering - Only show approved documents
-    this.filteredDocuments = this.documents.filter(doc => doc.status === 'Approved');
+    // 1. Filtering
+    switch (this.currentFilter) {
+        case 'For Approval':
+            this.filteredDocuments = this.documents.filter(doc => doc.status === 'For Approval');
+            break;
+        case 'Approved':
+            this.filteredDocuments = this.documents.filter(doc => doc.status === 'Approved');
+            break;
+        case 'With Issues':
+            this.filteredDocuments = this.documents.filter(doc => 
+                doc.status !== 'For Approval' && doc.status !== 'Approved'
+            );
+            break;
+        default:
+            this.filteredDocuments = [...this.documents];
+    }
 
     // 2. Sorting
     if (this.sortColumn) {
@@ -439,144 +442,6 @@ export class Documents implements OnInit {
         pages.push(this.totalPages);
     }
     this.pages = pages;
-  }
-
-  // Update Modal methods
-  openUpdateModal(doc: Thesis): void {
-    this.selectedDocument = doc;
-    this.updateForm.title = doc.title;
-    this.updateForm.abstract = doc.abstract;
-    this.updateForm.authorsString = doc.authors.join(', ');
-    this.updateForm.manuscriptFile = null;
-    this.updateForm.manuscriptFileName = '';
-    this.isUpdateModalVisible = true;
-  }
-
-  closeUpdateModal(): void {
-    this.isUpdateModalVisible = false;
-    this.selectedDocument = null;
-    this.resetUpdateForm();
-  }
-
-  openConfirmUpdateModal(): void {
-    this.isConfirmUpdateModalVisible = true;
-  }
-
-  closeConfirmUpdateModal(): void {
-    this.isConfirmUpdateModalVisible = false;
-  }
-
-  onManuscriptFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      this.updateForm.manuscriptFile = file;
-      this.updateForm.manuscriptFileName = file.name;
-    } else {
-      alert('Please select a valid PDF file.');
-      this.updateForm.manuscriptFile = null;
-      this.updateForm.manuscriptFileName = '';
-    }
-  }
-
-  isUpdateFormValid(): boolean {
-    return this.updateForm.title.trim().length > 0 && 
-           this.updateForm.abstract.trim().length > 0 &&
-           this.updateForm.authorsString.trim().length > 0;
-  }
-
-  updateDocument(): void {
-    if (!this.selectedDocument || !this.isUpdateFormValid()) {
-      alert('Please fill in all required fields.');
-      return;
-    }
-
-    // Parse authors from comma-separated string
-    const authorsArray = this.updateForm.authorsString
-      .split(',')
-      .map(author => author.trim())
-      .filter(author => author.length > 0);
-
-    // Prepare update data
-    const updateData: any = {
-      document_id: this.selectedDocument.id,
-      title: this.updateForm.title.trim(),
-      abstract: this.updateForm.abstract.trim(),
-      authors: authorsArray
-    };
-
-    // If there's a manuscript file, we'll need to upload it
-    if (this.updateForm.manuscriptFile) {
-      this.recordsService.updateRecordWithFile(
-        this.selectedDocument._id, 
-        updateData, 
-        this.updateForm.manuscriptFile
-      ).subscribe({
-        next: (response) => {
-          console.log('✅ Document updated successfully:', response);
-          
-          // Update local document
-          const doc = this.documents.find(d => d._id === this.selectedDocument!._id);
-          if (doc) {
-            doc.title = this.updateForm.title.trim();
-            doc.abstract = this.updateForm.abstract.trim();
-            doc.authors = authorsArray;
-            // Update file key if provided in response
-            if (response.file_key) {
-              doc.file_key = response.file_key;
-            }
-          }
-          
-          // Close modals and refresh
-          this.closeConfirmUpdateModal();
-          this.closeUpdateModal();
-          this.filterAndSortDocuments();
-          
-          alert('Document updated successfully!');
-        },
-        error: (error) => {
-          console.error('❌ Error updating document:', error);
-          alert('Failed to update document. Please try again.');
-          this.closeConfirmUpdateModal();
-        }
-      });
-    } else {
-      // Update without file
-      this.recordsService.updateRecord(this.selectedDocument._id, updateData).subscribe({
-        next: (response) => {
-          console.log('✅ Document updated successfully:', response);
-          
-          // Update local document
-          const doc = this.documents.find(d => d._id === this.selectedDocument!._id);
-          if (doc) {
-            doc.title = this.updateForm.title.trim();
-            doc.abstract = this.updateForm.abstract.trim();
-            doc.authors = authorsArray;
-          }
-          
-          // Close modals and refresh
-          this.closeConfirmUpdateModal();
-          this.closeUpdateModal();
-          this.filterAndSortDocuments();
-          
-          alert('Document updated successfully!');
-        },
-        error: (error) => {
-          console.error('❌ Error updating document:', error);
-          alert('Failed to update document. Please try again.');
-          this.closeConfirmUpdateModal();
-        }
-      });
-    }
-  }
-
-  private resetUpdateForm(): void {
-    this.updateForm = {
-      title: '',
-      abstract: '',
-      authorsString: '',
-      manuscriptFile: null,
-      manuscriptFileName: ''
-    };
   }
 
   // Placeholder data

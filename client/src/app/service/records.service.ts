@@ -52,26 +52,4 @@ export class RecordsService {
   deleteRecord(_id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${_id}`);
   }
-
-  // Update record without file
-  updateRecord(_id: string, updateData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${_id}`, updateData);
-  }
-
-  // Update record with new manuscript file (replaces existing)
-  updateRecordWithFile(_id: string, updateData: any, file: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('manuscript', file);
-    
-    // Add other fields to formData
-    Object.keys(updateData).forEach(key => {
-      if (Array.isArray(updateData[key])) {
-        formData.append(key, JSON.stringify(updateData[key]));
-      } else {
-        formData.append(key, updateData[key]);
-      }
-    });
-
-    return this.http.put(`${this.apiUrl}/${_id}/with-file`, formData);
-  }
 }

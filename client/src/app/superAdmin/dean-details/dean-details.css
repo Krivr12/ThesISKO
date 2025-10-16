@@ -5,6 +5,7 @@
 }
 
 .page {
+  margin-left: 250px;
   flex: 1;
   padding: 2rem;
 }

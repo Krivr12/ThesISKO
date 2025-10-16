@@ -1,373 +1,445 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {
+  Component, OnInit, ViewChild, AfterViewInit, TemplateRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+
+/* Angular Material (standalone) */
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatInputModule } from '@angular/material/input';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
 import { AdminSideBar } from '../admin-side-bar/admin-side-bar';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { RequestService, RequesterAnalytics, RequestDetails } from '../../service/request.service';
-import { S3Service } from '../../service/s3.service';
-import { HttpClientModule } from '@angular/common/http';
+
+interface RequestItem {
+  id?: string;              // Primary key from database (UUID)
+  request_id?: string;       // Request ID from database
+  user_type?: string;        // "student" | "faculty" etc
+  email: string;
+  department?: string;       // "CCIS" etc
+  program?: string;          // "BSIT" etc
+  country?: string;
+  city?: string;
+  school?: string;
+  status?: string;           // "pending" | "approved" | "rejected"
+  created_at?: string;       // Database timestamp
+  updated_at?: string;       // Database timestamp
+  
+  // Legacy fields for compatibility with existing UI
+  requestor_name?: string;
+  date?: string;             // "YYYY-MM-DD"
+  time?: string;             // "HH:mm"
+  selected_chapter?: string; // "1" | "2" | "3" | "4" | "5" | "all"
+  purpose?: string;
+  title?: string;
+
+  // Enriched fields from groups.json
+  group_id?: string;
+  block_id?: string;
+  course?: string;
+  abstract?: string;
+  leader?: string;
+  members?: string[];
+  leader_email?: string;
+  member_emails?: string[];
+  panelist?: string;
+  facultyid?: string;
+  faculty_in_charge?: string;
+  file_type?: string;
+
+  // Optional date-ish fields
+  publication_date?: string;
+  date_published?: string;
+  pub_date?: string;
+
+  // Optional PDF fields (any one of these can be present)
+  pdfLink?: string; pdf_link?: string; pdfUrl?: string; pdf_url?: string;
+  fileURL?: string; file_url?: string; pdf?: string;
+}
+
+/** Shape expected from groups.json */
+interface GroupEntry {
+  group_id?: string;
+  block_id?: string;
+  course?: string;
+  program?: string;
+  status?: string;
+  title: string;
+  abstract?: string;
+  leader?: string;
+  members?: string[];
+  leader_email?: string;
+  member_emails?: string[];
+  panelist?: string;
+  facultyid?: string;
+  faculty_in_charge?: string;
+  file_type?: string;
+
+  publication_date?: string;
+  date_published?: string;
+  pub_date?: string;
+
+  pdfLink?: string; pdf_link?: string; pdfUrl?: string; pdf_url?: string;
+  fileURL?: string; file_url?: string; pdf?: string;
+}
 
 @Component({
   selector: 'app-admin-request',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminSideBar, MatPaginatorModule, HttpClientModule],
+  imports: [
+    AdminSideBar, CommonModule, RouterModule, HttpClientModule,
+    MatSidenavModule, MatToolbarModule, MatButtonModule, MatIconModule,
+    MatTableModule, MatPaginatorModule, MatSortModule, MatInputModule,
+    MatDialogModule, MatFormFieldModule, FormsModule,
+  ],
   templateUrl: './admin-request.html',
-  styleUrls: ['./admin-request.css']
+  styleUrl: './admin-request.css'
 })
-export class AdminRequest implements OnInit {
+export class AdminRequest implements OnInit, AfterViewInit {
+  displayedColumns: string[] = ['email', 'department', 'program', 'status', 'created_at', 'actions'];
+  dataSource = new MatTableDataSource<RequestItem>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  
-  // State variables
-  view: 'list' | 'details' = 'list';
-  isApproveModalVisible = false;
-  isRejectModalVisible = false;
-  isPdfViewerVisible = false;
-  
-  // PDF Viewer state for viewing original manuscript
-  currentPdfDocument: { name: string; file: string } | null = null;
-  currentPdfUrl: SafeResourceUrl | null = null;
-  pdfLoading = false;
-  pdfError = '';
-  
-  // PDF Upload state for approval
-  uploadedPdfFile: File | null = null;
-  uploadedPdfFileName: string = '';
-  
-  // Data for page
-  requests: RequesterAnalytics[] = [];
-  selectedRequest: RequesterAnalytics | null = null;
-  selectedRequestDetails: RequestDetails | null = null;
-  filteredRequests: RequesterAnalytics[] = [];
-  
-  // Rejection modal
-  rejectionReason = '';
-  
-   // Pagination
-   currentPage = 1;
-   itemsPerPage = 10;
-   totalPages = 0;
-   pages: (number | string)[] = []; 
+  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('verifyDialog') verifyTpl!: TemplateRef<any>;
+  @ViewChild('confirmDialog') confirmTpl!: TemplateRef<any>;
 
-  // Filter
-  currentFilter: 'pending' | 'approved' | 'rejected' = 'pending';
+  verifyNote = '';
 
-  // Sorting
-  sortColumn: keyof RequesterAnalytics | null = null;
-  sortDirection: 'asc' | 'desc' = 'asc';
+  /** Cached groups + title index for fast lookup */
+  private groups: GroupEntry[] = [];
+  private titleIndex = new Map<string, GroupEntry[]>(); // normalizedTitle -> entries[]
 
   constructor(
+    private http: HttpClient,
+    private router: Router,
     private sanitizer: DomSanitizer,
-    private requestService: RequestService,
-    private s3Service: S3Service
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
-    this.loadRequestsFromDatabase();
+    // Load requests from JSON file
+    this.loadRequestData();
+
+    // Load groups once, then index by normalized title
+    this.http.get<GroupEntry[]>('groups.json').subscribe({
+      next: (rows) => {
+        this.groups = rows ?? [];
+        this.buildTitleIndex(this.groups);
+      },
+      error: () => {
+        this.groups = [];
+        this.titleIndex.clear();
+      }
+    });
+
+    // Case-insensitive filter across a few fields
+    this.dataSource.filterPredicate = (d, f) => (
+      [d.requestor_name, d.purpose, d.title, d.selected_chapter, d.date, d.time]
+        .filter(Boolean).join(' ').toLowerCase()
+    ).includes((f || '').toLowerCase());
   }
 
-  // Load requests from Supabase via API
-  loadRequestsFromDatabase(): void {
-    this.requestService.getAllRequests().subscribe({
-      next: (requests: RequesterAnalytics[]) => {
-        this.requests = requests;
-        this.filterAndSortRequests();
+  private loadRequestData(): void {
+    // Load requests from JSON file
+    this.http.get<RequestItem[]>('requestsample.json').subscribe({
+      next: rows => {
+        this.dataSource.data = rows ?? [];
+        console.log('Request data loaded from JSON:', rows);
       },
       error: (error) => {
-        console.error('Error loading requests:', error);
-        this.requests = [];
-        this.filterAndSortRequests();
+        console.error('Error loading request data:', error);
+        this.dataSource.data = [];
       }
     });
   }
 
-  onPage(evt: PageEvent): void {
-    this.itemsPerPage = evt.pageSize;
-    this.currentPage = evt.pageIndex + 1;
-    this.updatePages();
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
-  // View management
-  showListView(): void {
-    this.view = 'list';
-    this.selectedRequest = null;
-    this.selectedRequestDetails = null;
-    this.uploadedPdfFile = null;
-    this.uploadedPdfFileName = '';
-    this.filterAndSortRequests();
+  goBack(): void {
+    this.router.navigate(['/admin-dashboard']);
   }
 
-  showDetailsView(request: RequesterAnalytics): void {
-    this.selectedRequest = request;
-    this.view = 'details';
-    
-    // Fetch detailed request data
-    this.requestService.getRequestDetails(request.request_id).subscribe({
-      next: (details) => {
-        this.selectedRequestDetails = details;
-      },
-      error: (error) => {
-        console.error('Error loading request details:', error);
-        alert('Failed to load request details.');
-      }
-    });
+  formatChapters(sel: string): string {
+    if (!sel) return '—';
+    return sel === 'all' ? 'All Chapters' : `Chapter ${sel}`;
   }
 
-  // PDF Upload handling
-  onPdfFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      this.uploadedPdfFile = file;
-      this.uploadedPdfFileName = file.name;
-    } else {
-      alert('Please select a valid PDF file.');
-      this.uploadedPdfFile = null;
-      this.uploadedPdfFileName = '';
-    }
-  }
-
-  // View original manuscript from repository
-  viewOriginalManuscript(): void {
-    if (!this.selectedRequestDetails?.document?.file_key) {
-      alert('Document file not available.');
-      return;
-    }
-
-    this.currentPdfDocument = { 
-      name: 'Original Manuscript', 
-      file: this.selectedRequestDetails.document.file_key 
-    };
-    this.pdfLoading = true;
-    this.pdfError = '';
-    this.isPdfViewerVisible = true;
-    this.currentPdfUrl = null;
-
-    // Get signed URL from S3
-    this.s3Service.getRepositoryFileSignedUrl(this.selectedRequestDetails.document.file_key).subscribe({
-      next: (response) => {
-        this.currentPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(response.signedUrl);
-        this.pdfLoading = false;
-      },
-      error: (error) => {
-        console.error('Error getting signed URL:', error);
-        this.pdfError = 'Failed to load document. The file may be unavailable or access has expired.';
-        this.pdfLoading = false;
-      }
-    });
-  }
-
-  onPdfLoad(): void {
-    this.pdfLoading = false;
-  }
-
-  onPdfError(): void {
-    this.pdfLoading = false;
-    this.pdfError = 'Failed to load document. The file may be unavailable.';
-  }
-
-  closePdfViewer(): void {
-    this.isPdfViewerVisible = false;
-    this.currentPdfDocument = null;
-    this.currentPdfUrl = null;
-    this.pdfLoading = false;
-    this.pdfError = '';
-  }
-
-  // Modal management
-  openApproveModal(): void {
-    if (!this.uploadedPdfFile) {
-      alert('Please upload the approved PDF file before approving the request.');
-      return;
-    }
-    this.isApproveModalVisible = true;
-  }
-
-  closeApproveModal(): void {
-    this.isApproveModalVisible = false;
-  }
-  
-  openRejectModal(): void {
-    this.isRejectModalVisible = true;
-  }
-  
-  closeRejectModal(reset: boolean = true): void {
-    this.isRejectModalVisible = false;
-    if(reset) {
-        this.rejectionReason = '';
-    }
-  }
-
-  // Data handling
-  approveRequest(): void {
-    if (!this.selectedRequest || !this.uploadedPdfFile) {
-      alert('Missing required data for approval.');
-      return;
-    }
-
-    this.requestService.approveRequest(this.selectedRequest.request_id, this.uploadedPdfFile).subscribe({
-      next: (response) => {
-        console.log('✅ Request approved successfully:', response);
-        
-        // Update local requests array
-        const request = this.requests.find(r => r.request_id === this.selectedRequest!.request_id);
-        if (request) {
-          request.status = 'approved';
-        }
-        
-        // Close modal and return to list view
-        this.closeApproveModal();
-        this.showListView();
-        
-        alert('Request approved successfully. Email sent to requester.');
-      },
-      error: (error) => {
-        console.error('❌ Error approving request:', error);
-        alert('Failed to approve request. Please try again.');
-        this.closeApproveModal();
-      }
-    });
-  }
-
-  rejectRequest(): void {
-    if (!this.selectedRequest) {
-      alert('No request selected.');
-      return;
-    }
-
-    if (!this.rejectionReason.trim()) {
-      alert('Please provide a reason for rejection.');
-      return;
-    }
-
-    this.requestService.rejectRequest(this.selectedRequest.request_id, this.rejectionReason).subscribe({
-      next: (response) => {
-        console.log('✅ Request rejected successfully:', response);
-        
-        // Update local requests array
-        const request = this.requests.find(r => r.request_id === this.selectedRequest!.request_id);
-        if (request) {
-          request.status = 'rejected';
-        }
-        
-        // Close modal and return to list view
-        this.closeRejectModal();
-        this.showListView();
-        
-        alert('Request rejected successfully. Email sent to requester.');
-      },
-      error: (error) => {
-        console.error('❌ Error rejecting request:', error);
-        alert('Failed to reject request. Please try again.');
-        this.closeRejectModal();
-      }
-    });
-  }
-
-  setFilter(filter: 'pending' | 'approved' | 'rejected'): void {
-    this.currentFilter = filter;
-    this.currentPage = 1;
-    this.filterAndSortRequests();
-  }
-  
-  filterAndSortRequests(): void {
-    // 1. Filtering by status
-    this.filteredRequests = this.requests.filter(req => req.status === this.currentFilter);
-
-    // 2. Sorting
-    if (this.sortColumn) {
-        this.filteredRequests.sort((a, b) => {
-            const aValue = a[this.sortColumn!];
-            const bValue = b[this.sortColumn!];
-
-            // Handle undefined values
-            if (aValue === undefined && bValue === undefined) return 0;
-            if (aValue === undefined) return 1;
-            if (bValue === undefined) return -1;
-
-            if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
-            if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
-            return 0;
-        });
-    }
-
-    // 3. Paginator
-    this.totalPages = Math.ceil(this.filteredRequests.length / this.itemsPerPage);
-    this.updatePages();
-  }
-
-  onSort(column: keyof RequesterAnalytics): void {
-    if (this.sortColumn === column) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortColumn = column;
-      this.sortDirection = 'asc';
-    }
-    this.filterAndSortRequests();
-  }
-
-  get paginatedRequests(): RequesterAnalytics[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredRequests.slice(startIndex, startIndex + this.itemsPerPage);
-  }
-
-  goToPage(page: number | string): void {
-    if (typeof page === 'number' && page > 0 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.updatePages();
-    }
-  }
-
-  updatePages(): void {
-    const maxPagesToShow = 5;
-    const pages: (number | string)[] = [];
-    if (this.totalPages <= maxPagesToShow + 2) {
-        for (let i = 1; i <= this.totalPages; i++) {
-            pages.push(i);
-        }
-    } else {
-        pages.push(1);
-        if (this.currentPage > 3) {
-            pages.push('...');
-        }
-        
-        let start = Math.max(2, this.currentPage - 1);
-        let end = Math.min(this.totalPages - 1, this.currentPage + 1);
-
-        if (this.currentPage <= 3) {
-            end = 4;
-        }
-        if (this.currentPage >= this.totalPages - 2) {
-            start = this.totalPages - 3;
-        }
-
-        for (let i = start; i <= end; i++) {
-            pages.push(i);
-        }
-
-        if (this.currentPage < this.totalPages - 2) {
-            pages.push('...');
-        }
-        pages.push(this.totalPages);
-    }
-    this.pages = pages;
-  }
-
-  // Helper methods
   formatDate(dateString: string): string {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).replace(',', '');
+    if (!dateString) return '—';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    } catch {
+      return dateString;
+    }
   }
 
-  formatChapters(chapters: string[]): string {
-    if (!chapters || chapters.length === 0) return 'N/A';
-    return chapters.join(', ');
+  /** CLICK: Open Request dialog */
+  openVerifyDialog(row: RequestItem): void {
+    this.verifyNote = '';
+
+    // 1) Enrich the request row with metadata from groups.json by title (+ requestor heuristic)
+    const enriched = this.mergeWithBestGroup(row);
+
+    // 2) Build PDF info for dialog
+    const pdf = this.buildPdfData(enriched);
+
+    // 3) Open dialog with merged data
+    this.dialog.open(this.verifyTpl, {
+      panelClass: 'thesisko-dialog',
+      width: 'min(1100px, 96vw)',
+      maxWidth: '96vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      restoreFocus: false,
+      data: { row: enriched, ...pdf }
+    }).afterClosed().subscribe(() => {});
   }
+  approveRequest(row: RequestItem): void {
+    // Update UI only (no database connection)
+    console.log('Request approved:', row);
+    this.removeRow(row);
+    this.dialog.closeAll();
+  }
+  
+  rejectRequest(row: RequestItem): void {
+    // Update UI only (no database connection)
+    console.log('Request rejected:', row);
+    this.removeRow(row);
+    this.dialog.closeAll();
+  }
+  
+  /** Tanggalin ang row sa table (by id kung meron; otherwise by shallow compare/fingerprint) */
+  private removeRow(target: RequestItem): void {
+    const hasId = !!(target.id || target.request_id);
+    const key = (r: RequestItem) =>
+      (r.id ?? r.request_id ?? `${r.requestor_name}||${r.email}||${r.title}||${r.date} ${r.time}||${r.selected_chapter}`);
+  
+    const newData = this.dataSource.data.filter(r => key(r) !== key(target));
+    this.dataSource.data = newData;           // re-assign triggers table update
+    // (optional) this.dataSource._updateChangeSubscription(); // usually not needed if reassigning
+  }
+
+  confirmApprove(row: RequestItem): void {
+    this.dialog.open(this.confirmTpl, {
+      panelClass: 'thesisko-dialog',
+      data: {
+        title: 'Approve Request',
+        message: 'Are you sure you want to approve this request?',
+        okText: 'Approve',
+        kind: 'approve'
+      }
+    }).afterClosed().subscribe((ok: boolean) => {
+      if (ok) this.approveRequest(row);
+    });
+  }
+  
+  confirmReject(row: RequestItem): void {
+    this.dialog.open(this.confirmTpl, {
+      panelClass: 'thesisko-dialog',
+      data: {
+        title: 'Reject Request',
+        message: 'Are you sure you want to reject this request?',
+        okText: 'Reject',
+        kind: 'reject'
+      }
+    }).afterClosed().subscribe((ok: boolean) => {
+      if (ok) this.rejectRequest(row);
+    });
+  }
+  /** ===================== Helpers ===================== */
+
+  /** Build a normalized, loose key for matching titles */
+  private normTitle(s: string | undefined | null): string {
+    if (!s) return '';
+    return s
+      .toLowerCase()
+      .replace(/[\s\-_]+/g, ' ')
+      .replace(/[^\p{L}\p{N}\s]/gu, '')
+      .trim();
+  }
+
+  /** Build index: normalizedTitle -> [GroupEntry, ...] */
+  private buildTitleIndex(groups: GroupEntry[]) {
+    this.titleIndex.clear();
+    for (const g of groups) {
+      const key = this.normTitle(g.title);
+      if (!key) continue;
+      const bucket = this.titleIndex.get(key);
+      if (bucket) bucket.push(g);
+      else this.titleIndex.set(key, [g]);
+    }
+  }
+
+  /** Choose the best group by (1) exact title, then (2) requestor involvement */
+  private pickBestCandidate(title: string, reqName?: string, reqEmail?: string): GroupEntry | undefined {
+    const key = this.normTitle(title);
+    const candidates = (key && this.titleIndex.get(key)) ? [...this.titleIndex.get(key)!] : [];
+
+    if (!candidates.length) {
+      // loose fallback: contains
+      const all = this.groups.filter(g => this.normTitle(g.title).includes(key));
+      candidates.push(...all);
+    }
+    if (!candidates.length) return undefined;
+
+    // If only one, done
+    if (candidates.length === 1) return candidates[0];
+
+    // Score by involvement of requestor (name/email) in leader/members/panelist/faculty
+    const nReqName = (reqName || '').toLowerCase().trim();
+    const nReqEmail = (reqEmail || '').toLowerCase().trim();
+
+    const score = (g: GroupEntry): number => {
+      let s = 0;
+
+      const inStr = (hay?: string) =>
+        !!hay && nReqName && hay.toLowerCase().includes(nReqName);
+
+      const eqEmail = (hay?: string) =>
+        !!hay && nReqEmail && hay.toLowerCase() === nReqEmail;
+
+      // Leader name / email
+      if (inStr(g.leader)) s += 5;
+      if (eqEmail(g.leader_email)) s += 6;
+
+      // Members
+      if (g.members?.some(m => inStr(m))) s += 4;
+      if (g.member_emails?.some(e => e && nReqEmail && e.toLowerCase() === nReqEmail)) s += 5;
+
+      // Panelist / Faculty
+      if (inStr(g.panelist)) s += 2;
+      if (inStr(g.faculty_in_charge)) s += 2;
+
+      // Exact (case-insensitive) title equality gets a small boost
+      if ((g.title || '').toLowerCase() === (title || '').toLowerCase()) s += 1;
+
+      return s;
+      };
+
+    candidates.sort((a, b) => score(b) - score(a));
+    return candidates[0];
+  }
+
+  /** Merge request row with the best group match (by title + involvement) */
+  private mergeWithBestGroup(row: RequestItem): RequestItem {
+    const title = row.title || '';
+    const match = this.pickBestCandidate(title, row.requestor_name, row.email);
+    if (!match) return row;
+
+    // Date precedence (group date fields or keep original)
+    const mergedPubDate =
+      match.publication_date || match.date_published || match.pub_date ||
+      row.publication_date || row.date_published || row.pub_date;
+
+    // Prefer program->course fallback
+    const mergedProgram = match.program || match.course || row.program || row.course;
+
+    // Merge (group fills in blanks and adds metadata)
+    const merged: RequestItem = {
+      ...row,
+
+      // Core metadata
+      group_id: row.group_id ?? match.group_id,
+      block_id: row.block_id ?? match.block_id,
+      course: row.course ?? (match.course || mergedProgram),
+      program: row.program ?? (match.program || mergedProgram),
+      status: row.status ?? match.status,
+      abstract: row.abstract ?? match.abstract,
+      leader: row.leader ?? match.leader,
+      members: row.members ?? match.members,
+      leader_email: row.leader_email ?? match.leader_email,
+      member_emails: row.member_emails ?? match.member_emails,
+      panelist: row.panelist ?? match.panelist,
+      facultyid: row.facultyid ?? match.facultyid,
+      faculty_in_charge: row.faculty_in_charge ?? match.faculty_in_charge,
+      file_type: row.file_type ?? match.file_type,
+
+      // Dates
+      publication_date: mergedPubDate ?? row.publication_date,
+      date_published: mergedPubDate ?? row.date_published,
+      pub_date: mergedPubDate ?? row.pub_date,
+
+      // PDF / File links
+      pdfLink: row.pdfLink ?? match.pdfLink,
+      pdf_link: row.pdf_link ?? match.pdf_link,
+      pdfUrl: row.pdfUrl ?? match.pdfUrl,
+      pdf_url: row.pdf_url ?? match.pdf_url,
+      fileURL: row.fileURL ?? match.fileURL,
+      file_url: row.file_url ?? match.file_url,
+      pdf: row.pdf ?? match.pdf,
+    };
+
+    // If groups use only pdf_url, make sure it is surfaced
+    if (!merged.pdfLink && !merged.pdfUrl && !merged.fileURL && !merged.file_url && !merged.pdf && match.pdf_url) {
+      merged.pdf_url = match.pdf_url;
+    }
+
+    return merged;
+  }
+
+  private buildPdfData(row: RequestItem): {
+    pdfHref: string | null;
+    pdfDisplayName: string;
+    pdfSafeUrl: SafeResourceUrl | null;
+  } {
+    const raw =
+      (row as any)?.pdfLink ||
+      (row as any)?.pdf_link ||
+      (row as any)?.pdfUrl ||
+      (row as any)?.pdf_url ||
+      (row as any)?.fileURL ||
+      (row as any)?.file_url ||
+      (row as any)?.pdf ||
+      null;
+
+    if (typeof raw === 'string' && raw.trim()) {
+      const href = this.ensureProtocol(raw.trim());
+      return {
+        pdfHref: href,
+        pdfDisplayName: this.readableName(href),
+        pdfSafeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(href),
+      };
+    }
+    return { pdfHref: null, pdfDisplayName: 'Open PDF', pdfSafeUrl: null };
+  }
+
+  toList(value: unknown): string {
+    if (Array.isArray(value)) return value.length ? value.join(', ') : '—';
+    if (typeof value === 'string') return value.trim() || '—';
+    return '—';
+  }
+
+  private ensureProtocol(url: string): string {
+    if (/^https?:\/\//i.test(url)) return url;
+    return `https://${url}`;
+  }
+
+  private readableName(url: string): string {
+    try {
+      const u = new URL(url);
+      const last = u.pathname.split('/').filter(Boolean).pop();
+      if (last) return decodeURIComponent(last);
+      return u.host;
+    } catch {
+      return url;
+    }
+  }
+
+
 }
