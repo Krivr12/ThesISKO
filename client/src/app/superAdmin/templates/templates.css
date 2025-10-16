@@ -6,7 +6,7 @@
   }
   
   app-super-admin-nav-bar {
-    width: 200px;            /* adjust to your sidebar width */
+    width: 250px;            /* adjust to your sidebar width */
     flex-shrink: 0;
     position: fixed;
 
@@ -17,7 +17,7 @@
     padding: 50px;           /* inner page padding */
     display: flex;
     flex-direction: column;
-    margin-left: 200px;
+    margin-left: 250px;
   }
   .toolbar {
     display: flex;
