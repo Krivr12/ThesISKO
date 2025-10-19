@@ -189,6 +189,61 @@
     height: 100% !important;
 }
 
+/* Chart with legend layout */
+.chart-container-with-legend {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 150px;
+}
+
+.chart-legend-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 180px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.legend-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.chart-wrapper-small {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    flex-shrink: 0;
+}
+
+.chart-wrapper-small canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
 /* Three Column Grid */
 .three-column-grid {
     display: grid;

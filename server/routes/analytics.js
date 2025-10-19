@@ -285,5 +285,73 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
+// GET /analytics/requests-by-month - Get monthly requests breakdown by user type
+router.get('/requests-by-month', async (req, res) => {
+  try {
+    const months = parseInt(req.query.months) || 6; // Default to last 6 months
+    console.log(`📊 Fetching monthly requests data for last ${months} months...`);
+
+    // Calculate date range for the last N months
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+
+    // Query PostgreSQL for monthly breakdown
+    const result = await pool.query(`
+      SELECT 
+        DATE_TRUNC('month', created_at) as month,
+        user_type,
+        COUNT(*) as count
+      FROM requesters_analytics
+      WHERE created_at >= $1
+      GROUP BY DATE_TRUNC('month', created_at), user_type
+      ORDER BY month ASC
+    `, [startDate]);
+
+    // Format data for frontend
+    const monthlyData = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Generate array of last N months
+    for (let i = months - 1; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = monthNames[date.getMonth()];
+      const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      monthlyData.push({
+        month: monthLabel,
+        yearMonth: yearMonth,
+        student: 0,
+        guest: 0
+      });
+    }
+
+    // Fill in actual counts from database
+    result.rows.forEach(row => {
+      const date = new Date(row.month);
+      const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      const monthData = monthlyData.find(m => m.yearMonth === yearMonth);
+      if (monthData) {
+        if (row.user_type === 'student') {
+          monthData.student = parseInt(row.count);
+        } else if (row.user_type === 'guest') {
+          monthData.guest = parseInt(row.count);
+        }
+      }
+    });
+
+    console.log('✅ Monthly requests data fetched successfully');
+    res.status(200).json({
+      months: monthlyData.map(m => m.month),
+      studentRequests: monthlyData.map(m => m.student),
+      guestRequests: monthlyData.map(m => m.guest)
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching monthly requests data:', error);
+    res.status(500).json({ error: 'Failed to fetch monthly requests data' });
+  }
+});
+
 export default router;
 

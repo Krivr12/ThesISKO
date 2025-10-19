@@ -39,7 +39,7 @@ export class Approvals implements OnInit {
   filterDepartment = signal<string>('');
   filterDocumentType = signal<string>('');
 
-  currentUser = computed(() => this.authService.currentUser);
+  currentUser = signal<any>(null);
   isDean = computed(() => this.currentUser()?.role_id === 5);
   isChairperson = computed(() => this.currentUser()?.role_id === 4);
   userRole = computed(() => this.isDean() ? 'Dean' : 'Chairperson');
@@ -74,7 +74,13 @@ export class Approvals implements OnInit {
   private apiUrl = `${environment.apiUrl}/submissions`;
 
   ngOnInit() {
-    this.loadSubmissions();
+    // Subscribe to auth service to get current user
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser.set(user);
+      if (user && user.email) {
+        this.loadSubmissions();
+      }
+    });
   }
 
   loadSubmissions() {

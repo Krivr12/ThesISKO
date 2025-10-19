@@ -18,8 +18,17 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
   // ViewChild to get a reference to the canvas element
   @ViewChild('userChart') private chartRef!: ElementRef;
   @ViewChild('requestTypeChart') private requestTypeChartRef!: ElementRef;
+  @ViewChild('tagsChart') private tagsChartRef!: ElementRef;
   chart: any;
   requestTypeChart: any;
+  tagsChart: any;
+  
+  // Monthly requests data
+  monthlyRequestsData = {
+    months: [] as string[],
+    studentRequests: [] as number[],
+    guestRequests: [] as number[]
+  };
   
   // Expose Math to template
   Math = Math;
@@ -135,11 +144,28 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
 
         this.isLoading = false;
 
-        // Create charts after data is loaded
-        setTimeout(() => {
-          this.createChart();
-          this.createRequestTypeChart();
-        }, 100);
+        // Fetch monthly requests data for time-based chart
+        this.analyticsService.getMonthlyRequestsData(6).subscribe({
+          next: (monthlyData) => {
+            this.monthlyRequestsData = monthlyData;
+            
+            // Create charts after all data is loaded
+            setTimeout(() => {
+              this.createChart();
+              this.createRequestTypeChart();
+              this.createTagsChart();
+            }, 100);
+          },
+          error: (error) => {
+            console.error('❌ Error loading monthly requests data:', error);
+            // Still create charts even if monthly data fails
+            setTimeout(() => {
+              this.createChart();
+              this.createRequestTypeChart();
+              this.createTagsChart();
+            }, 100);
+          }
+        });
       },
       error: (error) => {
         console.error('❌ Error loading dashboard analytics:', error);
@@ -278,24 +304,164 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
         this.requestTypeChart.destroy();
       }
 
+      // Use real data from backend (fetched via analytics service)
+      const monthLabels = this.monthlyRequestsData.months.length > 0 
+        ? this.monthlyRequestsData.months 
+        : ['Loading...'];
+      const studentRequestsData = this.monthlyRequestsData.studentRequests.length > 0
+        ? this.monthlyRequestsData.studentRequests
+        : [0];
+      const guestRequestsData = this.monthlyRequestsData.guestRequests.length > 0
+        ? this.monthlyRequestsData.guestRequests
+        : [0];
+
       this.requestTypeChart = new Chart(ctx, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
-          labels: ['Student Requests', 'Guest Requests'],
+          labels: monthLabels,
+          datasets: [
+            {
+              label: 'Student Requests',
+              data: studentRequestsData,
+              backgroundColor: '#800000',
+              borderColor: '#800000',
+              borderWidth: 0,
+              borderRadius: 6,
+              barThickness: 25
+            },
+            {
+              label: 'Guest Requests',
+              data: guestRequestsData,
+              backgroundColor: '#C8A882',
+              borderColor: '#C8A882',
+              borderWidth: 0,
+              borderRadius: 6,
+              barThickness: 25
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: {
+                color: '#666',
+                font: {
+                  size: 12
+                },
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'rectRounded'
+              }
+            },
+            tooltip: {
+              enabled: true,
+              backgroundColor: '#800000',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.parsed.y}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: '#666',
+                font: {
+                  size: 11
+                }
+              },
+              border: {
+                display: false
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: '#f0f0f0'
+              },
+              ticks: {
+                color: '#666',
+                font: {
+                  size: 11
+                },
+                precision: 0
+              },
+              border: {
+                display: false
+              }
+            }
+          },
+          layout: {
+            padding: {
+              top: 10,
+              right: 10,
+              bottom: 10,
+              left: 10
+            }
+          }
+        }
+      });
+    }
+  }
+
+  getChangeClass(value: number): string {
+    if (value > 0) return 'positive';
+    if (value < 0) return 'negative';
+    return 'neutral';
+  }
+
+  getChangeSymbol(value: number): string {
+    if (value > 0) return '↑';
+    if (value < 0) return '↓';
+    return '–';
+  }
+
+  createTagsChart(): void {
+    if (!this.tagsChartRef) return;
+    
+    const canvas = this.tagsChartRef.nativeElement;
+    const ctx = canvas.getContext('2d');
+
+    if (ctx) {
+      // Destroy existing chart if it exists
+      if (this.tagsChart) {
+        this.tagsChart.destroy();
+      }
+
+      // Prepare data from topKeywords
+      const labels = this.topKeywords.map(k => k.name);
+      const data = this.topKeywords.map(k => k.access);
+      const colors = this.topKeywords.map((_, i) => this.getChartColor(i));
+
+      this.tagsChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
           datasets: [{
-            data: [this.requestsByType.student, this.requestsByType.guest],
-            backgroundColor: ['#800000', '#C8A882'],
-            borderColor: ['#ffffff', '#ffffff'],
+            data: data,
+            backgroundColor: colors,
+            borderColor: '#ffffff',
             borderWidth: 3
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: true,
-          cutout: '60%',
           plugins: {
             legend: {
-              display: false
+              display: false  // Using custom HTML legend
             },
             tooltip: {
               enabled: true,
@@ -318,6 +484,22 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
         }
       });
     }
+  }
+
+  getChartColor(index: number): string {
+    const colors = [
+      '#FF6384', // Red/Pink
+      '#36A2EB', // Blue
+      '#FFCE56', // Yellow
+      '#4BC0C0', // Teal
+      '#9966FF', // Purple
+      '#FF9F40', // Orange
+      '#C9CBCF', // Gray
+      '#800000', // Maroon
+      '#C8A882', // Tan
+      '#4A5568'  // Dark gray
+    ];
+    return colors[index % colors.length];
   }
 }
 
