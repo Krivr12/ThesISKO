@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "build": "echo 'No build needed'"
+    "build": "echo 'No build needed'",
+    "seed:document-types": "node scripts/seed-document-types.js"
   },
   "keywords": [],
   "author": "",

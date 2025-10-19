@@ -1,0 +1,16 @@
+<div class="sidenav">
+    <h2 class="logo">ThesISKO</h2>
+  
+    <div class="nav-links">
+        <a 
+            *ngFor="let item of menuItems()"
+            [routerLink]="item.route"
+            class="nav-link"
+            routerLinkActive="active-link">
+            {{ item.label }}
+        </a>
+    </div>
+
+    <button class="logout" (click)="logout()">Logout</button>
+</div>
+

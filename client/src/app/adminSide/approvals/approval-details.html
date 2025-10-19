@@ -1,0 +1,186 @@
+<div class="dashboard-layout">
+  <app-admin-side-nav></app-admin-side-nav>
+
+  <main class="main-content">
+    <!-- Loading -->
+    <div *ngIf="loading()" class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading submission details...</p>
+    </div>
+
+    <!-- Submission Details -->
+    <div *ngIf="!loading() && submission()" class="details-container">
+      <!-- Header -->
+      <div class="details-header">
+        <button class="btn-back" (click)="goBack()">
+          ← Back to Approvals
+        </button>
+        <h1 class="submission-title">{{ submission()!.title }}</h1>
+        <p class="submission-id">{{ submission()!.submission_id }}</p>
+      </div>
+
+      <!-- Duplicate Warning -->
+      <div *ngIf="duplicateSubmissions().length > 0" class="warning-box">
+        <h3>⚠️ Potential Duplicate Submissions Found</h3>
+        <ul>
+          <li *ngFor="let dup of duplicateSubmissions()">
+            <strong>{{ dup.title }}</strong> by {{ dup.submitter_email }}
+            <span class="duplicate-date">({{ formatDate(dup.submitted_at) }})</span>
+          </li>
+        </ul>
+        <p class="warning-note">Please verify this is not a duplicate before approving.</p>
+      </div>
+
+      <!-- Metadata Section -->
+      <div class="section-card">
+        <h2 class="section-title">Submission Details</h2>
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Submitter</label>
+            <p>{{ submission()!.submitter_email }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Submitted Date</label>
+            <p>{{ formatDate(submission()!.submitted_at) }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Document Type</label>
+            <p>{{ submission()!.document_type | titlecase }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Department</label>
+            <p>{{ submission()!.department }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Program</label>
+            <p>{{ submission()!.program }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Access Level</label>
+            <p>{{ submission()!.access_level }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Authors & Team -->
+      <div class="section-card">
+        <h2 class="section-title">Authors & Team</h2>
+        <div class="details-grid">
+          <div class="detail-item full-width">
+            <label>Authors</label>
+            <p>{{ submission()!.authors.join(', ') }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Adviser</label>
+            <p>{{ submission()!.adviser || 'N/A' }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Faculty-In-Charge</label>
+            <p>{{ submission()!.faculty_in_charge || 'N/A' }}</p>
+          </div>
+          <div class="detail-item full-width">
+            <label>Panelists</label>
+            <p>{{ submission()!.panelists.length > 0 ? submission()!.panelists.join(', ') : 'N/A' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Abstract -->
+      <div class="section-card">
+        <h2 class="section-title">Abstract</h2>
+        <p class="abstract-text">{{ submission()!.abstract || 'No abstract provided' }}</p>
+      </div>
+
+      <!-- Tags -->
+      <div class="section-card" *ngIf="submission()!.tags && submission()!.tags.length > 0">
+        <h2 class="section-title">Tags</h2>
+        <div class="tags-container">
+          <span *ngFor="let tag of submission()!.tags" class="tag">{{ tag }}</span>
+        </div>
+      </div>
+
+      <!-- Files Section -->
+      <div class="section-card">
+        <h2 class="section-title">Uploaded Files</h2>
+        <div class="files-list">
+          <div *ngFor="let file of selectedFiles(); let i = index" class="file-item">
+            <div class="file-info">
+              <span class="file-icon">📄</span>
+              <div class="file-details">
+                <strong>{{ file.label }}</strong>
+                <small>Uploaded: {{ formatDate(file.uploaded_at!) }}</small>
+              </div>
+            </div>
+            <button 
+              class="btn-download" 
+              (click)="downloadFile(file.id, file.s3_key!)">
+              Download
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions-section">
+        <button class="btn-reject" (click)="openRejectModal()">
+          ✗ Request Resubmission
+        </button>
+        <button class="btn-approve" (click)="approveSubmission()">
+          ✓ Approve Submission
+        </button>
+      </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div *ngIf="showRejectModal()" class="modal-overlay" (click)="closeRejectModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Request Resubmission</h2>
+          <button class="btn-close" (click)="closeRejectModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-instruction">
+            Select the files that need to be resubmitted and provide a reason:
+          </p>
+
+          <!-- File Selection -->
+          <div class="file-selection">
+            <div *ngFor="let file of selectedFiles(); let i = index" class="file-checkbox">
+              <label>
+                <input 
+                  type="checkbox" 
+                  [checked]="file.needsResubmit"
+                  (change)="toggleFileForResubmission(i)" />
+                <span>{{ file.label }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Rejection Reason -->
+          <div class="form-group">
+            <label for="rejectionReason">Reason for Rejection <span class="required">*</span></label>
+            <textarea 
+              id="rejectionReason"
+              [(ngModel)]="rejectionReason"
+              rows="5"
+              placeholder="Explain what needs to be corrected..."
+              class="textarea-input"
+              required></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeRejectModal()">Cancel</button>
+          <button 
+            class="btn-confirm-reject" 
+            (click)="confirmReject()"
+            [disabled]="!rejectionReason().trim()">
+            Confirm Rejection
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+

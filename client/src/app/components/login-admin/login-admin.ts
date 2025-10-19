@@ -39,13 +39,10 @@ export class LoginAdmin {
           localStorage.setItem('email', email);
           localStorage.setItem('currentUser', JSON.stringify(response.user));
           
-          // Redirect based on role
-          if (response.user.role_id === 4 || response.user.role_id === 7) {
-            // Admin (4) or admin_faculty (7) → Admin Dashboard
-            this.router.navigate(['/admin-dashboard']);
-          } else if (response.user.role_id === 5 || response.user.role_id === 8) {
-            // SuperAdmin (5) or superadmin_faculty (8) → SuperAdmin Dashboard
-            this.router.navigate(['/superadmin-dashboard']);
+          // Redirect based on role - NEW UNIFIED ADMINSIDE
+          if (response.user.role_id === 4 || response.user.role_id === 5) {
+            // Chairperson (4) or Dean (5) → Unified AdminSide Dashboard
+            this.router.navigate(['/adminSide/dashboard']);
           } else {
             // Other roles - redirect to home
             this.router.navigate(['/home']);
