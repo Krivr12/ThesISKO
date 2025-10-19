@@ -1,0 +1,241 @@
+<app-navbar></app-navbar>
+
+<div class="submission-container">
+  <div class="submission-wrapper">
+    <!-- Progress Steps -->
+    <div class="progress-steps">
+      <div class="step" [class.active]="currentStep() >= 1" [class.completed]="currentStep() > 1">
+        <div class="step-number">1</div>
+        <div class="step-label">Basic Info</div>
+      </div>
+      <div class="step-line" [class.completed]="currentStep() > 1"></div>
+      <div class="step" [class.active]="currentStep() >= 2" [class.completed]="currentStep() > 2">
+        <div class="step-number">2</div>
+        <div class="step-label">Metadata</div>
+      </div>
+      <div class="step-line" [class.completed]="currentStep() > 2"></div>
+      <div class="step" [class.active]="currentStep() >= 3">
+        <div class="step-number">3</div>
+        <div class="step-label">Upload Files</div>
+      </div>
+    </div>
+
+    <!-- Step 1: Basic Information -->
+    <div *ngIf="currentStep() === 1" class="form-step">
+      <h2 class="step-title">📝 Basic Information</h2>
+      <p class="step-description">Select your department, program, and document type</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="department">Department <span class="required">*</span></label>
+          <select id="department" [(ngModel)]="department" class="form-control" required>
+            <option value="">-- Select Department --</option>
+            <option value="CCIS">CCIS - College of Computer and Information Sciences</option>
+            <option value="CEA">CEA - College of Engineering and Architecture</option>
+            <option value="CBA">CBA - College of Business Administration</option>
+            <option value="CPSPA">CPSPA - College of Political Science and Public Administration</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="program">Program <span class="required">*</span></label>
+          <select id="program" [(ngModel)]="program" class="form-control" required>
+            <option value="">-- Select Program --</option>
+            <option value="BSIT">BSIT - Bachelor of Science in Information Technology</option>
+            <option value="BSCS">BSCS - Bachelor of Science in Computer Science</option>
+            <option value="BSIS">BSIS - Bachelor of Science in Information Systems</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="docType">Document Type <span class="required">*</span></label>
+          <select id="docType" [(ngModel)]="documentType" class="form-control" required>
+            <option value="">-- Select Document Type --</option>
+            <option *ngFor="let type of documentTypes()" [value]="type.type_id">
+              {{ type.type_name }}
+            </option>
+          </select>
+          <small class="help-text" *ngIf="selectedDocType()">
+            This document type requires {{ selectedDocType()!.required_files.length }} file(s)
+          </small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-next" (click)="nextStep()">Next Step →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Metadata -->
+    <div *ngIf="currentStep() === 2" class="form-step">
+      <h2 class="step-title">📚 Document Metadata</h2>
+      <p class="step-description">Provide details about your thesis/capstone</p>
+
+      <!-- Duplicate Warning -->
+      <div *ngIf="showDuplicateWarning()" class="warning-box">
+        <h4>⚠️ Potential Duplicate Detected</h4>
+        <p>Similar submissions found:</p>
+        <ul>
+          <li *ngFor="let dup of duplicateWarning()">
+            <strong>{{ dup.title }}</strong> by {{ dup.submitter_email }}
+          </li>
+        </ul>
+        <p>If this is not a duplicate, you may continue.</p>
+        <button class="btn-dismiss" (click)="showDuplicateWarning.set(false)">Dismiss</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label for="title">Title <span class="required">*</span></label>
+          <input 
+            id="title"
+            type="text" 
+            [(ngModel)]="title"
+            placeholder="Enter the title of your thesis/capstone"
+            class="form-control"
+            required />
+        </div>
+
+        <div class="form-group full-width">
+          <label for="abstract">Abstract <span class="required">*</span></label>
+          <textarea 
+            id="abstract"
+            [(ngModel)]="abstract"
+            rows="6"
+            placeholder="Enter the abstract (summary of your work)"
+            class="form-control"
+            required></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="authors">Authors <span class="required">*</span></label>
+          <input 
+            id="authors"
+            type="text" 
+            [(ngModel)]="authors"
+            placeholder="Enter all authors (comma-separated): Juan Dela Cruz, Maria Santos"
+            class="form-control"
+            required />
+          <small class="help-text">Separate multiple authors with commas</small>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="tags">Tags/Keywords</label>
+          <input 
+            id="tags"
+            type="text" 
+            [(ngModel)]="tags"
+            placeholder="e.g., Machine Learning, Web Development, Mobile App"
+            class="form-control" />
+          <small class="help-text">Separate multiple tags with commas</small>
+        </div>
+
+        <div class="form-group">
+          <label for="adviser">Adviser</label>
+          <input 
+            id="adviser"
+            type="text" 
+            [(ngModel)]="adviser"
+            placeholder="Dr. John Doe"
+            class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label for="fic">Faculty-In-Charge</label>
+          <input 
+            id="fic"
+            type="text" 
+            [(ngModel)]="facultyInCharge"
+            placeholder="Prof. Jane Smith"
+            class="form-control" />
+        </div>
+
+        <div class="form-group full-width">
+          <label for="panelists">Panelists</label>
+          <input 
+            id="panelists"
+            type="text" 
+            [(ngModel)]="panelists"
+            placeholder="Dr. Alice Brown, Dr. Bob Johnson"
+            class="form-control" />
+          <small class="help-text">Separate multiple panelists with commas</small>
+        </div>
+
+        <div class="form-group">
+          <label for="accessLevel">Access Level <span class="required">*</span></label>
+          <select id="accessLevel" [(ngModel)]="accessLevel" class="form-control" required>
+            <option value="Full">Full - Anyone can view</option>
+            <option value="Partial">Partial - Limited access</option>
+            <option value="Restricted">Restricted - Authorized users only</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" (click)="previousStep()">← Back</button>
+        <button class="btn-next" (click)="nextStep()">Next Step →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: File Upload -->
+    <div *ngIf="currentStep() === 3" class="form-step">
+      <h2 class="step-title">📎 Upload Required Files</h2>
+      <p class="step-description">Upload all required documents (PDF only)</p>
+
+      <div class="files-section">
+        <div *ngFor="let fileReq of selectedDocType()?.required_files" class="file-upload-item">
+          <div class="file-header">
+            <strong>{{ fileReq.label }}</strong>
+            <span *ngIf="fileReq.required" class="required-badge">Required</span>
+          </div>
+          
+          <div *ngIf="!isFileUploaded(fileReq.id)" class="file-input-wrapper">
+            <input 
+              type="file" 
+              [id]="'file-' + fileReq.id"
+              accept=".pdf"
+              (change)="onFileSelected($event, fileReq.id)"
+              class="file-input" />
+            <label [for]="'file-' + fileReq.id" class="file-label">
+              <span class="upload-icon">📤</span>
+              <span>Choose PDF file</span>
+            </label>
+          </div>
+
+          <div *ngIf="isFileUploaded(fileReq.id)" class="file-uploaded">
+            <div class="file-info">
+              <span class="file-icon">✓</span>
+              <span class="file-name">{{ uploadedFiles().get(fileReq.id)?.name }}</span>
+            </div>
+            <button class="btn-remove" (click)="removeFile(fileReq.id)">Remove</button>
+          </div>
+
+          <!-- Upload Progress -->
+          <div *ngIf="submitting() && getFileProgress(fileReq.id) > 0 && getFileProgress(fileReq.id) < 100" class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getFileProgress(fileReq.id)"></div>
+            <span class="progress-text">{{ getFileProgress(fileReq.id) }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" (click)="previousStep()" [disabled]="submitting()">← Back</button>
+        <button 
+          class="btn-submit" 
+          (click)="submitAll()"
+          [disabled]="submitting()">
+          {{ submitting() ? 'Submitting...' : '✓ Submit Thesis' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>
+

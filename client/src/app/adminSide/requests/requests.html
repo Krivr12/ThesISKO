@@ -1,0 +1,292 @@
+<div class="page-layout admin-page">
+    <app-admin-side-nav></app-admin-side-nav>
+    <main class="main-content">
+        <!-- List View -->
+        <div *ngIf="view === 'list'" class="list-view-container">
+            <header class="page-header">
+                <h1 class="page-title">Requests</h1>
+                <div class="filter-buttons">
+                    <button [class.active]="currentFilter === 'pending'" (click)="setFilter('pending')">Pending</button>
+                    <button [class.active]="currentFilter === 'approved'" (click)="setFilter('approved')">Approved</button>
+                    <button [class.active]="currentFilter === 'rejected'" (click)="setFilter('rejected')">Rejected</button>
+                </div>
+            </header>
+
+            <div class="requests-table">
+                <div class="table-header">
+                    <div class="header-item sortable" (click)="onSort('created_at')">
+                        Request Date
+                        <span class="sort-arrow" *ngIf="sortColumn === 'created_at'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('user_type')">
+                        User Type
+                        <span class="sort-arrow" *ngIf="sortColumn === 'user_type'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('email')">
+                        Email
+                        <span class="sort-arrow" *ngIf="sortColumn === 'email'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item"></div>
+                </div>
+                <div class="table-body">
+                    <div class="table-row" *ngFor="let req of paginatedRequests">
+                        <div class="row-item">{{ formatDate(req.created_at) }}</div>
+                        <div class="row-item">{{ req.user_type || 'N/A' }}</div>
+                        <div class="row-item">{{ req.email }}</div>
+                        <div class="row-item action-cell">
+                            <button class="verify-btn" (click)="showDetailsView(req)">Open Request</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="paginator">
+                <mat-paginator
+                  [length]="filteredRequests.length"
+                  [pageIndex]="currentPage - 1"
+                  [pageSize]="itemsPerPage"
+                  [pageSizeOptions]="[5, 10, 20]"
+                  (page)="onPage($event)"
+                  showFirstLastButtons>
+                </mat-paginator>
+              </div>
+        </div>
+
+        <!-- Details View -->
+        <div *ngIf="view === 'details' && selectedRequest && selectedRequestDetails" class="details-view-container">
+            <button class="return-btn" (click)="showListView()">&lt; Return to Requests List</button>
+            
+            <!-- Requested By Section -->
+            <div class="section-container">
+                <h2 class="section-main-title">Requested By</h2>
+                
+                <div class="details-section">
+                    <h3 class="section-title">Email</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester.email || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">User Type</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.userType || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Request Date</h3>
+                    <div class="section-content">
+                        <p>{{ formatDate(selectedRequestDetails.request.createdAt) }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">School</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester.school || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">City</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester.city || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Country</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester.country || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Department</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester.department || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Program</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester.program || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Chapters Requested</h3>
+                    <div class="section-content">
+                        <p>{{ formatChapters(selectedRequestDetails.request.chaptersRequested) }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Purpose</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.purpose || 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requested Data Section -->
+            <div class="section-container" *ngIf="selectedRequestDetails.document">
+                <h2 class="section-main-title">Requested Data</h2>
+                
+                <div class="details-section">
+                    <h3 class="section-title">Document ID</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.document.document_id }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Title</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.document.title }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Abstract</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.document.abstract }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Authors</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.document.authors.join(', ') }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Tags</h3>
+                    <div class="section-content">
+                        <div class="tags-container">
+                            <span *ngFor="let tag of selectedRequestDetails.document.tags" class="tag">{{ tag }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Program</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.document.program_name || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Department</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.document.department || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3 class="section-title">Original Manuscript</h3>
+                    <div class="section-content">
+                        <button class="file-link" (click)="viewOriginalManuscript()">
+                            View PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Upload Section (Only for Pending) -->
+            <div class="section-container" *ngIf="selectedRequest.status === 'pending'">
+                <h2 class="section-main-title">Upload Approved Document</h2>
+                
+                <div class="details-section">
+                    <h3 class="section-title">PDF File</h3>
+                    <div class="section-content">
+                        <input 
+                            type="file" 
+                            accept="application/pdf" 
+                            (change)="onPdfFileSelected($event)"
+                            class="file-input"
+                        />
+                        <p class="file-hint" *ngIf="uploadedPdfFileName">Selected: {{ uploadedPdfFileName }}</p>
+                        <p class="file-hint" *ngIf="!uploadedPdfFileName">Please upload the PDF with requested chapters only</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Viewer Modal -->
+            <div class="modal-overlay" *ngIf="isPdfViewerVisible">
+                <div class="modal-content pdf-viewer-modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">{{ currentPdfDocument?.name }}</h3>
+                        <button class="modal-close-btn" (click)="closePdfViewer()">×</button>
+                    </div>
+                    <div class="modal-body pdf-viewer-body">
+                        <div *ngIf="pdfLoading" class="pdf-loading">
+                            <p>Loading document...</p>
+                        </div>
+                        <div *ngIf="pdfError" class="pdf-error">
+                            <p>Error loading document: {{ pdfError }}</p>
+                        </div>
+                        <iframe 
+                            *ngIf="currentPdfUrl && !pdfLoading && !pdfError"
+                            [src]="currentPdfUrl"
+                            class="pdf-iframe"
+                            frameborder="0"
+                            (load)="onPdfLoad()"
+                            (error)="onPdfError()">
+                        </iframe>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="modal-btn cancel-btn" (click)="closePdfViewer()">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Footer (Only for Pending) -->
+            <footer class="details-footer" *ngIf="selectedRequest.status === 'pending'">
+                <button class="approve-btn" (click)="openApproveModal()">Approve Request</button>
+                <button class="reject-btn" (click)="openRejectModal()">Reject Request</button>
+            </footer>
+        </div>
+
+        <!-- Approve Modal -->
+        <div class="modal-overlay" *ngIf="isApproveModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Confirm Approval</h3>
+                    <button class="modal-close-btn" (click)="closeApproveModal()">×</button>
+                </div>
+                <p class="modal-body">Are you sure you want to approve this request? The approved PDF will be sent to the requester.</p>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" (click)="approveRequest()">Yes, Approve</button>
+                    <button class="modal-btn cancel-btn" (click)="closeApproveModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reject Modal -->
+        <div class="modal-overlay" *ngIf="isRejectModalVisible">
+            <div class="modal-content reject-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">Reason for Rejection</h3>
+                    <button class="modal-close-btn" (click)="closeRejectModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="rejection-form">
+                        <textarea 
+                            placeholder="Please provide a reason for rejection..." 
+                            [(ngModel)]="rejectionReason"
+                            rows="5"></textarea>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" (click)="rejectRequest()">Yes, Reject</button>
+                    <button class="modal-btn cancel-btn" (click)="closeRejectModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+

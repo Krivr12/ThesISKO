@@ -1,0 +1,121 @@
+<div class="dashboard-layout admin-page">
+    <!-- Unified navigation -->
+    <app-admin-side-nav></app-admin-side-nav>
+
+    <main class="main-content">
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="welcome-banner">
+                <h1 class="welcome-title">Welcome back, {{ userName }}!</h1>
+                <p class="user-role">{{ userRole }}</p>
+            </div>
+            <div class="relative">
+                <select class="date-select" (change)="onPeriodChange($event)" [(ngModel)]="selectedPeriod">
+                    <option value="this_month">This Month</option>
+                    <option value="today">Today</option>
+                    <option value="this_year">This Year</option>
+                </select>
+                <div class="select-arrow">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Loading dashboard data...</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div *ngIf="!isLoading">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h2 class="stat-title">Total Thesis</h2>
+                    <p class="stat-value">{{ stats.totalThesis }}</p>
+                    <div class="stat-change" [ngClass]="getChangeClass(changes.thesis)">
+                        <span>{{ getChangeSymbol(changes.thesis) }} {{ Math.abs(changes.thesis) }}%</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title">Total Users</h2>
+                    <p class="stat-value">{{ stats.totalUsers }}</p>
+                    <div class="stat-change" [ngClass]="getChangeClass(changes.users)">
+                        <span>{{ getChangeSymbol(changes.users) }} {{ Math.abs(changes.users) }}%</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title">Total Requests</h2>
+                    <p class="stat-value">{{ stats.totalRequests }}</p>
+                    <div class="stat-change" [ngClass]="getChangeClass(changes.requests)">
+                        <span>{{ getChangeSymbol(changes.requests) }} {{ Math.abs(changes.requests) }}%</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title">Pending Approvals</h2>
+                    <p class="stat-value">{{ stats.pendingApprovals }}</p>
+                    <p class="stat-subtitle">Requires your attention</p>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="chart-grid">
+                <div class="stat-card">
+                    <h2 class="stat-title mb-4">Requests by User Type</h2>
+                    <div class="chart-wrapper">
+                        <canvas #userChart></canvas>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title mb-4">Documents per Department</h2>
+                    <div class="chart-wrapper">
+                        <canvas #requestTypeChart></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div class="three-column-grid">
+                <div class="stat-card">
+                    <h2 class="stat-title">Non-PUP Users</h2>
+                    <p class="text-5xl font-bold mt-4">{{ stats.registeredNonPUP }}</p>
+                </div>
+                
+                <div class="stat-card">
+                    <h2 class="list-title">Top Accessed Keywords</h2>
+                    <div class="list-content">
+                        <div *ngFor="let keyword of topKeywords; let i = index" class="list-item">
+                            <span>{{ i + 1 }}. {{ keyword.name }}</span>
+                            <span class="font-semibold">{{ keyword.access }}</span>
+                        </div>
+                        <div *ngIf="topKeywords.length === 0" class="list-item">
+                            <span>No data available</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <h2 class="list-title">Documents per Program</h2>
+                    <div class="list-content">
+                        <div *ngFor="let dept of docsPerDepartment; let i = index" class="list-item">
+                            <span>{{ i + 1 }}. {{ dept.name }}</span>
+                            <span class="font-semibold">{{ dept.total }}</span>
+                        </div>
+                        <div *ngIf="docsPerDepartment.length === 0" class="list-item">
+                            <span>No data available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+

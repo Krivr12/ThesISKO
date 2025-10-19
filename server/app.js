@@ -9,6 +9,8 @@ import blocks from "./routes/blocks.js";
 import groups from "./routes/groups.js";
 import programs from "./routes/programs.js";
 import requests from "./routes/requests.js";
+import documentTypes from "./routes/document-types.js";
+import submissions from "./routes/submissions.js";
 import rateLimiter from "./middlewares/rateLimiter.js";
 import { validateRequest } from "./middlewares/requestValidator.js";
 import { errorLoggerMiddleware } from "./middlewares/errorLogger.js";
@@ -51,6 +53,8 @@ app.use("/s3", s3Routes);
 app.use("/s3", s3SearchRoutes);
 app.use("/blocks", blocks);
 app.use("/groups", groups);
+app.use("/document-types", documentTypes);
+app.use("/submissions", submissions);
 
 // 🧾 Request validation only for request creation routes
 app.use("/requests", validateRequest, requests);
