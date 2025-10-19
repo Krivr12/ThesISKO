@@ -68,14 +68,14 @@
             <!-- Charts Row -->
             <div class="chart-grid">
                 <div class="stat-card">
-                    <h2 class="stat-title mb-4">Requests by User Type</h2>
+                    <h2 class="stat-title mb-4">User Growth</h2>
                     <div class="chart-wrapper">
                         <canvas #userChart></canvas>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <h2 class="stat-title mb-4">Documents per Department</h2>
+                    <h2 class="stat-title mb-4">Requests by User Type</h2>
                     <div class="chart-wrapper">
                         <canvas #requestTypeChart></canvas>
                     </div>
@@ -90,14 +90,16 @@
                 </div>
                 
                 <div class="stat-card">
-                    <h2 class="list-title">Top Accessed Keywords</h2>
-                    <div class="list-content">
-                        <div *ngFor="let keyword of topKeywords; let i = index" class="list-item">
-                            <span>{{ i + 1 }}. {{ keyword.name }}</span>
-                            <span class="font-semibold">{{ keyword.access }}</span>
+                    <h2 class="stat-title mb-4">Tags in the Repository</h2>
+                    <div class="chart-container-with-legend">
+                        <div class="chart-legend-vertical">
+                            <div class="legend-item" *ngFor="let keyword of topKeywords; let i = index">
+                                <span class="legend-color" [style.background-color]="getChartColor(i)"></span>
+                                <span class="legend-label">{{ keyword.name }}</span>
+                            </div>
                         </div>
-                        <div *ngIf="topKeywords.length === 0" class="list-item">
-                            <span>No data available</span>
+                        <div class="chart-wrapper-small">
+                            <canvas #tagsChart></canvas>
                         </div>
                     </div>
                 </div>

@@ -39,6 +39,12 @@ export interface RequestsByType {
   guest: number;
 }
 
+export interface MonthlyRequestsData {
+  months: string[];
+  studentRequests: number[];
+  guestRequests: number[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -50,6 +56,12 @@ export class AnalyticsService {
   getDashboardAnalytics(period: string = 'this_month'): Observable<DashboardAnalytics> {
     return this.http.get<DashboardAnalytics>(`${this.apiUrl}/dashboard`, {
       params: { period }
+    });
+  }
+
+  getMonthlyRequestsData(months: number = 6): Observable<MonthlyRequestsData> {
+    return this.http.get<MonthlyRequestsData>(`${this.apiUrl}/requests-by-month`, {
+      params: { months: months.toString() }
     });
   }
 }
