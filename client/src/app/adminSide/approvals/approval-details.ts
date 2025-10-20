@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminSideNav } from '../admin-side-nav/admin-side-nav';
 import { Auth } from '../../service/auth';
+import { S3Service } from '../../service/s3.service';
 import { environment } from '../../../environments/environment';
 
 interface FileRequirement {
@@ -48,6 +50,8 @@ export class ApprovalDetails implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(Auth);
+  private sanitizer = inject(DomSanitizer);
+  private s3Service = inject(S3Service);
 
   submission = signal<Submission | null>(null);
   duplicateSubmissions = signal<any[]>([]);
@@ -56,13 +60,19 @@ export class ApprovalDetails implements OnInit {
   rejectionReason = signal<string>('');
   selectedFiles = signal<FileRequirement[]>([]);
 
+  // PDF Viewer state
+  isPdfViewerVisible = signal<boolean>(false);
+  currentPdfDocument = signal<{ name: string; file: string } | null>(null);
+  currentPdfUrl = signal<SafeResourceUrl | null>(null);
+  pdfLoading = signal<boolean>(false);
+  pdfError = signal<string>('');
+
   currentUser = computed(() => this.authService.currentUser);
   isDean = computed(() => this.currentUser()?.role_id === 5);
   isChairperson = computed(() => this.currentUser()?.role_id === 4);
   userRole = computed(() => this.isDean() ? 'Dean' : 'Chairperson');
 
   private apiUrl = `${environment.apiUrl}/submissions`;
-  private s3ApiUrl = `${environment.apiUrl}/s3`;
 
   ngOnInit() {
     const submissionId = this.route.snapshot.paramMap.get('id');
@@ -117,19 +127,44 @@ export class ApprovalDetails implements OnInit {
     ).join(' ');
   }
 
-  async downloadFile(fileId: string, s3Key: string) {
-    try {
-      const response = await this.http.get<{ url: string }>(
-        `${this.s3ApiUrl}/presigned-url?key=${encodeURIComponent(s3Key)}`
-      ).toPromise();
+  viewFile(fileId: string, s3Key: string) {
+    this.currentPdfDocument.set({ 
+      name: this.formatFileLabel(fileId), 
+      file: s3Key 
+    });
+    this.isPdfViewerVisible.set(true);
+    this.pdfLoading.set(true);
+    this.pdfError.set('');
 
-      if (response?.url) {
-        window.open(response.url, '_blank');
+    // Use S3Service to get signed URL
+    this.s3Service.getSubmissionFileSignedUrl(s3Key).subscribe({
+      next: (response) => {
+        this.currentPdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(response.signedUrl));
+        this.pdfLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Error getting file URL:', error);
+        this.pdfLoading.set(false);
+        this.pdfError.set('Failed to load document. The file may be unavailable.');
       }
-    } catch (error) {
-      console.error('Error getting download URL:', error);
-      alert('Failed to download file');
-    }
+    });
+  }
+
+  onPdfLoad(): void {
+    this.pdfLoading.set(false);
+  }
+
+  onPdfError(): void {
+    this.pdfLoading.set(false);
+    this.pdfError.set('Failed to load document. The file may be unavailable.');
+  }
+
+  closePdfViewer(): void {
+    this.isPdfViewerVisible.set(false);
+    this.currentPdfDocument.set(null);
+    this.currentPdfUrl.set(null);
+    this.pdfLoading.set(false);
+    this.pdfError.set('');
   }
 
   approveSubmission() {

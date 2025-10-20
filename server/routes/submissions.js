@@ -1,6 +1,7 @@
 import express from 'express';
 import { ObjectId } from 'mongodb';
 import { getDb } from '../databaseConnections/MongoDB/mongodb_connection.js';
+import pool from '../data/database.js';
 
 const router = express.Router();
 
@@ -37,6 +38,25 @@ const generateSubmissionId = async (department, program, year = null) => {
   
   return `${prefix}-${nextNumber}`;
 };
+
+// GET generate submission ID
+router.get('/generate-id/:department/:program', async (req, res) => {
+  try {
+    const { department, program } = req.params;
+    const submissionId = await generateSubmissionId(department, program);
+    
+    res.json({ 
+      success: true, 
+      submission_id: submissionId 
+    });
+  } catch (error) {
+    console.error('Error generating submission ID:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate submission ID' 
+    });
+  }
+});
 
 // Helper to check for duplicate submissions
 const checkDuplicates = async (title, authors) => {
@@ -317,17 +337,32 @@ router.get('/pending-chairperson/:email', async (req, res) => {
 
     console.log(`👨‍🏫 Fetching submissions pending chairperson approval for: ${email}`);
 
-    // TODO: Filter by chairperson's program/department
-    // For now, return all pending chairperson approvals
+    // Get programs collection to find chairperson's programs
+    const programsCollection = getDb().collection('programs');
+    const programs = await programsCollection
+      .find({ chairperson_email: email })
+      .toArray();
+
+    if (programs.length === 0) {
+      console.log(`⚠️ No programs found for chairperson: ${email}`);
+      return res.json({ success: true, data: [] });
+    }
+
+    // Extract program IDs that this chairperson is responsible for
+    const programIds = programs.map(p => p.program_id);
+    console.log(`📋 Chairperson ${email} is responsible for programs: ${programIds.join(', ')}`);
+
+    // Find submissions for these programs that are pending chairperson approval
     const submissionsCollection = getSubmissionsCollection();
     const submissions = await submissionsCollection
       .find({ 
-        status: 'pending_chairperson'
+        status: 'pending_chairperson',
+        program: { $in: programIds }
       })
       .sort({ submitted_at: -1 })
       .toArray();
 
-    console.log(`📊 Found ${submissions.length} submissions pending chairperson approval`);
+    console.log(`📊 Found ${submissions.length} submissions pending chairperson approval for programs: ${programIds.join(', ')}`);
 
     res.json({ success: true, data: submissions });
   } catch (error) {
@@ -442,23 +477,39 @@ router.get('/pending-dean/:email', async (req, res) => {
 
     console.log(`👨‍💼 Fetching submissions pending dean approval for: ${email}`);
 
-    // TODO: Filter by dean's department
-    // For now, return all pending dean approvals
     const submissionsCollection = getSubmissionsCollection();
-    const submissions = await submissionsCollection
-      .find({ 
-        status: 'pending_dean',
-        'chairperson_approval.approved': true
-      })
-      .sort({ submitted_at: -1 })
-      .toArray();
+    const programsCollection = getDb().collection('programs');
 
-    console.log(`📊 Found ${submissions.length} submissions pending dean approval`);
+    // First, find programs assigned to this dean
+    const programs = await programsCollection.find({
+      dean_email: email
+    }).toArray();
+
+    console.log(`📋 Dean ${email} is responsible for programs:`, programs.map(p => p.program_id));
+
+    if (programs.length === 0) {
+      console.log(`⚠️ No programs found for dean: ${email}`);
+      return res.json({ success: true, data: [] });
+    }
+
+    // Get program IDs that this dean is responsible for
+    const programIds = programs.map(p => p.program_id);
+
+    // Find submissions that are pending dean approval for these programs
+    const submissions = await submissionsCollection.find({
+      status: 'pending_dean',
+      program: { $in: programIds }
+    }).toArray();
+
+    console.log(`📊 Found ${submissions.length} submissions pending dean approval for programs: ${programIds.join(', ')}`);
 
     res.json({ success: true, data: submissions });
   } catch (error) {
     console.error('❌ Error fetching dean submissions:', error);
-    res.status(500).json({ error: 'Error fetching submissions' });
+    res.status(500).json({ 
+      error: 'Error fetching submissions',
+      details: error.message 
+    });
   }
 });
 
@@ -625,6 +676,50 @@ router.patch('/:submission_id/dean-reject', async (req, res) => {
 });
 
 // ==================== SHARED ROUTES ====================
+
+// GET all submissions with program and chairperson info (for approvals page)
+router.get('/with-program-info', async (req, res) => {
+  try {
+    const { status, department, program, document_type } = req.query;
+
+    const submissionsCollection = getSubmissionsCollection();
+    const programsCollection = getDb().collection('programs');
+    
+    const filter = {};
+    if (status) filter.status = status;
+    if (department) filter.department = department;
+    if (program) filter.program = program;
+    if (document_type) filter.document_type = document_type;
+
+    const submissions = await submissionsCollection
+      .find(filter)
+      .sort({ submitted_at: -1 })
+      .toArray();
+
+    // Get program info for each submission
+    const submissionsWithProgramInfo = await Promise.all(
+      submissions.map(async (submission) => {
+        const programInfo = await programsCollection.findOne({ 
+          program_id: submission.program 
+        });
+        
+        return {
+          ...submission,
+          program_info: programInfo ? {
+            program_name: programInfo.program_name,
+            department_name: programInfo.department_name,
+            chairperson_email: programInfo.chairperson_email
+          } : null
+        };
+      })
+    );
+
+    res.json({ success: true, data: submissionsWithProgramInfo });
+  } catch (error) {
+    console.error('❌ Error fetching submissions with program info:', error);
+    res.status(500).json({ error: 'Error fetching submissions' });
+  }
+});
 
 // GET single submission by ID
 router.get('/:submission_id', async (req, res) => {

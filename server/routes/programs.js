@@ -129,7 +129,7 @@ router.post("/", async (req, res) => {
       // Keep existing program_id, only update chairperson role
       await pool.query(`
         UPDATE users_info
-        SET role_id = 7,
+        SET role_id = 4,
             admin_type = 'ADMIN',
             admin_program = $1
         WHERE email = $2
@@ -139,7 +139,7 @@ router.post("/", async (req, res) => {
       // No existing program, assign them as faculty in this program
       await pool.query(`
         UPDATE users_info
-        SET role_id = 7,
+        SET role_id = 4,
             admin_type = 'ADMIN',
             admin_program = $1,
             program_id = $1
@@ -228,7 +228,7 @@ router.put("/:program_id", async (req, res) => {
         // Keep existing program_id
         await pool.query(`
           UPDATE users_info
-          SET role_id = 7,
+          SET role_id = 4,
               admin_type = 'ADMIN',
               admin_program = $1
           WHERE email = $2
@@ -238,7 +238,7 @@ router.put("/:program_id", async (req, res) => {
         // No existing program, assign them as faculty in this program
         await pool.query(`
           UPDATE users_info
-          SET role_id = 7,
+          SET role_id = 4,
               admin_type = 'ADMIN',
               admin_program = $1,
               program_id = $1

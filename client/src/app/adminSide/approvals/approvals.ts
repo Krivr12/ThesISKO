@@ -19,6 +19,11 @@ interface Submission {
   status: string;
   chairperson_approval?: any;
   dean_approval?: any;
+  program_info?: {
+    program_name: string;
+    department_name: string;
+    chairperson_email: string;
+  };
 }
 
 @Component({
@@ -36,7 +41,6 @@ export class Approvals implements OnInit {
   submissions = signal<Submission[]>([]);
   loading = signal<boolean>(false);
   searchTerm = signal<string>('');
-  filterDepartment = signal<string>('');
   filterDocumentType = signal<string>('');
 
   currentUser = signal<any>(null);
@@ -58,11 +62,6 @@ export class Approvals implements OnInit {
       );
     }
 
-    // Department filter
-    if (this.filterDepartment()) {
-      results = results.filter(s => s.department === this.filterDepartment());
-    }
-
     // Document type filter
     if (this.filterDocumentType()) {
       results = results.filter(s => s.document_type === this.filterDocumentType());
@@ -74,37 +73,51 @@ export class Approvals implements OnInit {
   private apiUrl = `${environment.apiUrl}/submissions`;
 
   ngOnInit() {
+    console.log('Approvals component initialized');
     // Subscribe to auth service to get current user
     this.authService.currentUser$.subscribe(user => {
+      console.log('Auth service user update:', user);
+      console.log('User exists:', !!user);
+      console.log('User email:', user?.email);
+      console.log('User email type:', typeof user?.email);
+      console.log('User email truthy:', !!user?.email);
       this.currentUser.set(user);
-      if (user && user.email) {
+      if (user && user.Email) {
+        console.log('User authenticated, loading submissions for:', user.Email);
         this.loadSubmissions();
+      } else {
+        console.log('No user or no email, not loading submissions');
+        console.log('User object keys:', user ? Object.keys(user) : 'null');
       }
     });
   }
 
   loadSubmissions() {
     const user = this.currentUser();
-    if (!user || !user.email) {
+    if (!user || !user.Email) {
       alert('User not logged in');
       return;
     }
 
     this.loading.set(true);
 
+    // Use the role-specific API endpoints that handle filtering on the backend
     const endpoint = this.isDean() 
-      ? `${this.apiUrl}/pending-dean/${user.email}`
-      : `${this.apiUrl}/pending-chairperson/${user.email}`;
+      ? `${this.apiUrl}/pending-dean/${user.Email}`
+      : `${this.apiUrl}/pending-chairperson/${user.Email}`;
+
+    console.log('Loading submissions from:', endpoint);
 
     this.http.get<{ success: boolean; data: Submission[] }>(endpoint)
       .subscribe({
         next: (response) => {
+          console.log('Submissions loaded:', response);
           this.submissions.set(response.data);
           this.loading.set(false);
         },
         error: (error) => {
           console.error('Error loading submissions:', error);
-          alert('Failed to load submissions');
+          alert('Failed to load submissions: ' + error.message);
           this.loading.set(false);
         }
       });

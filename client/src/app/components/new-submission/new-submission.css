@@ -1,18 +1,19 @@
 .submission-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #800000 0%, #400000 100%);
+  background: white;
   padding: 2rem 1rem;
   padding-top: 100px;
 }
 
 .submission-wrapper {
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 3rem;
   position: relative;
+  border: 1px solid #e5e7eb;
 }
 
 /* Progress Steps */
@@ -132,10 +133,13 @@
 
 /* Form Grid */
 .form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 2rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .form-group {
@@ -164,11 +168,17 @@
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.3s;
+  width: 100%;
 }
 
 .form-control:focus {
   outline: none;
   border-color: #800000;
+  box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
+}
+
+.form-control:hover {
+  border-color: #b0b0b0;
 }
 
 textarea.form-control {
@@ -181,6 +191,7 @@ textarea.form-control {
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
+
 
 /* File Upload */
 .files-section {
@@ -436,6 +447,138 @@ textarea.form-control {
   .btn-next,
   .btn-submit {
     margin-left: 0;
+  }
+}
+
+/* Requirements Display Styles */
+.requirements-info {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  border-left: 4px solid #800000;
+}
+
+.requirements-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metadata-requirements {
+  margin-bottom: 1.5rem;
+}
+
+.metadata-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.metadata-tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.375rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid #bae6fd;
+}
+
+.files-requirements {
+  margin-bottom: 0;
+}
+
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.file-requirement {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.file-requirement:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.file-label {
+  font-weight: 500;
+  color: #1e293b;
+  flex: 1;
+}
+
+.file-required {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.file-required.required {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.file-accept {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: 'Courier New', monospace;
+  background: #f8fafc;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid #e2e8f0;
+}
+
+/* Responsive adjustments for requirements */
+@media (max-width: 768px) {
+  .requirements-info {
+    padding: 1rem;
+  }
+  
+  .file-requirement {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .file-label {
+    flex: none;
+  }
+  
+  .metadata-list {
+    gap: 0.375rem;
+  }
+  
+  .metadata-tag {
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.5rem;
   }
 }
 

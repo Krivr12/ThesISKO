@@ -25,16 +25,6 @@
           class="filter-input" />
       </div>
 
-      <div class="filter-group">
-        <label for="department">Department</label>
-        <select id="department" [(ngModel)]="filterDepartment" class="filter-select">
-          <option value="">All Departments</option>
-          <option value="CCIS">CCIS</option>
-          <option value="CEA">CEA</option>
-          <option value="CBA">CBA</option>
-          <option value="CPSPA">CPSPA</option>
-        </select>
-      </div>
 
       <div class="filter-group">
         <label for="docType">Document Type</label>
@@ -70,6 +60,7 @@
             <th>Document Type</th>
             <th>Department</th>
             <th>Program</th>
+            <th>Chairperson</th>
             <th>Submitted</th>
             <th>Status</th>
             <th>Actions</th>
@@ -81,8 +72,16 @@
             <td class="title-cell">{{ submission.title }}</td>
             <td class="authors-cell">{{ submission.authors.join(', ') }}</td>
             <td>{{ submission.document_type | titlecase }}</td>
-            <td>{{ submission.department }}</td>
-            <td>{{ submission.program }}</td>
+            <td>{{ submission.program_info?.department_name || submission.department }}</td>
+            <td>{{ submission.program_info?.program_name || submission.program }}</td>
+            <td class="chairperson-cell">
+              <span *ngIf="submission.program_info?.chairperson_email; else noChairperson">
+                {{ submission.program_info?.chairperson_email }}
+              </span>
+              <ng-template #noChairperson>
+                <span class="no-chairperson">No Chairperson Assigned</span>
+              </ng-template>
+            </td>
             <td>{{ formatDate(submission.submitted_at) }}</td>
             <td>
               <span class="status-badge" [ngClass]="getStatusBadgeClass(submission.status)">

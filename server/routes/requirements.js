@@ -1,0 +1,180 @@
+import express from 'express';
+import { ObjectId } from 'mongodb';
+import { getDb } from '../databaseConnections/MongoDB/mongodb_connection.js';
+
+const router = express.Router();
+
+// Helper to get collection
+const getRequirementsCollection = () => {
+  const db = getDb();
+  return db.collection('requirements');
+};
+
+// GET all requirements
+router.get('/', async (req, res) => {
+  try {
+    const collection = getRequirementsCollection();
+    const requirements = await collection
+      .find({ is_active: true })
+      .sort({ created_at: -1 })
+      .toArray();
+
+    res.json({ success: true, data: requirements });
+  } catch (error) {
+    console.error('❌ Error fetching requirements:', error);
+    res.status(500).json({ error: 'Error fetching requirements' });
+  }
+});
+
+// GET requirements by document type
+router.get('/by-type/:document_type', async (req, res) => {
+  try {
+    const { document_type } = req.params;
+    const collection = getRequirementsCollection();
+    
+    const requirement = await collection.findOne({ 
+      document_type,
+      is_active: true 
+    });
+
+    if (!requirement) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'No requirements found for this document type' 
+      });
+    }
+
+    res.json({ success: true, data: requirement });
+  } catch (error) {
+    console.error('❌ Error fetching requirement by type:', error);
+    res.status(500).json({ error: 'Error fetching requirement' });
+  }
+});
+
+// POST create new requirement
+router.post('/', async (req, res) => {
+  try {
+    const {
+      document_type,
+      required_metadata,
+      required_structured_fields,
+      required_files,
+      created_by
+    } = req.body;
+
+    // Validation
+    if (!document_type || !required_metadata || !required_files) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: document_type, required_metadata, required_files' 
+      });
+    }
+
+    const collection = getRequirementsCollection();
+
+    // Check if requirement already exists for this document type
+    const existing = await collection.findOne({ 
+      document_type,
+      is_active: true 
+    });
+
+    if (existing) {
+      return res.status(400).json({ 
+        error: 'Requirements already exist for this document type' 
+      });
+    }
+
+    const newRequirement = {
+      _id: new ObjectId(),
+      document_type,
+      required_metadata: Array.isArray(required_metadata) ? required_metadata : [],
+      required_structured_fields: required_structured_fields || {},
+      required_files: Array.isArray(required_files) ? required_files : [],
+      created_by: created_by || 'system',
+      created_at: new Date(),
+      updated_at: new Date(),
+      is_active: true
+    };
+
+    await collection.insertOne(newRequirement);
+
+    console.log(`✅ Requirement created for document type: ${document_type}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Requirement created successfully',
+      data: newRequirement
+    });
+  } catch (error) {
+    console.error('❌ Error creating requirement:', error);
+    res.status(500).json({ error: 'Error creating requirement' });
+  }
+});
+
+// PATCH update requirement
+router.patch('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Remove fields that shouldn't be updated
+    delete updateData._id;
+    delete updateData.created_at;
+    delete updateData.created_by;
+
+    updateData.updated_at = new Date();
+
+    const collection = getRequirementsCollection();
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Requirement not found' });
+    }
+
+    console.log(`✅ Requirement updated: ${id}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Requirement updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error updating requirement:', error);
+    res.status(500).json({ error: 'Error updating requirement' });
+  }
+});
+
+// DELETE requirement (soft delete)
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const collection = getRequirementsCollection();
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          is_active: false,
+          updated_at: new Date()
+        } 
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Requirement not found' });
+    }
+
+    console.log(`✅ Requirement deactivated: ${id}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Requirement deactivated successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error deactivating requirement:', error);
+    res.status(500).json({ error: 'Error deactivating requirement' });
+  }
+});
+
+export default router;

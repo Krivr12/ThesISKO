@@ -113,8 +113,8 @@
             </div>
             <button 
               class="btn-download" 
-              (click)="downloadFile(file.id, file.s3_key!)">
-              Download
+              (click)="viewFile(file.id, file.s3_key!)">
+              View File
             </button>
           </div>
         </div>
@@ -178,6 +178,35 @@
             [disabled]="!rejectionReason().trim()">
             Confirm Rejection
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div class="modal-overlay" *ngIf="isPdfViewerVisible()">
+      <div class="modal-content pdf-viewer-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ currentPdfDocument()?.name }}</h3>
+          <button class="modal-close-btn" (click)="closePdfViewer()">×</button>
+        </div>
+        <div class="modal-body pdf-viewer-body">
+          <div *ngIf="pdfLoading()" class="pdf-loading">
+            <p>Loading document...</p>
+          </div>
+          <div *ngIf="pdfError()" class="pdf-error">
+            <p>Error loading document: {{ pdfError() }}</p>
+          </div>
+          <iframe 
+            *ngIf="currentPdfUrl() && !pdfLoading() && !pdfError()"
+            [src]="currentPdfUrl()"
+            class="pdf-iframe"
+            frameborder="0"
+            (load)="onPdfLoad()"
+            (error)="onPdfError()">
+          </iframe>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel-btn" (click)="closePdfViewer()">Close</button>
         </div>
       </div>
     </div>

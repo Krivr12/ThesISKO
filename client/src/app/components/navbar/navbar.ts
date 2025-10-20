@@ -353,6 +353,15 @@ export class Navbar implements OnInit {
     return currentUser.role_id === 6;
   }
 
+  /** Check if current user can submit (students or group leaders) */
+  canSubmit(): boolean {
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) return false;
+    
+    // Allow students (role_id = 2) and group leaders (role_id = 6)
+    return currentUser.role_id === 2 || currentUser.role_id === 6;
+  }
+
   /** Check if any user is logged in */
   isUserLoggedIn(): boolean {
     const currentUser = this.auth.currentUser;
