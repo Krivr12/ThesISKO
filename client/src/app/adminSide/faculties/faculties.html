@@ -1,0 +1,213 @@
+<div class="page-layout admin-page">
+    <app-admin-side-nav></app-admin-side-nav>
+    <main class="main-content">
+        <!-- List View -->
+        <div class="list-view-container">
+            <header class="page-header">
+                <h1 class="page-title">Faculties</h1>
+                <div class="header-actions">
+                    <button class="add-faculty-btn" (click)="openAddDialog()">Add Faculty</button>
+                </div>
+            </header>
+  
+      <!-- ================= Add Faculty Dialog ================== -->
+      <div class="modal-overlay" *ngIf="isAddDialogOpen">
+        <div class="modal-content">
+          <div class="ag-header">
+            <h3 class="ag-title">Add Faculty</h3>
+            <button type="button" class="ag-close" (click)="closeAddDialog()" aria-label="Close">✕</button>
+          </div>
+  
+          <div class="ag-body">
+            <form #addForm="ngForm" class="ag-form" (keydown.enter)="$event.preventDefault()">
+              <!-- First Name -->
+              <div class="ag-field-label">First Name</div>
+              <div class="ag-field">
+                <input
+                  id="firstname"
+                  [(ngModel)]="newFaculty.firstname"
+                  name="firstname"
+                  placeholder="e.g., Juan"
+                  aria-label="First Name"
+                  required />
+              </div>
+
+              <!-- Last Name -->
+              <div class="ag-field-label">Last Name</div>
+              <div class="ag-field">
+                <input
+                  id="lastname"
+                  [(ngModel)]="newFaculty.lastname"
+                  name="lastname"
+                  placeholder="e.g., Dela Cruz"
+                  aria-label="Last Name"
+                  required />
+              </div>
+
+              <!-- Email -->
+              <div class="ag-field-label">Email</div>
+              <div class="ag-field">
+                <input
+                  id="email"
+                  type="email"
+                  [(ngModel)]="newFaculty.email"
+                  name="email"
+                  placeholder="name@example.com"
+                  aria-label="Email"
+                  required />
+              </div>
+
+              <!-- Faculty ID -->
+              <div class="ag-field-label">Faculty ID</div>
+              <div class="ag-field">
+                <input
+                  id="faculty_id"
+                  [(ngModel)]="newFaculty.faculty_id"
+                  name="faculty_id"
+                  placeholder="AD00022025"
+                  aria-label="Faculty ID"
+                  required />
+              </div>
+            </form>
+          </div>
+  
+          <div class="ag-actions">
+            <button
+              type="button"
+              class="cancel-btn"
+              (click)="closeAddDialog()">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="addButton"
+              [disabled]="!isNewFacultyValid()"
+              (click)="addFaculty()">
+              ADD
+            </button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- ================== Edit Faculty Dialog ================== -->
+      <div class="modal-overlay" *ngIf="isEditDialogOpen">
+        <div class="modal-content">
+          <div class="ag-header">
+            <h3 class="ag-title">Edit Faculty</h3>
+            <button type="button" class="ag-close" (click)="closeEditDialog()" aria-label="Close">✕</button>
+          </div>
+  
+          <div class="ag-body">
+            <form #editForm="ngForm" class="ag-form" (keydown.enter)="$event.preventDefault()">
+              <!-- First Name -->
+              <div class="ag-field-label">First Name</div>
+              <div class="ag-field">
+                <input
+                  [(ngModel)]="editFaculty.firstname"
+                  name="edit_firstname"
+                  required />
+              </div>
+
+              <!-- Last Name -->
+              <div class="ag-field-label">Last Name</div>
+              <div class="ag-field">
+                <input
+                  [(ngModel)]="editFaculty.lastname"
+                  name="edit_lastname"
+                  required />
+              </div>
+
+              <!-- Email -->
+              <div class="ag-field-label">Email</div>
+              <div class="ag-field">
+                <input
+                  type="email"
+                  [(ngModel)]="editFaculty.email"
+                  name="edit_email"
+                  required />
+              </div>
+
+              <!-- Faculty ID -->
+              <div class="ag-field-label">Faculty ID</div>
+              <div class="ag-field">
+                <input
+                  [(ngModel)]="editFaculty.faculty_id"
+                  name="edit_faculty_id"
+                  placeholder="Optional for Deans" />
+              </div>
+            </form>
+          </div>
+  
+          <div class="ag-actions">
+            <button
+              type="button"
+              class="cancel-btn"
+              (click)="closeEditDialog()">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="addButton"
+              [disabled]="!isEditFacultyValid()"
+              (click)="updateFaculty()">
+              SAVE CHANGES
+            </button>
+          </div>
+        </div>
+      </div>
+  
+            <!-- Faculties Table -->
+            <div class="faculties-table">
+                <div class="table-header">
+                    <div class="header-item sortable">
+                        Faculty Name
+                    </div>
+                    <div class="header-item sortable">
+                        Email
+                    </div>
+                    <div class="header-item sortable">
+                        Faculty ID
+                    </div>
+                    <div class="header-item sortable">
+                        Role
+                    </div>
+                    <div class="header-item">Actions</div>
+                </div>
+                
+                <div class="table-row" *ngFor="let row of dataSource.data">
+                    <div class="row-item">{{ row.firstname }} {{ row.lastname }}</div>
+                    <div class="row-item">{{ row.email }}</div>
+                    <div class="row-item">{{ row.faculty_id }}</div>
+                    <div class="row-item" 
+                         [ngClass]="{
+                           'role-faculty': row.role_id === 3,
+                           'role-chairperson': row.role_id === 4,
+                           'role-dean': row.role_id === 5
+                         }">
+                        {{ row.role_display }}
+                    </div>
+                    <div class="row-item action-buttons">
+                        <button class="edit-btn" (click)="openEditDialog(row)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                            </svg>
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paginator -->
+            <div class="paginator">
+                <mat-paginator
+                  [length]="dataSource.data.length"
+                  [pageIndex]="0"
+                  [pageSize]="5"
+                  [pageSizeOptions]="[5, 10, 20]"
+                  showFirstLastButtons>
+                </mat-paginator>
+            </div>
+        </div>
+    </main>
+</div>

@@ -55,9 +55,41 @@
               {{ type.type_name }}
             </option>
           </select>
+          @if (loading()) {
+            <small class="help-text">Loading document types...</small>
+          }
           <small class="help-text" *ngIf="selectedDocType()">
             This document type requires {{ selectedDocType()!.required_files.length }} file(s)
           </small>
+          
+          <!-- Requirements Information -->
+          <div *ngIf="selectedRequirements()" class="requirements-info">
+            <h4 class="requirements-title">📋 Requirements for {{ selectedDocType()?.type_name }}</h4>
+            
+            <!-- Required Metadata Fields -->
+            <div class="metadata-requirements">
+              <h5 class="section-title">Required Information:</h5>
+              <div class="metadata-list">
+                <span *ngFor="let field of selectedRequirements()!.required_metadata" class="metadata-tag">
+                  {{ getFieldDisplayName(field) }}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Required Files -->
+            <div class="files-requirements">
+              <h5 class="section-title">Required Files:</h5>
+              <div class="files-list">
+                <div *ngFor="let file of selectedRequirements()!.required_files" class="file-requirement">
+                  <span class="file-label">{{ file.label }}</span>
+                  <span class="file-required" [class.required]="file.required">
+                    {{ file.required ? 'Required' : 'Optional' }}
+                  </span>
+                  <span *ngIf="file.accept" class="file-accept">{{ file.accept }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

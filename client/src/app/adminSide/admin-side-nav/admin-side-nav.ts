@@ -34,6 +34,8 @@ export class AdminSideNav {
     { label: 'Documents', icon: '', route: '/adminSide/documents' },
     { label: 'Approvals', icon: '', route: '/adminSide/approvals' },
     { label: 'Programs', icon: '', route: '/adminSide/programs', deanOnly: true },
+    { label: 'Faculties', icon: '', route: '/adminSide/faculties', deanOnly: true },
+    { label: 'Requirements', icon: '', route: '/adminSide/requirements', deanOnly: true },
     { label: 'Request', icon: '', route: '/adminSide/requests' },
     { label: 'Template', icon: '', route: '/adminSide/templates' }
   ];

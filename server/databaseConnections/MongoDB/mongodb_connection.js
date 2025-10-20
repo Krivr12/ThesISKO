@@ -32,4 +32,14 @@ if (uri && uri.startsWith("mongodb")) {
   db = null;
 }
 
+// Helper functions for compatibility with existing code
+export const connectToDatabase = async () => {
+  // Connection is already established in the module initialization
+  return db;
+};
+
+export const getDb = () => {
+  return db;
+};
+
 export default db;
