@@ -56,12 +56,8 @@
           <tr>
             <th>Submission ID</th>
             <th>Title</th>
-            <th>Authors</th>
             <th>Document Type</th>
-            <th>Department</th>
             <th>Program</th>
-            <th>Chairperson</th>
-            <th>Submitted</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -70,19 +66,8 @@
           <tr *ngFor="let submission of filteredSubmissions()">
             <td class="id-cell">{{ submission.submission_id }}</td>
             <td class="title-cell">{{ submission.title }}</td>
-            <td class="authors-cell">{{ submission.authors.join(', ') }}</td>
             <td>{{ submission.document_type | titlecase }}</td>
-            <td>{{ submission.program_info?.department_name || submission.department }}</td>
-            <td>{{ submission.program_info?.program_name || submission.program }}</td>
-            <td class="chairperson-cell">
-              <span *ngIf="submission.program_info?.chairperson_email; else noChairperson">
-                {{ submission.program_info?.chairperson_email }}
-              </span>
-              <ng-template #noChairperson>
-                <span class="no-chairperson">No Chairperson Assigned</span>
-              </ng-template>
-            </td>
-            <td>{{ formatDate(submission.submitted_at) }}</td>
+            <td>{{ submission.program }}</td>
             <td>
               <span class="status-badge" [ngClass]="getStatusBadgeClass(submission.status)">
                 {{ getStatusLabel(submission.status) }}

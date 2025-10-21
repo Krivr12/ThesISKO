@@ -137,10 +137,18 @@ function loadTemplate(templateName, data = {}) {
         
         return array.map(item => {
           let itemHtml = template;
-          Object.keys(item).forEach(key => {
-            const regex = new RegExp(`\\{\\{this\\.${key}\\}\\}`, 'g');
-            itemHtml = itemHtml.replace(regex, item[key] || '');
-          });
+          
+          // Handle simple string items
+          if (typeof item === 'string') {
+            itemHtml = itemHtml.replace(/\{\{this\}\}/g, item);
+          } else {
+            // Handle object items
+            Object.keys(item).forEach(key => {
+              const regex = new RegExp(`\\{\\{this\\.${key}\\}\\}`, 'g');
+              itemHtml = itemHtml.replace(regex, item[key] || '');
+            });
+          }
+          
           return itemHtml;
         }).join('');
       });

@@ -78,9 +78,9 @@ export class Approvals implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       console.log('Auth service user update:', user);
       console.log('User exists:', !!user);
-      console.log('User email:', user?.email);
-      console.log('User email type:', typeof user?.email);
-      console.log('User email truthy:', !!user?.email);
+      console.log('User email:', user?.Email);
+      console.log('User email type:', typeof user?.Email);
+      console.log('User email truthy:', !!user?.Email);
       this.currentUser.set(user);
       if (user && user.Email) {
         console.log('User authenticated, loading submissions for:', user.Email);
