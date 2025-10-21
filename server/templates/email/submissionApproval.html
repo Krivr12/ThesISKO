@@ -1,0 +1,104 @@
+<div style="text-align: center; margin-bottom: 30px;">
+  <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">
+    Congratulations {{recipientName}}! 🎉
+  </h2>
+  <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+    Your submission has been approved and stored in the ThesISKO repository!
+  </p>
+</div>
+
+<!-- Submission Details Card -->
+<div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #28a745; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative;">
+  <div style="position: absolute; top: -12px; left: 20px; background: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold;">
+    ✅ Submission Approved
+  </div>
+  
+  <div style="margin-top: 15px;">
+    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #800000;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">📋 Submission ID:</strong>
+      <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">{{submissionId}}</span>
+    </div>
+    
+    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #007bff;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">📄 Title:</strong>
+      <span style="color: #2c3e50; font-size: 16px;">{{submissionTitle}}</span>
+    </div>
+    
+    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #6f42c1;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">📚 Document Type:</strong>
+      <span style="color: #2c3e50; font-size: 16px;">{{documentType}}</span>
+    </div>
+    
+    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #fd7e14;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">🎓 Program:</strong>
+      <span style="color: #2c3e50; font-size: 16px;">{{program}}</span>
+    </div>
+    
+    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #20c997;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">👨‍💼 Approved by:</strong>
+      <span style="color: #2c3e50; font-size: 16px;">{{approvedBy}}</span>
+    </div>
+    
+    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #17a2b8;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">📅 Approval Date:</strong>
+      <span style="color: #2c3e50; font-size: 16px;">{{approvalDate}}</span>
+    </div>
+    
+    <div style="padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #dc3545;">
+      <strong style="color: #495057; display: block; margin-bottom: 5px;">🆔 Document ID:</strong>
+      <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">{{documentId}}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Repository Status -->
+<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #155724; margin: 0 0 15px 0; font-size: 18px;">
+    📦 Repository Status:
+  </h3>
+  <div style="color: #155724; line-height: 1.8;">
+    <div style="margin-bottom: 8px;">✅ Your submission has been successfully approved</div>
+    <div style="margin-bottom: 8px;">✅ Your work has been archived in the ThesISKO repository</div>
+    <div style="margin-bottom: 8px;">✅ Your document is now available for public access (if applicable)</div>
+    <div style="margin-bottom: 8px;">✅ All files have been permanently stored</div>
+  </div>
+</div>
+
+<!-- Next Steps -->
+<div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #1976d2; margin: 0 0 15px 0; font-size: 18px;">
+    🎯 Next Steps:
+  </h3>
+  <div style="color: #333; line-height: 1.8;">
+    <div style="margin-bottom: 8px;">• Your submission is now part of the ThesISKO repository</div>
+    <div style="margin-bottom: 8px;">• You can access your archived work through the portal</div>
+    <div style="margin-bottom: 8px;">• Your document may be used for academic reference</div>
+    <div style="margin-bottom: 8px;">• Congratulations on completing your {{documentTypeLower}}!</div>
+  </div>
+</div>
+
+<!-- Archive Link -->
+<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 20px; margin: 25px 0; text-align: center;">
+  <h3 style="color: #856404; margin: 0 0 15px 0; font-size: 18px;">
+    🔗 Check out your archived study:
+  </h3>
+  <a href="{{archiveLink}}" 
+     style="display: inline-block; background: linear-gradient(135deg, #ffc107, #ff8f00); color: #000; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3);">
+    View Archived Study
+  </a>
+</div>
+
+<!-- Action Buttons -->
+<div style="text-align: center; margin: 30px 0;">
+  <a href="{{frontendUrl}}/login" 
+     style="display: inline-block; background: linear-gradient(135deg, #800000, #a00000); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 5px 15px rgba(128, 0, 0, 0.3); margin-right: 15px;">
+    Access ThesISKO Portal
+  </a>
+</div>
+
+<!-- Support Note -->
+<div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 20px 0;">
+  <p style="margin: 0; color: #6c757d; font-size: 14px; text-align: center;">
+    If you have any questions about your approved submission, please contact your faculty advisor or the ThesISKO support team.
+  </p>
+</div>

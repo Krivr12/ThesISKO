@@ -52,6 +52,13 @@ router.get('/by-type/:document_type', async (req, res) => {
 });
 
 // POST create new requirement
+// Example archive_files structure:
+// [
+//   { id: 'manuscript', label: 'Manuscript', required: true },   // Must be present
+//   { id: 'abstract', label: 'Abstract', required: false },     // Optional
+//   { id: 'appendix', label: 'Appendix', required: false }      // Optional
+// ]
+// Note: required=true files MUST exist in submission, required=false files are optional
 router.post('/', async (req, res) => {
   try {
     const {
@@ -59,6 +66,7 @@ router.post('/', async (req, res) => {
       required_metadata,
       required_structured_fields,
       required_files,
+      archive_files,
       created_by
     } = req.body;
 
@@ -89,6 +97,7 @@ router.post('/', async (req, res) => {
       required_metadata: Array.isArray(required_metadata) ? required_metadata : [],
       required_structured_fields: required_structured_fields || {},
       required_files: Array.isArray(required_files) ? required_files : [],
+      archive_files: Array.isArray(archive_files) ? archive_files : [],
       created_by: created_by || 'system',
       created_at: new Date(),
       updated_at: new Date(),

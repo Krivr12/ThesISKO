@@ -2,6 +2,13 @@ import express from 'express';
 import { ObjectId } from 'mongodb';
 import { getDb } from '../databaseConnections/MongoDB/mongodb_connection.js';
 import pool from '../data/database.js';
+import s3 from '../databaseConnections/AWS/s3_connection.js';
+import { generateEmbedding } from '../controller/embeddingService.js';
+import {
+  S3Client,
+  CopyObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 
 const router = express.Router();
 
@@ -20,6 +27,52 @@ const getRecordsCollection = () => {
   const db = getDb();
   return db.collection('records');
 };
+
+// -------- Helper: Move file between S3 buckets --------
+async function moveFileBetweenBuckets(sourceBucket, destBucket, sourceKey, destKey) {
+  // Copy file
+  await s3.send(
+    new CopyObjectCommand({
+      CopySource: `${sourceBucket}/${sourceKey}`,
+      Bucket: destBucket,
+      Key: destKey,
+    })
+  );
+
+  // Delete original
+  await s3.send(
+    new DeleteObjectCommand({
+      Bucket: sourceBucket,
+      Key: sourceKey,
+    })
+  );
+}
+
+// -------- Helper: Generate Document ID --------
+async function generateDocumentId(program_id) {
+  const year = new Date().getFullYear();
+  const counterId = `${year}-${program_id}`; // ensures reset each year
+
+  const result = await getDb().collection("counters").findOneAndUpdate(
+    { _id: counterId },
+    { $inc: { seq: 1 } },
+    { upsert: true, returnDocument: "after" } // or returnOriginal: false in v3
+  );
+
+  let counterDoc = result.value;
+  
+  // Fallback: fetch manually if not returned
+  if (!counterDoc) {
+    counterDoc = await getDb().collection("counters").findOne({ _id: counterId });
+  }
+
+  if (!counterDoc) {
+    throw new Error(`Failed to fetch counter for ${counterId}`);
+  }
+
+  const nextNumber = counterDoc.seq.toString().padStart(4, "0");
+  return `${year}-${program_id}-${nextNumber}`;
+}
 
 // Helper function to generate submission ID
 // Format: 2024-CCIS-BSIT-0001
@@ -432,6 +485,12 @@ router.patch('/:submission_id/chairperson-reject', async (req, res) => {
 
     const submissionsCollection = getSubmissionsCollection();
 
+    // Get submission details for email
+    const submission = await submissionsCollection.findOne({ submission_id });
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
     const rejectedFilesList = Array.isArray(rejected_files) ? rejected_files : [];
 
     const result = await submissionsCollection.updateOne(
@@ -455,6 +514,40 @@ router.patch('/:submission_id/chairperson-reject', async (req, res) => {
     }
 
     console.log(`✅ Chairperson rejection recorded for: ${submission_id}`);
+
+    // Send rejection email to student
+    try {
+      const { sendEmail } = await import('../services/emailService.js');
+      
+      await sendEmail({
+        to: submission.submitter_email,
+        subject: `Submission Rejected - ${submission_id}`,
+        template: 'submissionRejection',
+        data: {
+          submissionId: submission_id,
+          submissionTitle: submission.title,
+          documentType: submission.document_type,
+          program: submission.program,
+          rejectedBy: chairperson_name,
+          rejectionDate: new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          rejectionReason: reason,
+          rejectedFiles: rejectedFilesList,
+          needsChairpersonApproval: false,
+          frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+        }
+      });
+
+      console.log(`📧 Rejection email sent to: ${submission.submitter_email}`);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send rejection email:', emailError);
+      // Don't fail the rejection if email fails
+    }
 
     res.json({ 
       success: true, 
@@ -480,30 +573,62 @@ router.get('/pending-dean/:email', async (req, res) => {
     const submissionsCollection = getSubmissionsCollection();
     const programsCollection = getDb().collection('programs');
 
-    // First, find programs assigned to this dean
-    const programs = await programsCollection.find({
-      dean_email: email
+    // Get all submissions with status pending_dean
+    console.log(`🔍 Looking for submissions with status: pending_dean`);
+    const allPendingSubmissions = await submissionsCollection.find({
+      status: 'pending_dean'
     }).toArray();
 
-    console.log(`📋 Dean ${email} is responsible for programs:`, programs.map(p => p.program_id));
+    console.log(`📊 Found ${allPendingSubmissions.length} submissions with status pending_dean`);
 
-    if (programs.length === 0) {
-      console.log(`⚠️ No programs found for dean: ${email}`);
-      return res.json({ success: true, data: [] });
+    // Filter submissions based on dean's programs and enrich with program info
+    const filteredSubmissions = [];
+    
+    for (const submission of allPendingSubmissions) {
+      console.log(`🔍 Checking submission ${submission.submission_id} (department: ${submission.department})`);
+      
+      // Find program by matching department
+      const program = await programsCollection.findOne({
+        department_id: submission.department
+      });
+      
+      if (program) {
+        console.log(`📋 Found program ${program.program_id} for department ${submission.department}`);
+        console.log(`👤 Program dean_email: ${program.dean_email}, Requested email: ${email}`);
+        
+        // Check if this dean is responsible for this program
+        if (program.dean_email === email) {
+          console.log(`✅ Dean ${email} is responsible for submission ${submission.submission_id}`);
+          
+          // Enrich submission with program info
+          const enrichedSubmission = {
+            ...submission,
+            program_info: {
+              program_name: program.program_name,
+              department_name: program.department_name,
+              chairperson_email: program.chairperson_email
+            }
+          };
+          
+          filteredSubmissions.push(enrichedSubmission);
+        } else {
+          console.log(`❌ Dean ${email} is NOT responsible for submission ${submission.submission_id}`);
+        }
+      } else {
+        console.log(`⚠️ No program found for department: ${submission.department}`);
+      }
     }
 
-    // Get program IDs that this dean is responsible for
-    const programIds = programs.map(p => p.program_id);
+    console.log(`📊 Final result: ${filteredSubmissions.length} submissions for dean ${email}`);
+    console.log(`📋 Filtered submissions:`, filteredSubmissions.map(s => ({ 
+      id: s.submission_id, 
+      program: s.program, 
+      department: s.department,
+      status: s.status,
+      chairperson_approved_by: s.chairperson_approval?.approved_by
+    })));
 
-    // Find submissions that are pending dean approval for these programs
-    const submissions = await submissionsCollection.find({
-      status: 'pending_dean',
-      program: { $in: programIds }
-    }).toArray();
-
-    console.log(`📊 Found ${submissions.length} submissions pending dean approval for programs: ${programIds.join(', ')}`);
-
-    res.json({ success: true, data: submissions });
+    res.json({ success: true, data: filteredSubmissions });
   } catch (error) {
     console.error('❌ Error fetching dean submissions:', error);
     res.status(500).json({ 
@@ -602,6 +727,44 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
 
       console.log(`📦 Archived successfully: ${document_id}`);
 
+      // Send approval email to student
+      try {
+        const { sendEmail } = await import('../services/emailService.js');
+        
+        // Generate archive link
+        const archiveLink = `${process.env.FRONTEND_URL || 'http://localhost:4200'}/records/${document_id}`;
+        
+        await sendEmail({
+          to: submission.submitter_email,
+          subject: `Submission Approved - ${submission_id}`,
+          template: 'submissionApproval',
+          data: {
+            recipientName: submission.authors?.[0] || 'Student',
+            submissionId: submission_id,
+            submissionTitle: submission.title,
+            documentType: submission.document_type,
+            documentTypeLower: submission.document_type.toLowerCase(),
+            program: submission.program,
+            approvedBy: dean_name,
+            approvalDate: new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            documentId: document_id,
+            archiveLink: archiveLink,
+            frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+          }
+        });
+
+        console.log(`📧 Approval email sent to: ${submission.submitter_email}`);
+      } catch (emailError) {
+        console.error('⚠️ Failed to send approval email:', emailError);
+        // Don't fail the approval if email fails
+      }
+
       res.json({ 
         success: true, 
         message: 'Submission approved by dean and archived successfully',
@@ -638,6 +801,12 @@ router.patch('/:submission_id/dean-reject', async (req, res) => {
 
     const submissionsCollection = getSubmissionsCollection();
 
+    // Get submission details for email
+    const submission = await submissionsCollection.findOne({ submission_id });
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
     const rejectedFilesList = Array.isArray(rejected_files) ? rejected_files : [];
 
     const result = await submissionsCollection.updateOne(
@@ -662,6 +831,40 @@ router.patch('/:submission_id/dean-reject', async (req, res) => {
     }
 
     console.log(`✅ Dean rejection recorded for: ${submission_id}`);
+
+    // Send rejection email to student
+    try {
+      const { sendEmail } = await import('../services/emailService.js');
+      
+      await sendEmail({
+        to: submission.submitter_email,
+        subject: `Submission Rejected - ${submission_id}`,
+        template: 'submissionRejection',
+        data: {
+          submissionId: submission_id,
+          submissionTitle: submission.title,
+          documentType: submission.document_type,
+          program: submission.program,
+          rejectedBy: dean_name,
+          rejectionDate: new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          rejectionReason: reason,
+          rejectedFiles: rejectedFilesList,
+          needsChairpersonApproval: true,
+          frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+        }
+      });
+
+      console.log(`📧 Rejection email sent to: ${submission.submitter_email}`);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send rejection email:', emailError);
+      // Don't fail the rejection if email fails
+    }
 
     res.json({ 
       success: true, 
@@ -769,6 +972,145 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('❌ Error fetching submissions:', error);
     res.status(500).json({ error: 'Error fetching submissions' });
+  }
+});
+
+// ==================== REPOSITORY ROUTES ====================
+
+// POST copy submission to repository (Manual trigger - requires dean approval)
+router.post('/:submission_id/repository', async (req, res) => {
+  try {
+    const { submission_id } = req.params;
+
+    // 1. Get submission
+    const submissionsCollection = getSubmissionsCollection();
+    const submission = await submissionsCollection.findOne({ submission_id });
+    if (!submission) return res.status(404).json({ error: 'Submission not found' });
+
+    // 1.5 VALIDATE: Must have chairperson AND dean approval
+    if (!submission.chairperson_approval?.approved) {
+      return res.status(403).json({ error: 'Chairperson approval required before archiving' });
+    }
+    if (!submission.dean_approval?.approved) {
+      return res.status(403).json({ error: 'Dean approval required before archiving' });
+    }
+
+    console.log(`📦 Manual archiving triggered for submission: ${submission_id}`);
+
+    // 2. Get program info
+    const programsCollection = getDb().collection('programs');
+    const program = await programsCollection.findOne({ program_id: submission.program });
+    if (!program) return res.status(404).json({ error: 'Program not found' });
+
+    // 3. Get archive files from requirements
+    const requirementsCollection = getDb().collection('requirements');
+    const requirement = await requirementsCollection.findOne({ 
+      document_type: submission.document_type,
+      is_active: true 
+    });
+
+    if (!requirement || !requirement.archive_files || requirement.archive_files.length === 0) {
+      return res.status(400).json({ error: 'No archive files configured for this document type' });
+    }
+
+    // Get the files to archive based on requirements
+    const filesToArchive = [];
+    const missingRequiredFiles = [];
+
+    for (const archiveFile of requirement.archive_files) {
+      const fileKey = archiveFile.id; // e.g., 'manuscript', 'abstract', etc.
+      const file = submission.files?.[fileKey];
+      
+      if (file && file.s3_key) {
+        // File exists, add to archive list
+        filesToArchive.push({
+          key: fileKey,
+          s3_key: file.s3_key,
+          filename: file.s3_key.split('/').pop()
+        });
+      } else if (archiveFile.required) {
+        // Required file is missing
+        missingRequiredFiles.push(archiveFile.label || archiveFile.id);
+      }
+    }
+
+    // Check if any required files are missing
+    if (missingRequiredFiles.length > 0) {
+      return res.status(400).json({ 
+        error: `Missing required archive files: ${missingRequiredFiles.join(', ')}` 
+      });
+    }
+
+    if (filesToArchive.length === 0) {
+      return res.status(400).json({ error: 'No archive files found in submission' });
+    }
+
+    // 4. Generate document_id using program acronym
+    const document_id = await generateDocumentId(program.program_id);
+
+    // 5. Move files to repository bucket with submission_id in path
+    const sourceBucket = process.env.THESISKO_DOCUMENTS_BUCKET;
+    const destBucket = process.env.THESISKO_REPOSITORY_BUCKET;
+    const archivedFiles = [];
+
+    for (const fileToArchive of filesToArchive) {
+      const newKey = `repository-files/${submission_id}/${document_id}/${fileToArchive.filename}`;
+      await moveFileBetweenBuckets(sourceBucket, destBucket, fileToArchive.s3_key, newKey);
+      archivedFiles.push({
+        key: fileToArchive.key,
+        file_key: newKey,
+        filename: fileToArchive.filename
+      });
+    }
+
+    // 6. Generate embedding (title + abstract)
+    const textToEmbed = `${submission.title || ''} ${submission.abstract || ''}`.trim();
+    let embedding = null;
+    if (textToEmbed.length > 0) {
+      embedding = await generateEmbedding(textToEmbed);
+    }
+
+    // 7. Build repository doc
+    const recordDoc = {
+      _id: new ObjectId(),
+      document_id,
+      submission_id,
+      title: submission.title || null,
+      abstract: submission.abstract || null,
+      tags: Array.isArray(submission.tags) ? submission.tags : [],
+      access_level: submission.access_level || 'restricted',
+      authors: submission.authors || [],
+      files: archivedFiles, // Store all archived files
+      file_key: archivedFiles[0]?.file_key, // Main file for backward compatibility
+      program_id: submission.program,
+      program_name: program.program_name,
+      department: submission.department,
+      document_type: submission.document_type,
+      submitter_email: submission.submitter_email,
+      adviser: submission.adviser,
+      faculty_in_charge: submission.faculty_in_charge,
+      panelists: submission.panelists,
+      created_at: new Date(),
+      updated_at: new Date(),
+      abstract_embedding: embedding,
+    };
+
+    // 8. Insert into records
+    const recordsCollection = getRecordsCollection();
+    await recordsCollection.insertOne(recordDoc);
+
+    console.log(`✅ Repository record created successfully: ${document_id}`);
+
+    res.json({
+      success: true,
+      message: 'Record successfully created in repository',
+      submission_id,
+      document_id,
+      record: recordDoc,
+    });
+  } catch (err) {
+    console.error('❌ Error copying to repository:', err);
+    res.status(500).json({ error: 'Error copying to repository' });
   }
 });
 
