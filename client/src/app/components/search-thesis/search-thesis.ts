@@ -142,6 +142,9 @@ export class SearchThesis implements OnInit {
           };
         });
         
+        console.log('🔍 Semantic search results transformed:', this.allTheses.length, 'documents');
+        console.log('🔍 First result:', this.allTheses[0]);
+        
         this.updateAvailableYears();
         this.applyFilters();
         this.isLoading = false; // Hide spinner, show content
@@ -227,11 +230,9 @@ export class SearchThesis implements OnInit {
 
   applyFilters(): void {
     this.filteredTheses = this.allTheses.filter(thesis => {
-      // Search query filter
-      const matchesSearch = this.searchQuery === '' || 
-        thesis.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        thesis.author.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        thesis.keywords.some(kw => kw.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      // Skip search query filter for semantic search results
+      // The semantic search already filtered by relevance
+      const matchesSearch = true; // Always true for semantic search results
       
       // Tag filter
       const matchesTags = this.selectedTags.length === 0 || 
