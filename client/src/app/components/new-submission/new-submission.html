@@ -215,7 +215,7 @@
       <p class="step-description">Upload all required documents (PDF only)</p>
 
       <div class="files-section">
-        <div *ngFor="let fileReq of selectedDocType()?.required_files" class="file-upload-item">
+        <div *ngFor="let fileReq of selectedRequirements()?.required_files" class="file-upload-item">
           <div class="file-header">
             <strong>{{ fileReq.label }}</strong>
             <span *ngIf="fileReq.required" class="required-badge">Required</span>

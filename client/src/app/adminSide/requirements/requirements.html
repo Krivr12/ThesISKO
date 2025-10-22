@@ -262,8 +262,8 @@
           </div>
 
           <!-- File Requirements -->
-          <div class="form-group">
-            <label class="form-label">Required Files</label>
+          <div class="form-group required-files-group">
+            <label class="form-label">REQUIRED FILES</label>
             
             <!-- Add New File Requirement -->
             <div class="add-file-section">
@@ -293,6 +293,13 @@
                     name="newFileRequired">
                   Required
                 </label>
+                <label class="checkbox-label">
+                  <input 
+                    type="checkbox" 
+                    [(ngModel)]="newFileArchive" 
+                    name="newFileArchive">
+                  Archive
+                </label>
                 <button 
                   type="button" 
                   class="btn-add" 
@@ -312,10 +319,15 @@
                   <div class="file-table-cell file-accept-cell">
                     <span class="file-accept">{{ file.accept || 'Any type' }}</span>
                   </div>
-                  <div class="file-table-cell file-required-cell">
-                    <span class="file-required" [class.required]="file.required">
-                      {{ file.required ? 'Required' : 'Optional' }}
-                    </span>
+                  <div class="file-table-cell file-status-cell">
+                    <div class="file-status-badges">
+                      <span class="file-required" [class.required]="file.required">
+                        {{ file.required ? 'Required' : 'Optional' }}
+                      </span>
+                      <span class="file-archive" [class.archive]="file.to_be_archived">
+                        {{ file.to_be_archived ? 'Archive' : 'No Archive' }}
+                      </span>
+                    </div>
                   </div>
                   <div class="file-table-cell file-actions-cell">
                     <div class="file-actions">

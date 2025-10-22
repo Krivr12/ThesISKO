@@ -51,14 +51,47 @@ router.get('/by-type/:document_type', async (req, res) => {
   }
 });
 
+// GET required files for a document type (simplified endpoint for frontend)
+router.get('/:document_type/files', async (req, res) => {
+  try {
+    const { document_type } = req.params;
+    const collection = getRequirementsCollection();
+    
+    const requirement = await collection.findOne({ 
+      document_type,
+      is_active: true 
+    });
+
+    if (!requirement) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'No requirements found for this document type' 
+      });
+    }
+
+    // Return only the required files for frontend
+    res.json({ 
+      success: true, 
+      data: {
+        document_type: requirement.document_type,
+        required_files: requirement.required_files || [],
+        archive_files: requirement.archive_files || []
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error fetching required files:', error);
+    res.status(500).json({ error: 'Error fetching required files' });
+  }
+});
+
 // POST create new requirement
 // Example archive_files structure:
 // [
-//   { id: 'manuscript', label: 'Manuscript', required: true },   // Must be present
-//   { id: 'abstract', label: 'Abstract', required: false },     // Optional
-//   { id: 'appendix', label: 'Appendix', required: false }      // Optional
+//   { id: 'manuscript', label: 'Manuscript', to_be_archived: true },
+//   { id: 'turnitin', label: 'Turnitin Checker Output', to_be_archived: false },
+//   { id: 'copyright', label: 'Copyright Form', to_be_archived: false }
 // ]
-// Note: required=true files MUST exist in submission, required=false files are optional
+// Note: to_be_archived=true files will be moved to repository when dean approves
 router.post('/', async (req, res) => {
   try {
     const {
@@ -143,6 +176,41 @@ router.patch('/:id', async (req, res) => {
     }
 
     console.log(`✅ Requirement updated: ${id}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Requirement updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error updating requirement:', error);
+    res.status(500).json({ error: 'Error updating requirement' });
+  }
+});
+
+// PUT update requirement (for frontend compatibility)
+router.put('/:document_type', async (req, res) => {
+  try {
+    const { document_type } = req.params;
+    const updateData = req.body;
+
+    // Remove fields that shouldn't be updated
+    delete updateData._id;
+    delete updateData.created_at;
+    delete updateData.created_by;
+
+    updateData.updated_at = new Date();
+
+    const collection = getRequirementsCollection();
+    const result = await collection.updateOne(
+      { document_type: document_type, is_active: true },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Requirement not found' });
+    }
+
+    console.log(`✅ Requirement updated: ${document_type}`);
 
     res.json({ 
       success: true, 
