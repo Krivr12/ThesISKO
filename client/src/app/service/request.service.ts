@@ -51,6 +51,11 @@ export interface RequestDetails {
     authors: string[];
     tags: string[];
     file_key: string;
+    files: {
+      key: string;
+      file_key: string;
+      filename: string;
+    }[];
     program_name: string;
     department: string;
     submitted_at?: string;

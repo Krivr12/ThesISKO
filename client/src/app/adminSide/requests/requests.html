@@ -187,11 +187,19 @@
                 </div>
 
                 <div class="details-section">
-                    <h3 class="section-title">Original Manuscript</h3>
+                    <h3 class="section-title">Files</h3>
                     <div class="section-content">
-                        <button class="file-link" (click)="viewOriginalManuscript()">
-                            View PDF
-                        </button>
+                        <div *ngIf="selectedRequestDetails.document.files && selectedRequestDetails.document.files.length > 0" class="files-container">
+                            <button 
+                                *ngFor="let file of selectedRequestDetails.document.files" 
+                                class="file-link" 
+                                (click)="viewFile(file)">
+                                {{ file.filename }}
+                            </button>
+                        </div>
+                        <div *ngIf="!selectedRequestDetails.document.files || selectedRequestDetails.document.files.length === 0" class="no-files">
+                            <p>No files available</p>
+                        </div>
                     </div>
                 </div>
             </div>
