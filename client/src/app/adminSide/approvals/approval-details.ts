@@ -193,7 +193,18 @@ export class ApprovalDetails implements OnInit {
       },
       error: (error) => {
         console.error('Error approving submission:', error);
-        alert(error.error?.error || 'Failed to approve submission');
+        
+        // Handle specific error cases
+        if (error.error?.error === 'Approval recorded but archiving failed') {
+          const details = error.error?.details || 'Unknown archiving error';
+          alert(`⚠️ Approval recorded but archiving failed.\n\nDetails: ${details}\n\nThe submission has been approved but may need manual archiving.`);
+        } else if (error.error?.details?.includes('Missing required archive files')) {
+          const details = error.error?.details || 'Unknown archiving error';
+          alert(`⚠️ Approval failed due to missing archive files.\n\nDetails: ${details}\n\nPlease ensure all required files are uploaded before approval.`);
+        } else {
+          alert(error.error?.error || 'Failed to approve submission');
+        }
+        
         this.loading.set(false);
       }
     });

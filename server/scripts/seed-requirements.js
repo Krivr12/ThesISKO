@@ -74,6 +74,28 @@ const seedRequirements = async () => {
           accept: '.pdf'
         }
       ],
+      archive_files: [
+        {
+          id: 'manuscript_file',
+          label: 'Manuscript File',
+          to_be_archived: true
+        },
+        {
+          id: 'turnitin_file',
+          label: 'Turnitin Checker Output',
+          to_be_archived: false
+        },
+        {
+          id: 'copyright_form_file',
+          label: 'Copyright Form',
+          to_be_archived: false
+        },
+        {
+          id: 'ethics_clearance',
+          label: 'Ethics Clearance',
+          to_be_archived: false
+        }
+      ],
       created_by: 'system',
       created_at: new Date(),
       updated_at: new Date(),
@@ -136,6 +158,28 @@ const seedRequirements = async () => {
           label: 'Ethics Clearance',
           required: true,
           accept: '.pdf'
+        }
+      ],
+      archive_files: [
+        {
+          id: 'manuscript_file',
+          label: 'Manuscript File',
+          to_be_archived: true
+        },
+        {
+          id: 'turnitin_file',
+          label: 'Turnitin Checker Output',
+          to_be_archived: false
+        },
+        {
+          id: 'copyright_form_file',
+          label: 'Copyright Form',
+          to_be_archived: false
+        },
+        {
+          id: 'ethics_clearance',
+          label: 'Ethics Clearance',
+          to_be_archived: false
         }
       ],
       created_by: 'system',
