@@ -74,8 +74,7 @@ router.get('/:document_type/files', async (req, res) => {
       success: true, 
       data: {
         document_type: requirement.document_type,
-        required_files: requirement.required_files || [],
-        archive_files: requirement.archive_files || []
+        required_files: requirement.required_files || []
       }
     });
   } catch (error) {
@@ -85,11 +84,11 @@ router.get('/:document_type/files', async (req, res) => {
 });
 
 // POST create new requirement
-// Example archive_files structure:
+// Example required_files structure:
 // [
-//   { id: 'manuscript', label: 'Manuscript', to_be_archived: true },
-//   { id: 'turnitin', label: 'Turnitin Checker Output', to_be_archived: false },
-//   { id: 'copyright', label: 'Copyright Form', to_be_archived: false }
+//   { id: 'manuscript', label: 'Manuscript', required: true, accept: '.pdf', to_be_archived: true },
+//   { id: 'turnitin', label: 'Turnitin Checker Output', required: true, accept: '.pdf', to_be_archived: false },
+//   { id: 'copyright', label: 'Copyright Form', required: true, accept: '.pdf', to_be_archived: false }
 // ]
 // Note: to_be_archived=true files will be moved to repository when dean approves
 router.post('/', async (req, res) => {
@@ -99,7 +98,6 @@ router.post('/', async (req, res) => {
       required_metadata,
       required_structured_fields,
       required_files,
-      archive_files,
       created_by
     } = req.body;
 
@@ -130,7 +128,6 @@ router.post('/', async (req, res) => {
       required_metadata: Array.isArray(required_metadata) ? required_metadata : [],
       required_structured_fields: required_structured_fields || {},
       required_files: Array.isArray(required_files) ? required_files : [],
-      archive_files: Array.isArray(archive_files) ? archive_files : [],
       created_by: created_by || 'system',
       created_at: new Date(),
       updated_at: new Date(),

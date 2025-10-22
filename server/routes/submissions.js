@@ -713,7 +713,7 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
       // Generate document_id using proper format: {year}-{program}-{generated number}
       const document_id = await generateDocumentId(program.program_id);
 
-      // Get archive files from requirements
+      // Get file requirements for archiving
       const requirementsCollection = getDb().collection('requirements');
       const requirement = await requirementsCollection.findOne({ 
         document_type: submission.document_type,
@@ -723,20 +723,20 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
       let filesToArchive = [];
       let missingRequiredFiles = [];
 
-      if (requirement && requirement.archive_files && requirement.archive_files.length > 0) {
-        // Use requirements-based archiving
-        console.log(`📋 Archive requirements for ${submission.document_type}:`, requirement.archive_files);
+      if (requirement && requirement.required_files && requirement.required_files.length > 0) {
+        // Use unified requirements for archiving
+        console.log(`📋 File requirements for ${submission.document_type}:`, requirement.required_files);
 
-        for (const archiveFile of requirement.archive_files) {
-          console.log(`🔍 Checking file: ${archiveFile.id}, to_be_archived: ${archiveFile.to_be_archived}`);
+        for (const fileReq of requirement.required_files) {
+          console.log(`🔍 Checking file: ${fileReq.id}, to_be_archived: ${fileReq.to_be_archived}`);
           
           // Only process files marked for archiving
-          if (!archiveFile.to_be_archived) {
-            console.log(`⏭️ Skipping ${archiveFile.id} - not marked for archiving`);
+          if (!fileReq.to_be_archived) {
+            console.log(`⏭️ Skipping ${fileReq.id} - not marked for archiving`);
             continue;
           }
 
-          const fileKey = archiveFile.id; // e.g., 'manuscript', 'abstract', etc.
+          const fileKey = fileReq.id; // e.g., 'manuscript', 'turnitin', etc.
           const file = submission.files?.[fileKey];
           
           if (file && file.s3_key) {
@@ -750,7 +750,7 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
           } else {
             // Required archive file is missing
             console.log(`❌ Missing required archive file: ${fileKey}`);
-            missingRequiredFiles.push(archiveFile.label || archiveFile.id);
+            missingRequiredFiles.push(fileReq.label || fileReq.id);
           }
         }
 
@@ -827,7 +827,6 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
         department: submission.department,
         program: submission.program,
         document_type: submission.document_type,
-        file_key: archivedFiles.find(f => f.key === 'manuscript')?.file_key || archivedFiles[0]?.file_key, // Main manuscript file
         files: archivedFiles, // Archived files with new S3 keys
         submitter_email: submission.submitter_email,
         abstract_embedding: embedding,
@@ -1135,28 +1134,28 @@ router.post('/:submission_id/repository', async (req, res) => {
     const program = await programsCollection.findOne({ program_id: submission.program });
     if (!program) return res.status(404).json({ error: 'Program not found' });
 
-    // 3. Get archive files from requirements
+    // 3. Get file requirements for archiving
     const requirementsCollection = getDb().collection('requirements');
     const requirement = await requirementsCollection.findOne({ 
       document_type: submission.document_type,
       is_active: true 
     });
 
-    if (!requirement || !requirement.archive_files || requirement.archive_files.length === 0) {
-      return res.status(400).json({ error: 'No archive files configured for this document type' });
+    if (!requirement || !requirement.required_files || requirement.required_files.length === 0) {
+      return res.status(400).json({ error: 'No file requirements configured for this document type' });
     }
 
     // Get the files to archive based on requirements
     const filesToArchive = [];
     const missingRequiredFiles = [];
 
-    for (const archiveFile of requirement.archive_files) {
+    for (const fileReq of requirement.required_files) {
       // Only process files marked for archiving
-      if (!archiveFile.to_be_archived) {
+      if (!fileReq.to_be_archived) {
         continue;
       }
 
-      const fileKey = archiveFile.id; // e.g., 'manuscript', 'abstract', etc.
+      const fileKey = fileReq.id; // e.g., 'manuscript', 'abstract', etc.
       const file = submission.files?.[fileKey];
       
       if (file && file.s3_key) {
@@ -1168,7 +1167,7 @@ router.post('/:submission_id/repository', async (req, res) => {
         });
       } else {
         // Required archive file is missing
-        missingRequiredFiles.push(archiveFile.label || archiveFile.id);
+        missingRequiredFiles.push(fileReq.label || fileReq.id);
       }
     }
 
@@ -1219,7 +1218,6 @@ router.post('/:submission_id/repository', async (req, res) => {
       access_level: submission.access_level || 'restricted',
       authors: submission.authors || [],
       files: archivedFiles, // Store all archived files
-      file_key: archivedFiles[0]?.file_key, // Main file for backward compatibility
       program_id: submission.program,
       program_name: program.program_name,
       department: submission.department,
