@@ -10,8 +10,8 @@ let embedder = null;
  */
 async function loadModel() {
   if (!embedder) {
-    console.log("🧠 Loading embedding model (Xenova/all-MiniLM-L6-v2)...");
-    embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+    console.log("🧠 Loading embedding model (Xenova/all-MiniLM-L12-v2)...");
+    embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L12-v2");
     console.log("✅ Embedding model loaded!");
   }
   return embedder;
@@ -66,17 +66,9 @@ export async function semanticSearch(query, topK = 5) {
           similarity: "dotProduct",
         },
       },
-      // Optional hybrid search boost
       {
         $addFields: {
-          keyword_score: {
-            $meta: "textScore",
-          },
-        },
-      },
-      {
-        $sort: {
-          keyword_score: -1, // prioritize keyword relevance if matched
+          score: { $meta: "searchScore" },
         },
       },
       {
@@ -86,11 +78,13 @@ export async function semanticSearch(query, topK = 5) {
           submitted_at: 1,
           authors: 1,
           tags: 1,
-          score: { $meta: "searchScore" },
+          score: 1,
         },
       },
     ]).toArray();
 
+    console.log(`🔍 Semantic search: ${results.length} results returned`);
+    console.log(`🔍 Raw results:`, results.slice(0, 3).map(r => ({ title: r.title, score: r.score })));
     return results;
   } catch (err) {
     console.error("⚠️ Semantic search failed:", err.message);
