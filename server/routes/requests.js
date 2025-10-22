@@ -104,6 +104,7 @@ router.get("/:request_id/details", async (req, res) => {
         authors: documentDetails.authors,
         tags: documentDetails.tags,
         file_key: documentDetails.file_key,
+        files: documentDetails.files || [],
         program_name: documentDetails.program_name,
         department: documentDetails.department,
         submitted_at: documentDetails.submitted_at,

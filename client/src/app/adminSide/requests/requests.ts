@@ -127,16 +127,16 @@ export class AdminRequests implements OnInit {
     }
   }
 
-  // View original manuscript from repository
-  viewOriginalManuscript(): void {
-    if (!this.selectedRequestDetails?.document?.file_key) {
+  // View file from repository
+  viewFile(file: { key: string; file_key: string; filename: string }): void {
+    if (!file?.file_key) {
       alert('Document file not available.');
       return;
     }
 
     this.currentPdfDocument = { 
-      name: 'Original Manuscript', 
-      file: this.selectedRequestDetails.document.file_key 
+      name: file.filename, 
+      file: file.file_key 
     };
     this.pdfLoading = true;
     this.pdfError = '';
@@ -144,7 +144,7 @@ export class AdminRequests implements OnInit {
     this.currentPdfUrl = null;
 
     // Get signed URL from S3
-    this.s3Service.getRepositoryFileSignedUrl(this.selectedRequestDetails.document.file_key).subscribe({
+    this.s3Service.getRepositoryFileSignedUrl(file.file_key).subscribe({
       next: (response) => {
         this.currentPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(response.signedUrl);
         this.pdfLoading = false;
