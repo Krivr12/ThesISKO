@@ -10,6 +10,13 @@ interface FileRequirement {
   label: string;
   required: boolean;
   accept?: string;
+  to_be_archived?: boolean;
+}
+
+interface ArchiveFile {
+  id: string;
+  label: string;
+  to_be_archived: boolean;
 }
 
 interface StructuredField {
@@ -29,6 +36,7 @@ interface Requirement {
     tags?: StructuredField;
   };
   required_files: FileRequirement[];
+  archive_files?: ArchiveFile[];
   created_by?: string;
   created_at?: Date;
   updated_at?: Date;
@@ -76,6 +84,7 @@ export class Requirements implements OnInit {
       }
     },
     required_files: [],
+    archive_files: [],
     is_active: true
   });
 
@@ -84,6 +93,7 @@ export class Requirements implements OnInit {
   newFileLabel = signal<string>('');
   newFileRequired = signal<boolean>(true);
   newFileAccept = signal<string>('');
+  newFileArchive = signal<boolean>(false);
 
   // Available document types
   documentTypes = signal<string[]>(['capstone_paper', 'thesis']);
@@ -143,6 +153,7 @@ export class Requirements implements OnInit {
           }
         },
         required_files: [],
+        archive_files: [],
         is_active: true
       });
     }
@@ -183,7 +194,8 @@ export class Requirements implements OnInit {
       id,
       label,
       required: this.newFileRequired(),
-      accept: this.newFileAccept() || undefined
+      accept: this.newFileAccept() || undefined,
+      to_be_archived: this.newFileArchive()
     };
 
     this.currentRequirement.update(req => ({
@@ -196,6 +208,7 @@ export class Requirements implements OnInit {
     this.newFileLabel.set('');
     this.newFileRequired.set(true);
     this.newFileAccept.set('');
+    this.newFileArchive.set(false);
   }
 
   removeFileRequirement(index: number) {
@@ -244,6 +257,7 @@ export class Requirements implements OnInit {
       this.http.put(`${this.apiUrl}/${current.document_type}`, {
         required_metadata: current.required_metadata,
         required_files: current.required_files,
+        archive_files: this.generateArchiveFiles(),
         is_active: current.is_active
       }).subscribe({
         next: () => {
@@ -263,6 +277,7 @@ export class Requirements implements OnInit {
         document_type: current.document_type,
         required_metadata: current.required_metadata,
         required_files: current.required_files,
+        archive_files: this.generateArchiveFiles(),
         created_by: 'dean' // TODO: Get from auth service
       }).subscribe({
         next: () => {
@@ -536,5 +551,16 @@ export class Requirements implements OnInit {
     }
     current.required_structured_fields.tags.max_count = value;
     this.currentRequirement.set({...current});
+  }
+
+  // Generate archive_files from required_files
+  generateArchiveFiles(): ArchiveFile[] {
+    return this.currentRequirement().required_files
+      .filter(file => file.to_be_archived)
+      .map(file => ({
+        id: file.id,
+        label: file.label,
+        to_be_archived: file.to_be_archived || false
+      }));
   }
 }

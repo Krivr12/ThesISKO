@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -120,6 +120,15 @@ export class NewSubmission implements OnInit {
 
     this.loadDocumentTypes();
     this.loadRequirements();
+    
+    // Watch for document type changes and load specific requirements
+    effect(() => {
+      const newDocType = this.documentType();
+      if (newDocType) {
+        console.log('Document type changed to:', newDocType);
+        this.loadRequirementsForDocumentType(newDocType);
+      }
+    });
   }
 
   loadDocumentTypes() {
@@ -157,6 +166,34 @@ export class NewSubmission implements OnInit {
       error: (error) => {
         console.error('Error loading requirements:', error);
         // Don't show alert for requirements as it's not critical for basic functionality
+      }
+    });
+  }
+
+  loadRequirementsForDocumentType(documentType: string) {
+    console.log('Loading requirements for document type:', documentType);
+    this.http.get<{ success: boolean; data: any }>(
+      `${this.apiUrl}/requirements/${documentType}/files`
+    ).subscribe({
+      next: (response) => {
+        console.log('Requirements for document type loaded:', response);
+        if (response.success && response.data) {
+          console.log('Required files for', documentType, ':', response.data.required_files);
+          // Update the requirements signal with the specific document type requirements
+          this.requirements.update(reqs => {
+            const updatedReqs = [...reqs];
+            const existingIndex = updatedReqs.findIndex(req => req.document_type === documentType);
+            if (existingIndex >= 0) {
+              updatedReqs[existingIndex] = response.data;
+            } else {
+              updatedReqs.push(response.data);
+            }
+            return updatedReqs;
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error loading requirements for document type:', error);
       }
     });
   }
@@ -253,13 +290,23 @@ export class NewSubmission implements OnInit {
   }
 
   async submitAll() {
-    const docType = this.selectedDocType();
-    if (!docType) return;
+    const requirements = this.selectedRequirements();
+    console.log('Selected requirements:', requirements);
+    console.log('Uploaded files:', Array.from(this.uploadedFiles().keys()));
+    
+    if (!requirements) {
+      alert('Requirements not loaded. Please refresh the page and try again.');
+      return;
+    }
 
+    console.log('Required files from requirements:', requirements.required_files);
+    
     // Validate all required files are uploaded
-    const missingFiles = docType.required_files
+    const missingFiles = requirements.required_files
       .filter(f => f.required)
       .filter(f => !this.uploadedFiles().has(f.id));
+
+    console.log('Missing files:', missingFiles);
 
     if (missingFiles.length > 0) {
       alert(`Please upload all required files: ${missingFiles.map(f => f.label).join(', ')}`);

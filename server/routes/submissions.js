@@ -171,10 +171,28 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    // Validate required files are present
-    const missingFiles = docType.required_files
+    // Get requirements for this document type
+    const requirementsCollection = getDb().collection('requirements');
+    const requirement = await requirementsCollection.findOne({
+      document_type: document_type,
+      is_active: true
+    });
+
+    if (!requirement) {
+      return res.status(400).json({ 
+        error: 'No requirements found for this document type' 
+      });
+    }
+
+    // Validate required files are present using requirements
+    console.log('📋 Requirements for', document_type, ':', requirement.required_files);
+    console.log('📁 Files received:', Object.keys(files));
+    
+    const missingFiles = requirement.required_files
       .filter(f => f.required)
       .filter(f => !files[f.id] || !files[f.id].s3_key);
+
+    console.log('❌ Missing files:', missingFiles);
 
     if (missingFiles.length > 0) {
       return res.status(400).json({ 
@@ -685,8 +703,114 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
     try {
       const recordsCollection = getRecordsCollection();
       
-      // Generate document_id for archived record
-      const document_id = `DOC-${submission_id}`;
+      // Get program info to generate proper document_id
+      const programsCollection = getDb().collection('programs');
+      const program = await programsCollection.findOne({ program_id: submission.program });
+      if (!program) {
+        throw new Error('Program not found');
+      }
+      
+      // Generate document_id using proper format: {year}-{program}-{generated number}
+      const document_id = await generateDocumentId(program.program_id);
+
+      // Get archive files from requirements
+      const requirementsCollection = getDb().collection('requirements');
+      const requirement = await requirementsCollection.findOne({ 
+        document_type: submission.document_type,
+        is_active: true 
+      });
+
+      let filesToArchive = [];
+      let missingRequiredFiles = [];
+
+      if (requirement && requirement.archive_files && requirement.archive_files.length > 0) {
+        // Use requirements-based archiving
+        console.log(`📋 Archive requirements for ${submission.document_type}:`, requirement.archive_files);
+
+        for (const archiveFile of requirement.archive_files) {
+          console.log(`🔍 Checking file: ${archiveFile.id}, to_be_archived: ${archiveFile.to_be_archived}`);
+          
+          // Only process files marked for archiving
+          if (!archiveFile.to_be_archived) {
+            console.log(`⏭️ Skipping ${archiveFile.id} - not marked for archiving`);
+            continue;
+          }
+
+          const fileKey = archiveFile.id; // e.g., 'manuscript', 'abstract', etc.
+          const file = submission.files?.[fileKey];
+          
+          if (file && file.s3_key) {
+            // File exists, add to archive list
+            console.log(`✅ Adding ${fileKey} to archive list: ${file.s3_key}`);
+            filesToArchive.push({
+              key: fileKey,
+              s3_key: file.s3_key,
+              filename: file.s3_key.split('/').pop()
+            });
+          } else {
+            // Required archive file is missing
+            console.log(`❌ Missing required archive file: ${fileKey}`);
+            missingRequiredFiles.push(archiveFile.label || archiveFile.id);
+          }
+        }
+
+        console.log(`📦 Files to archive: ${filesToArchive.length}`, filesToArchive.map(f => f.key));
+
+        // Check if any required archive files are missing
+        if (missingRequiredFiles.length > 0) {
+          throw new Error(`Missing required archive files: ${missingRequiredFiles.join(', ')}`);
+        }
+
+        if (filesToArchive.length === 0) {
+          throw new Error('No archive files found in submission');
+        }
+      } else {
+        // Fallback: Archive all available files (like the old workflow)
+        console.log(`⚠️ No requirements found for ${submission.document_type}, using fallback archiving`);
+        
+        if (submission.files) {
+          for (const [fileKey, file] of Object.entries(submission.files)) {
+            if (file && file.s3_key) {
+              console.log(`✅ Adding ${fileKey} to archive list (fallback): ${file.s3_key}`);
+              filesToArchive.push({
+                key: fileKey,
+                s3_key: file.s3_key,
+                filename: file.s3_key.split('/').pop()
+              });
+            }
+          }
+        }
+
+        if (filesToArchive.length === 0) {
+          throw new Error('No files found in submission to archive');
+        }
+
+        console.log(`📦 Files to archive (fallback): ${filesToArchive.length}`, filesToArchive.map(f => f.key));
+      }
+
+      // Move files to repository bucket with proper S3 path: {document_id}/{submission_id}/filename
+      const sourceBucket = process.env.THESISKO_DOCUMENTS_BUCKET;
+      const destBucket = process.env.THESISKO_REPOSITORY_BUCKET;
+      const archivedFiles = [];
+
+      for (const fileToArchive of filesToArchive) {
+        const newKey = `repository-files/${document_id}/${fileToArchive.filename}`;
+        console.log(`🔄 Moving file: ${fileToArchive.s3_key} → ${newKey}`);
+        await moveFileBetweenBuckets(sourceBucket, destBucket, fileToArchive.s3_key, newKey);
+        console.log(`✅ File moved successfully: ${fileToArchive.filename}`);
+        archivedFiles.push({
+          key: fileToArchive.key,
+          file_key: newKey,
+          filename: fileToArchive.filename
+        });
+      }
+
+      // Generate embedding (title + abstract)
+      const textToEmbed = `${submission.title || ''} ${submission.abstract || ''}`.trim();
+      let embedding = null;
+      if (textToEmbed.length > 0) {
+        embedding = await generateEmbedding(textToEmbed);
+      }
 
       const archivedRecord = {
         _id: new ObjectId(),
@@ -703,9 +827,10 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
         department: submission.department,
         program: submission.program,
         document_type: submission.document_type,
-        file_key: submission.files.manuscript?.s3_key, // Main manuscript file
-        files: submission.files, // All files
+        file_key: archivedFiles.find(f => f.key === 'manuscript')?.file_key || archivedFiles[0]?.file_key, // Main manuscript file
+        files: archivedFiles, // Archived files with new S3 keys
         submitter_email: submission.submitter_email,
+        abstract_embedding: embedding,
         created_at: new Date(),
         updated_at: new Date()
       };
@@ -720,6 +845,7 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
             archived: true,
             archived_at: new Date(),
             document_id,
+            archived_files: archivedFiles, // Store the new S3 keys
             status: 'archived'
           }
         }
@@ -774,8 +900,15 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
       });
     } catch (archiveError) {
       console.error('❌ Archiving failed:', archiveError);
+      console.error('❌ Archive error details:', {
+        message: archiveError.message,
+        stack: archiveError.stack,
+        submission_id,
+        document_type: submission?.document_type
+      });
       res.status(500).json({ 
         error: 'Approval recorded but archiving failed',
+        details: archiveError.message,
         submission_id,
         approved: true,
         archived: false
@@ -1018,6 +1151,11 @@ router.post('/:submission_id/repository', async (req, res) => {
     const missingRequiredFiles = [];
 
     for (const archiveFile of requirement.archive_files) {
+      // Only process files marked for archiving
+      if (!archiveFile.to_be_archived) {
+        continue;
+      }
+
       const fileKey = archiveFile.id; // e.g., 'manuscript', 'abstract', etc.
       const file = submission.files?.[fileKey];
       
@@ -1028,13 +1166,13 @@ router.post('/:submission_id/repository', async (req, res) => {
           s3_key: file.s3_key,
           filename: file.s3_key.split('/').pop()
         });
-      } else if (archiveFile.required) {
-        // Required file is missing
+      } else {
+        // Required archive file is missing
         missingRequiredFiles.push(archiveFile.label || archiveFile.id);
       }
     }
 
-    // Check if any required files are missing
+    // Check if any required archive files are missing
     if (missingRequiredFiles.length > 0) {
       return res.status(400).json({ 
         error: `Missing required archive files: ${missingRequiredFiles.join(', ')}` 
