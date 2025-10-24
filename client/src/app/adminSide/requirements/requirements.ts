@@ -127,7 +127,33 @@ export class Requirements implements OnInit {
   openModal(requirement?: Requirement) {
     if (requirement) {
       this.editMode.set(true);
-      this.currentRequirement.set({ ...requirement });
+      // Ensure default structured fields are always present
+      const structuredFields = requirement.required_structured_fields || {};
+      const defaultFields = {
+        authors: {
+          enabled: true,
+          min_count: 1,
+          max_count: 5,
+          require_firstname_lastname: true
+        },
+        tags: {
+          enabled: true,
+          min_count: 1,
+          max_count: 10,
+          require_firstname_lastname: false
+        }
+      };
+      
+      // Merge default fields with existing fields, preserving existing values
+      const mergedStructuredFields = {
+        ...defaultFields,
+        ...structuredFields
+      };
+      
+      this.currentRequirement.set({ 
+        ...requirement,
+        required_structured_fields: mergedStructuredFields
+      });
     } else {
       this.editMode.set(false);
       this.currentRequirement.set({
@@ -270,6 +296,7 @@ export class Requirements implements OnInit {
       // Update existing
       this.http.put(`${this.apiUrl}/${current.document_type}`, {
         required_metadata: current.required_metadata,
+        required_structured_fields: current.required_structured_fields,
         required_files: current.required_files,
         archive_files: this.generateArchiveFiles(),
         is_active: current.is_active
@@ -290,6 +317,7 @@ export class Requirements implements OnInit {
       this.http.post(this.apiUrl, {
         document_type: current.document_type,
         required_metadata: current.required_metadata,
+        required_structured_fields: current.required_structured_fields,
         required_files: current.required_files,
         archive_files: this.generateArchiveFiles(),
         created_by: 'dean' // TODO: Get from auth service
@@ -397,12 +425,15 @@ export class Requirements implements OnInit {
     const current = this.currentRequirement();
     const fields = current.required_structured_fields || {};
     
-    return Object.keys(fields).map(name => ({
+    // Always include default structured fields
+    const allFields = new Set([...this.defaultStructuredFields, ...Object.keys(fields)]);
+    
+    return Array.from(allFields).map(name => ({
       name,
-      enabled: fields[name]?.enabled || false,
-      min_count: fields[name]?.min_count || 1,
-      max_count: fields[name]?.max_count || 10,
-      require_firstname_lastname: fields[name]?.require_firstname_lastname
+      enabled: fields[name]?.enabled ?? (this.defaultStructuredFields.includes(name) ? true : false),
+      min_count: fields[name]?.min_count ?? (name === 'authors' ? 1 : name === 'tags' ? 1 : 1),
+      max_count: fields[name]?.max_count ?? (name === 'authors' ? 5 : name === 'tags' ? 10 : 10),
+      require_firstname_lastname: fields[name]?.require_firstname_lastname ?? (name === 'authors' ? true : false)
     }));
   }
 
