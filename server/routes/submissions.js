@@ -158,20 +158,7 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    // Validate document type exists and is active
-    const documentTypesCollection = getDocumentTypesCollection();
-    const docType = await documentTypesCollection.findOne({ 
-      type_id: document_type,
-      is_active: true 
-    });
-
-    if (!docType) {
-      return res.status(400).json({ 
-        error: 'Invalid or inactive document type' 
-      });
-    }
-
-    // Get requirements for this document type
+    // Validate document type exists and is active using requirements collection
     const requirementsCollection = getDb().collection('requirements');
     const requirement = await requirementsCollection.findOne({
       document_type: document_type,
@@ -180,7 +167,7 @@ router.post('/create', async (req, res) => {
 
     if (!requirement) {
       return res.status(400).json({ 
-        error: 'No requirements found for this document type' 
+        error: 'Invalid or inactive document type' 
       });
     }
 

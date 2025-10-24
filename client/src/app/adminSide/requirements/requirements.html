@@ -6,7 +6,7 @@
             <header class="page-header">
                 <h1 class="page-title">Requirements</h1>
                 <div class="header-actions">
-                    <button class="add-program-btn" (click)="openModal()">Add Requirements</button>
+                    <button class="add-program-btn" (click)="openModal()">Add Document Type</button>
                 </div>
             </header>
 
@@ -76,28 +76,27 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2 class="modal-title">
-          {{ editMode() ? 'Edit Requirements' : 'Add Requirements' }}
+          {{ editMode() ? 'Edit Document Type' : 'Add Document Type' }}
         </h2>
         <button class="modal-close" (click)="closeModal()">×</button>
       </div>
       
       <div class="modal-body">
         <form (ngSubmit)="saveRequirement()">
-          <!-- Document Type Selection -->
+          <!-- Document Type Input -->
           <div class="form-group">
             <label for="documentType">Document Type <span class="required">*</span></label>
-            <select 
+            <input 
+              type="text" 
               id="documentType" 
               [(ngModel)]="currentRequirement().document_type" 
               name="documentType"
               class="form-control"
+              placeholder="Enter document type name (e.g., Research Paper, Dissertation)"
               [disabled]="editMode()"
+              (blur)="formatDocumentTypeName()"
               required>
-              <option value="">-- Select Document Type --</option>
-              @for (type of documentTypes(); track type) {
-                <option [value]="type">{{ getDocumentTypeDisplayName(type) }}</option>
-              }
-            </select>
+            <small class="help-text">Enter a descriptive name for the new document type. The name will be automatically formatted in title case.</small>
           </div>
 
           <!-- Required Metadata Fields -->
@@ -112,153 +111,116 @@
                     name="metadata_{{ i }}"
                     class="form-control"
                     readonly>
+                  @if (!isDefaultMetadataField(field)) {
+                    <button 
+                      type="button" 
+                      class="btn-remove-field" 
+                      (click)="removeMetadataField(i)"
+                      title="Remove field">
+                      ×
+                    </button>
+                  }
                 </div>
               }
             </div>
-            <small class="help-text">These are the standard metadata fields required for all document types.</small>
+            <div class="add-field-section">
+              <input 
+                type="text" 
+                [(ngModel)]="newMetadataField" 
+                name="newMetadataField"
+                placeholder="Add new metadata field (e.g., year, keywords)"
+                class="form-control add-field-input">
+              <button 
+                type="button" 
+                class="btn-add-field" 
+                (click)="addMetadataField()"
+                [disabled]="!newMetadataField().trim()">
+                Add Field
+              </button>
+            </div>
+            <small class="help-text">Default fields (title, abstract, access_level, department, program, year) are required. You can add additional fields as needed.</small>
           </div>
 
           <!-- Structured Fields Configuration -->
           <div class="form-group">
             <label class="form-label">Structured Fields Configuration</label>
             <div class="structured-fields">
-              
-              <!-- Authors Configuration -->
-              <div class="structured-field-group">
-                <div class="field-header">
-                  <label class="checkbox-label">
-                    <input 
-                      type="checkbox" 
-                      [checked]="getAuthorsEnabled()"
-                      (change)="setAuthorsEnabled($event.target.checked)"
-                      name="authors_enabled">
-                    <span class="field-name">Authors</span>
-                  </label>
-                </div>
-                @if (getAuthorsEnabled()) {
-                  <div class="field-config">
-                    <div class="config-row">
-                      <label class="config-label">Min Count:</label>
+              @for (field of getStructuredFieldsList(); track field.name; let i = $index) {
+                <div class="structured-field-group">
+                  <div class="field-header">
+                    <label class="checkbox-label">
                       <input 
-                        type="number" 
-                        [value]="getAuthorsMinCount()"
-                        (input)="setAuthorsMinCount(+$event.target.value)"
-                        name="authors_min"
-                        class="form-control config-input"
-                        min="1" max="10">
-                    </div>
-                    <div class="config-row">
-                      <label class="config-label">Max Count:</label>
-                      <input 
-                        type="number" 
-                        [value]="getAuthorsMaxCount()"
-                        (input)="setAuthorsMaxCount(+$event.target.value)"
-                        name="authors_max"
-                        class="form-control config-input"
-                        min="1" max="10">
-                    </div>
-                    <div class="config-row">
-                      <label class="checkbox-label">
+                        type="checkbox" 
+                        [checked]="field.enabled"
+                        (change)="onStructuredFieldEnabledChange(field.name, $event)"
+                        [name]="field.name + '_enabled'">
+                      <span class="field-name">{{ getFieldDisplayName(field.name) }}</span>
+                    </label>
+                    @if (!isDefaultStructuredField(field.name)) {
+                      <button 
+                        type="button" 
+                        class="btn-remove-structured-field" 
+                        (click)="removeStructuredField(field.name)"
+                        title="Remove field">
+                        ×
+                      </button>
+                    }
+                  </div>
+                  @if (field.enabled) {
+                    <div class="field-config">
+                      <div class="config-row">
+                        <label class="config-label">Min Count:</label>
                         <input 
-                          type="checkbox" 
-                          [checked]="getAuthorsRequireFirstnameLastname()"
-                          (change)="setAuthorsRequireFirstnameLastname($event.target.checked)"
-                          name="authors_firstname_lastname">
-                        <span>Require First Name & Last Name</span>
-                      </label>
-                    </div>
-                  </div>
-                }
-              </div>
-
-              <!-- Panelists Configuration -->
-              <div class="structured-field-group">
-                <div class="field-header">
-                  <label class="checkbox-label">
-                    <input 
-                      type="checkbox" 
-                      [checked]="getPanelistsEnabled()"
-                      (change)="setPanelistsEnabled($event.target.checked)"
-                      name="panelists_enabled">
-                    <span class="field-name">Panelists</span>
-                  </label>
-                </div>
-                @if (getPanelistsEnabled()) {
-                  <div class="field-config">
-                    <div class="config-row">
-                      <label class="config-label">Min Count:</label>
-                      <input 
-                        type="number" 
-                        [value]="getPanelistsMinCount()"
-                        (input)="setPanelistsMinCount(+$event.target.value)"
-                        name="panelists_min"
-                        class="form-control config-input"
-                        min="1" max="10">
-                    </div>
-                    <div class="config-row">
-                      <label class="config-label">Max Count:</label>
-                      <input 
-                        type="number" 
-                        [value]="getPanelistsMaxCount()"
-                        (input)="setPanelistsMaxCount(+$event.target.value)"
-                        name="panelists_max"
-                        class="form-control config-input"
-                        min="1" max="10">
-                    </div>
-                    <div class="config-row">
-                      <label class="checkbox-label">
+                          type="number" 
+                          [value]="field.min_count"
+                          (input)="onStructuredFieldMinCountChange(field.name, $event)"
+                          [name]="field.name + '_min'"
+                          class="form-control config-input"
+                          min="1" max="20">
+                      </div>
+                      <div class="config-row">
+                        <label class="config-label">Max Count:</label>
                         <input 
-                          type="checkbox" 
-                          [checked]="getPanelistsRequireFirstnameLastname()"
-                          (change)="setPanelistsRequireFirstnameLastname($event.target.checked)"
-                          name="panelists_firstname_lastname">
-                        <span>Require First Name & Last Name</span>
-                      </label>
+                          type="number" 
+                          [value]="field.max_count"
+                          (input)="onStructuredFieldMaxCountChange(field.name, $event)"
+                          [name]="field.name + '_max'"
+                          class="form-control config-input"
+                          min="1" max="20">
+                      </div>
+                      @if (field.require_firstname_lastname !== undefined) {
+                        <div class="config-row">
+                          <label class="checkbox-label">
+                            <input 
+                              type="checkbox" 
+                              [checked]="field.require_firstname_lastname"
+                              (change)="onStructuredFieldRequireFirstnameLastnameChange(field.name, $event)"
+                              [name]="field.name + '_firstname_lastname'">
+                            <span>Require First Name & Last Name</span>
+                          </label>
+                        </div>
+                      }
                     </div>
-                  </div>
-                }
-              </div>
-
-              <!-- Tags Configuration -->
-              <div class="structured-field-group">
-                <div class="field-header">
-                  <label class="checkbox-label">
-                    <input 
-                      type="checkbox" 
-                      [checked]="getTagsEnabled()"
-                      (change)="setTagsEnabled($event.target.checked)"
-                      name="tags_enabled">
-                    <span class="field-name">Tags</span>
-                  </label>
+                  }
                 </div>
-                @if (getTagsEnabled()) {
-                  <div class="field-config">
-                    <div class="config-row">
-                      <label class="config-label">Min Count:</label>
-                      <input 
-                        type="number" 
-                        [value]="getTagsMinCount()"
-                        (input)="setTagsMinCount(+$event.target.value)"
-                        name="tags_min"
-                        class="form-control config-input"
-                        min="1" max="20">
-                    </div>
-                    <div class="config-row">
-                      <label class="config-label">Max Count:</label>
-                      <input 
-                        type="number" 
-                        [value]="getTagsMaxCount()"
-                        (input)="setTagsMaxCount(+$event.target.value)"
-                        name="tags_max"
-                        class="form-control config-input"
-                        min="1" max="20">
-                    </div>
-                  </div>
-                }
-              </div>
-
+              }
             </div>
-            <small class="help-text">Configure how authors, panelists, and tags should be collected from students.</small>
+            <div class="add-structured-field-section">
+              <input 
+                type="text" 
+                [(ngModel)]="newStructuredFieldName" 
+                name="newStructuredFieldName"
+                placeholder="Add new structured field (e.g., reviewers, keywords)"
+                class="form-control add-field-input">
+              <button 
+                type="button" 
+                class="btn-add-field" 
+                (click)="addStructuredField()"
+                [disabled]="!newStructuredFieldName().trim()">
+                Add Field
+              </button>
+            </div>
+            <small class="help-text">Default fields (authors, tags) are pre-configured. You can add more structured fields as needed. Min count must be at least 1.</small>
           </div>
 
           <!-- File Requirements -->
