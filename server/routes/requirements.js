@@ -219,8 +219,40 @@ router.put('/:document_type', async (req, res) => {
   }
 });
 
-// DELETE requirement (soft delete)
-router.delete('/:id', async (req, res) => {
+// DELETE requirement by document_type (soft delete)
+router.delete('/:document_type', async (req, res) => {
+  try {
+    const { document_type } = req.params;
+
+    const collection = getRequirementsCollection();
+    const result = await collection.updateOne(
+      { document_type: document_type, is_active: true },
+      { 
+        $set: { 
+          is_active: false,
+          updated_at: new Date()
+        } 
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Requirement not found' });
+    }
+
+    console.log(`✅ Requirement deactivated: ${document_type}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Requirement deactivated successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error deactivating requirement:', error);
+    res.status(500).json({ error: 'Error deactivating requirement' });
+  }
+});
+
+// DELETE requirement by ID (soft delete) - alternative endpoint
+router.delete('/id/:id', async (req, res) => {
   try {
     const { id } = req.params;
 

@@ -31,9 +31,7 @@ interface Requirement {
   document_type: string;
   required_metadata: string[];
   required_structured_fields?: {
-    authors?: StructuredField;
-    panelists?: StructuredField;
-    tags?: StructuredField;
+    [key: string]: StructuredField;
   };
   required_files: FileRequirement[];
   archive_files?: ArchiveFile[];
@@ -62,7 +60,7 @@ export class Requirements implements OnInit {
   currentRequirement = signal<Requirement>({
     document_type: '',
     required_metadata: [
-      'title', 'abstract', 'adviser', 'faculty_in_charge', 'department', 'program', 'access_level'
+      'title', 'abstract', 'access_level', 'department', 'program', 'year'
     ],
     required_structured_fields: {
       authors: {
@@ -71,15 +69,10 @@ export class Requirements implements OnInit {
         max_count: 5,
         require_firstname_lastname: true
       },
-      panelists: {
-        enabled: true,
-        min_count: 1,
-        max_count: 4,
-        require_firstname_lastname: true
-      },
       tags: {
         enabled: true,
-        min_count: 3,
+        min_count: 1,
+        max_count: 10,
         require_firstname_lastname: false
       }
     },
@@ -95,8 +88,17 @@ export class Requirements implements OnInit {
   newFileAccept = signal<string>('');
   newFileArchive = signal<boolean>(false);
 
-  // Available document types
-  documentTypes = signal<string[]>(['capstone_paper', 'thesis']);
+  // New metadata field form
+  newMetadataField = signal<string>('');
+
+  // New structured field form
+  newStructuredFieldName = signal<string>('');
+
+  // Default metadata fields that cannot be removed
+  private defaultMetadataFields = ['title', 'abstract', 'access_level', 'department', 'program', 'year'];
+
+  // Default structured fields that cannot be removed
+  private defaultStructuredFields = ['authors', 'tags'];
 
   private apiUrl = `${environment.apiUrl}/requirements`;
 
@@ -131,7 +133,7 @@ export class Requirements implements OnInit {
       this.currentRequirement.set({
         document_type: '',
         required_metadata: [
-          'title', 'abstract', 'adviser', 'faculty_in_charge', 'department', 'program', 'access_level'
+          'title', 'abstract', 'access_level', 'department', 'program', 'year'
         ],
         required_structured_fields: {
           authors: {
@@ -140,15 +142,10 @@ export class Requirements implements OnInit {
             max_count: 5,
             require_firstname_lastname: true
           },
-          panelists: {
-            enabled: true,
-            min_count: 1,
-            max_count: 4,
-            require_firstname_lastname: true
-          },
           tags: {
             enabled: true,
-            min_count: 3,
+            min_count: 1,
+            max_count: 10,
             require_firstname_lastname: false
           }
         },
@@ -166,12 +163,29 @@ export class Requirements implements OnInit {
     this.currentRequirement.set({
       document_type: '',
       required_metadata: [
-        'title', 'abstract', 'authors', 'tags', 'adviser',
-        'faculty_in_charge', 'panelists', 'department', 'program', 'access_level'
+        'title', 'abstract', 'access_level', 'department', 'program', 'year'
       ],
+      required_structured_fields: {
+        authors: {
+          enabled: true,
+          min_count: 1,
+          max_count: 5,
+          require_firstname_lastname: true
+        },
+        tags: {
+          enabled: true,
+          min_count: 1,
+          max_count: 10,
+          require_firstname_lastname: false
+        }
+      },
       required_files: [],
+      archive_files: [],
       is_active: true
     });
+    // Reset form fields
+    this.newMetadataField.set('');
+    this.newStructuredFieldName.set('');
   }
 
   addFileRequirement() {
@@ -315,243 +329,229 @@ export class Requirements implements OnInit {
   }
 
   getDocumentTypeDisplayName(type: string): string {
-    switch (type) {
-      case 'capstone_paper': return 'Capstone Paper';
-      case 'thesis': return 'Thesis';
-      default: return type;
-    }
+    return this.formatToTitleCase(type);
   }
 
-  // Helper methods for structured fields
-  getAuthorsEnabled(): boolean {
-    return this.currentRequirement().required_structured_fields?.authors?.enabled ?? false;
-  }
-
-  setAuthorsEnabled(value: boolean): void {
+  // Format document type name to title case
+  formatDocumentTypeName(): void {
     const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
+    const formatted = this.formatToTitleCase(current.document_type);
+    this.currentRequirement.update(req => ({
+      ...req,
+      document_type: formatted
+    }));
+  }
+
+  private formatToTitleCase(text: string): string {
+    return text
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  // Metadata field management
+  isDefaultMetadataField(field: string): boolean {
+    return this.defaultMetadataFields.includes(field);
+  }
+
+  addMetadataField(): void {
+    const fieldName = this.newMetadataField().trim();
+    if (!fieldName) return;
+
+    const current = this.currentRequirement();
+    if (current.required_metadata.includes(fieldName)) {
+      alert('This metadata field already exists');
+      return;
     }
-    if (!current.required_structured_fields.authors) {
-      current.required_structured_fields.authors = {
-        enabled: false,
+
+    this.currentRequirement.update(req => ({
+      ...req,
+      required_metadata: [...req.required_metadata, fieldName]
+    }));
+
+    this.newMetadataField.set('');
+  }
+
+  removeMetadataField(index: number): void {
+    const current = this.currentRequirement();
+    const field = current.required_metadata[index];
+    
+    if (this.isDefaultMetadataField(field)) {
+      alert('Cannot remove default metadata fields');
+      return;
+    }
+
+    this.currentRequirement.update(req => ({
+      ...req,
+      required_metadata: req.required_metadata.filter((_, i) => i !== index)
+    }));
+  }
+
+  // Structured field management
+  isDefaultStructuredField(fieldName: string): boolean {
+    return this.defaultStructuredFields.includes(fieldName);
+  }
+
+  getStructuredFieldsList(): Array<{name: string, enabled: boolean, min_count: number, max_count: number, require_firstname_lastname?: boolean}> {
+    const current = this.currentRequirement();
+    const fields = current.required_structured_fields || {};
+    
+    return Object.keys(fields).map(name => ({
+      name,
+      enabled: fields[name]?.enabled || false,
+      min_count: fields[name]?.min_count || 1,
+      max_count: fields[name]?.max_count || 10,
+      require_firstname_lastname: fields[name]?.require_firstname_lastname
+    }));
+  }
+
+  getFieldDisplayName(fieldName: string): string {
+    return this.formatToTitleCase(fieldName);
+  }
+
+  addStructuredField(): void {
+    const fieldName = this.newStructuredFieldName().trim().toLowerCase();
+    if (!fieldName) return;
+
+    const current = this.currentRequirement();
+    if (current.required_structured_fields?.[fieldName]) {
+      alert('This structured field already exists');
+      return;
+    }
+
+    this.currentRequirement.update(req => {
+      const structuredFields = req.required_structured_fields || {};
+      structuredFields[fieldName] = {
+        enabled: true,
         min_count: 1,
-        max_count: 5,
-        require_firstname_lastname: true
-      };
-    }
-    current.required_structured_fields.authors.enabled = value;
-    this.currentRequirement.set({...current});
-  }
-
-  getAuthorsMinCount(): number {
-    return this.currentRequirement().required_structured_fields?.authors?.min_count ?? 1;
-  }
-
-  setAuthorsMinCount(value: number): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.authors) {
-      current.required_structured_fields.authors = {
-        enabled: false,
-        min_count: 1,
-        max_count: 5,
-        require_firstname_lastname: true
-      };
-    }
-    current.required_structured_fields.authors.min_count = value;
-    this.currentRequirement.set({...current});
-  }
-
-  getAuthorsMaxCount(): number {
-    return this.currentRequirement().required_structured_fields?.authors?.max_count ?? 5;
-  }
-
-  setAuthorsMaxCount(value: number): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.authors) {
-      current.required_structured_fields.authors = {
-        enabled: false,
-        min_count: 1,
-        max_count: 5,
-        require_firstname_lastname: true
-      };
-    }
-    current.required_structured_fields.authors.max_count = value;
-    this.currentRequirement.set({...current});
-  }
-
-  getAuthorsRequireFirstnameLastname(): boolean {
-    return this.currentRequirement().required_structured_fields?.authors?.require_firstname_lastname ?? true;
-  }
-
-  setAuthorsRequireFirstnameLastname(value: boolean): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.authors) {
-      current.required_structured_fields.authors = {
-        enabled: false,
-        min_count: 1,
-        max_count: 5,
-        require_firstname_lastname: true
-      };
-    }
-    current.required_structured_fields.authors.require_firstname_lastname = value;
-    this.currentRequirement.set({...current});
-  }
-
-  // Panelists helpers
-  getPanelistsEnabled(): boolean {
-    return this.currentRequirement().required_structured_fields?.panelists?.enabled ?? false;
-  }
-
-  setPanelistsEnabled(value: boolean): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.panelists) {
-      current.required_structured_fields.panelists = {
-        enabled: false,
-        min_count: 1,
-        max_count: 4,
-        require_firstname_lastname: true
-      };
-    }
-    current.required_structured_fields.panelists.enabled = value;
-    this.currentRequirement.set({...current});
-  }
-
-  getPanelistsMinCount(): number {
-    return this.currentRequirement().required_structured_fields?.panelists?.min_count ?? 1;
-  }
-
-  setPanelistsMinCount(value: number): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.panelists) {
-      current.required_structured_fields.panelists = {
-        enabled: false,
-        min_count: 1,
-        max_count: 4,
-        require_firstname_lastname: true
-      };
-    }
-    current.required_structured_fields.panelists.min_count = value;
-    this.currentRequirement.set({...current});
-  }
-
-  getPanelistsMaxCount(): number {
-    return this.currentRequirement().required_structured_fields?.panelists?.max_count ?? 4;
-  }
-
-  setPanelistsMaxCount(value: number): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.panelists) {
-      current.required_structured_fields.panelists = {
-        enabled: false,
-        min_count: 1,
-        max_count: 4,
-        require_firstname_lastname: true
-      };
-    }
-    current.required_structured_fields.panelists.max_count = value;
-    this.currentRequirement.set({...current});
-  }
-
-  getPanelistsRequireFirstnameLastname(): boolean {
-    return this.currentRequirement().required_structured_fields?.panelists?.require_firstname_lastname ?? true;
-  }
-
-  setPanelistsRequireFirstnameLastname(value: boolean): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.panelists) {
-      current.required_structured_fields.panelists = {
-        enabled: false,
-        min_count: 1,
-        max_count: 4,
-        require_firstname_lastname: true
-      };
-    }
-    current.required_structured_fields.panelists.require_firstname_lastname = value;
-    this.currentRequirement.set({...current});
-  }
-
-  // Tags helpers
-  getTagsEnabled(): boolean {
-    return this.currentRequirement().required_structured_fields?.tags?.enabled ?? false;
-  }
-
-  setTagsEnabled(value: boolean): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.tags) {
-      current.required_structured_fields.tags = {
-        enabled: false,
-        min_count: 3,
+        max_count: 10,
         require_firstname_lastname: false
       };
-    }
-    current.required_structured_fields.tags.enabled = value;
-    this.currentRequirement.set({...current});
-  }
-
-  getTagsMinCount(): number {
-    return this.currentRequirement().required_structured_fields?.tags?.min_count ?? 3;
-  }
-
-  setTagsMinCount(value: number): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
-    }
-    if (!current.required_structured_fields.tags) {
-      current.required_structured_fields.tags = {
-        enabled: false,
-        min_count: 3,
-        require_firstname_lastname: false
+      return {
+        ...req,
+        required_structured_fields: structuredFields
       };
-    }
-    current.required_structured_fields.tags.min_count = value;
-    this.currentRequirement.set({...current});
+    });
+
+    this.newStructuredFieldName.set('');
   }
 
-  getTagsMaxCount(): number {
-    return this.currentRequirement().required_structured_fields?.tags?.max_count ?? 10;
-  }
-
-  setTagsMaxCount(value: number): void {
-    const current = this.currentRequirement();
-    if (!current.required_structured_fields) {
-      current.required_structured_fields = {};
+  removeStructuredField(fieldName: string): void {
+    if (this.isDefaultStructuredField(fieldName)) {
+      alert('Cannot remove default structured fields');
+      return;
     }
-    if (!current.required_structured_fields.tags) {
-      current.required_structured_fields.tags = {
-        enabled: false,
-        min_count: 3,
-        require_firstname_lastname: false
+
+    this.currentRequirement.update(req => {
+      const structuredFields = { ...req.required_structured_fields };
+      delete structuredFields[fieldName];
+      return {
+        ...req,
+        required_structured_fields: structuredFields
       };
-    }
-    current.required_structured_fields.tags.max_count = value;
-    this.currentRequirement.set({...current});
+    });
   }
+
+  setStructuredFieldEnabled(fieldName: string, enabled: boolean): void {
+    this.currentRequirement.update(req => {
+      const structuredFields = req.required_structured_fields || {};
+      if (!structuredFields[fieldName]) {
+        structuredFields[fieldName] = {
+          enabled: false,
+          min_count: 1,
+          max_count: 10,
+          require_firstname_lastname: false
+        };
+      }
+      structuredFields[fieldName].enabled = enabled;
+      return {
+        ...req,
+        required_structured_fields: structuredFields
+      };
+    });
+  }
+
+  setStructuredFieldMinCount(fieldName: string, value: number): void {
+    const minValue = Math.max(1, value); // Ensure minimum is 1
+    this.currentRequirement.update(req => {
+      const structuredFields = req.required_structured_fields || {};
+      if (!structuredFields[fieldName]) {
+        structuredFields[fieldName] = {
+          enabled: false,
+          min_count: 1,
+          max_count: 10,
+          require_firstname_lastname: false
+        };
+      }
+      structuredFields[fieldName].min_count = minValue;
+      return {
+        ...req,
+        required_structured_fields: structuredFields
+      };
+    });
+  }
+
+  setStructuredFieldMaxCount(fieldName: string, value: number): void {
+    const maxValue = Math.max(1, value); // Ensure minimum is 1
+    this.currentRequirement.update(req => {
+      const structuredFields = req.required_structured_fields || {};
+      if (!structuredFields[fieldName]) {
+        structuredFields[fieldName] = {
+          enabled: false,
+          min_count: 1,
+          max_count: 10,
+          require_firstname_lastname: false
+        };
+      }
+      structuredFields[fieldName].max_count = maxValue;
+      return {
+        ...req,
+        required_structured_fields: structuredFields
+      };
+    });
+  }
+
+  setStructuredFieldRequireFirstnameLastname(fieldName: string, value: boolean): void {
+    this.currentRequirement.update(req => {
+      const structuredFields = req.required_structured_fields || {};
+      if (!structuredFields[fieldName]) {
+        structuredFields[fieldName] = {
+          enabled: false,
+          min_count: 1,
+          max_count: 10,
+          require_firstname_lastname: false
+        };
+      }
+      structuredFields[fieldName].require_firstname_lastname = value;
+      return {
+        ...req,
+        required_structured_fields: structuredFields
+      };
+    });
+  }
+
+  // Event handler methods for template
+  onStructuredFieldEnabledChange(fieldName: string, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.setStructuredFieldEnabled(fieldName, target.checked);
+  }
+
+  onStructuredFieldMinCountChange(fieldName: string, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.setStructuredFieldMinCount(fieldName, +target.value);
+  }
+
+  onStructuredFieldMaxCountChange(fieldName: string, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.setStructuredFieldMaxCount(fieldName, +target.value);
+  }
+
+  onStructuredFieldRequireFirstnameLastnameChange(fieldName: string, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.setStructuredFieldRequireFirstnameLastname(fieldName, target.checked);
+  }
+
 
   // Generate archive_files from required_files
   generateArchiveFiles(): ArchiveFile[] {

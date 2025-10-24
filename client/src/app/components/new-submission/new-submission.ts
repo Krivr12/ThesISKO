@@ -119,7 +119,6 @@ export class NewSubmission implements OnInit {
     }
 
     this.loadDocumentTypes();
-    this.loadRequirements();
     
     // Watch for document type changes and load specific requirements
     effect(() => {
@@ -132,21 +131,30 @@ export class NewSubmission implements OnInit {
   }
 
   loadDocumentTypes() {
-    console.log('Loading document types from:', `${this.apiUrl}/document-types`);
+    console.log('Loading document types from requirements:', `${this.apiUrl}/requirements`);
     this.loading.set(true);
-    this.http.get<{ success: boolean; data: DocumentType[] }>(
-      `${this.apiUrl}/document-types`
+    this.http.get<{ success: boolean; data: Requirement[] }>(
+      `${this.apiUrl}/requirements`
     ).subscribe({
       next: (response) => {
-        console.log('Document types loaded:', response);
-        console.log('Document types data:', response.data);
-        console.log('Document types count:', response.data.length);
-        this.documentTypes.set(response.data);
-        console.log('Document types signal after set:', this.documentTypes());
+        console.log('Requirements loaded:', response);
+        console.log('Requirements data:', response.data);
+        console.log('Requirements count:', response.data.length);
+        
+        // Convert requirements to document types format
+        const documentTypes: DocumentType[] = response.data.map(req => ({
+          type_id: req.document_type,
+          type_name: req.document_type,
+          required_files: req.required_files || []
+        }));
+        
+        this.documentTypes.set(documentTypes);
+        this.requirements.set(response.data);
+        console.log('Document types converted:', documentTypes);
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading document types:', error);
+        console.error('Error loading requirements:', error);
         console.error('Error details:', error);
         alert('Failed to load document types: ' + error.message);
         this.loading.set(false);
@@ -154,48 +162,17 @@ export class NewSubmission implements OnInit {
     });
   }
 
-  loadRequirements() {
-    console.log('Loading requirements from:', `${this.apiUrl}/requirements`);
-    this.http.get<{ success: boolean; data: Requirement[] }>(
-      `${this.apiUrl}/requirements`
-    ).subscribe({
-      next: (response) => {
-        console.log('Requirements loaded:', response);
-        this.requirements.set(response.data);
-      },
-      error: (error) => {
-        console.error('Error loading requirements:', error);
-        // Don't show alert for requirements as it's not critical for basic functionality
-      }
-    });
-  }
 
   loadRequirementsForDocumentType(documentType: string) {
     console.log('Loading requirements for document type:', documentType);
-    this.http.get<{ success: boolean; data: any }>(
-      `${this.apiUrl}/requirements/${documentType}/files`
-    ).subscribe({
-      next: (response) => {
-        console.log('Requirements for document type loaded:', response);
-        if (response.success && response.data) {
-          console.log('Required files for', documentType, ':', response.data.required_files);
-          // Update the requirements signal with the specific document type requirements
-          this.requirements.update(reqs => {
-            const updatedReqs = [...reqs];
-            const existingIndex = updatedReqs.findIndex(req => req.document_type === documentType);
-            if (existingIndex >= 0) {
-              updatedReqs[existingIndex] = response.data;
-            } else {
-              updatedReqs.push(response.data);
-            }
-            return updatedReqs;
-          });
-        }
-      },
-      error: (error) => {
-        console.error('Error loading requirements for document type:', error);
-      }
-    });
+    // Requirements are already loaded in loadDocumentTypes(), no need to fetch again
+    const requirement = this.requirements().find(req => req.document_type === documentType);
+    if (requirement) {
+      console.log('Requirements for document type found:', requirement);
+      console.log('Required files for', documentType, ':', requirement.required_files);
+    } else {
+      console.warn('No requirements found for document type:', documentType);
+    }
   }
 
   nextStep() {
