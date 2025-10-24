@@ -163,6 +163,19 @@
         </div>
 
         <div class="form-group">
+          <label for="year">Year <span class="required">*</span></label>
+          <input 
+            id="year"
+            type="number" 
+            [(ngModel)]="year"
+            placeholder="2024"
+            class="form-control"
+            min="2000"
+            max="2030"
+            required />
+        </div>
+
+        <div class="form-group">
           <label for="adviser">Adviser</label>
           <input 
             id="adviser"
@@ -200,6 +213,57 @@
             <option value="Partial">Partial - Limited access</option>
             <option value="Restricted">Restricted - Authorized users only</option>
           </select>
+        </div>
+
+        <!-- Dynamic Metadata Fields -->
+        <div *ngFor="let field of dynamicMetadataFields(); trackBy: trackByFieldName" class="form-group" [class.full-width]="getFieldType(field) === 'textarea'">
+          <label [for]="'dynamic-' + field">
+            {{ getFieldDisplayName(field) }}
+            <span *ngIf="isFieldRequired(field)" class="required">*</span>
+          </label>
+          
+          <!-- Text Input -->
+          <input 
+            *ngIf="getFieldType(field) === 'text'"
+            [id]="'dynamic-' + field"
+            type="text" 
+            [value]="getDynamicFieldValue(field)"
+            (input)="onDynamicFieldChange(field, $event)"
+            [placeholder]="getFieldPlaceholder(field)"
+            class="form-control"
+            [required]="isFieldRequired(field)" />
+          
+          <!-- Number Input -->
+          <input 
+            *ngIf="getFieldType(field) === 'number'"
+            [id]="'dynamic-' + field"
+            type="number" 
+            [value]="getDynamicFieldValue(field)"
+            (input)="onDynamicFieldChange(field, $event)"
+            [placeholder]="getFieldPlaceholder(field)"
+            class="form-control"
+            [required]="isFieldRequired(field)" />
+          
+          <!-- Date Input -->
+          <input 
+            *ngIf="getFieldType(field) === 'date'"
+            [id]="'dynamic-' + field"
+            type="date" 
+            [value]="getDynamicFieldValue(field)"
+            (input)="onDynamicFieldChange(field, $event)"
+            class="form-control"
+            [required]="isFieldRequired(field)" />
+          
+          <!-- Textarea -->
+          <textarea 
+            *ngIf="getFieldType(field) === 'textarea'"
+            [id]="'dynamic-' + field"
+            [value]="getDynamicFieldValue(field)"
+            (input)="onDynamicFieldChange(field, $event)"
+            [placeholder]="getFieldPlaceholder(field)"
+            rows="4"
+            class="form-control"
+            [required]="isFieldRequired(field)"></textarea>
         </div>
       </div>
 

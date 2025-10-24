@@ -80,10 +80,14 @@ export class NewSubmission implements OnInit {
   abstract = signal<string>('');
   authors = signal<string>(''); // Comma-separated
   tags = signal<string>(''); // Comma-separated
+  year = signal<string>('');
   adviser = signal<string>('');
   facultyInCharge = signal<string>('');
   panelists = signal<string>(''); // Comma-separated
   accessLevel = signal<string>('Full');
+  
+  // Dynamic metadata fields
+  dynamicMetadata = signal<Map<string, string>>(new Map());
   
   // Step 3: Files
   uploadedFiles = signal<Map<string, File>>(new Map());
@@ -98,6 +102,15 @@ export class NewSubmission implements OnInit {
   selectedRequirements = computed(() => 
     this.requirements().find(req => req.document_type === this.documentType())
   );
+  
+  // Get dynamic metadata fields that are not handled by hardcoded fields
+  dynamicMetadataFields = computed(() => {
+    const requirements = this.selectedRequirements();
+    if (!requirements) return [];
+    
+    const hardcodedFields = ['title', 'abstract', 'authors', 'tags', 'year', 'adviser', 'faculty_in_charge', 'panelists', 'access_level', 'department', 'program'];
+    return requirements.required_metadata.filter(field => !hardcodedFields.includes(field));
+  });
   
   // Duplicate warning
   duplicateWarning = signal<any[]>([]);
@@ -359,10 +372,13 @@ export class NewSubmission implements OnInit {
         abstract: this.abstract(),
         authors: this.authors().split(',').map(a => a.trim()),
         tags: this.tags() ? this.tags().split(',').map(t => t.trim()) : [],
+        year: this.year(),
         adviser: this.adviser(),
         faculty_in_charge: this.facultyInCharge(),
         panelists: this.panelists() ? this.panelists().split(',').map(p => p.trim()) : [],
         access_level: this.accessLevel(),
+        // Include dynamic metadata fields
+        ...Object.fromEntries(this.dynamicMetadata()),
         files
       };
 
@@ -398,6 +414,63 @@ export class NewSubmission implements OnInit {
 
   getFieldDisplayName(field: string): string {
     return field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  // Dynamic metadata field methods
+  getDynamicFieldValue(fieldName: string): string {
+    return this.dynamicMetadata().get(fieldName) || '';
+  }
+
+  setDynamicFieldValue(fieldName: string, value: string): void {
+    this.dynamicMetadata.update(map => {
+      const newMap = new Map(map);
+      newMap.set(fieldName, value);
+      return newMap;
+    });
+  }
+
+  isFieldRequired(fieldName: string): boolean {
+    const requirements = this.selectedRequirements();
+    if (!requirements) return false;
+    return requirements.required_metadata.includes(fieldName);
+  }
+
+  getFieldPlaceholder(fieldName: string): string {
+    const placeholders: { [key: string]: string } = {
+      'keywords': 'e.g., Machine Learning, Web Development, Mobile App',
+      'research_area': 'e.g., Artificial Intelligence, Software Engineering',
+      'methodology': 'e.g., Quantitative, Qualitative, Mixed Methods',
+      'language': 'e.g., English, Filipino',
+      'pages': 'e.g., 50',
+      'word_count': 'e.g., 10000',
+      'supervisor': 'e.g., Dr. John Doe',
+      'co_supervisor': 'e.g., Dr. Jane Smith',
+      'defense_date': 'e.g., 2024-03-15',
+      'publication_date': 'e.g., 2024-06-01'
+    };
+    return placeholders[fieldName] || `Enter ${this.getFieldDisplayName(fieldName).toLowerCase()}`;
+  }
+
+  getFieldType(fieldName: string): string {
+    const numberFields = ['year', 'pages', 'word_count'];
+    const dateFields = ['defense_date', 'publication_date'];
+    const textareaFields = ['abstract', 'methodology', 'research_area'];
+    
+    if (numberFields.includes(fieldName)) return 'number';
+    if (dateFields.includes(fieldName)) return 'date';
+    if (textareaFields.includes(fieldName)) return 'textarea';
+    return 'text';
+  }
+
+  trackByFieldName(index: number, fieldName: string): string {
+    return fieldName;
+  }
+
+  onDynamicFieldChange(fieldName: string, event: Event): void {
+    const target = event.target as HTMLInputElement | HTMLTextAreaElement;
+    if (target) {
+      this.setDynamicFieldValue(fieldName, target.value);
+    }
   }
 }
 
