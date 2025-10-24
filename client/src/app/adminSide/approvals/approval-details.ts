@@ -23,6 +23,7 @@ interface Submission {
   abstract: string;
   authors: string[];
   tags: string[];
+  year?: string;
   adviser: string;
   faculty_in_charge: string;
   panelists: string[];
@@ -36,6 +37,8 @@ interface Submission {
   status: string;
   chairperson_approval?: any;
   dean_approval?: any;
+  // Dynamic metadata fields (any additional fields from requirements)
+  [key: string]: any;
 }
 
 @Component({
@@ -59,6 +62,10 @@ export class ApprovalDetails implements OnInit {
   showRejectModal = signal<boolean>(false);
   rejectionReason = signal<string>('');
   selectedFiles = signal<FileRequirement[]>([]);
+  
+  // Requirements for dynamic field display
+  requirements = signal<any[]>([]);
+  selectedRequirements = signal<any | null>(null);
 
   // PDF Viewer state
   isPdfViewerVisible = signal<boolean>(false);
@@ -71,6 +78,15 @@ export class ApprovalDetails implements OnInit {
   isDean = computed(() => this.currentUser()?.role_id === 5);
   isChairperson = computed(() => this.currentUser()?.role_id === 4);
   userRole = computed(() => this.isDean() ? 'Dean' : 'Chairperson');
+  
+  // Get dynamic metadata fields that are not handled by hardcoded fields
+  dynamicMetadataFields = computed(() => {
+    const requirements = this.selectedRequirements();
+    if (!requirements) return [];
+    
+    const hardcodedFields = ['title', 'abstract', 'authors', 'tags', 'year', 'adviser', 'faculty_in_charge', 'panelists', 'access_level', 'department', 'program', 'submitter_email', 'submitted_at', 'document_type', 'submission_id', 'files', 'status', 'chairperson_approval', 'dean_approval'];
+    return requirements.required_metadata.filter((field: string) => !hardcodedFields.includes(field));
+  });
 
   private apiUrl = `${environment.apiUrl}/submissions`;
 
@@ -79,6 +95,9 @@ export class ApprovalDetails implements OnInit {
     if (submissionId) {
       this.loadSubmission(submissionId);
     }
+    
+    // Load requirements for dynamic field display
+    this.loadRequirements();
   }
 
   loadSubmission(submissionId: string) {
@@ -91,6 +110,13 @@ export class ApprovalDetails implements OnInit {
         this.submission.set(response.data);
         this.duplicateSubmissions.set(response.potential_duplicates || []);
         this.initializeFilesList();
+        
+        // Set selected requirements for dynamic field display
+        const submission = response.data;
+        const requirements = this.requirements();
+        const selectedReq = requirements.find(req => req.document_type === submission.document_type);
+        this.selectedRequirements.set(selectedReq || null);
+        
         this.loading.set(false);
       },
       error: (error) => {
@@ -294,6 +320,28 @@ export class ApprovalDetails implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  loadRequirements() {
+    this.http.get<{ success: boolean; data: any[] }>(`${environment.apiUrl}/requirements`)
+      .subscribe({
+        next: (response) => {
+          this.requirements.set(response.data);
+        },
+        error: (error) => {
+          console.error('Error loading requirements:', error);
+        }
+      });
+  }
+
+  getFieldDisplayName(field: string): string {
+    return field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  getDynamicFieldValue(fieldName: string): any {
+    const submission = this.submission();
+    if (!submission) return '';
+    return submission[fieldName] || '';
   }
 }
 

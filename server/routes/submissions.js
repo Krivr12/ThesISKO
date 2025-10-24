@@ -28,6 +28,97 @@ const getRecordsCollection = () => {
   return db.collection('records');
 };
 
+// -------- Helper: Dynamically find file in submission files structure --------
+/**
+ * Dynamically finds a file in the submission's files structure.
+ * This function handles the nested object structure where each file type
+ * contains an object with s3_key and uploaded_at properties.
+ * 
+ * @param {Object} submission - The submission object
+ * @param {string} requirementFileId - The file ID from requirements (e.g., 'manuscript_file')
+ * @returns {Object|null} - File object with key, s3_key, and filename, or null if not found
+ */
+function findFileInSubmission(submission, requirementFileId) {
+  const files = submission.files || {};
+  
+  console.log(`🔍 Looking for file: ${requirementFileId}`);
+  console.log(`🔍 Available file types:`, Object.keys(files));
+  
+  // Strategy 1: Direct match with requirement ID
+  if (files[requirementFileId] && files[requirementFileId].s3_key) {
+    console.log(`✅ Found direct match: ${requirementFileId}`);
+    return {
+      key: requirementFileId,
+      s3_key: files[requirementFileId].s3_key,
+      filename: files[requirementFileId].s3_key.split('/').pop()
+    };
+  }
+  
+  // Strategy 2: Try common variations of the requirement ID
+  const variations = [
+    requirementFileId.replace('_file', ''), // manuscript_file -> manuscript
+    requirementFileId.replace('_', ''), // manuscript_file -> manuscriptfile
+    requirementFileId.split('_')[0], // manuscript_file -> manuscript
+    requirementFileId.split('_').pop(), // manuscript_file -> file
+  ];
+  
+  for (const variation of variations) {
+    if (files[variation] && files[variation].s3_key) {
+      console.log(`✅ Found variation match: ${variation} (was ${requirementFileId})`);
+      return {
+        key: requirementFileId,
+        s3_key: files[variation].s3_key,
+        filename: files[variation].s3_key.split('/').pop()
+      };
+    }
+  }
+  
+  // Strategy 3: Search by label matching (case-insensitive)
+  const requirementLabel = requirementFileId.replace(/_/g, ' ').toLowerCase();
+  for (const [fileKey, fileData] of Object.entries(files)) {
+    if (fileData && fileData.s3_key) {
+      const fileKeyLower = fileKey.replace(/_/g, ' ').toLowerCase();
+      if (fileKeyLower.includes(requirementLabel) || requirementLabel.includes(fileKeyLower)) {
+        console.log(`✅ Found label match: ${fileKey} (was ${requirementFileId})`);
+        return {
+          key: requirementFileId,
+          s3_key: fileData.s3_key,
+          filename: fileData.s3_key.split('/').pop()
+        };
+      }
+    }
+  }
+  
+  // Strategy 4: Fuzzy matching - try to find files that contain key words
+  const keywords = requirementFileId.split('_').filter(word => word !== 'file');
+  for (const [fileKey, fileData] of Object.entries(files)) {
+    if (fileData && fileData.s3_key) {
+      const fileKeyLower = fileKey.toLowerCase();
+      const matchesKeywords = keywords.some(keyword => 
+        fileKeyLower.includes(keyword.toLowerCase())
+      );
+      
+      if (matchesKeywords) {
+        console.log(`✅ Found keyword match: ${fileKey} (was ${requirementFileId})`);
+        return {
+          key: requirementFileId,
+          s3_key: fileData.s3_key,
+          filename: fileData.s3_key.split('/').pop()
+        };
+      }
+    }
+  }
+  
+  // Strategy 5: List all available files for debugging
+  console.log(`❌ Could not find file: ${requirementFileId}`);
+  console.log(`🔍 Available files in submission:`, Object.keys(files));
+  console.log(`🔍 Tried variations:`, variations);
+  console.log(`🔍 Tried keywords:`, keywords);
+  console.log(`🔍 Full files structure:`, JSON.stringify(files, null, 2));
+  
+  return null;
+}
+
 // -------- Helper: Move file between S3 buckets --------
 async function moveFileBetweenBuckets(sourceBucket, destBucket, sourceKey, destKey) {
   // Copy file
@@ -138,92 +229,88 @@ router.post('/create', async (req, res) => {
       document_type,
       department,
       program,
-      title,
-      abstract,
-      authors, // Array of strings
-      tags,
-      adviser,
-      faculty_in_charge,
-      panelists, // Array of strings
-      access_level,
-      files // Object with file keys and S3 keys
+      files = {}
     } = req.body;
 
     console.log(`📝 New submission from: ${submitter_email}`);
 
-    // Validation
-    if (!submitter_email || !document_type || !department || !program || !title) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: submitter_email, document_type, department, program, title' 
+    if (!submitter_email || !document_type || !department || !program) {
+      return res.status(400).json({
+        error: 'Missing required fields: submitter_email, document_type, department, program'
       });
     }
 
-    // Validate document type exists and is active using requirements collection
     const requirementsCollection = getDb().collection('requirements');
     const requirement = await requirementsCollection.findOne({
-      document_type: document_type,
+      document_type,
       is_active: true
     });
 
     if (!requirement) {
-      return res.status(400).json({ 
-        error: 'Invalid or inactive document type' 
+      return res.status(400).json({
+        error: 'Invalid or inactive document type'
       });
     }
 
-    // Validate required files are present using requirements
-    console.log('📋 Requirements for', document_type, ':', requirement.required_files);
-    console.log('📁 Files received:', Object.keys(files));
-    
+    // ✅ Check required file uploads
     const missingFiles = requirement.required_files
       .filter(f => f.required)
       .filter(f => !files[f.id] || !files[f.id].s3_key);
 
-    console.log('❌ Missing files:', missingFiles);
-
     if (missingFiles.length > 0) {
-      return res.status(400).json({ 
-        error: `Missing required files: ${missingFiles.map(f => f.label).join(', ')}` 
+      return res.status(400).json({
+        error: `Missing required files: ${missingFiles.map(f => f.label).join(', ')}`
+      });
+    }
+
+    // ✅ Validate required fields dynamically (based on requirement schema)
+    const missingFields = requirement.required_metadata
+      ?.filter(f => f.required)
+      ?.filter(f => !req.body[f] || req.body[f].trim() === '');
+
+    if (missingFields?.length > 0) {
+      return res.status(400).json({
+        error: `Missing required fields: ${missingFields.join(', ')}`
       });
     }
 
     const submissionsCollection = getSubmissionsCollection();
-
-    // Generate submission ID
     const submission_id = await generateSubmissionId(department, program);
 
-    // Create submission document
+    // ✅ Build submission document dynamically
+    const submissionData = {};
+
+    // Populate from dynamic field definitions
+    if (Array.isArray(requirement.required_metadata)) {
+      for (const field of requirement.required_metadata) {
+        const value = req.body[field];
+        submissionData[field] = value ?? null;
+      }
+    }
+
+    // Transform files to include upload timestamps
+    const fileEntries = Object.entries(files).reduce((acc, [key, value]) => {
+      acc[key] = {
+        s3_key: value.s3_key || value,
+        uploaded_at: new Date()
+      };
+      return acc;
+    }, {});
+
+    // ✅ Final assembled submission
     const newSubmission = {
       _id: new ObjectId(),
       submission_id,
       document_type,
-      
-      // Submitter info
       submitter_email,
-      submitted_at: new Date(),
-      
-      // Metadata
-      title,
-      abstract: abstract || null,
-      authors: Array.isArray(authors) ? authors : [authors],
-      tags: Array.isArray(tags) ? tags : [],
-      adviser: adviser || null,
-      faculty_in_charge: faculty_in_charge || null,
-      panelists: Array.isArray(panelists) ? panelists : [],
       department,
       program,
-      access_level: access_level || 'Restricted',
-      
-      // Files - transform to store upload timestamps
-      files: Object.entries(files).reduce((acc, [key, value]) => {
-        acc[key] = {
-          s3_key: value.s3_key || value,
-          uploaded_at: new Date()
-        };
-        return acc;
-      }, {}),
-      
-      // Approval workflow
+      files: fileEntries,
+
+      // Dynamic fields
+      ...submissionData,
+
+      // Default workflow
       chairperson_approval: {
         approved: false,
         approved_by: null,
@@ -232,7 +319,6 @@ router.post('/create', async (req, res) => {
         rejection_reason: null,
         rejected_files: []
       },
-      
       dean_approval: {
         approved: false,
         approved_by: null,
@@ -241,29 +327,25 @@ router.post('/create', async (req, res) => {
         rejection_reason: null,
         rejected_files: []
       },
-      
-      // Status tracking
       status: 'pending_chairperson',
-      
-      // Archival
       archived: false,
       archived_at: null,
       document_id: null,
-      
       created_at: new Date(),
       updated_at: new Date()
     };
 
     await submissionsCollection.insertOne(newSubmission);
 
-    console.log(`✅ Submission created: ${submission_id}`);
+    console.log(`✅ Dynamic submission created: ${submission_id}`);
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Submission created successfully',
       submission_id,
       data: newSubmission
     });
+
   } catch (error) {
     console.error('❌ Error creating submission:', error);
     res.status(500).json({ error: 'Error creating submission' });
@@ -723,17 +805,15 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
             continue;
           }
 
-          const fileKey = fileReq.id; // e.g., 'manuscript', 'turnitin', etc.
-          const file = submission.files?.[fileKey];
+          const fileKey = fileReq.id; // e.g., 'manuscript_file', 'turnitin_file', etc.
           
-          if (file && file.s3_key) {
+          // Use dynamic file finding function
+          const foundFile = findFileInSubmission(submission, fileKey);
+          
+          if (foundFile) {
             // File exists, add to archive list
-            console.log(`✅ Adding ${fileKey} to archive list: ${file.s3_key}`);
-            filesToArchive.push({
-              key: fileKey,
-              s3_key: file.s3_key,
-              filename: file.s3_key.split('/').pop()
-            });
+            console.log(`✅ Adding ${foundFile.key} to archive list: ${foundFile.s3_key}`);
+            filesToArchive.push(foundFile);
           } else {
             // Required archive file is missing
             console.log(`❌ Missing required archive file: ${fileKey}`);
@@ -1142,16 +1222,14 @@ router.post('/:submission_id/repository', async (req, res) => {
         continue;
       }
 
-      const fileKey = fileReq.id; // e.g., 'manuscript', 'abstract', etc.
-      const file = submission.files?.[fileKey];
+      const fileKey = fileReq.id; // e.g., 'manuscript_file', 'abstract_file', etc.
       
-      if (file && file.s3_key) {
+      // Use dynamic file finding function
+      const foundFile = findFileInSubmission(submission, fileKey);
+      
+      if (foundFile) {
         // File exists, add to archive list
-        filesToArchive.push({
-          key: fileKey,
-          s3_key: file.s3_key,
-          filename: file.s3_key.split('/').pop()
-        });
+        filesToArchive.push(foundFile);
       } else {
         // Required archive file is missing
         missingRequiredFiles.push(fileReq.label || fileReq.id);
