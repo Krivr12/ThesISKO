@@ -59,6 +59,10 @@
             <label>Access Level</label>
             <p>{{ submission()!.access_level }}</p>
           </div>
+          <div class="detail-item" *ngIf="submission()!.year">
+            <label>Year</label>
+            <p>{{ submission()!.year }}</p>
+          </div>
         </div>
       </div>
 
@@ -96,6 +100,17 @@
         <h2 class="section-title">Tags</h2>
         <div class="tags-container">
           <span *ngFor="let tag of submission()!.tags" class="tag">{{ tag }}</span>
+        </div>
+      </div>
+
+      <!-- Dynamic Metadata Fields -->
+      <div class="section-card" *ngIf="dynamicMetadataFields().length > 0">
+        <h2 class="section-title">Additional Details</h2>
+        <div class="details-grid">
+          <div class="detail-item" *ngFor="let field of dynamicMetadataFields()">
+            <label>{{ getFieldDisplayName(field) }}</label>
+            <p>{{ getDynamicFieldValue(field) || 'N/A' }}</p>
+          </div>
         </div>
       </div>
 
