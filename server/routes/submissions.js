@@ -206,14 +206,30 @@ router.get('/generate-id/:department/:program', async (req, res) => {
 const checkDuplicates = async (title, authors) => {
   const submissionsCollection = getSubmissionsCollection();
   
-  // Search for similar titles (case-insensitive)
-  const titleRegex = new RegExp(title.trim(), 'i');
+  // Handle cases where title or authors might be undefined
+  if (!title && (!authors || authors.length === 0)) {
+    return [];
+  }
+  
+  const query = [];
+  
+  // Search for similar titles (case-insensitive) if title exists
+  if (title && title.trim()) {
+    const titleRegex = new RegExp(title.trim(), 'i');
+    query.push({ title: titleRegex });
+  }
+  
+  // Search for similar authors if authors exist
+  if (authors && Array.isArray(authors) && authors.length > 0) {
+    query.push({ authors: { $in: authors } });
+  }
+  
+  if (query.length === 0) {
+    return [];
+  }
   
   const duplicates = await submissionsCollection.find({
-    $or: [
-      { title: titleRegex },
-      { authors: { $in: authors } }
-    ]
+    $or: query
   }).limit(5).toArray();
   
   return duplicates;
@@ -280,11 +296,23 @@ router.post('/create', async (req, res) => {
     // ✅ Build submission document dynamically
     const submissionData = {};
 
-    // Populate from dynamic field definitions
+    // First, handle standard fields that are always expected
+    const standardFields = ['title', 'abstract', 'authors', 'tags', 'year', 'adviser', 'faculty_in_charge', 'panelists', 'access_level'];
+    
+    for (const field of standardFields) {
+      if (req.body[field] !== undefined) {
+        submissionData[field] = req.body[field];
+      }
+    }
+
+    // Then, populate from dynamic field definitions (excluding standard fields)
     if (Array.isArray(requirement.required_metadata)) {
       for (const field of requirement.required_metadata) {
-        const value = req.body[field];
-        submissionData[field] = value ?? null;
+        // Skip if it's already handled as a standard field
+        if (!standardFields.includes(field)) {
+          const value = req.body[field];
+          submissionData[field] = value ?? null;
+        }
       }
     }
 
@@ -1127,16 +1155,32 @@ router.get('/with-program-info', async (req, res) => {
 router.get('/:submission_id', async (req, res) => {
   try {
     const { submission_id } = req.params;
+    console.log(`🔍 Fetching submission: ${submission_id}`);
 
     const submissionsCollection = getSubmissionsCollection();
+    
+    // First, let's check if the collection exists and has documents
+    const totalCount = await submissionsCollection.countDocuments();
+    console.log(`📊 Total submissions in database: ${totalCount}`);
+    
+    // Try to find the submission
     const submission = await submissionsCollection.findOne({ submission_id });
 
     if (!submission) {
+      console.log(`❌ Submission not found: ${submission_id}`);
+      
+      // Let's see what submissions exist
+      const allSubmissions = await submissionsCollection.find({}).limit(5).toArray();
+      console.log(`📋 Available submissions:`, allSubmissions.map(s => s.submission_id));
+      
       return res.status(404).json({ error: 'Submission not found' });
     }
 
+    console.log(`✅ Found submission: ${submission_id}`);
+    console.log(`📋 Submission fields:`, Object.keys(submission));
+
     // Also get potential duplicates for warning
-    const duplicates = await checkDuplicates(submission.title, submission.authors);
+    const duplicates = await checkDuplicates(submission.title || '', submission.authors || []);
     
     res.json({ 
       success: true, 
@@ -1145,6 +1189,8 @@ router.get('/:submission_id', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error fetching submission:', error);
+    console.error('❌ Error details:', error.message);
+    console.error('❌ Error stack:', error.stack);
     res.status(500).json({ error: 'Error fetching submission' });
   }
 });

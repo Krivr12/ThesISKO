@@ -107,6 +107,12 @@ export class ApprovalDetails implements OnInit {
       `${this.apiUrl}/${submissionId}`
     ).subscribe({
       next: (response) => {
+        console.log('📋 Submission data received:', response.data);
+        console.log('📋 Authors field:', response.data.authors);
+        console.log('📋 Panelists field:', response.data.panelists);
+        console.log('📋 Year field:', response.data.year);
+        console.log('📋 Abstract field:', response.data.abstract);
+        
         this.submission.set(response.data);
         this.duplicateSubmissions.set(response.potential_duplicates || []);
         this.initializeFilesList();
@@ -342,6 +348,36 @@ export class ApprovalDetails implements OnInit {
     const submission = this.submission();
     if (!submission) return '';
     return submission[fieldName] || '';
+  }
+
+  getAuthorsDisplay(): string {
+    const submission = this.submission();
+    if (!submission) return 'N/A';
+    
+    if (Array.isArray(submission.authors)) {
+      return submission.authors.join(', ');
+    }
+    
+    if (typeof submission.authors === 'string') {
+      return submission.authors;
+    }
+    
+    return 'N/A';
+  }
+
+  getPanelistsDisplay(): string {
+    const submission = this.submission();
+    if (!submission) return 'N/A';
+    
+    if (Array.isArray(submission.panelists)) {
+      return submission.panelists.length > 0 ? submission.panelists.join(', ') : 'N/A';
+    }
+    
+    if (typeof submission.panelists === 'string') {
+      return submission.panelists;
+    }
+    
+    return 'N/A';
   }
 }
 
