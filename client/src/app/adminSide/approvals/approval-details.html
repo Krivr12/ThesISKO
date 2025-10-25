@@ -15,8 +15,7 @@
         <button class="btn-back" (click)="goBack()">
           ← Back to Approvals
         </button>
-        <h1 class="submission-title">{{ submission()!.title }}</h1>
-        <p class="submission-id">{{ submission()!.submission_id }}</p>
+        <h1 class="submission-title">{{ submission()!.submission_id }}</h1>
       </div>
 
       <!-- Duplicate Warning -->
@@ -31,9 +30,9 @@
         <p class="warning-note">Please verify this is not a duplicate before approving.</p>
       </div>
 
-      <!-- Metadata Section -->
+      <!-- System Information -->
       <div class="section-card">
-        <h2 class="section-title">Submission Details</h2>
+        <h2 class="section-title">System Information</h2>
         <div class="details-grid">
           <div class="detail-item">
             <label>Submitter</label>
@@ -47,69 +46,42 @@
             <label>Document Type</label>
             <p>{{ submission()!.document_type | titlecase }}</p>
           </div>
-          <div class="detail-item">
-            <label>Department</label>
-            <p>{{ submission()!.department }}</p>
-          </div>
-          <div class="detail-item">
-            <label>Program</label>
-            <p>{{ submission()!.program }}</p>
-          </div>
-          <div class="detail-item">
-            <label>Access Level</label>
-            <p>{{ submission()!.access_level }}</p>
-          </div>
-          <div class="detail-item" *ngIf="submission()!.year">
-            <label>Year</label>
-            <p>{{ submission()!.year }}</p>
+        </div>
+      </div>
+
+      <!-- Metadata Fields -->
+      <div class="section-card" *ngIf="metadataFields().length > 0">
+        <h2 class="section-title">Metadata</h2>
+        <div class="metadata-grid">
+          <div class="metadata-item" *ngFor="let field of metadataFields()">
+            <label>{{ field.displayName }}</label>
+            <p>{{ formatFieldValue(field) }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Authors & Team -->
-      <div class="section-card">
-        <h2 class="section-title">Authors & Team</h2>
-        <div class="details-grid">
-          <div class="detail-item full-width">
-            <label>Authors</label>
-            <p>{{ getAuthorsDisplay() }}</p>
-          </div>
-          <div class="detail-item">
-            <label>Adviser</label>
-            <p>{{ submission()!.adviser || 'N/A' }}</p>
-          </div>
-          <div class="detail-item">
-            <label>Faculty-In-Charge</label>
-            <p>{{ submission()!.faculty_in_charge || 'N/A' }}</p>
-          </div>
-          <div class="detail-item full-width">
-            <label>Panelists</label>
-            <p>{{ getPanelistsDisplay() }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Abstract -->
-      <div class="section-card">
-        <h2 class="section-title">Abstract</h2>
-        <p class="abstract-text">{{ submission()!.abstract || 'No abstract provided' }}</p>
-      </div>
-
-      <!-- Tags -->
-      <div class="section-card" *ngIf="submission()!.tags && submission()!.tags.length > 0">
-        <h2 class="section-title">Tags</h2>
-        <div class="tags-container">
-          <span *ngFor="let tag of submission()!.tags" class="tag">{{ tag }}</span>
-        </div>
-      </div>
-
-      <!-- Dynamic Metadata Fields -->
-      <div class="section-card" *ngIf="dynamicMetadataFields().length > 0">
-        <h2 class="section-title">Additional Details</h2>
-        <div class="details-grid">
-          <div class="detail-item" *ngFor="let field of dynamicMetadataFields()">
-            <label>{{ getFieldDisplayName(field) }}</label>
-            <p>{{ getDynamicFieldValue(field) || 'N/A' }}</p>
+      <!-- Content Fields - Individual Cards -->
+      <div class="content-section" *ngIf="contentFields().length > 0">
+        <h2 class="section-title">Content</h2>
+        <div class="field-cards">
+          <div class="field-card" *ngFor="let field of contentFields()">
+            <h3 class="field-header">{{ field.displayName }}</h3>
+            <div class="field-content">
+              <!-- Array fields (tags, authors, panelists) -->
+              <div *ngIf="field.type === 'array'" class="tags-container">
+                <span *ngFor="let item of field.value" class="tag">{{ item }}</span>
+              </div>
+              
+              <!-- Long text fields (abstract) -->
+              <div *ngIf="field.type === 'longtext'" class="long-text">
+                {{ field.value }}
+              </div>
+              
+              <!-- Regular text fields -->
+              <div *ngIf="field.type === 'text'" class="text-content">
+                {{ field.value }}
+              </div>
+            </div>
           </div>
         </div>
       </div>
