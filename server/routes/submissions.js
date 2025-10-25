@@ -907,27 +907,44 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
         embedding = await generateEmbedding(textToEmbed);
       }
 
-      const archivedRecord = {
+      // Build archived record dynamically based on submission document structure
+      console.log(`📦 Building dynamic archive record for submission: ${submission_id}`);
+      console.log(`📋 Submission fields:`, Object.keys(submission));
+      
+      // System fields that should always be included
+      const systemFields = {
         _id: new ObjectId(),
         document_id,
         submission_id,
-        title: submission.title,
-        abstract: submission.abstract,
-        authors: submission.authors,
-        tags: submission.tags,
-        access_level: submission.access_level,
-        adviser: submission.adviser,
-        faculty_in_charge: submission.faculty_in_charge,
-        panelists: submission.panelists,
-        department: submission.department,
-        program: submission.program,
-        document_type: submission.document_type,
-        files: archivedFiles, // Archived files with new S3 keys
-        submitter_email: submission.submitter_email,
         abstract_embedding: embedding,
         created_at: new Date(),
         updated_at: new Date()
       };
+
+      // Fields to exclude from submission (system/approval fields)
+      const excludeFields = [
+        '_id', 'submission_id', 'chairperson_approval', 'dean_approval', 
+        'status', 'archived', 'archived_at', 'document_id', 'created_at', 'updated_at'
+      ];
+
+      // Preserve all submission fields except excluded ones
+      const preservedFields = Object.fromEntries(
+        Object.entries(submission).filter(([key, value]) => 
+          !excludeFields.includes(key)
+        )
+      );
+
+      console.log(`✅ Preserved fields:`, Object.keys(preservedFields));
+      console.log(`🚫 Excluded fields:`, excludeFields);
+
+      // Build the archived record dynamically
+      const archivedRecord = {
+        ...systemFields,
+        ...preservedFields,
+        files: archivedFiles // Override with archived files
+      };
+
+      console.log(`📄 Final archive record fields:`, Object.keys(archivedRecord));
 
       await recordsCollection.insertOne(archivedRecord);
 
@@ -1318,29 +1335,44 @@ router.post('/:submission_id/repository', async (req, res) => {
       embedding = await generateEmbedding(textToEmbed);
     }
 
-    // 7. Build repository doc
-    const recordDoc = {
+    // 7. Build repository doc dynamically based on submission document structure
+    console.log(`📦 Building dynamic repository record for submission: ${submission_id}`);
+    console.log(`📋 Submission fields:`, Object.keys(submission));
+    
+    // System fields that should always be included
+    const systemFields = {
       _id: new ObjectId(),
       document_id,
       submission_id,
-      title: submission.title || null,
-      abstract: submission.abstract || null,
-      tags: Array.isArray(submission.tags) ? submission.tags : [],
-      access_level: submission.access_level || 'restricted',
-      authors: submission.authors || [],
-      files: archivedFiles, // Store all archived files
-      program_id: submission.program,
-      program_name: program.program_name,
-      department: submission.department,
-      document_type: submission.document_type,
-      submitter_email: submission.submitter_email,
-      adviser: submission.adviser,
-      faculty_in_charge: submission.faculty_in_charge,
-      panelists: submission.panelists,
-      created_at: new Date(),
-      updated_at: new Date(),
       abstract_embedding: embedding,
+      created_at: new Date(),
+      updated_at: new Date()
     };
+
+    // Fields to exclude from submission (system/approval fields)
+    const excludeFields = [
+      '_id', 'submission_id', 'chairperson_approval', 'dean_approval', 
+      'status', 'archived', 'archived_at', 'document_id', 'created_at', 'updated_at'
+    ];
+
+    // Preserve all submission fields except excluded ones
+    const preservedFields = Object.fromEntries(
+      Object.entries(submission).filter(([key, value]) => 
+        !excludeFields.includes(key)
+      )
+    );
+
+    console.log(`✅ Preserved fields:`, Object.keys(preservedFields));
+    console.log(`🚫 Excluded fields:`, excludeFields);
+
+    // Build the repository record dynamically
+    const recordDoc = {
+      ...systemFields,
+      ...preservedFields,
+      files: archivedFiles // Override with archived files
+    };
+
+    console.log(`📄 Final repository record fields:`, Object.keys(recordDoc));
 
     // 8. Insert into records
     const recordsCollection = getRecordsCollection();

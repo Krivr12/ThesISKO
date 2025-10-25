@@ -79,13 +79,31 @@ export class ApprovalDetails implements OnInit {
   isChairperson = computed(() => this.currentUser()?.role_id === 4);
   userRole = computed(() => this.isDean() ? 'Dean' : 'Chairperson');
   
-  // Get dynamic metadata fields that are not handled by hardcoded fields
-  dynamicMetadataFields = computed(() => {
-    const requirements = this.selectedRequirements();
-    if (!requirements) return [];
+  // Get ALL fields from submission dynamically
+  allSubmissionFields = computed(() => {
+    const submission = this.submission();
+    if (!submission) return [];
     
-    const hardcodedFields = ['title', 'abstract', 'authors', 'tags', 'year', 'adviser', 'faculty_in_charge', 'panelists', 'access_level', 'department', 'program', 'submitter_email', 'submitted_at', 'document_type', 'submission_id', 'files', 'status', 'chairperson_approval', 'dean_approval'];
-    return requirements.required_metadata.filter((field: string) => !hardcodedFields.includes(field));
+    // System fields to exclude
+    const systemFields = ['_id', 'submission_id', 'submitter_email', 'document_type', 'files', 'status', 'chairperson_approval', 'dean_approval', 'created_at', 'updated_at', 'archived', 'archived_at', 'document_id'];
+    
+    return Object.entries(submission)
+      .filter(([key, value]) => !systemFields.includes(key) && value !== null && value !== undefined && value !== '')
+      .map(([key, value]) => ({ 
+        name: key, 
+        value, 
+        type: this.detectFieldType(value),
+        displayName: this.getFieldDisplayName(key)
+      }));
+  });
+
+  // Categorize fields automatically
+  metadataFields = computed(() => {
+    return this.allSubmissionFields().filter(field => this.isMetadataField(field));
+  });
+
+  contentFields = computed(() => {
+    return this.allSubmissionFields().filter(field => this.isContentField(field));
   });
 
   private apiUrl = `${environment.apiUrl}/submissions`;
@@ -342,6 +360,41 @@ export class ApprovalDetails implements OnInit {
 
   getFieldDisplayName(field: string): string {
     return field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  // Detect field type based on value
+  detectFieldType(value: any): string {
+    if (Array.isArray(value)) return 'array';
+    if (typeof value === 'number') return 'number';
+    if (typeof value === 'boolean') return 'boolean';
+    if (typeof value === 'string') {
+      if (value.length > 200) return 'longtext';
+      return 'text';
+    }
+    return 'text';
+  }
+
+  // Determine if field is metadata (basic info)
+  isMetadataField(field: any): boolean {
+    const metadataFields = ['department', 'program', 'access_level', 'year', 'adviser', 'faculty_in_charge'];
+    return metadataFields.includes(field.name) || field.type === 'number' || field.type === 'boolean';
+  }
+
+  // Determine if field is content (rich content)
+  isContentField(field: any): boolean {
+    const contentFields = ['title', 'abstract', 'authors', 'tags', 'panelists'];
+    return contentFields.includes(field.name) || field.type === 'array' || field.type === 'longtext';
+  }
+
+  // Format field value for display
+  formatFieldValue(field: any): string {
+    if (Array.isArray(field.value)) {
+      return field.value.join(', ');
+    }
+    if (typeof field.value === 'boolean') {
+      return field.value ? 'Yes' : 'No';
+    }
+    return field.value.toString();
   }
 
   getDynamicFieldValue(fieldName: string): any {
