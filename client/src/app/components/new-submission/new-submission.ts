@@ -86,7 +86,7 @@ export class NewSubmission implements OnInit {
   panelists = signal<string>(''); // Comma-separated
   accessLevel = signal<string>('Full');
   
-  // Dynamic metadata fields
+  // Dynamic metadata fields - now handles all dynamic fields
   dynamicMetadata = signal<Map<string, string>>(new Map());
   
   // Step 3: Files
@@ -103,13 +103,55 @@ export class NewSubmission implements OnInit {
     this.requirements().find(req => req.document_type === this.documentType())
   );
   
-  // Get dynamic metadata fields that are not handled by hardcoded fields
-  dynamicMetadataFields = computed(() => {
+  // Get ALL dynamic fields from requirements (both metadata and structured fields)
+  allDynamicFields = computed(() => {
     const requirements = this.selectedRequirements();
     if (!requirements) return [];
     
-    const hardcodedFields = ['title', 'abstract', 'authors', 'tags', 'year', 'adviser', 'faculty_in_charge', 'panelists', 'access_level', 'department', 'program'];
-    return requirements.required_metadata.filter(field => !hardcodedFields.includes(field));
+    const fields: Array<{
+      name: string;
+      type: 'metadata' | 'structured';
+      enabled: boolean;
+      required: boolean;
+      fieldType: string;
+      placeholder?: string;
+      min_count?: number;
+      max_count?: number;
+      require_firstname_lastname?: boolean;
+    }> = [];
+    
+    // Process required_metadata fields
+    if (requirements.required_metadata) {
+      requirements.required_metadata.forEach(field => {
+        fields.push({
+          name: field,
+          type: 'metadata',
+          enabled: true,
+          required: true,
+          fieldType: this.getFieldTypeFromName(field)
+        });
+      });
+    }
+    
+    // Process required_structured_fields
+    if (requirements.required_structured_fields) {
+      Object.entries(requirements.required_structured_fields).forEach(([fieldName, config]) => {
+        if (config.enabled) {
+          fields.push({
+            name: fieldName,
+            type: 'structured',
+            enabled: true,
+            required: true,
+            fieldType: this.getFieldTypeFromName(fieldName),
+            min_count: config.min_count,
+            max_count: config.max_count,
+            require_firstname_lastname: config.require_firstname_lastname
+          });
+        }
+      });
+    }
+    
+    return fields;
   });
   
   // Duplicate warning
@@ -361,26 +403,8 @@ export class NewSubmission implements OnInit {
         files[fileId] = { s3_key: s3Key };
       });
       
-      // Prepare submission data
-      const submissionData = {
-        submission_id: submissionId,
-        submitter_email: this.authService.currentUser?.email,
-        document_type: this.documentType(),
-        department: this.department(),
-        program: this.program(),
-        title: this.title(),
-        abstract: this.abstract(),
-        authors: this.authors().split(',').map(a => a.trim()),
-        tags: this.tags() ? this.tags().split(',').map(t => t.trim()) : [],
-        year: this.year(),
-        adviser: this.adviser(),
-        faculty_in_charge: this.facultyInCharge(),
-        panelists: this.panelists() ? this.panelists().split(',').map(p => p.trim()) : [],
-        access_level: this.accessLevel(),
-        // Include dynamic metadata fields
-        ...Object.fromEntries(this.dynamicMetadata()),
-        files
-      };
+      // Prepare submission data dynamically based on requirements
+      const submissionData = this.buildDynamicSubmissionData(submissionId, files);
 
       // Submit to backend
       this.http.post<{ success: boolean; submission_id: string }>(
@@ -416,12 +440,60 @@ export class NewSubmission implements OnInit {
     return field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
-  // Dynamic metadata field methods
+  // Helper method to determine field type based on field name
+  getFieldTypeFromName(fieldName: string): string {
+    const fieldTypeMap: { [key: string]: string } = {
+      'title': 'text',
+      'abstract': 'textarea',
+      'authors': 'text',
+      'tags': 'text',
+      'year': 'number',
+      'adviser': 'text',
+      'faculty_in_charge': 'text',
+      'panelists': 'text',
+      'access_level': 'select',
+      'department': 'text',
+      'program': 'text'
+    };
+    
+    return fieldTypeMap[fieldName] || 'text';
+  }
+
+  // Dynamic field methods - now works with allDynamicFields
   getDynamicFieldValue(fieldName: string): string {
+    // Check if it's a hardcoded field first
+    const hardcodedValue = this.getHardcodedFieldValue(fieldName);
+    if (hardcodedValue !== null) return hardcodedValue;
+    
+    // Otherwise get from dynamic metadata
     return this.dynamicMetadata().get(fieldName) || '';
   }
 
+  getHardcodedFieldValue(fieldName: string): string | null {
+    const fieldMap: { [key: string]: () => string } = {
+      'title': () => this.title(),
+      'abstract': () => this.abstract(),
+      'authors': () => this.authors(),
+      'tags': () => this.tags(),
+      'year': () => this.year(),
+      'adviser': () => this.adviser(),
+      'faculty_in_charge': () => this.facultyInCharge(),
+      'panelists': () => this.panelists(),
+      'access_level': () => this.accessLevel(),
+      'department': () => this.department(),
+      'program': () => this.program()
+    };
+    
+    return fieldMap[fieldName]?.() || null;
+  }
+
   setDynamicFieldValue(fieldName: string, value: string): void {
+    // Check if it's a hardcoded field first
+    if (this.setHardcodedFieldValue(fieldName, value)) {
+      return;
+    }
+    
+    // Otherwise set in dynamic metadata
     this.dynamicMetadata.update(map => {
       const newMap = new Map(map);
       newMap.set(fieldName, value);
@@ -429,41 +501,58 @@ export class NewSubmission implements OnInit {
     });
   }
 
+  setHardcodedFieldValue(fieldName: string, value: string): boolean {
+    const fieldMap: { [key: string]: (value: string) => void } = {
+      'title': (v) => this.title.set(v),
+      'abstract': (v) => this.abstract.set(v),
+      'authors': (v) => this.authors.set(v),
+      'tags': (v) => this.tags.set(v),
+      'year': (v) => this.year.set(v),
+      'adviser': (v) => this.adviser.set(v),
+      'faculty_in_charge': (v) => this.facultyInCharge.set(v),
+      'panelists': (v) => this.panelists.set(v),
+      'access_level': (v) => this.accessLevel.set(v),
+      'department': (v) => this.department.set(v),
+      'program': (v) => this.program.set(v)
+    };
+    
+    if (fieldMap[fieldName]) {
+      fieldMap[fieldName](value);
+      return true;
+    }
+    return false;
+  }
+
   isFieldRequired(fieldName: string): boolean {
-    const requirements = this.selectedRequirements();
-    if (!requirements) return false;
-    return requirements.required_metadata.includes(fieldName);
+    const field = this.allDynamicFields().find(f => f.name === fieldName);
+    return field?.required || false;
   }
 
   getFieldPlaceholder(fieldName: string): string {
     const placeholders: { [key: string]: string } = {
-      'keywords': 'e.g., Machine Learning, Web Development, Mobile App',
-      'research_area': 'e.g., Artificial Intelligence, Software Engineering',
-      'methodology': 'e.g., Quantitative, Qualitative, Mixed Methods',
-      'language': 'e.g., English, Filipino',
-      'pages': 'e.g., 50',
-      'word_count': 'e.g., 10000',
-      'supervisor': 'e.g., Dr. John Doe',
-      'co_supervisor': 'e.g., Dr. Jane Smith',
-      'defense_date': 'e.g., 2024-03-15',
-      'publication_date': 'e.g., 2024-06-01'
+      'title': 'Enter the title of your thesis/capstone',
+      'abstract': 'Enter the abstract (summary of your work)',
+      'authors': 'Enter all authors (comma-separated): Juan Dela Cruz, Maria Santos',
+      'tags': 'e.g., Machine Learning, Web Development, Mobile App',
+      'year': '2024',
+      'adviser': 'Dr. John Doe',
+      'faculty_in_charge': 'Prof. Jane Smith',
+      'panelists': 'Dr. Alice Brown, Dr. Bob Johnson',
+      'access_level': 'Select access level',
+      'department': 'e.g., Computer Science',
+      'program': 'e.g., BSIT, BSCS'
     };
+    
     return placeholders[fieldName] || `Enter ${this.getFieldDisplayName(fieldName).toLowerCase()}`;
   }
 
   getFieldType(fieldName: string): string {
-    const numberFields = ['year', 'pages', 'word_count'];
-    const dateFields = ['defense_date', 'publication_date'];
-    const textareaFields = ['abstract', 'methodology', 'research_area'];
-    
-    if (numberFields.includes(fieldName)) return 'number';
-    if (dateFields.includes(fieldName)) return 'date';
-    if (textareaFields.includes(fieldName)) return 'textarea';
-    return 'text';
+    const field = this.allDynamicFields().find(f => f.name === fieldName);
+    return field?.fieldType || 'text';
   }
 
-  trackByFieldName(index: number, fieldName: string): string {
-    return fieldName;
+  trackByFieldName(index: number, field: any): string {
+    return field.name || field;
   }
 
   onDynamicFieldChange(fieldName: string, event: Event): void {
@@ -471,6 +560,38 @@ export class NewSubmission implements OnInit {
     if (target) {
       this.setDynamicFieldValue(fieldName, target.value);
     }
+  }
+
+  // Build submission data dynamically based on requirements
+  buildDynamicSubmissionData(submissionId: string, files: any): any {
+    const baseData = {
+      submission_id: submissionId,
+      submitter_email: this.authService.currentUser?.email,
+      document_type: this.documentType(),
+      files
+    };
+
+    // Process all dynamic fields
+    const fieldData: any = {};
+    this.allDynamicFields().forEach(field => {
+      const value = this.getDynamicFieldValue(field.name);
+      
+      // Handle special cases for array fields
+      if (field.name === 'authors' || field.name === 'tags' || field.name === 'panelists') {
+        fieldData[field.name] = value ? value.split(',').map((item: string) => item.trim()) : [];
+      } else {
+        fieldData[field.name] = value;
+      }
+    });
+
+    // Add any additional dynamic metadata
+    const additionalMetadata = Object.fromEntries(this.dynamicMetadata());
+    
+    return {
+      ...baseData,
+      ...fieldData,
+      ...additionalMetadata
+    };
   }
 }
 
