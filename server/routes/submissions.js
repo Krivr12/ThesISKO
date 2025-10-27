@@ -937,10 +937,27 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
       console.log(`✅ Preserved fields:`, Object.keys(preservedFields));
       console.log(`🚫 Excluded fields:`, excludeFields);
 
+      // Calculate document_status based on year
+      const currentYear = new Date().getFullYear();
+      let year = submission.year;
+      
+      // If no year exists, set it to current year
+      if (!year) {
+        year = currentYear;
+        console.log(`📅 Document has no year, setting to current year: ${year}`);
+      }
+      
+      // Calculate age and set document_status
+      const age = currentYear - year;
+      const documentStatus = age >= 5 ? 'old' : 'active';
+      console.log(`📊 Document year: ${year}, age: ${age}, status: ${documentStatus}`);
+
       // Build the archived record dynamically
       const archivedRecord = {
         ...systemFields,
         ...preservedFields,
+        year: year, // Ensure year is set
+        document_status: documentStatus, // Add document status
         files: archivedFiles // Override with archived files
       };
 
@@ -1365,10 +1382,27 @@ router.post('/:submission_id/repository', async (req, res) => {
     console.log(`✅ Preserved fields:`, Object.keys(preservedFields));
     console.log(`🚫 Excluded fields:`, excludeFields);
 
+    // Calculate document_status based on year
+    const currentYear = new Date().getFullYear();
+    let year = submission.year;
+    
+    // If no year exists, set it to current year
+    if (!year) {
+      year = currentYear;
+      console.log(`📅 Document has no year, setting to current year: ${year}`);
+    }
+    
+    // Calculate age and set document_status
+    const age = currentYear - year;
+    const documentStatus = age >= 5 ? 'old' : 'active';
+    console.log(`📊 Document year: ${year}, age: ${age}, status: ${documentStatus}`);
+
     // Build the repository record dynamically
     const recordDoc = {
       ...systemFields,
       ...preservedFields,
+      year: year, // Ensure year is set
+      document_status: documentStatus, // Add document status
       files: archivedFiles // Override with archived files
     };
 
