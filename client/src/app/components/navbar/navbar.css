@@ -1,446 +1,628 @@
 *{
-    background-color: #800000;
+   background-color: #800000;
 }
+
 
 h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-  }
-  
+   margin: 0;
+   font-size: 1.5rem;
+   display: flex;
+   align-items: center;
+ }
   .navbar {
-    background-color: #800000;
-    color: white;
-    padding: 0 2rem;
-    height: 80px; 
-    font-size: 16px; 
-    border: none;
-  }
-  
+   background-color: #800000;
+   color: white;
+   padding: 0 2rem;
+   height: 80px;
+   font-size: 16px;
+   border: none;
+   padding-bottom: 20px;
+ }
   .nav-left {
-    display: flex;
-    align-items: center;
-    gap: 2rem; 
-  }
-  
+   display: flex;
+   align-items: center;
+   gap: 2rem;
+ }
   .logo {
-    margin: 0;
-    font-weight: bold;
-  }
-  
+   margin: 0;
+   font-weight: bold;
+ }
   .login-button {
-    font-weight: bold;
-  }
-  
+   font-weight: bold;
+ 
+ }
 
-    :host ::ng-deep .nav-left .p-button:hover {
-    background-color: #a00000 !important;
-  }
-  
-:host ::ng-deep .p-toolbar {
-    height: 80px;          
-    font-size: 16px;         
-  }
-  
+
+ 
+
+
+   :host ::ng-deep .nav-left .p-button:hover {
+   background-color: #a00000 !important;
+ }
+ :host ::ng-deep .p-toolbar {
+   height: 80px;         
+   font-size: 16px;      
+ }
   :host ::ng-deep .p-toolbar .p-toolbar-group-left,
-  :host ::ng-deep .p-toolbar .p-toolbar-group-right {
-    display: flex;
-    align-items: center;
-  }
-  
+ :host ::ng-deep .p-toolbar .p-toolbar-group-right {
+   display: flex;
+   align-items: center;
+ }
   :host ::ng-deep .dark .p-button {
-    background-color: #fbea31 !important;
-    border: none;
-    width: 105px;
-    height: 44px;
-  }
+   background-color: #fbea31 !important;
+   border: none;
+   width: 105px;
+   height: 44px;
+ }
 
-  :host ::ng-deep .dark .p-button:hover {
-    background-color: #fff477 !important;
-    border: none;
-    width: 105px;
-    height: 44px;
-  }
 
-  /* User Profile Card Styles */
-  .user-profile-card {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 40px;
-    padding: 6px 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 220px;
-  }
+ :host ::ng-deep .dark .p-button:hover {
+   background-color: #fff477 !important;
+   border: none;
+   width: 105px;
+   height: 44px;
+ }
 
-  .user-profile-card:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
-  }
 
-  .user-info {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    text-align: left;
-    background: transparent !important;
-    background-color: transparent !important;
-  }
+ /* User Profile Card Styles */
+ .user-profile-card {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   background-color: rgba(255, 255, 255, 0.1);
+   border: 2px solid rgba(255, 255, 255, 0.2);
+   border-radius: 40px;
+   padding: 6px 12px;
+   cursor: pointer;
+   transition: all 0.3s ease;
+   min-width: 220px;
+ }
 
-  .user-info * {
-    background: transparent !important;
-    background-color: transparent !important;
-  }
 
-  .user-name {
-    font-weight: 600;
-    font-size: 15px;
-    color: white;
-    margin-bottom: 1px;
-    background: transparent !important;
-    background-color: transparent !important;
-  }
+ .user-profile-card:hover {
+   background-color: rgba(255, 255, 255, 0.15);
+   border-color: rgba(255, 255, 255, 0.3);
+   transform: translateY(-1px);
+ }
 
-  .user-email {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.8);
-    opacity: 0.9;
-    background: transparent !important;
-    background-color: transparent !important;
-  }
 
-  .user-avatar {
-    flex-shrink: 0;
-  }
+ .user-info {
+   display: flex;
+   flex-direction: column;
+   flex: 1;
+   text-align: left;
+   background: transparent !important;
+   background-color: transparent !important;
+ }
 
-  /* Override PrimeNG avatar default styles */
-  :host ::ng-deep .user-avatar .p-avatar {
-    background-color: transparent !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
 
-  :host ::ng-deep .user-avatar .p-avatar img {
-    background-color: transparent !important;
-    background: transparent !important;
-  }
+ .user-info * {
+   background: transparent !important;
+   background-color: transparent !important;
+ }
 
-  :host ::ng-deep .user-avatar .p-avatar::before,
-  :host ::ng-deep .user-avatar .p-avatar::after {
-    display: none !important;
-  }
 
-  /* Additional override for any wrapper elements */
-  :host ::ng-deep .user-avatar {
-    background-color: transparent !important;
-    background: transparent !important;
-  }
+ .user-name {
+   font-weight: 600;
+   font-size: 15px;
+   color: white;
+   margin-bottom: 1px;
+   background: transparent !important;
+   background-color: transparent !important;
+ }
 
-  .dropdown-icon {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 12px;
-    margin-left: 4px;
-    transition: transform 0.2s ease;
-  }
 
-  .user-profile-card:hover .dropdown-icon {
-    color: white;
-  }
+ .user-email {
+   font-size: 12px;
+   color: rgba(255, 255, 255, 0.8);
+   opacity: 0.9;
+   background: transparent !important;
+   background-color: transparent !important;
+ }
 
-  /* Disabled Submit Button Styles */
-  :host ::ng-deep .disabled-button {
-    opacity: 0.5 !important;
-    cursor: not-allowed !important;
-    pointer-events: none !important;
-  }
 
-  :host ::ng-deep .disabled-button:hover {
-    background-color: #800000 !important;
-    transform: none !important;
-  }
+ .user-avatar {
+   flex-shrink: 0;
+ }
 
-  :host ::ng-deep .disabled-button .p-button-label {
-    color: rgba(255, 255, 255, 0.6) !important;
-  }
 
-  /* Change Password Button Styles for Faculty */
-  .change-password-btn {
-    margin-right: 1rem !important;
-  }
+ /* Override PrimeNG avatar default styles */
+ :host ::ng-deep .user-avatar .p-avatar {
+   background-color: transparent !important;
+   background: transparent !important;
+   border: none !important;
+   box-shadow: none !important;
+ }
 
-  :host ::ng-deep .change-password-btn .p-button {
-    background-color: transparent !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-  color: white !important;
-    font-weight: 600 !important;
-    padding: 0.5rem 1rem !important;
-    border-radius: 25px !important;
-    transition: all 0.3s ease !important;
-    font-size: 14px !important;
-  }
 
-  :host ::ng-deep .change-password-btn .p-button:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(255, 255, 255, 0.5) !important;
-  color: white !important;
-    transform: translateY(-1px) !important;
+ :host ::ng-deep .user-avatar .p-avatar img {
+   background-color: transparent !important;
+   background: transparent !important;
+ }
+
+
+ :host ::ng-deep .user-avatar .p-avatar::before,
+ :host ::ng-deep .user-avatar .p-avatar::after {
+   display: none !important;
+ }
+
+
+ /* Make hamburger clean, no border or background */
+.menu-toggle {
+ background: none;
+ border: none;
+ font-size: 1.5rem;
+ color: white;
+ cursor: pointer;
+ padding: 0.25rem 0.5rem;
+ display: none; /* hidden by default */
 }
 
-  :host ::ng-deep .change-password-btn .p-button .p-button-icon {
-    color: white !important;
-    margin-right: 0.5rem !important;
-  }
+
+/* Remove PrimeNG button default box shadow and border if applied */
+.menu-toggle:focus,
+.menu-toggle:active {
+ outline: none;
+ box-shadow: none;
+ background: none;
+ border: none;
+}
+
+
+/* Adjust position and spacing for better layout */
+.nav-left {
+ display: flex;
+ align-items: center;
+ gap: 1rem;
+}
+
+
+/* ====== MOBILE VIEW ====== */
+@media (max-width: 768px) {
+ .menu-toggle {
+   display: block;
+ }
+
+
+ .nav-links {
+   display: none;
+   flex-direction: column;
+   background-color: #800000;
+   position: absolute;
+   top: 60px; /* just below the toolbar */
+   left: 0;
+   width: 100%;
+   padding: 1rem 0;
+   border-top: 1px solid rgba(255,255,255,0.2);
+   z-index: 99;
+ }
+
+
+ .nav-links.open {
+   display: flex;
+ }
+
+
+ .nav-links p-button {
+   width: 100%;
+   justify-content: center;
+ }
+}
+
+
+ /* Additional override for any wrapper elements */
+ :host ::ng-deep .user-avatar {
+   background-color: transparent !important;
+   background: transparent !important;
+ }
+
+
+ .dropdown-icon {
+   color: rgba(255, 255, 255, 0.7);
+   font-size: 12px;
+   margin-left: 4px;
+   transition: transform 0.2s ease;
+ }
+
+
+ .user-profile-card:hover .dropdown-icon {
+   color: white;
+ }
+
+
+ /* Disabled Submit Button Styles */
+ :host ::ng-deep .disabled-button {
+   opacity: 0.5 !important;
+   cursor: not-allowed !important;
+   pointer-events: none !important;
+ }
+
+
+ :host ::ng-deep .disabled-button:hover {
+   background-color: #800000 !important;
+   transform: none !important;
+ }
+
+
+ :host ::ng-deep .disabled-button .p-button-label {
+   color: rgba(255, 255, 255, 0.6) !important;
+ }
+
+
+ /* Change Password Button Styles for Faculty */
+ .change-password-btn {
+   margin-right: 1rem !important;
+ }
+
+
+ :host ::ng-deep .change-password-btn .p-button {
+   background-color: transparent !important;
+   border: 2px solid rgba(255, 255, 255, 0.3) !important;
+ color: white !important;
+   font-weight: 600 !important;
+   padding: 0.5rem 1rem !important;
+   border-radius: 25px !important;
+   transition: all 0.3s ease !important;
+   font-size: 14px !important;
+ }
+
+
+ :host ::ng-deep .change-password-btn .p-button:hover {
+   background-color: rgba(255, 255, 255, 0.1) !important;
+   border-color: rgba(255, 255, 255, 0.5) !important;
+ color: white !important;
+   transform: translateY(-1px) !important;
+}
+
+
+ :host ::ng-deep .change-password-btn .p-button .p-button-icon {
+   color: white !important;
+   margin-right: 0.5rem !important;
+ }
+
 
 /* MODIFIED CSS - vincent */
 /* dropdown menu of profile card*/
 :host ::ng-deep .user-profile-card + .p-menu-overlay {
-  margin-top: 8px !important;
+ margin-top: 8px !important;
 }
+
 
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(10px) !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-  padding: 8px !important;
-  min-width: 200px !important;
+ background: rgba(255, 255, 255, 0.95) !important;
+ backdrop-filter: blur(10px) !important;
+ border: 2px solid rgba(255, 255, 255, 0.3) !important;
+ border-radius: 12px !important;
+ box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+ padding: 8px !important;
+ min-width: 200px !important;
 }
+
 
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem {
-  margin: 2px 0 !important;
-  border-radius: 8px !important;
-  transition: all 0.3s ease !important;
+ margin: 2px 0 !important;
+ border-radius: 8px !important;
+ transition: all 0.3s ease !important;
 }
+
 
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link {
-  padding: 12px 16px !important;
-  border-radius: 8px !important;
-  color: #800000 !important;
-  font-weight: 500 !important;
-  transition: all 0.3s ease !important;
-  border: none !important;
+ padding: 12px 16px !important;
+ border-radius: 8px !important;
+ color: #800000 !important;
+ font-weight: 500 !important;
+ transition: all 0.3s ease !important;
+ border: none !important;
 }
+
 
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link:hover {
-  background-color: rgba(128, 0, 0, 0.1) !important;
-  color: #800000 !important;
-  transform: translateY(-1px) !important;
+ background-color: rgba(128, 0, 0, 0.1) !important;
+ color: #800000 !important;
+ transform: translateY(-1px) !important;
 }
+
 
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link:active {
-  background-color: rgba(128, 0, 0, 0.15) !important;
-  transform: translateY(0) !important;
+ background-color: rgba(128, 0, 0, 0.15) !important;
+ transform: translateY(0) !important;
 }
+
 
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-icon {
-  color: #800000 !important;
-  font-size: 14px !important;
-  margin-right: 12px !important;
+ color: #800000 !important;
+ font-size: 14px !important;
+ margin-right: 12px !important;
 }
 
+
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-text {
-  color: #800000 !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
+ color: #800000 !important;
+ font-size: 14px !important;
+ font-weight: 500 !important;
 }
+
 
 /* making sign out stand out */
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link {
-  border-top: 1px solid rgba(128, 0, 0, 0.1) !important;
-  margin-top: 4px !important;
-  padding-top: 14px !important;
+ border-top: 1px solid rgba(128, 0, 0, 0.1) !important;
+ margin-top: 4px !important;
+ padding-top: 14px !important;
 }
 
+
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link:hover {
-  background-color: rgba(220, 53, 69, 0.1) !important;
-  color: #dc3545 !important;
+ background-color: rgba(220, 53, 69, 0.1) !important;
+ color: #dc3545 !important;
 }
+
 
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-icon,
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-text {
-  color: #dc3545 !important;
+ color: #dc3545 !important;
 }
+
 
 /* removes default setting */
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-submenu-header {
-  background: transparent !important;
-  border: none !important;
-  color: #800000 !important;
+ background: transparent !important;
+ border: none !important;
+ color: #800000 !important;
 }
+
 
 /* dropdown animation */
 :host ::ng-deep .user-profile-card + .p-menu-overlay {
-  animation: slideDown 0.2s ease-out !important;
+ animation: slideDown 0.2s ease-out !important;
 }
 
+
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+ from {
+   opacity: 0;
+   transform: translateY(-10px);
+ }
+ to {
+   opacity: 1;
+   transform: translateY(0);
+ }
 }
+
 
 /* Confirm sign out modal css */
 :host ::ng-deep .p-confirmdialog {
-  z-index: 1000 !important;
+ z-index: 1000 !important;
 }
+
 
 :host ::ng-deep .p-dialog-mask.p-component-overlay {
-  background-color: rgba(0, 0, 0, 0.5) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+ background-color: rgba(0, 0, 0, 0.5) !important;
+ display: flex !important;
+ align-items: center !important;
+ justify-content: center !important;
 }
+
 
 :host ::ng-deep .p-confirmdialog .p-dialog {
-  border-radius: 1rem !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-  max-width: 500px !important;
-  width: calc(100% - 2rem) !important;
-  transform: scale(1) !important;
-  transition: all 0.3s !important;
+ border-radius: 1rem !important;
+ box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+ max-width: 500px !important;
+ width: calc(100% - 2rem) !important;
+ transform: scale(1) !important;
+ transition: all 0.3s !important;
 }
+
 
 :host ::ng-deep .p-confirmdialog .p-dialog-header {
-  background-color: #800000 !important;
-  color: white !important;
-  padding: 1.25rem !important;
-  border-top-left-radius: 1rem !important;
-  border-top-right-radius: 1rem !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  border: none !important;
+ background-color: #800000 !important;
+ color: white !important;
+ padding: 1.25rem !important;
+ border-top-left-radius: 1rem !important;
+ border-top-right-radius: 1rem !important;
+ display: flex !important;
+ justify-content: space-between !important;
+ align-items: center !important;
+ border: none !important;
 }
+
 
 :host ::ng-deep .p-confirmdialog .p-dialog-title {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  color: white !important;
-  margin: 0 !important;
+ font-size: 1.25rem !important;
+ font-weight: 700 !important;
+ color: white !important;
+ margin: 0 !important;
 }
+
 
 :host ::ng-deep .p-confirmdialog .p-dialog-header-icons {
-  display: flex !important;
-  align-items: center !important;
+ display: flex !important;
+ align-items: center !important;
 }
+
 
 :host ::ng-deep .p-confirmdialog .p-dialog-header-close {
-  background: none !important;
-  border: none !important;
-  color: white !important;
-  font-size: 2rem !important;
-  line-height: 1 !important;
-  cursor: pointer !important;
-  opacity: 0.8 !important;
-  width: 32px !important;
-  height: 32px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 50% !important;
-  transition: all 0.2s ease !important;
+ background: none !important;
+ border: none !important;
+ color: white !important;
+ font-size: 2rem !important;
+ line-height: 1 !important;
+ cursor: pointer !important;
+ opacity: 0.8 !important;
+ width: 32px !important;
+ height: 32px !important;
+ display: flex !important;
+ align-items: center !important;
+ justify-content: center !important;
+ border-radius: 50% !important;
+ transition: all 0.2s ease !important;
 }
+
 
 :host ::ng-deep .p-confirmdialog .p-dialog-header-close:hover {
-  opacity: 1 !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+ opacity: 1 !important;
+ background-color: rgba(255, 255, 255, 0.1) !important;
 }
+
 
 :host ::ng-deep .p-confirmdialog .p-dialog-content {
-  color: #374151 !important;
-  padding: 2rem !important;
-  text-align: center !important;
-  font-size: 1.125rem !important;
-  border: none !important;
-  background: white !important;
+ color: #374151 !important;
+ padding: 2rem !important;
+ text-align: center !important;
+ font-size: 1.125rem !important;
+ border: none !important;
+ background: white !important;
 }
 
+
 :host ::ng-deep .p-confirmdialog .p-dialog-footer {
-  display: flex !important;
-  justify-content: center !important;
-  gap: 1rem !important;
-  padding: 0 2rem 2rem 2rem !important;
-  border: none !important;
-  background: white !important;
-  border-bottom-left-radius: 1rem !important;
-  border-bottom-right-radius: 1rem !important;
+ display: flex !important;
+ justify-content: center !important;
+ gap: 1rem !important;
+ padding: 0 2rem 2rem 2rem !important;
+ border: none !important;
+ background: white !important;
+ border-bottom-left-radius: 1rem !important;
+ border-bottom-right-radius: 1rem !important;
 }
+
 
 /* hides the default version >>> */
 :host ::ng-deep .p-confirmdialog .p-confirmdialog-icon {
-  display: none !important; 
+ display: none !important;
 }
 
+
 :host ::ng-deep .p-confirmdialog .p-confirmdialog-message {
-  margin-left: 0 !important; 
-  color: #374151 !important;
-  font-size: 1.125rem !important;
-  line-height: 1.6 !important;
+ margin-left: 0 !important;
+ color: #374151 !important;
+ font-size: 1.125rem !important;
+ line-height: 1.6 !important;
 }
 /* <<<< */
 
+
 /* buttons similar to submission page */
 :host ::ng-deep .p-confirmdialog .p-button {
-  font-weight: 700 !important;
-  padding: 0.75rem 2.5rem !important;
-  border-radius: 0.5rem !important;
-  transition: background-color 0.2s !important;
-  cursor: pointer !important;
-  border: none !important;
-  font-size: 1rem !important;
-  min-width: 120px !important;
+ font-weight: 700 !important;
+ padding: 0.75rem 2.5rem !important;
+ border-radius: 0.5rem !important;
+ transition: background-color 0.2s !important;
+ cursor: pointer !important;
+ border: none !important;
+ font-size: 1rem !important;
+ min-width: 120px !important;
 }
+
 
 /* yes button */
 :host ::ng-deep .p-confirmdialog .p-button.p-confirmdialog-accept {
-  background-color: #800000 !important;
-  color: white !important;
-  border: none !important;
+ background-color: #800000 !important;
+ color: white !important;
+ border: none !important;
 }
 
+
 :host ::ng-deep .p-confirmdialog .p-button.p-confirmdialog-accept:hover {
-  background-color: #910101 !important;
+ background-color: #910101 !important;
 }
+
 
 /* cancel button */
 :host ::ng-deep .p-confirmdialog .p-button.p-confirmdialog-reject {
-  background-color: white !important;
-  color: #800000 !important;
-  border: 2px solid #800000 !important;
-  padding: calc(0.75rem - 2px) calc(2.5rem - 2px) !important;
+ background-color: white !important;
+ color: #800000 !important;
+ border: 2px solid #800000 !important;
+ padding: calc(0.75rem - 2px) calc(2.5rem - 2px) !important;
 }
+
 
 :host ::ng-deep .p-confirmdialog .p-button.p-confirmdialog-reject:hover {
-  background-color: #fef2f2 !important;
+ background-color: #fef2f2 !important;
 }
 
-/* responsive dseign */
-@media (max-width: 640px) {
-  :host ::ng-deep .p-confirmdialog .p-dialog {
-    margin: 1rem !important;
-    width: calc(100% - 2rem) !important;
-  }
-  
-  :host ::ng-deep .p-confirmdialog .p-dialog-footer {
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-  }
-  
-  :host ::ng-deep .p-confirmdialog .p-button {
-    width: 100% !important;
-  }
+
+
+
+
+
+@media (max-width: 900px) {
+ :host ::ng-deep .logo {
+   display: none !important;
+ }
+
+
+ :host ::ng-deep .p-toolbar {
+   overflow-x: auto !important;
+   overflow-y: hidden !important;
+ }
+
+
+ :host ::ng-deep .p-toolbar .p-toolbar-group-left,
+ :host ::ng-deep .p-toolbar .p-toolbar-group-right {
+   gap: 0.75rem !important;
+ }
 }
 
+
+
+
+
+
+
+
+/* ====== MOBILE STYLES ====== */
+@media (max-width: 768px) {
+
+
+ .nav-left img {
+   margin-left: 200px; /* adjust as you like */
+ }
+
+
+ .menu-toggle {
+   display: block;
+ }
+
+
+ .nav-links {
+   display: none;
+   flex-direction: column }
+
+
+   .user-info {
+     display: none !important; /* hides name/email container */
+   }
+    .user-profile-card {
+     min-width: auto !important;
+     padding: 6px !important;
+     border-radius: 50% !important; /* makes it round if you want */
+     background-color: transparent !important;
+     border: none !important;
+   }
+    .user-avatar .p-avatar {
+     width: 36px !important;
+     height: 36px !important;
+   }
+
+
+   :host ::ng-deep .p-menu-overlay {
+     background: transparent !important;
+     box-shadow: none !important;
+     border: none !important;
+     padding: 0 !important;
+   }
+    /* Style the sign-out item itself */
+   :host ::ng-deep .p-menu .p-menuitem-link {
+     background: none !important;
+     color: #fff !important; /* white text for red navbar */
+     font-size: 10px !important;
+     padding: 0 !important;
+     margin: 0 !important;
+   }
+    /* Optional: subtle hover */
+   :host ::ng-deep .p-menu .p-menuitem-link:hover {
+     text-decoration: underline !important;
+     background: none !important;
+   }
+  }
 

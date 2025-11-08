@@ -1,34 +1,57 @@
 
+
 .footer {
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
-    padding: 15px 40px;
-    background-color: #800000; 
-    color: white;
-    font-size: 14px;
-    height: 60px; /* Fixed height to prevent expansion */
-    min-height: 60px; /* Ensure minimum height */
-    max-height: 60px; /* Prevent expansion beyond this height */
-    box-sizing: border-box; /* Include padding in height calculation */
-  }
-  
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 15px 40px;
+   background-color: #800000;
+   color: white;
+   font-size: 14px;
+   height: 60px; /* Fixed height to prevent expansion */
+   min-height: 60px; /* Ensure minimum height */
+   max-height: 60px; /* Prevent expansion beyond this height */
+   box-sizing: border-box; /* Include padding in height calculation */
+ }
   .footer-left p {
-    margin: 0;
-  }
-  
+   margin: 0;
+ }
   .footer-right p {
-    margin: 0;
-  }
-  
+   margin: 0;
+ }
   .footer-right a {
-    color: white; 
-    text-decoration: none;
-    font-weight: 500;
-    margin-left: 5px;
-  }
-  
+   color: white;
+   text-decoration: none;
+   font-weight: 500;
+   margin-left: 5px;
+ }
   .footer-right a:hover {
-    text-decoration: underline;
-  }
-  
+   text-decoration: underline;
+ }
+  /* 🧩 MOBILE VIEW */
+@media (max-width: 900px) {
+ .footer {
+   justify-content: center !important; /* center content */
+   text-align: center;
+   padding: 10px 20px;
+ }
+
+
+ /* Hide everything except copyright */
+ .footer-left,
+ .footer-right {
+   display: none !important;
+ }
+
+
+ /* Create the copyright-only text */
+ .footer::after {
+   content: "© 2025 | ThesISKO";
+   display: block;
+   font-size: 13px;
+   font-weight: 500;
+ }
+}
+
+
+

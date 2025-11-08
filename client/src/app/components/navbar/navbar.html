@@ -1,72 +1,92 @@
 <p-toolbar class="navbar">
-  <ng-template #start>
-    <div class="nav-left">
-      <h2 class="logo">ThesISKO</h2>
-      <p-button 
-        label="Home" 
-        text 
-        plain 
-        (click)="navigateToHome()"
-        [title]="'Go to home page'">
-      </p-button>
-      <p-button 
-        label="Search" 
-        text 
-        plain 
-        (click)="navigateToSearch()"
-        [title]="'Search for thesis'">
-      </p-button>
-      <p-button 
-        label="About" 
-        text 
-        plain 
-        (click)="navigateToAbout()"
-        [title]="'Navigate to About Us page'">
-      </p-button>
-      <p-button 
-        label="Submit" 
-        text 
-        plain 
-        [routerLink]="canSubmit() ? '/submission' : null"
-        [disabled]="!canSubmit()"
-        [title]="!isUserLoggedIn() ? 'Please log in to submit your thesis' : canSubmit() ? 'Submit your thesis' : 'Only students and group leaders can submit'"
-        [styleClass]="!canSubmit() ? 'p-button-text p-button-plain disabled-button' : ''">
-      </p-button>
-    </div>
-  </ng-template>
+ <ng-template #start>
+   <div class="nav-left">
+     <h2 class="logo">ThesISKO</h2>
+    
 
-  <ng-template #end>
-    <!-- If user is authenticated (regardless of guest mode), show user chip; else show Login -->
-    <ng-container *ngIf="(user$ | async) as user; else loginTpl">
-      <div class="user-profile-card" (click)="profileMenu.toggle($event)">
-        <p-avatar
-          [image]="avatarFor(user)"
-          size="normal"
-          shape="circle"
-          class="user-avatar">
-        </p-avatar>
-        <div class="user-info">
-          <div class="user-name">{{ getDisplayName(user) }}</div>
-          <div class="user-email">{{ getUserEmail(user) }}</div>
-        </div>
-        <i class="pi pi-chevron-down dropdown-icon"></i>
-      </div>
 
-      <p-menu #profileMenu [popup]="true" [model]="profileItems"></p-menu>
-    </ng-container>
+     <!-- Hamburger menu (visible only on mobile) -->
+     <button class="menu-toggle" (click)="toggleMenu()">
+       &#9776;
+     </button>
+    
+    
 
-    <ng-template #loginTpl>
-      <p-button
-        class="dark"
-        label="Login"
-        styleClass="login-button p-button-rounded p-button-warning"
-        (click)="navigateToLogin()">
-      </p-button>
-    </ng-template>
-  </ng-template>
+
+     <!-- Navigation links -->
+     <div class="nav-links" [class.open]="isMenuOpen">
+       <p-button
+         label="Home"
+         text
+         plain
+         (click)="navigateToHome(); closeMenu()"
+         [title]="'Go to home page'">
+       </p-button>
+       <p-button
+         label="Search"
+         text
+         plain
+         (click)="navigateToSearch(); closeMenu()"
+         [title]="'Search for thesis'">
+       </p-button>
+       <p-button
+         label="About"
+         text
+         plain
+         (click)="navigateToAbout(); closeMenu()"
+         [title]="'Navigate to About Us page'">
+       </p-button>
+       <p-button
+         label="Submit"
+         text
+         plain
+         [routerLink]="canSubmit() ? '/submission' : null"
+         [disabled]="!canSubmit()"
+         [title]="!isUserLoggedIn() ? 'Please log in to submit your thesis' : canSubmit() ? 'Submit your thesis' : 'Only students and group leaders can submit'"
+         [styleClass]="!canSubmit() ? 'p-button-text p-button-plain disabled-button' : ''">
+       </p-button>
+     </div>
+   </div>
+ </ng-template>
+
+
+ <ng-template #end>
+   <!-- If user is authenticated -->
+   <ng-container *ngIf="(user$ | async) as user; else loginTpl">
+     <div class="user-profile-card" (click)="profileMenu.toggle($event)">
+       <p-avatar
+         [image]="avatarFor(user)"
+         size="normal"
+         shape="circle"
+         class="user-avatar">
+       </p-avatar>
+       <div class="user-info">
+         <div class="user-name">{{ getDisplayName(user) }}</div>
+         <div class="user-email">{{ getUserEmail(user) }}</div>
+       </div>
+       <i class="pi pi-chevron-down dropdown-icon"></i>
+     </div>
+
+
+     <p-menu #profileMenu [popup]="true" [model]="profileItems"></p-menu>
+   </ng-container>
+
+
+   <!-- If not logged in -->
+   <ng-template #loginTpl>
+     <p-button
+       class="dark"
+       label="Login"
+       styleClass="login-button p-button-rounded p-button-warning"
+       (click)="navigateToLogin()">
+     </p-button>
+   </ng-template>
+ </ng-template>
 </p-toolbar>
+
 
 <!-- Confirmation Dialog -->
 <p-confirmDialog></p-confirmDialog>
 
-  
+
+

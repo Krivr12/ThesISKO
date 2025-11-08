@@ -1,387 +1,640 @@
 /* ==================== GLOBAL / PAGE WRAPPER ==================== */
 /* pagewrapper para hay hero lang */
 .page-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;   
-  justify-content: center;
-  width: 100%;
+ display: flex;
+ flex-direction: column;
+ align-items: center;  
+ justify-content: center;
+ width: 100%;
 }
+
 
 body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  background-color: #800000;
-  display: flex;
-  flex-direction: column;
+ height: 100%;
+ margin: 0;
+ padding: 0;
+ background-color: #800000;
+ display: flex;
+ flex-direction: column;
 }
 
+
 section {
-  width: 100%;
-  display: block;
+ width: 100%;
+ display: block;
 }
+
 
 /* ==================== HERO ==================== */
 .hero {
-  position: relative;
-  min-height: 900px;  
-  width: 100%;            
-  display: flex;
-  flex-direction: column;
-  justify-content: center; 
-  padding-left: 5%;         
-  color: white;
-  overflow: hidden;
+ position: relative;
+ min-height: 900px;
+ width: 100%;
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center; /* center horizontally like carousel */
+ color: white;
+ overflow: hidden;
+ padding: 0 2rem; /* add side padding to match carousel */
+ box-sizing: border-box;
 }
+
+
+.hero > *:not(.bgimg) {
+ max-width: 1200px; /* same width as carousel container */
+ width: 100%;
+}
+
 
 .hero .bgimg {
-  position: absolute;
-  bottom: 0;
-  right: 5;
-  height: 100%;      
-  width: auto;
-  max-width: none;    
-  object-fit: cover;  
-  z-index: -1;
-  opacity: 0.6;
+ position: absolute;
+ inset: 0;
+ width: 100%;
+ height: 100%;
+ right: 5;
+ object-fit: cover;
+ object-position: right center;
+ z-index: -1;
+ opacity: 0.6;
 }
+
+
+
 
 .hero h1 {
-  font-size: 75px;
-  font-weight: 900;
-  margin-bottom: 1.5rem; 
-  line-height: 100%;
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+ font-size: 75px;
+ font-weight: 900;
+ margin-bottom: 1.5rem;
+ line-height: 100%;
+ text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
 }
+
 
 .hero h1 .break {
-  display: block;
-  white-space: nowrap; 
+ display: block;
+ white-space: nowrap;
 }
 
+
 .hero p {
-  font-size: 1.1rem;
-  margin-bottom: 2.5rem; 
-  line-height: 1.6;
-  color: #f2f2f2;
-  max-width: 700px;
-  text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+ font-size: 1.1rem;
+ margin-bottom: 2.5rem;
+ line-height: 1.6;
+ color: #f2f2f2;
+ max-width: 700px;
+ text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
 }
+
 
 /* ==================== HERO: SEARCH BOX ==================== */
 .search-container {
-  display: flex;
-  align-items: center;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  height: 70px;
-  width: 100%;
-  max-width: 1000px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  margin-top: 1rem; 
+ display: flex;
+ align-items: center;
+ background: white;
+ border-radius: 8px;
+ overflow: hidden;
+ height: 70px;
+ width: 100%;
+ max-width: 1000px;
+ box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+ margin-top: 1rem;
 }
+
 
 .search-container input {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: none;
-  outline: none;
-  font-size: 1rem;
+ flex: 1;
+ padding: 0.75rem 1rem;
+ border: none;
+ outline: none;
+ font-size: 1rem;
 }
+
 
 .search-container button {
-  background: #ffd966; 
-  border: none;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  height: 70px;
-  width: 250px;
+ background: #ffd966;
+ border: none;
+ padding: 0.75rem 2rem;
+ font-size: 1rem;
+ font-weight: bold;
+ cursor: pointer;
+ height: 70px;
+ width: 250px;
 }
 
+
 :host ::ng-deep .search .p-button:hover {
-  background-color: #ffcc33 !important;
+ background-color: #ffcc33 !important;
 }
+
 
 /* ==================== CAROUSEL ==================== */
 .carousel-container {
-  text-align: center;
-  background: #fff;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 5rem
+ text-align: center;
+ background: #fff;
+ margin: 0;
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ padding: 5rem
 }
+
 
 .carousel-shell {
-  width: 100%;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 0 20px;
+ width: 100%;
+ max-width: 1320px;
+ margin: 0 auto;
+ padding: 0 20px;
 }
 
+
 .carousel-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  margin: 0 0 1rem;
-  color: #800000;
+ font-size: 1.6rem;
+ font-weight: 800;
+ margin: 0 0 1rem;
+ color: #800000;
 }
+
 
 :host ::ng-deep .custom-carousel .p-carousel-content { justify-content: center; }
 :host ::ng-deep .custom-carousel .p-carousel-items-content { padding: 0 !important; overflow: visible; }
 :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 20px; box-sizing: border-box; }
 :host ::ng-deep .custom-carousel .p-carousel-indicators { justify-content: center; }
 
+
 .carousel-box {
-  background: #ffd966;
-  border: 1px solid #d7c178;
-  border-radius: 12px;
-  width: 360px; 
-  height: 320px; 
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;  
-  align-items: stretch;
-  gap: 8px;                     
-  box-sizing: border-box;
-  overflow: hidden;
-  word-break: break-word;
+ background: #ffd966;
+ border: 1px solid #d7c178;
+ border-radius: 12px;
+ width: 360px;
+ height: 320px;
+ padding: 14px 16px;
+ display: flex;
+ flex-direction: column;
+ justify-content: flex-start; 
+ align-items: stretch;
+ gap: 8px;                    
+ box-sizing: border-box;
+ overflow: hidden;
+ word-break: break-word;
 }
+
 
 .carousel-box h3,
 .carousel-box p {
-  margin: 0;
-  line-height: 1.25;
-  text-align: left;
+ margin: 0;
+ line-height: 1.25;
+ text-align: left;
 }
+
 
 .carousel-box .title {
-  font-size: 1.30rem;
-  font-weight: 800;
-  color: #333;
-  margin-top: 1rem;
-  text-align: left;
-  line-height: 1.15;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;      
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  height: 3.45em; /* Fixed height for exactly 3 lines (3 × 1.15 line-height) */
-  min-height: 3.45em;
-  max-height: 3.45em;
+ font-size: 1.30rem;
+ font-weight: 800;
+ color: #333;
+ margin-top: 1rem;
+ text-align: left;
+ line-height: 1.15;
+ display: -webkit-box;
+ -webkit-line-clamp: 3;     
+ -webkit-box-orient: vertical;
+ overflow: hidden;
+ height: 3.45em; /* Fixed height for exactly 3 lines (3 × 1.15 line-height) */
+ min-height: 3.45em;
+ max-height: 3.45em;
 }
 
+
 .carousel-box .date {
-  font-size: 0.95rem;
-  color: #444;
-  line-height: 1.3;
-  text-align: left;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 1.3em;
+ font-size: 0.95rem;
+ color: #444;
+ line-height: 1.3;
+ text-align: left;
+ margin: 0;
+ white-space: nowrap;
+ overflow: hidden;
+ text-overflow: ellipsis;
+ max-height: 1.3em;
 }
+
 
 .carousel-box .authors,
 .carousel-box .access,
 .carousel-box .tags {
-  font-size: 0.95rem;
-  color: #444;
-  line-height: 1.3;
-  text-align: left;
-  margin: 0;
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 2.6em; /* Fixed height for exactly 2 lines (2 × 1.3 line-height) */
-  min-height: 2.6em;
-  max-height: 2.6em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+ font-size: 0.95rem;
+ color: #444;
+ line-height: 1.3;
+ text-align: left;
+ margin: 0;
+ white-space: normal;
+ overflow: hidden;
+ text-overflow: ellipsis;
+ height: 2.6em; /* Fixed height for exactly 2 lines (2 × 1.3 line-height) */
+ min-height: 2.6em;
+ max-height: 2.6em;
+ display: -webkit-box;
+ -webkit-line-clamp: 2;
+ -webkit-box-orient: vertical;
 }
+
 
 /* ==================== CAROUSEL: RESPONSIVE ==================== */
 @media (max-width: 768px) {
-  .carousel-shell { padding: 0 12px; }
-  :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 12px; }
-  .carousel-box { padding: 12px; }
+ .carousel-shell { padding: 0 12px; }
+ :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 12px; }
+ .carousel-box { padding: 12px; }
 }
+
 
 /* ==================== SUBMIT WORK SECTION ==================== */
 .containerSubmitWork {
-  display: flex;
-  justify-content: center;   
-  align-items: center;       
-  width: 100%;
-  min-height: 600px;
-  background-color: #800000;
-  padding: 40px 0;           
+ display: flex;
+ justify-content: center;  
+ align-items: center;      
+ width: 100%;
+ min-height: 600px;
+ background-color: #800000;
+ padding: 40px 0;          
 }
+
 
 .containerSubmitWork .inner {
-  display: flex;
-  gap: 40px;
-  max-width: 1200px;         
-  width: 100%;
-  padding: 0 40px;          
+ display: flex;
+ gap: 40px;
+ max-width: 1200px;        
+ width: 100%;
+ padding: 0 40px;         
 }
+
 
 .leftside, .rightside {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;   
-  max-width: 500px; 
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ justify-content: center;  
+ max-width: 500px;
 }
+
 
 .leftside {
-  flex: 1;
-  padding: 100px;
-  max-width: 100%;
-  margin-left: 0;  
-  padding-left: 1px; 
+ flex: 1;
+ padding: 100px;
+ max-width: 100%;
+ margin-left: 0; 
+ padding-left: 1px;
 }
+
 
 .leftside h1 {
-  color: white;
-  font-size: 60px;
-  font-weight: 900;
-  line-height: 100%;
-  margin: 0 0 15px 0; 
+ color: white;
+ font-size: 60px;
+ font-weight: 900;
+ line-height: 100%;
+ margin: 0 0 15px 0;
 }
+
 
 .leftside h1 .break {
-  display: block;
-  white-space: nowrap; 
+ display: block;
+ white-space: nowrap;
 }
+
 
 .leftside p {
-  color: white;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 140%;  
-  max-width: 480px;
-  margin: 0; 
-  margin-bottom: 20px;        
+ color: white;
+ font-size: 16px;
+ font-weight: 400;
+ line-height: 140%; 
+ max-width: 480px;
+ margin: 0;
+ margin-bottom: 20px;       
 }
+
 
 :host ::ng-deep .submit .p-button {
-  background: #ffd966;
-  border: none;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  height: 70px;
-  width: 480px;
-  color: #800000;
+ background: #ffd966;
+ border: none;
+ padding: 0.75rem 2rem;
+ font-size: 1rem;
+ font-weight: bold;
+ cursor: pointer;
+ height: 70px;
+ width: 480px;
+ color: #800000;
 }
+
 
 :host ::ng-deep .submit .p-button:hover {
-  background-color: #ffcc33 !important;
+ background-color: #ffcc33 !important;
 }
+
 
 :host ::ng-deep .submit .p-button:disabled {
-  background: #ffd966 !important;
-  color: #800000 !important;
-  cursor: not-allowed !important;
-  opacity: 0.6 !important;
-  border: none !important;
+ background: #ffd966 !important;
+ color: #800000 !important;
+ cursor: not-allowed !important;
+ opacity: 0.6 !important;
+ border: none !important;
 }
+
 
 :host ::ng-deep .submit .p-button:disabled:hover {
-  background: #ffd966 !important;
-  color: #800000 !important;
-  opacity: 0.6 !important;
+ background: #ffd966 !important;
+ color: #800000 !important;
+ opacity: 0.6 !important;
 }
+
 
 .rightside {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin-right: 0; 
-  padding-right: 120px;
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ margin-right: 0;
+ padding-right: 120px;
 }
 
+
 .instructions {
-  width: 552px;          
-  height: 80px; 
-  color: #800000;  
-  background-color: white;
-  border: 2px solid #444;
-  border-radius: 10px;   
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;             
-  padding: 8px 16px;     
-  margin: 10px 0; 
-  font-size: 18px;
-  font-weight: bold;
-  opacity: 1;            
+ width: 552px;         
+ height: 80px;
+ color: #800000; 
+ background-color: white;
+ border: 2px solid #444;
+ border-radius: 10px;  
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 10px;            
+ padding: 8px 16px;    
+ margin: 10px 0;
+ font-size: 18px;
+ font-weight: bold;
+ opacity: 1;           
 }
+
 
 /* ==================== CAROUSEL: TAGS ==================== */
 /* Tags container styling */
 .carousel-box .tags-container {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin: 0;
+ display: flex;
+ align-items: flex-start;
+ gap: 0.5rem;
+ margin: 0;
 }
+
 
 .carousel-box .tags-label {
-  font-size: 0.95rem;
-  color: #444;
-  font-weight: 500;
-  margin: 0;
-  white-space: nowrap;
-  padding-top: 0.25rem;
+ font-size: 0.95rem;
+ color: #444;
+ font-weight: 500;
+ margin: 0;
+ white-space: nowrap;
+ padding-top: 0.25rem;
 }
+
 
 .carousel-box .tags-wrapper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  align-items: flex-start;
-  flex: 1;
+ display: flex;
+ flex-wrap: wrap;
+ gap: 0.4rem;
+ align-items: flex-start;
+ flex: 1;
 }
+
 
 .carousel-box .tag-pill {
-  background: transparent;
-  color: #800000;
-  border: 1px solid rgba(128, 0, 0, 0.4);
-  padding: 0.25rem 0.75rem;
-  border-radius: 50px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  white-space: nowrap;
-  display: inline-block;
-  box-shadow: none;
-  transition: all 0.3s ease;
+ background: transparent;
+ color: #800000;
+ border: 1px solid rgba(128, 0, 0, 0.4);
+ padding: 0.25rem 0.75rem;
+ border-radius: 50px;
+ font-size: 0.8rem;
+ font-weight: 500;
+ white-space: nowrap;
+ display: inline-block;
+ box-shadow: none;
+ transition: all 0.3s ease;
 }
+
 
 .carousel-box .tag-pill:hover {
-  background: rgba(128, 0, 0, 0.05);
-  border-color: rgba(128, 0, 0, 0.6);
-  transform: translateY(-1px);
+ background: rgba(128, 0, 0, 0.05);
+ border-color: rgba(128, 0, 0, 0.6);
+ transform: translateY(-1px);
 }
+
 
 .carousel-box .tag-pill.no-tags {
-  background: transparent;
-  color: #6c757d;
-  border: 1px solid rgba(108, 117, 125, 0.4);
+ background: transparent;
+ color: #6c757d;
+ border: 1px solid rgba(108, 117, 125, 0.4);
 }
 
+
 .carousel-box .tag-pill.no-tags:hover {
-  background: rgba(108, 117, 125, 0.05);
-  border-color: rgba(108, 117, 125, 0.6);
+ background: rgba(108, 117, 125, 0.05);
+ border-color: rgba(108, 117, 125, 0.6);
 }
+
+
+/* ==================== RESPONSIVE STYLES ==================== */
+
+
+/* Tablets and below (≤1024px) */
+@media (max-width: 1024px) {
+ .hero {
+   padding-left: 3%;
+   min-height: 700px;
+ }
+
+
+ .hero h1 {
+   font-size: 55px;
+ }
+
+
+ .hero p {
+   font-size: 1rem;
+   max-width: 600px;
+ }
+ .hero .bgimg {
+   object-fit: cover;        /* still fills screen */
+   object-position: 80% center;
+ }
+
+
+ .search-container {
+   flex-direction: column;
+   height: auto;
+ }
+
+
+ .search-container input,
+ .search-container button {
+   width: 100%;
+   height: 60px;
+ }
+
+
+ .carousel-box {
+   width: 280px;
+ }
+
+
+ .containerSubmitWork .inner {
+   flex-direction: column;
+   align-items: center;
+   gap: 20px;
+ }
+
+
+ .leftside,
+ .rightside {
+   padding: 0;
+   max-width: 100%;
+ }
+
+
+ .rightside {
+   padding-right: 0;
+   align-items: center;
+ }
+
+
+ .instructions {
+   width: 100%;
+   max-width: 500px;
+ }
+}
+
+
+/* Mobile devices (≤768px) */
+@media (max-width: 768px) {
+ html, body {
+   overflow-x: hidden;
+   width: 100%;
+ }
+
+
+ .hero {
+   min-height: 600px;
+   padding: 20px;
+   align-items: center;
+   text-align: center;
+  
+ }
+
+
+ .hero h1 {
+   font-size: 40px;
+   line-height: 1.1;
+ }
+
+
+ .hero p {
+   font-size: 0.95rem;
+   line-height: 1.4;
+   text-align: center;
+   padding: 0 10px;
+ }
+
+
+ .hero .bgimg {
+   object-fit: cover;
+   object-position: 95% center;
+ }
+
+
+ .search-container {
+   flex-direction: column;
+   width: 90%;
+   margin: 0 auto;
+ }
+
+
+ .carousel-container {
+   padding: 2rem 1rem;
+ }
+
+
+ .carousel-title {
+   font-size: 1.3rem;
+ }
+
+
+ .carousel-box {
+   width: 90%;
+   margin: 0 auto;
+   padding: 16px;
+ }
+
+
+ .containerSubmitWork {
+   padding: 2rem 1rem;
+ }
+
+
+ .leftside h1 {
+   font-size: 38px;
+ }
+
+
+ .leftside p {
+   font-size: 0.95rem;
+ }
+
+
+ :host ::ng-deep .submit .p-button {
+   width: 100%;
+ }
+
+
+ .instructions {
+   font-size: 15px;
+   width: 90%;
+   height: auto;
+   padding: 12px;
+   text-align: left;
+ }
+}
+
+
+/* Extra small (≤480px) */
+@media (max-width: 480px) {
+ .hero {
+   padding: 1rem;
+ }
+
+
+ .hero h1 {
+   font-size: 32px;
+ }
+
+
+ .hero p {
+   font-size: 0.9rem;
+ }
+ .hero .bgimg {
+   object-fit: cover;        /* still fills screen */
+   object-position: 80% center;
+ }
+
+
+ .carousel-box {
+   width: 100%;
+ }
+
+
+ .carousel-title {
+   font-size: 1.1rem;
+ }
+
+
+ .instructions {
+   font-size: 14px;
+ }
+}
+
+
+
