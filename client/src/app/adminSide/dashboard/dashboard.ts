@@ -5,7 +5,32 @@ import { AdminSideNav } from '../admin-side-nav/admin-side-nav';
 import { Auth } from '../../service/auth';
 import { User } from '../../interface/auth';
 import { AnalyticsService } from '../../service/analytics.service';
-import Chart from 'chart.js/auto';
+import {
+  Chart,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  type TooltipItem
+} from 'chart.js';
+
+// Register Chart.js components
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 @Component({
   selector: 'app-admin-side-dashboard',
@@ -365,7 +390,7 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
               padding: 12,
               displayColors: true,
               callbacks: {
-                label: function(context) {
+                label: function(context: TooltipItem<'line'>) {
                   return `${context.dataset.label}: ${context.parsed.y}`;
                 }
               }
@@ -471,7 +496,7 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
               padding: 12,
               displayColors: true,
               callbacks: {
-                label: function(context) {
+                label: function(context: TooltipItem<'doughnut'>) {
                   const label = context.label || '';
                   const value = context.parsed || 0;
                   const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
