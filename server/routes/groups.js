@@ -547,7 +547,7 @@ router.post("/", async (req, res) => {
     console.log(`\n🔄 Starting group creation for block: ${block_id}`);
     console.log(`👤 Leader: ${leader.email} (${leader.firstname} ${leader.surname})`);
 
-    // 3. Validate all members are students (role_id = 2) and not in other groups
+    // 3. Validate all members are PUP-ians (role_id = 2) and not in other groups
     const membersArray = Array.isArray(members) ? members : [];
     const memberEmails = membersArray.map(m => m.email);
 
@@ -573,10 +573,10 @@ router.post("/", async (req, res) => {
         const userData = existingUser.rows[0];
         console.log(`✅ User exists: ${userData.firstname} ${userData.lastname} (role_id: ${userData.role_id})`);
 
-        // Validate they're a student (role_id = 2) or group leader (role_id = 6)
+        // Validate they're a PUP-ian (role_id = 2) or group leader (role_id = 6)
         // Leaders can be role_id = 6 if they're switching groups or re-creating
         if (userData.role_id !== 2 && userData.role_id !== 6) {
-          throw new Error(`${roleLabel} ${user.email} must be a student (role_id = 2 or 6), but has role_id ${userData.role_id}`);
+          throw new Error(`${roleLabel} ${user.email} must be a PUP-ian (role_id = 2 or 6), but has role_id ${userData.role_id}`);
         }
 
         // Validate not in another group
@@ -586,7 +586,7 @@ router.post("/", async (req, res) => {
 
         // If this is a leader, they should have the proper role
         if (isLeader && userData.role_id === 2) {
-          console.log(`🔄 Promoting ${user.email} from student (2) to group leader (6)`);
+          console.log(`🔄 Promoting ${user.email} from PUP-ian (2) to group leader (6)`);
         }
 
         return {
@@ -614,9 +614,9 @@ router.post("/", async (req, res) => {
 
         // Create user with appropriate role:
         // Leader: role_id = 6 (Group Leader)
-        // Member: role_id = 2 (Student)
+        // Member: role_id = 2 (PUP-ian)
         const roleId = isLeader ? 6 : 2;
-        const roleLabel = isLeader ? 'group leader' : 'student';
+        const roleLabel = isLeader ? 'group leader' : 'PUP-ian';
         
         const newUserResult = await pool.query(
           'INSERT INTO users_info (firstname, lastname, email, password_hash, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING user_id, firstname, lastname, email, role_id',
@@ -742,13 +742,13 @@ router.post("/", async (req, res) => {
     );
     console.log(`✅ Updated leader: ${leader.email} → group_id: ${group_id}, role_id: 6 (Group Leader)`);
 
-    // 6. Update all members' group_id (members stay as role_id = 2)
+    // 6. Update all members' group_id (members stay as role_id = 2 - PUP-ian)
     for (const member of membersArray) {
       await pool.query(
         'UPDATE users_info SET group_id = $1 WHERE email = $2',
         [group_id, member.email]
       );
-      console.log(`✅ Updated member's group_id: ${member.email} → ${group_id} (role_id: 2)`);
+      console.log(`✅ Updated member's group_id: ${member.email} → ${group_id} (role_id: 2 - PUP-ian)`);
     }
 
     // 7. Get program details for email
@@ -1841,22 +1841,22 @@ router.patch("/:group_id", async (req, res) => {
       console.log(`   Old leader: ${oldLeaderEmail}`);
       console.log(`   New leader: ${newLeaderEmail}`);
 
-      // Revert old leader: role_id 6 → 2, keep group_id
+      // Revert old leader: role_id 6 (Group Leader) → 2 (PUP-ian), keep group_id
       if (oldLeaderEmail) {
         await pool.query(
           'UPDATE users_info SET role_id = 2 WHERE email = $1 AND role_id = 6',
           [oldLeaderEmail]
         );
-        console.log(`   ✅ Demoted old leader ${oldLeaderEmail}: role_id 6 → 2`);
+        console.log(`   ✅ Demoted old leader ${oldLeaderEmail}: role_id 6 (Group Leader) → 2 (PUP-ian)`);
       }
 
-      // Promote new leader: role_id 2 → 6, ensure group_id is set
+      // Promote new leader: role_id 2 (PUP-ian) → 6 (Group Leader), ensure group_id is set
       if (newLeaderEmail) {
         await pool.query(
           'UPDATE users_info SET role_id = 6, group_id = $1 WHERE email = $2',
           [group_id, newLeaderEmail]
         );
-        console.log(`   ✅ Promoted new leader ${newLeaderEmail}: role_id 2 → 6`);
+        console.log(`   ✅ Promoted new leader ${newLeaderEmail}: role_id 2 (PUP-ian) → 6 (Group Leader)`);
       }
     }
 
@@ -1914,16 +1914,16 @@ router.delete("/:group_id", async (req, res) => {
       return res.status(404).json({ error: "Group not found" });
     }
 
-    // 2. Revert leader's role from 6 (Group Leader) to 2 (Student) and clear group_id
+    // 2. Revert leader's role from 6 (Group Leader) to 2 (PUP-ian) and clear group_id
     if (group.leader && group.leader.email) {
       await pool.query(
         'UPDATE users_info SET role_id = 2, group_id = NULL WHERE email = $1 AND role_id = 6',
         [group.leader.email]
       );
-      console.log(`✅ Reverted leader ${group.leader.email}: role_id 6 → 2, group_id cleared`);
+      console.log(`✅ Reverted leader ${group.leader.email}: role_id 6 (Group Leader) → 2 (PUP-ian), group_id cleared`);
     }
 
-    // 3. Clear group_id for all members (they're already role_id = 2)
+    // 3. Clear group_id for all members (they're already role_id = 2 - PUP-ian)
     if (Array.isArray(group.members)) {
       for (const member of group.members) {
         if (member.email) {
@@ -1940,7 +1940,7 @@ router.delete("/:group_id", async (req, res) => {
     const result = await groupsCollection.deleteOne({ group_id });
 
     res.status(200).json({
-      message: `Group ${group_id} deleted successfully. Leader reverted to student role.`,
+      message: `Group ${group_id} deleted successfully. Leader reverted to PUP-ian role.`,
       deletedId: group_id,
       leaderReverted: group.leader?.email || null,
       membersCleared: group.members?.length || 0

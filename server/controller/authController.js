@@ -25,7 +25,7 @@ const googleAuthSuccess = async (req, res) => {
       // Also check if email already exists (regardless of role) - JOIN with roles to get role_name
       const existingEmailUsers = await pool.query(
         `SELECT ui.user_id, ui.email, ui.firstname, ui.lastname, ui.role_id, ui.student_id, 
-                ui.course_id, ui.department_id, ui.group_id, ui.block_id, ui.avatar_url, 
+                ui.course, ui.department, ui.group_id, ui.block_id, ui.avatar_url, 
                 r.role_name 
          FROM users_info ui
          LEFT JOIN roles r ON ui.role_id = r.role_id
@@ -36,9 +36,22 @@ const googleAuthSuccess = async (req, res) => {
       console.log('🔍 group_id from query:', existingEmailUsers.rows[0]?.group_id);
       
       // Get Guest role ID
-      const roleResult = await pool.query('SELECT role_id FROM roles WHERE role_name = $1', ['guest']);
-      const roleId = roleResult.rows[0]?.role_id;
+      const roleResult = await pool.query('SELECT role_id FROM roles WHERE LOWER(role_name) = LOWER($1)', ['guest']);
+      let roleId = roleResult.rows[0]?.role_id;
       console.log('Guest role ID:', roleId);
+      
+      // If guest role doesn't exist, create it
+      if (!roleId) {
+        console.log('Creating Guest role...');
+        const createRoleResult = await pool.query(
+          'INSERT INTO roles (role_name) VALUES ($1) RETURNING role_id',
+          ['guest']
+        );
+        roleId = createRoleResult.rows[0]?.role_id;
+        console.log('Created Guest role with ID:', roleId);
+      } else {
+        console.log('Found existing Guest role with ID:', roleId);
+      }
       
       let guestUser;
       

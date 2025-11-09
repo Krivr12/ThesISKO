@@ -109,7 +109,7 @@ router.get('/google/callback',
 
 router.get('/google/failure', googleAuthFailure);
 
-// Login endpoint for faculty and admin
+// Login endpoint
 router.post('/login', async (req, res) => {
   try {
     // Use the userController login function
@@ -117,131 +117,6 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Faculty login endpoint - only allows faculty role (role_id = 3)
-router.post('/faculty-login', async (req, res) => {
-  try {
-    const rawEmail = req.body.email ?? req.body.Email
-    const password = req.body.password ?? req.body.Password
-
-    const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : ''
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' })
-    }
-    
-    try {
-      // Import pool here to avoid circular dependency
-      const pool = (await import('../data/database.js')).default;
-      const bcrypt = (await import('bcrypt')).default;
-      
-      // Find user with faculty role (3, 7, 8)
-      const userResult = await pool.query(`
-        SELECT 
-          ui.user_id,
-          ui.firstname,
-          ui.lastname,
-          ui.email,
-          ui.password_hash,
-          ui.role_id,
-          r.role_name,
-          c.course_code,
-          d.department_name,
-          ui.student_id,
-          ui.faculty_id,
-          ui.admin_id,
-          ui.avatar_url
-        FROM users_info ui
-        LEFT JOIN roles r ON ui.role_id = r.role_id
-        LEFT JOIN courses c ON ui.course_id = c.course_id
-        LEFT JOIN departments d ON ui.department_id = d.department_id
-        WHERE LOWER(ui.email) = $1 
-        AND ui.role_id IN (3, 7, 8) -- Faculty (3), admin_faculty (7), superadmin_faculty (8)
-        LIMIT 1
-      `, [email])
-      
-      const users = userResult.rows
-      
-      if (users.length === 0) {
-        return res.status(401).json({ 
-          error: 'Access denied. Only faculty members can access this login.' 
-        })
-      }
-      
-      const user = {
-        StudentID: users[0].user_id,
-        Firstname: users[0].firstname,
-        Lastname: users[0].lastname,
-        Email: users[0].email,
-        Password: users[0].password_hash,
-        role_id: users[0].role_id,
-        Status: users[0].role_name,
-        Course: users[0].course_code,
-        Department: users[0].department_name,
-        student_id: users[0].student_id,
-        faculty_id: users[0].faculty_id,
-        admin_id: users[0].admin_id,
-        AvatarUrl: users[0].avatar_url
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.Password)
-      
-      if (isValidPassword) {
-        const { Password: _ignored, ...userWithoutPassword } = user
-        
-        // Store user data in server session
-        req.session.user = {
-          id: userWithoutPassword.StudentID,
-          user_id: userWithoutPassword.StudentID,
-          email: userWithoutPassword.Email,
-          Status: userWithoutPassword.Status,
-          Firstname: userWithoutPassword.Firstname,
-          Lastname: userWithoutPassword.Lastname,
-          role_id: userWithoutPassword.role_id
-        };
-        
-        // Set HttpOnly cookie with user data
-        res.cookie('auth_user', JSON.stringify({
-          id: userWithoutPassword.StudentID,
-          email: userWithoutPassword.Email,
-          Status: userWithoutPassword.Status,
-          Firstname: userWithoutPassword.Firstname,
-          Lastname: userWithoutPassword.Lastname,
-          Course: userWithoutPassword.Course,
-          Department: userWithoutPassword.Department,
-          AvatarUrl: userWithoutPassword.AvatarUrl,
-          role_id: userWithoutPassword.role_id,
-          account_type: 'faculty'
-        }), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
-        
-        res.json({
-          message: 'Faculty login successful',
-          user: userWithoutPassword,
-          account_type: 'faculty'
-        })
-      } else {
-        res.status(401).json({ error: 'Invalid password' })
-      }
-    } catch (dbError) {
-      // Database connection failed
-      console.error('❌ Database connection failed:', dbError.message);
-      return res.status(500).json({ 
-        error: 'Database connection failed. Please try again later.',
-        details: dbError.message
-      })
-    }
-  } catch (error) {
-    console.error('❌ Faculty login error:', error.message);
-    res.status(500).json({ 
-      error: 'Error during faculty login',
-      details: error.message
-    })
   }
 });
 
@@ -271,16 +146,14 @@ router.post('/admin-login', async (req, res) => {
           ui.password_hash,
           ui.role_id,
           r.role_name,
-          c.course_code,
-          d.department_name,
+          ui.course AS course_code,
+          ui.department AS department_name,
           ui.student_id,
           ui.faculty_id,
           ui.admin_id,
           ui.avatar_url
         FROM users_info ui
         LEFT JOIN roles r ON ui.role_id = r.role_id
-        LEFT JOIN courses c ON ui.course_id = c.course_id
-        LEFT JOIN departments d ON ui.department_id = d.department_id
         WHERE LOWER(ui.email) = $1 
         AND ui.role_id IN (4, 5, 7, 8) -- admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
         LIMIT 1
