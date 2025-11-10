@@ -65,20 +65,20 @@
         </div>
 
         <div class="field">
-          <label for="StudentNum">Student Number</label>
+          <label for="StudentNum">ID Number</label>
           <input
             pInputText
             class="w-full"
             id="studentNum"
             formControlName="studentNum"
-            placeholder="Enter Student Number"
+            placeholder="Enter ID Number"
             required
           />
         
           <small class="format-hint">Format: 20xx-xxxxx-xx-0</small>
         
           @if(studentNum.invalid && (studentNum.dirty || studentNum.touched)) {
-            <small class="block p-error"> Student Number is required. </small>
+            <small class="block p-error"> ID Number is required. </small>
           }
         </div>
 

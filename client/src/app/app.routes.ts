@@ -9,7 +9,6 @@ import { Submission } from './components/submission/submission';
 import { NewSubmission } from './components/new-submission/new-submission';
 import { ThankYou } from './components/thank-you/thank-you';
 import { SignupChoose } from './components/signup-choose/signup-choose';
-import { LoginFaculty } from './components/login-faculty/login-faculty';
 import { LoginAdmin } from './components/login-admin/login-admin';
 import { StudentProfile } from './components/student-profile/student-profile';
 import { GuestProfile } from './components/guest-profile/guest-profile';
@@ -25,7 +24,6 @@ import { AdminChairpersonApproval } from './admin/admin-chairperson-approval/adm
 import { AdminChairpersonDetails } from './admin/admin-chairperson-details/admin-chairperson-details';
 import { adminGuard } from './guards/admin-guard';
 import { superadminGuard } from './guards/superadmin-guard';
-import { facultyGuard } from './guards/faculty-guard';
 import { authGuard } from './guards/auth-guard';
 import { adminSideGuard } from './guards/admin-side-guard';
 import { deanOnlyGuard } from './guards/dean-only-guard';
@@ -38,14 +36,6 @@ import { Faculties } from './superAdmin/faculties/faculties';
 import { DeanApproval } from './superAdmin/dean-approval/dean-approval';
 import { DeanDetails } from './superAdmin/dean-details/dean-details';
 import { RoleTestComponent } from './components/role-test/role-test';
-import { FacultyHome } from './facultySide/faculty-home/faculty-home';
-import { FICHistoryPage } from './facultySide/fichistory-page/fichistory-page';
-import { ForFIC } from './facultySide/for-fic/for-fic';
-import { ForFICLanding } from './facultySide/for-ficlanding/for-ficlanding';
-import { ForPanel } from './facultySide/for-panel/for-panel';
-import { ForPanellanding } from './facultySide/for-panellanding/for-panellanding';
-import { PanelistApprovalPage } from './facultySide/panelist-approval-page/panelist-approval-page';
-import { FacultyProfile } from './facultySide/faculty-profile/faculty-profile';
 import { LoginModal } from './components/login-modal/login-modal';
 import { DocumentTypes } from './adminSide/document-types/document-types';
 import { AdminSideDashboard } from './adminSide/dashboard/dashboard';
@@ -61,7 +51,6 @@ import { Requirements } from './adminSide/requirements/requirements';
 export const routes: Routes = [
     {path: 'signup-choose', component: SignupChoose},
     {path: 'login', component: Login, canActivate: [authGuard]},
-    {path: 'login-faculty', component: LoginFaculty},
     {path: 'login-admin', component: LoginAdmin},
     {path: 'signup', component: Signup},
     {path: 'home', component: Home, canActivate: [authGuard]},

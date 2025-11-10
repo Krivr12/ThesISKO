@@ -304,8 +304,8 @@ const getAllUsers = async (req, res) => {
         ui.lastname AS Lastname,
         ui.email AS Email,
         r.role_name AS Status,
-        c.course_code AS Course,
-        d.department_name AS Department,
+        ui.course AS Course,
+        ui.department AS Department,
         ui.student_id,
         ui.faculty_id,
         ui.admin_id,
@@ -316,8 +316,6 @@ const getAllUsers = async (req, res) => {
         ui.avatar_url AS AvatarUrl
       FROM users_info ui
       LEFT JOIN roles r ON ui.role_id = r.role_id
-      LEFT JOIN courses c ON ui.course_id = c.course_id
-      LEFT JOIN departments d ON ui.department_id = d.department_id
     `)
     res.json(rows)
   } catch (error) {
@@ -450,13 +448,9 @@ const signupUser = async (req, res) => {
       console.error('❌ Error details:', {
         message: e.message
       });
-      console.warn('📧 Email not sent via any provider. Manual verification link:', verifyUrl);
-      console.log('🔗 COPY THIS LINK TO VERIFY:', verifyUrl);
     }
     return res.status(202).json({ 
-      message: 'Verification email sent. Please verify to complete signup.',
-      // Include verification link in response for testing (remove in production)
-      verificationLink: process.env.NODE_ENV === 'development' ? verifyUrl : undefined
+      message: 'Verification email sent. Please verify to complete signup.'
     })
 
   } catch (error) {
@@ -499,8 +493,8 @@ const loginUser = async (req, res) => {
           ui.password_hash,
           ui.role_id,
           r.role_name,
-          c.course_code,
-          d.department_name,
+          ui.course AS course_code,
+          ui.department AS department_name,
           ui.student_id,
           ui.faculty_id,
           ui.admin_id,
@@ -512,8 +506,6 @@ const loginUser = async (req, res) => {
           ui.avatar_url
         FROM users_info ui
         LEFT JOIN roles r ON ui.role_id = r.role_id
-        LEFT JOIN courses c ON ui.course_id = c.course_id
-        LEFT JOIN departments d ON ui.department_id = d.department_id
         WHERE LOWER(ui.email) = $1 
         LIMIT 1
       `, [email])
@@ -771,10 +763,8 @@ const verifyStudentEmail = async (req, res) => {
     const existsResult = await pool.query('SELECT user_id FROM users_info WHERE LOWER(email) = $1 LIMIT 1', [String(email).toLowerCase()])
     const exists = existsResult.rows
     if (exists.length === 0) {
-      // Get IDs for the user's selected role, department, and course
+      // Get role ID
       const roleId = await getRoleId(pending.status)
-      const departmentId = await getDepartmentId(pending.department)
-      const courseId = await getCourseId(pending.course)
       
       // Generate appropriate ID based on status
       let generatedId = null
@@ -786,17 +776,17 @@ const verifyStudentEmail = async (req, res) => {
         generatedId = `ADM${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`
       }
       
-      // Insert into users_info table (single table)
+      // Insert into users_info table with department and course as text
       await pool.query(
-        'INSERT INTO users_info (email, password_hash, role_id, firstname, lastname, course_id, department_id, student_id, faculty_id, admin_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+        'INSERT INTO users_info (email, password_hash, role_id, firstname, lastname, department, course, student_id, faculty_id, admin_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
         [
           pending.email.toLowerCase(), 
           pending.hashpass, 
           roleId, 
           pending.firstname, 
           pending.lastname, 
-          courseId, 
-          departmentId,
+          pending.department, // Save department as text
+          pending.course,      // Save course as text
           pending.status === 'Student' ? generatedId : null,
           pending.status === 'Faculty' ? generatedId : null,
           pending.status === 'Admin' ? generatedId : null
@@ -836,8 +826,8 @@ const getUserById = async (req, res) => {
         ui.email AS Email,
         ui.role_id,
         r.role_name AS Status,
-        c.course_code AS Course,
-        d.department_name AS Department,
+        ui.course AS Course,
+        ui.department AS Department,
         ui.student_id,
         ui.faculty_id,
         ui.admin_id,
@@ -849,8 +839,6 @@ const getUserById = async (req, res) => {
         ui.avatar_url AS AvatarUrl
       FROM users_info ui
       LEFT JOIN roles r ON ui.role_id = r.role_id
-      LEFT JOIN courses c ON ui.course_id = c.course_id
-      LEFT JOIN departments d ON ui.department_id = d.department_id
       WHERE ui.user_id = $1 LIMIT 1
     `, [userId]);
 
@@ -965,117 +953,6 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Admin faculty signup (creates faculty account with generated password)
-const adminCreateFaculty = async (req, res) => {
-  try {
-    const { firstname, lastname, email, faculty_id } = req.body;
-
-    // Validate required fields
-    if (!firstname || !lastname || !email || !faculty_id) {
-      return res.status(400).json({
-        error: 'First name, last name, email, and faculty ID are required'
-      });
-    }
-
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        error: 'Please enter a valid email address'
-      });
-    }
-
-    // Check if email already exists
-    const existingUsersResult = await pool.query(
-      'SELECT user_id FROM users_info WHERE LOWER(email) = $1 LIMIT 1',
-      [email.toLowerCase()]
-    );
-
-    if (existingUsersResult.rows.length > 0) {
-      return res.status(400).json({ 
-        error: 'Email already exists. Please use a different email.' 
-      });
-    }
-
-    // Check if faculty_id already exists
-    const existingFacultyResult = await pool.query(
-      'SELECT user_id FROM users_info WHERE faculty_id = $1 LIMIT 1',
-      [faculty_id]
-    );
-
-    if (existingFacultyResult.rows.length > 0) {
-      return res.status(400).json({ 
-        error: 'Faculty ID already exists. Please use a different ID.' 
-      });
-    }
-
-    // Generate password
-    const generatedPassword = generatePassword(8);
-
-    // Hash password
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(generatedPassword, salt);
-
-    // Get role_id for Faculty (assuming role_id 3 is Faculty)
-    const roleId = await getRoleId('Faculty');
-
-    // Insert faculty into users_info table
-    const result = await pool.query(
-      'INSERT INTO users_info (firstname, lastname, email, password_hash, role_id, faculty_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id',
-      [firstname, lastname, email.toLowerCase(), hashedPassword, roleId, faculty_id]
-    );
-
-    // Send email with credentials
-    try {
-      // Use unified email service
-      const { sendEmail } = await import('../services/emailService.js');
-      
-      await sendEmail({
-        to: email,
-        subject: 'Faculty Account Created - ThesISKO',
-        template: 'credentials',
-        data: {
-          headerIcon: '🎓',
-          headerTitle: 'Welcome to ThesISKO!',
-          firstname: firstname,
-          lastname: lastname,
-          email: email,
-          password: generatedPassword,
-          accountType: 'Faculty',
-          identifier: faculty_id,
-          identifierLabel: 'Faculty ID',
-          loginUrl: process.env.FRONTEND_URL || 'https://thesisko.online'
-        }
-      });
-
-      // Faculty account created and email sent via unified service
-    } catch (emailError) {
-      console.error('Failed to send faculty credentials email:', emailError);
-      // Don't fail the entire operation if email fails
-    }
-
-    res.status(201).json({
-      success: true,
-      message: 'Faculty account created successfully',
-      data: {
-        user_id: result.rows[0].user_id,
-        firstname,
-        lastname,
-        email,
-        faculty_id: faculty_id,
-        generated_password: generatedPassword // Include for admin reference
-      }
-    });
-
-  } catch (error) {
-    console.error('Error creating faculty account:', error);
-    res.status(500).json({
-      error: 'Failed to create faculty account',
-      details: error.message
-    });
-  }
-}
-
 export {
   getAllUsers,
   signupUser,
@@ -1084,8 +961,7 @@ export {
   getCurrentUser,
   verifyStudentEmail,
   getUserById,
-  updateUser,
-  adminCreateFaculty
+  updateUser
 }
 
 /* 
