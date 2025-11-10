@@ -51,3 +51,100 @@
 .btn:hover {
   background-color: #800000;
 }
+
+/* Responsive styles for smaller screens */
+@media (max-width: 1200px) {
+  .thank-you-title {
+    font-size: 4.5rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .thank-you-title {
+    font-size: 4rem;
+  }
+  
+  .thank-you-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .thank-you-title {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .thank-you-message {
+    font-size: 1.1rem;
+  }
+  
+  .btn {
+    padding: 0.875rem 2.5rem;
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .thank-you-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .thank-you-title {
+    font-size: 2.5rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .thank-you-message {
+    font-size: 1rem;
+    margin-bottom: 0.375rem;
+  }
+  
+  .btn {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    margin-top: 1.25rem;
+  }
+  
+  .thank-you-content {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .thank-you-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .thank-you-message {
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .btn {
+    padding: 0.625rem 1.75rem;
+    font-size: 0.95rem;
+    margin-top: 1rem;
+  }
+  
+  .thank-you-content {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .thank-you-title {
+    font-size: 1.75rem;
+  }
+  
+  .thank-you-message {
+    font-size: 0.9rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
