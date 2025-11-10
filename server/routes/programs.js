@@ -207,16 +207,15 @@ router.put("/:program_id", async (req, res) => {
         });
       }
 
-      // Unassign old chairperson (revert role_id to 3 - faculty, keep their program_id)
+      // Unassign old chairperson (remove admin privileges but keep current role)
       if (existingProgram.chairperson_email) {
         await pool.query(`
           UPDATE users_info
-          SET role_id = 3,
-              admin_type = NULL,
+          SET admin_type = NULL,
               admin_program = NULL
           WHERE email = $1
         `, [existingProgram.chairperson_email]);
-        console.log(`✅ Demoted ${existingProgram.chairperson_email} to faculty (kept program_id)`);
+        console.log(`✅ Unassigned ${existingProgram.chairperson_email} as chairperson (removed admin privileges)`);
       }
 
       // Assign new chairperson
@@ -284,18 +283,16 @@ router.delete("/:program_id", async (req, res) => {
       return res.status(404).json({ success: false, message: "Program not found" });
     }
 
-    // Unassign chairperson if exists (revert role_id to 3 - faculty)
-    // Keep their program_id - they remain faculty in their program even if they were demoted
+    // Unassign chairperson if exists (remove admin privileges but keep current role)
     if (program.chairperson_email) {
       await pool.query(`
         UPDATE users_info
-        SET role_id = 3,
-            admin_type = NULL,
+        SET admin_type = NULL,
             admin_program = NULL
         WHERE email = $1
       `, [program.chairperson_email]);
       
-      console.log(`✅ Unassigned chairperson ${program.chairperson_email} from program ${program_id} (kept program_id for faculty status)`);
+      console.log(`✅ Unassigned chairperson ${program.chairperson_email} from program ${program_id} (removed admin privileges)`);
     }
 
     // Delete program from MongoDB
