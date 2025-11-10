@@ -462,7 +462,7 @@ const signupUser = async (req, res) => {
   }
 }
 
-// Login user (both regular users and group accounts)
+// Login user
 const loginUser = async (req, res) => {
   try {
     // Processing login attempt
@@ -512,88 +512,12 @@ const loginUser = async (req, res) => {
       const users = userResult.rows
       console.log('🔍 Database query result:', { userCount: users.length, email: email });
     
-    // If no regular user found, check if it's a group account (username instead of email)
+    // Check if user exists
     if (users.length === 0) {
-      // No regular user found, checking for group accounts
-      
-      const groupResult = await pool.query(`
-        SELECT 
-          sg.group_id,
-          sg.username,
-          sg.password,
-          sg.leader_id,
-          sg.created_at,
-          ui.firstname as leader_firstname,
-          ui.lastname as leader_lastname,
-          ui.email as leader_email
-        FROM student_groups sg
-        LEFT JOIN users_info ui ON sg.leader_id = ui.student_id
-        WHERE LOWER(sg.username) = LOWER($1) 
-        LIMIT 1
-      `, [email])
-      const groups = groupResult.rows
-      
-      if (groups.length === 0) {
-        // No user found in database
-        return res.status(401).json({ 
-          error: 'Invalid credentials. User not found in database.' 
-        })
-      }
-      
-      const group = groups[0];
-      const isValidPassword = await bcrypt.compare(password, group.password)
-      
-      if (isValidPassword) {
-        // Group account authenticated
-        
-        // Get group members for additional info
-        const membersResult = await pool.query(`
-          SELECT gm.name, gm.label, ui.email
-          FROM group_members gm
-          LEFT JOIN users_info ui ON gm.user_id = ui.user_id
-          WHERE gm.group_id = $1
-        `, [group.group_id])
-        const members = membersResult.rows
-        
-        // Create group session data
-        const groupData = {
-          id: group.group_id,
-          group_id: group.group_id,
-          username: group.username,
-          Status: 'group',
-          account_type: 'group',
-          leader_name: `${group.leader_firstname} ${group.leader_lastname}`,
-          leader_email: group.leader_email,
-          members: members,
-          created_at: group.created_at
-        };
-        
-        // Store group data in server session
-        req.session.user = {
-          id: group.group_id,
-          group_id: group.group_id,
-          Status: 'group',
-          account_type: 'group',
-          username: group.username
-        };
-        
-        // Set HttpOnly cookie with group data
-        res.cookie('auth_user', JSON.stringify(groupData), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
-        
-        return res.json({
-          message: 'Group login successful',
-          user: groupData,
-          account_type: 'group',
-          redirect_to: '/submission'
-        })
-      } else {
-        return res.status(401).json({ error: 'Invalid password' })
-      }
+      // No user found in database
+      return res.status(401).json({ 
+        error: 'Invalid credentials. User not found in database.' 
+      })
     }
 
     // Regular user login flow

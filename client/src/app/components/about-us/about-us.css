@@ -379,3 +379,160 @@ textarea { resize: none; height: 100%; }
 @media (max-width: 480px) {
   .search-container { max-width: none; width: 100%; }
 }
+
+/* =================== RESPONSIVE BREAKPOINTS =================== */
+
+/* Large tablets and small desktops */
+@media (max-width: 1200px) {
+  .mission-and-goals {
+    min-height: 700px;
+    height: auto;
+  }
+  
+  .officials-and-staffs {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* Tablets */
+@media (max-width: 992px) {
+  .hero {
+    min-height: 600px;
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+  
+  .hero h1 {
+    font-size: clamp(40px, 8vw, 65px);
+  }
+  
+  .mission-section {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .mission-description {
+    text-align: center;
+  }
+  
+  .content-container {
+    padding: 0 20px;
+  }
+}
+
+/* Small tablets and large phones */
+@media (max-width: 768px) {
+  .hero { 
+    min-height: 500px; 
+    padding: 40px 20px;
+  }
+  
+  .hero h1 {
+    font-size: clamp(32px, 10vw, 50px);
+    text-align: center;
+  }
+  
+  .hero p {
+    text-align: center;
+    font-size: 1rem;
+  }
+  
+  .mission-and-goals,
+  .contact-section {
+    padding: 40px 20px;
+  }
+  
+  .contact-section {
+    height: auto;
+    min-height: 550px;
+  }
+  
+  .staff-cards {
+    gap: 30px;
+  }
+  
+  .staff-card {
+    max-width: 150px;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 576px) {
+  .hero {
+    min-height: 450px;
+    padding: 30px 15px;
+  }
+  
+  .hero h1 {
+    font-size: clamp(28px, 12vw, 40px);
+    margin-bottom: 1rem;
+  }
+  
+  .hero p {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .content-container {
+    padding: 0 15px;
+  }
+  
+  .officials-and-staffs,
+  .contact-section {
+    padding: 30px 15px;
+  }
+  
+  .staff-cards {
+    gap: 20px;
+  }
+  
+  .staff-card {
+    max-width: 130px;
+  }
+  
+  .profile-image-container {
+    width: clamp(100px, 25vw, 150px);
+  }
+  
+  .staff-info h3 {
+    font-size: clamp(14px, 4vw, 18px);
+  }
+  
+  .staff-info p {
+    font-size: clamp(12px, 3vw, 14px);
+  }
+  
+  input,
+  textarea {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .submit-button {
+    padding: 10px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Small mobile phones */
+@media (max-width: 480px) {
+  .search-container { 
+    max-width: none; 
+    width: 100%; 
+  }
+  
+  .staff-cards {
+    gap: 15px;
+  }
+  
+  .staff-card {
+    max-width: 120px;
+  }
+  
+  .hero .bgimg {
+    opacity: 0.2;
+    width: 50vw;
+  }
+}
