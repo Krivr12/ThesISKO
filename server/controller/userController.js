@@ -877,6 +877,117 @@ const updateUser = async (req, res) => {
   }
 };
 
+// Admin create faculty - Create faculty member directly (no email verification needed)
+const adminCreateFaculty = async (req, res) => {
+  try {
+    const { firstname, lastname, email, faculty_id } = req.body;
+
+    // Validate required fields
+    if (!firstname || !lastname || !email || !faculty_id) {
+      return res.status(400).json({ 
+        error: 'All fields are required: firstname, lastname, email, and faculty_id' 
+      });
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        error: 'Please enter a valid email address' 
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if email already exists
+    const emailCheck = await pool.query(
+      'SELECT user_id FROM users_info WHERE LOWER(email) = $1',
+      [normalizedEmail]
+    );
+
+    if (emailCheck.rows.length > 0) {
+      return res.status(400).json({ 
+        error: 'Email already exists. Please use a different email.' 
+      });
+    }
+
+    // Check if faculty_id already exists
+    const facultyIdCheck = await pool.query(
+      'SELECT user_id FROM users_info WHERE faculty_id = $1',
+      [faculty_id]
+    );
+
+    if (facultyIdCheck.rows.length > 0) {
+      return res.status(400).json({ 
+        error: 'Faculty ID already exists. Please use a different ID.' 
+      });
+    }
+
+    // Generate password
+    const generatedPassword = generatePassword();
+    
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(generatedPassword, salt);
+
+    // Insert faculty into users_info with role_id = 3 (Faculty)
+    const result = await pool.query(
+      'INSERT INTO users_info (email, password_hash, role_id, firstname, lastname, faculty_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id, firstname, lastname, email, faculty_id',
+      [normalizedEmail, hashedPassword, 4, firstname.trim(), lastname.trim(), faculty_id]
+    );
+
+    const newFaculty = result.rows[0];
+
+    // Send credentials email
+    try {
+      const { sendEmail } = await import('../services/emailService.js');
+      const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
+      
+      await sendEmail({
+        to: normalizedEmail,
+        subject: 'Your ThesISKO Faculty Account Credentials',
+        template: 'credentials',
+        data: {
+          headerIcon: '🎓',
+          headerTitle: 'Welcome to ThesISKO!',
+          firstname: firstname.trim(),
+          lastname: lastname.trim(),
+          email: normalizedEmail,
+          password: generatedPassword,
+          accountType: 'Faculty',
+          identifier: faculty_id,
+          identifierLabel: 'Faculty ID',
+          loginUrl: `${frontendUrl}/login`
+        }
+      });
+      
+      console.log(`✅ Faculty account created and credentials email sent to ${normalizedEmail}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send credentials email:', emailError);
+      // Don't fail the request if email fails - account is still created
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Faculty account created successfully',
+      data: {
+        user_id: newFaculty.user_id,
+        firstname: newFaculty.firstname,
+        lastname: newFaculty.lastname,
+        email: newFaculty.email,
+        faculty_id: newFaculty.faculty_id
+      }
+    });
+
+  } catch (error) {
+    console.error('Error creating faculty:', error);
+    res.status(500).json({ 
+      error: 'Failed to create faculty account',
+      details: error.message 
+    });
+  }
+};
+
 export {
   getAllUsers,
   signupUser,
@@ -885,7 +996,8 @@ export {
   getCurrentUser,
   verifyStudentEmail,
   getUserById,
-  updateUser
+  updateUser,
+  adminCreateFaculty
 }
 
 /* 
