@@ -208,6 +208,7 @@ export class AuthService {
 export class Navbar implements OnInit {
   user$!: Observable<AuthUser | null>;
   profileItems: MenuItem[] = [];
+  isMenuOpen = false;
   /** Default fallback image in assets */
   defaultAvatar = 'profile.png';
   
@@ -221,6 +222,15 @@ export class Navbar implements OnInit {
     this.user$.subscribe(user => {
       this.updateProfileItems(user);
     });
+  }
+
+  // Hamburger menu toggle
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu() {
+    this.isMenuOpen = false;
   }
 
 

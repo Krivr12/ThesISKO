@@ -97,6 +97,33 @@ h2 {
     background-color: transparent !important;
   }
 
+  /* Make hamburger clean, no border or background */
+  .menu-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    display: none; /* hidden by default */
+  }
+
+  /* Remove PrimeNG button default box shadow and border if applied */
+  .menu-toggle:focus,
+  .menu-toggle:active {
+    outline: none;
+    box-shadow: none;
+    background: none;
+    border: none;
+  }
+
+  /* Adjust position and spacing for better layout */
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
   .user-name {
     font-weight: 600;
     font-size: 15px;
@@ -440,6 +467,94 @@ h2 {
   
   :host ::ng-deep .p-confirmdialog .p-button {
     width: 100% !important;
+  }
+}
+
+@media (max-width: 900px) {
+  :host ::ng-deep .logo {
+    display: none !important;
+  }
+
+  :host ::ng-deep .p-toolbar {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  :host ::ng-deep .p-toolbar .p-toolbar-group-left,
+  :host ::ng-deep .p-toolbar .p-toolbar-group-right {
+    gap: 0.75rem !important;
+  }
+}
+
+/* ====== MOBILE STYLES ====== */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    background-color: #800000;
+    position: absolute;
+    top: 60px; /* just below the toolbar */
+    left: 0;
+    width: 100%;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    z-index: 99;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links p-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-left img {
+    margin-left: 200px; /* adjust as you like */
+  }
+
+  .user-info {
+    display: none !important; /* hides name/email container */
+  }
+  
+  .user-profile-card {
+    min-width: auto !important;
+    padding: 6px !important;
+    border-radius: 50% !important; /* makes it round if you want */
+    background-color: transparent !important;
+    border: none !important;
+  }
+  
+  .user-avatar .p-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  :host ::ng-deep .p-menu-overlay {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+  
+  /* Style the sign-out item itself */
+  :host ::ng-deep .p-menu .p-menuitem-link {
+    background: none !important;
+    color: #fff !important; /* white text for red navbar */
+    font-size: 10px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Optional: subtle hover */
+  :host ::ng-deep .p-menu .p-menuitem-link:hover {
+    text-decoration: underline !important;
+    background: none !important;
   }
 }
 

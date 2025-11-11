@@ -28,7 +28,30 @@
     margin-left: 5px;
   }
   
-  .footer-right a:hover {
-    text-decoration: underline;
+.footer-right a:hover {
+  text-decoration: underline;
+}
+
+/* 🧩 MOBILE VIEW */
+@media (max-width: 900px) {
+  .footer {
+    justify-content: center !important; /* center content */
+    text-align: center;
+    padding: 10px 20px;
   }
+
+  /* Hide everything except copyright */
+  .footer-left,
+  .footer-right {
+    display: none !important;
+  }
+
+  /* Create the copyright-only text */
+  .footer::after {
+    content: "© 2025 | ThesISKO";
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
   
