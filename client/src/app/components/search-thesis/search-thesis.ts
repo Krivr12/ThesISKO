@@ -13,7 +13,7 @@ interface Thesis {
   document_id: string;
   title: string;
   author: string;
-  year: number;
+  year: number | string; // Can be number or "N/A"
   keywords: string[];
 }
 
@@ -121,16 +121,8 @@ export class SearchThesis implements OnInit {
             ? doc.authors[0] 
             : "Unknown Author";
           
-          let year = null;
-          if (doc.submitted_at) {
-            try {
-              year = new Date(doc.submitted_at).getFullYear();
-            } catch (dateError) {
-              year = new Date().getFullYear();
-            }
-          } else {
-            year = new Date().getFullYear();
-          }
+          // Use year field directly, show "N/A" if not available
+          const year = doc.year || "N/A";
           
           return {
             _id: doc._id,
@@ -158,8 +150,15 @@ export class SearchThesis implements OnInit {
   }
 
   updateAvailableYears(): void {
-    // Extract unique years from theses
-    const years = [...new Set(this.allTheses.map(thesis => thesis.year))].sort((a, b) => b - a);
+    // Extract unique numeric years from theses, filter out "N/A"
+    // Handle both string and number years, convert strings to numbers
+    const years = [...new Set(
+      this.allTheses
+        .map(thesis => thesis.year)
+        .filter(year => year !== "N/A" && year !== null && year !== undefined)
+        .map(year => typeof year === 'string' ? parseInt(year, 10) : year)
+        .filter(year => !isNaN(year) && isFinite(year))
+    )].sort((a, b) => b - a);
     this.availableYears.set(years);
   }
 
@@ -240,9 +239,10 @@ export class SearchThesis implements OnInit {
           thesis.keywords.some(kw => kw.toLowerCase().includes(tag.toLowerCase()))
         );
       
-      // Year filter
+      // Year filter - handle both string and number years
       const matchesYear = this.selectedYear === '' || 
-        thesis.year.toString() === this.selectedYear;
+        (thesis.year !== "N/A" && thesis.year !== null && thesis.year !== undefined &&
+         thesis.year.toString() === this.selectedYear.toString());
       
       // Author filter
       const matchesAuthor = this.authorName === '' || 

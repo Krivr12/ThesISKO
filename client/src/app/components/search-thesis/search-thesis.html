@@ -112,7 +112,7 @@
 
         <div class="result-card" *ngFor="let thesis of displayedTheses" (click)="viewThesis(thesis)">
           <h3 class="thesis-title">{{ thesis.title }}</h3>
-          <p class="thesis-meta">By: {{ thesis.author }} | Year: {{ thesis.year }}</p>
+          <p class="thesis-meta">Year: {{ thesis.year }} | By: {{ thesis.author }} </p>
           <div class="tags-container">
             <span class="tag tag-year">{{ thesis.year }}</span>
             <span *ngFor="let keyword of thesis.keywords" class="tag tag-keywords">

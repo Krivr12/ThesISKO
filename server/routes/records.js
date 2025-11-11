@@ -49,26 +49,15 @@ router.get("/", async (req, res) => {
         ? doc.authors[0] 
         : "Unknown Author";
       
-      // Extract year from created_at or submitted_at, handle null/undefined
-      let year = null;
-      const dateField = doc.created_at || doc.submitted_at;
-      if (dateField) {
-        try {
-          year = new Date(dateField).getFullYear();
-        } catch (dateError) {
-          console.warn(`Invalid date for document ${doc._id}:`, dateField);
-          year = new Date().getFullYear(); // Fallback to current year
-        }
-      } else {
-        year = new Date().getFullYear(); // Fallback to current year
-      }
+      // Use year field directly, show "N/A" if not available
+      const year = doc.year || "N/A";
       
       return {
         _id: doc._id || doc.id, // Handle both _id and id fields
         document_id: doc.document_id || doc.doc_id || (doc._id || doc.id)?.toString(), // Handle doc_id field
         title: doc.title || "Untitled",
         author: firstAuthor, // Transform to single author string for search-thesis
-        year: year, // Transform to year number for search-thesis
+        year: year, // Use year field directly
         keywords: doc.tags || [] // Transform tags to keywords for search-thesis
       };
     });

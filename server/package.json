@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
+    "start": "node --env-file config.env server.js",
+    "dev": "nodemon --env-file config.env server.js",
     "build": "echo 'No build needed'",
     "seed:document-types": "node scripts/seed-document-types.js"
   },
@@ -35,6 +36,9 @@
     "resend": "^6.1.2",
     "uuid": "^13.0.0",
     "validator": "^13.9.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   },
   "description": ""
 }
