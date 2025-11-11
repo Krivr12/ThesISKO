@@ -1,17 +1,5 @@
-// Load environment variables FIRST before any other imports
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load config.env from the same directory as server.js
-dotenv.config({ path: join(__dirname, "config.env") });
-
-// Verify environment variables are loaded
-console.log("✅ Environment variables loaded from config.env");
+// Environment variables are loaded via --env-file flag in npm scripts
+// No need for dotenv when using Node.js native --env-file flag
 
 import express from "express";
 import cors from "cors";

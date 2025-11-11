@@ -75,7 +75,7 @@ export async function semanticSearch(query, topK = 5) {
         $project: {
           _id: 1,
           title: 1,
-          submitted_at: 1,
+          year: 1,
           authors: 1,
           tags: 1,
           score: 1,

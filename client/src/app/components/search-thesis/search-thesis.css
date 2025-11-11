@@ -103,6 +103,7 @@ body {
   display: flex;
   gap: 60px;
   align-items: flex-start;
+  width: 100%; /* Ensure full width */
 }
 
 .filter-sidebar {
@@ -172,7 +173,10 @@ body {
 }
 
 .search-results {
-  flex-grow: 1;
+  flex: 1 1 auto; /* Allow grow and shrink */
+  min-width: 0; /* Prevent flex item from overflowing */
+  max-width: 100%; /* Responsive - don't exceed container */
+  box-sizing: border-box;
 }
 
 .results-count {
@@ -193,7 +197,14 @@ body {
   margin-bottom: 25px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer; 
-  transition: transform 0.2s ease, box-shadow 0.2s ease; 
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 200px; /* Fixed height for uniform layout */
+  width: 100%; /* Always fill container width - responsive */
+  max-width: 100%; /* Don't exceed container */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .result-card:hover {
@@ -201,7 +212,7 @@ body {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); 
 }
 
-/* tried adding letter spacing and line height */
+/* Title with 2-line truncation */
 .thesis-title {
   font-size: 1.4rem;
   font-weight: 700;
@@ -209,7 +220,14 @@ body {
   margin-top: 0;
   margin-bottom: 8px;
   letter-spacing: 0.3px;
-  line-height: 1.2;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 2 lines */
+  line-clamp: 2; /* Standard property for compatibility */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 3.6rem; /* Approximate height for 2 lines (1.4rem * 1.3 * 2) */
 }
 
 .thesis-meta {
@@ -217,12 +235,16 @@ body {
   color: #616161;
   margin-top: 0;
   margin-bottom: 15px;
+  flex-shrink: 0; /* Prevent meta from shrinking */
 }
 
 .tags-container {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0; /* Prevent tags from shrinking */
+  margin-top: auto; /* Push tags to bottom */
 }
 
 .tag {
@@ -549,6 +571,15 @@ body {
   .filter-sidebar {
     flex-basis: 280px;
   }
+  
+  .search-results {
+    flex: 1 1 auto;
+    max-width: 100%;
+  }
+  
+  .result-card {
+    width: 100%;
+  }
 }
 
 /* Tablets */
@@ -568,6 +599,15 @@ body {
   
   .search-bar-container {
     margin-bottom: 40px;
+  }
+  
+  .search-results {
+    flex: 1 1 auto;
+    max-width: 100%;
+  }
+  
+  .result-card {
+    width: 100%;
   }
 }
 
@@ -604,13 +644,21 @@ body {
     width: 100%;
   }
   
+  .search-results {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
   .result-card {
     padding: 20px;
     margin-bottom: 20px;
+    height: 180px; /* Slightly smaller for mobile */
+    width: 100%; /* Full width on mobile */
   }
   
   .thesis-title {
     font-size: 1.2rem;
+    min-height: 3.12rem; /* Adjusted for smaller font (1.2rem * 1.3 * 2) */
   }
   
   .tags-container {
@@ -646,10 +694,13 @@ body {
   .result-card {
     padding: 15px;
     margin-bottom: 15px;
+    height: 170px; /* Smaller for mobile phones */
+    width: 100%; /* Full width on mobile */
   }
   
   .thesis-title {
     font-size: 1.1rem;
+    min-height: 2.86rem; /* Adjusted for smaller font (1.1rem * 1.3 * 2) */
   }
   
   .thesis-meta {
@@ -708,10 +759,14 @@ body {
   
   .result-card {
     padding: 12px;
+    margin-bottom: 12px;
+    height: 160px; /* Even smaller for small mobile */
+    width: 100%; /* Full width on small mobile */
   }
   
   .thesis-title {
     font-size: 1rem;
+    min-height: 2.6rem; /* Adjusted for smaller font (1rem * 1.3 * 2) */
   }
   
   .thesis-meta {
