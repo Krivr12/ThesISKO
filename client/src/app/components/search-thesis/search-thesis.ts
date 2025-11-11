@@ -45,20 +45,6 @@ export class SearchThesis implements OnInit {
   authorName: string = '';
   customTagInput: string = ''; //added filter state for custom tag
 
-  // can add tags here
-  predefinedTags = signal<string[]>([
-    'Technology',
-    'Information Systems',
-    'Web Application',
-    'Mobile Application',
-    'Artificial Intelligence',
-    'Data Science',
-    'Cloud Computing',
-    'Cybersecurity',
-    'User Experience',
-    'Database'
-  ]);
-
   // user-added tags
   customTags = signal<string[]>([]);
 
