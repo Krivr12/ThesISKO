@@ -81,6 +81,10 @@ body {
   outline: none;
   background-color: #f5f5f5;
   color: #333;
+  width: 100%; /* Ensure full width of container */
+  min-width: 0; /* Allow shrinking */
+  max-width: 100%; /* Prevent overflow */
+  box-sizing: border-box; /* Include padding in width */
 }
 
 .search-button {
@@ -104,20 +108,41 @@ body {
   gap: 60px;
   align-items: flex-start;
   width: 100%; /* Ensure full width */
+  transition: gap 0.3s ease-in-out; /* Smooth gap transition */
 }
 
 .filter-sidebar {
-  flex-basis: 300px;
+  flex: 0 0 300px; /* Fixed width, no grow/shrink */
   padding-right: 20px;
   position: sticky;
   top: 40px;
+  transition: flex-basis 0.3s ease-in-out, padding-right 0.3s ease-in-out;
+  overflow: hidden; /* Hide content when collapsed */
+  min-width: 0; /* Allow flex item to shrink */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.filter-sidebar.sidebar-collapsed {
+  flex: 0 0 100px; /* Collapse to button width */
+  padding-right: 10px;
+}
+
+.results-layout:has(.sidebar-collapsed) {
+  gap: 20px; /* Reduce gap when sidebar is collapsed */
 }
 
 .filter-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start; /* Align button to left */
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 0; /* Remove bottom margin to align with results-count */
+  margin-top: 0; /* Align top with results-count */
+  transition: margin-bottom 0.3s ease-in-out;
+}
+
+.filter-sidebar:has(.filter-options-wrapper.collapsed) .filter-header,
+.filter-sidebar.sidebar-collapsed .filter-header {
+  margin-bottom: 0;
 }
 
 .filter-title {
@@ -139,14 +164,27 @@ body {
 .filter-options-wrapper {
   overflow: hidden;
   transition: max-height 0.3s ease-in-out;
+  max-height: 1000px; /* Set a reasonable max height for expanded state */
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .filter-options-wrapper.collapsed {
   max-height: 0;
+  margin-bottom: 0;
+}
+
+.filter-options-wrapper.collapsed > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .filter-group {
   margin-bottom: 30px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .filter-group-title {
@@ -177,6 +215,7 @@ body {
   min-width: 0; /* Prevent flex item from overflowing */
   max-width: 100%; /* Responsive - don't exceed container */
   box-sizing: border-box;
+  transition: flex-grow 0.3s ease-in-out; /* Smooth expansion */
 }
 
 .results-count {
@@ -188,6 +227,7 @@ body {
   border-radius: 8px;
   margin-bottom: 30px;
   display: inline-block;
+  margin-top: 0; /* Align with filter button */
 }
 
 .result-card {
@@ -198,13 +238,15 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer; 
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 200px; /* Fixed height for uniform layout */
+  min-height: 200px; /* Minimum height, allows growth */
+  height: auto; /* Allow height to grow with content */
   width: 100%; /* Always fill container width - responsive */
   max-width: 100%; /* Don't exceed container */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box; /* Include padding in width calculation */
+  overflow: hidden; /* Prevent content from leaking outside */
 }
 
 .result-card:hover {
@@ -212,7 +254,7 @@ body {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); 
 }
 
-/* Title with 2-line truncation */
+/* Title with responsive line truncation */
 .thesis-title {
   font-size: 1.4rem;
   font-weight: 700;
@@ -222,46 +264,62 @@ body {
   letter-spacing: 0.3px;
   line-height: 1.3;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limit to 2 lines */
+  -webkit-line-clamp: 2; /* Desktop: 2 lines */
   line-clamp: 2; /* Standard property for compatibility */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: 3.6rem; /* Approximate height for 2 lines (1.4rem * 1.3 * 2) */
+  word-break: break-word; /* Break long words to prevent overflow */
+  overflow-wrap: break-word; /* Additional word breaking support */
 }
 
 .thesis-meta {
-  font-size: 1rem;
+  font-size: 1rem; /* Same as tag-keyword */
+  font-weight: 600; /* Same as tags (no bold) */
   color: #616161;
   margin-top: 0;
   margin-bottom: 15px;
   flex-shrink: 0; /* Prevent meta from shrinking */
+  white-space: nowrap; /* Keep on single line */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Truncate if too long */
+  max-width: 100%; /* Prevent overflow */
 }
 
-.tags-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+.tags-text {
+  font-size: 1rem; /* Same as author */
+  color: #616161;
+  margin-top: 0;
+  margin-bottom: 0;
   flex-shrink: 0; /* Prevent tags from shrinking */
   margin-top: auto; /* Push tags to bottom */
-}
-
-.tag {
-  display: inline-block;
-  padding: 6px 15px;
-  border-radius: 9999px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  width: 100%; /* Ensure full width */
+  max-width: 100%; /* Prevent overflow */
+  word-wrap: break-word; /* Break long words */
+  overflow-wrap: break-word; /* Additional word breaking support */
+  line-height: 1.5; /* Better line spacing */
 }
 
 .tag-year {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 9999px;
   background-color: #800000;
   color: white;
+  font-weight: normal; /* Remove bold */
+  margin-right: 8px;
+  font-size: 1rem; /* Same as author and tags */
 }
 
-.tag-keywords {
+.tags-label {
+  font-weight: 600;
   color: #616161;
+  margin-left: 8px;
+}
+
+.tag-keyword {
+  color: #616161;
+  font-size: 1rem; /* Same as author and year */
 }
 
 .paginator {
@@ -384,30 +442,6 @@ body {
   height: 16px;
 }
 
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.tag {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.tag-year {
-  background-color: #800000;
-  color: white;
-}
-
-.tag-keywords {
-  background-color: #e0e0e0;
-  color: #616161;
-}
 
 /* Scrollbar styling for filter list */
 .filter-list::-webkit-scrollbar {
@@ -434,14 +468,18 @@ body {
   display: flex;
   gap: 8px;
   margin-bottom: 15px;
+  width: 100%; /* Ensure full width of container */
+  min-width: 0; /* Allow shrinking */
 }
 
 .custom-tag-input .search-input {
-  flex-grow: 1;
+  flex: 1 1 auto; /* Grow but allow shrinking */
+  min-width: 0; /* Allow input to shrink */
   margin-bottom: 0;
 }
 
 .add-tag-button {
+  flex: 0 0 auto; /* Don't shrink, maintain button size */
   padding: 0 15px;
   border: none;
   border-radius: 8px;
@@ -450,6 +488,7 @@ body {
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  white-space: nowrap; /* Prevent button text from wrapping */
 }
 
 .add-tag-button:hover {
@@ -579,6 +618,12 @@ body {
   
   .result-card {
     width: 100%;
+    min-height: 220px; /* Slightly taller for tablets */
+  }
+  
+  .thesis-title {
+    -webkit-line-clamp: 3; /* 3 lines on tablets */
+    line-clamp: 3;
   }
 }
 
@@ -608,6 +653,12 @@ body {
   
   .result-card {
     width: 100%;
+    min-height: 240px; /* Taller for smaller tablets */
+  }
+  
+  .thesis-title {
+    -webkit-line-clamp: 4; /* 4 lines on smaller tablets */
+    line-clamp: 4;
   }
 }
 
@@ -622,6 +673,15 @@ body {
     width: 100%;
     padding-right: 0;
     position: static;
+    flex: 0 0 auto; /* Reset flex for mobile */
+  }
+  
+  .filter-sidebar.sidebar-collapsed {
+    flex: 0 0 auto; /* Don't collapse width on mobile */
+  }
+  
+  .filter-header {
+    justify-content: space-between; /* Back to space-between on mobile */
   }
   
   .search-page-container {
@@ -652,23 +712,17 @@ body {
   .result-card {
     padding: 20px;
     margin-bottom: 20px;
-    height: 180px; /* Slightly smaller for mobile */
+    min-height: 200px; /* Minimum height, allows growth */
+    height: auto; /* Allow height to grow */
     width: 100%; /* Full width on mobile */
   }
   
   .thesis-title {
     font-size: 1.2rem;
-    min-height: 3.12rem; /* Adjusted for smaller font (1.2rem * 1.3 * 2) */
+    -webkit-line-clamp: 5; /* 5 lines on mobile */
+    line-clamp: 5;
   }
   
-  .tags-container {
-    gap: 6px;
-  }
-  
-  .tag {
-    padding: 4px 10px;
-    font-size: 0.8rem;
-  }
   
   .paginator {
     padding: 15px 0;
@@ -676,7 +730,7 @@ body {
   }
   
   .filter-options-wrapper:not(.collapsed) {
-    max-height: none;
+    max-height: 1500px; /* Larger max-height for mobile to accommodate all filters */
   }
 }
 
@@ -694,17 +748,19 @@ body {
   .result-card {
     padding: 15px;
     margin-bottom: 15px;
-    height: 170px; /* Smaller for mobile phones */
+    min-height: 180px; /* Minimum height, allows growth */
+    height: auto; /* Allow height to grow */
     width: 100%; /* Full width on mobile */
   }
   
   .thesis-title {
     font-size: 1.1rem;
-    min-height: 2.86rem; /* Adjusted for smaller font (1.1rem * 1.3 * 2) */
+    -webkit-line-clamp: 6; /* 6 lines on smaller mobile */
+    line-clamp: 6;
   }
   
   .thesis-meta {
-    font-size: 0.9rem;
+    font-size: 1rem; /* Keep same size as tags */
   }
   
   .results-count {
@@ -730,15 +786,6 @@ body {
     padding: 8px 15px;
   }
   
-  .tags-container {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-  }
-  
-  .tag {
-    font-size: 0.75rem;
-  }
 }
 
 /* Small mobile phones */
@@ -760,17 +807,21 @@ body {
   .result-card {
     padding: 12px;
     margin-bottom: 12px;
-    height: 160px; /* Even smaller for small mobile */
+    min-height: 160px; /* Minimum height, allows growth */
+    height: auto; /* Allow height to grow */
     width: 100%; /* Full width on small mobile */
   }
   
   .thesis-title {
     font-size: 1rem;
-    min-height: 2.6rem; /* Adjusted for smaller font (1rem * 1.3 * 2) */
+    display: block; /* Remove line-clamp on very small screens */
+    -webkit-line-clamp: unset; /* Allow unlimited lines */
+    line-clamp: unset;
+    overflow: visible; /* Show all content */
   }
   
   .thesis-meta {
-    font-size: 0.85rem;
+    font-size: 1rem; /* Keep same size as tags */
   }
   
   .filter-header {
