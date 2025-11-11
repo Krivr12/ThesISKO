@@ -25,24 +25,31 @@ section {
 /* ==================== HERO ==================== */
 .hero {
   position: relative;
-  min-height: 900px;  
-  width: 100%;            
+  min-height: 900px;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center; 
-  padding-left: 5%;         
+  justify-content: center;
+  align-items: center; /* center horizontally like carousel */
   color: white;
   overflow: hidden;
+  padding: 0 2rem; /* add side padding to match carousel */
+  box-sizing: border-box;
+}
+
+.hero > *:not(.bgimg) {
+  max-width: 1200px; /* same width as carousel container */
+  width: 100%;
 }
 
 .hero .bgimg {
   position: absolute;
-  bottom: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   right: 5;
-  height: 100%;      
-  width: auto;
-  max-width: none;    
-  object-fit: cover;  
+  object-fit: cover;
+  object-position: right center;
   z-index: -1;
   opacity: 0.6;
 }
@@ -212,6 +219,175 @@ section {
   .carousel-shell { padding: 0 12px; }
   :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 12px; }
   .carousel-box { padding: 12px; }
+}
+
+/* ==================== RESPONSIVE STYLES ==================== */
+
+/* Tablets and below (≤1024px) */
+@media (max-width: 1024px) {
+  .hero {
+    padding-left: 3%;
+    min-height: 700px;
+  }
+
+  .hero h1 {
+    font-size: 55px;
+  }
+
+  .hero p {
+    font-size: 1rem;
+    max-width: 600px;
+  }
+  
+  .hero .bgimg {
+    object-fit: cover;        /* still fills screen */
+    object-position: 80% center;
+  }
+
+  .search-container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .search-container input,
+  .search-container button {
+    width: 100%;
+    height: 60px;
+  }
+
+  .carousel-box {
+    width: 280px;
+  }
+
+  .containerSubmitWork .inner {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .leftside,
+  .rightside {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .rightside {
+    padding-right: 0;
+    align-items: center;
+  }
+
+  .instructions {
+    width: 100%;
+    max-width: 500px;
+  }
+}
+
+/* Mobile devices (≤768px) */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .hero {
+    min-height: 600px;
+    padding: 20px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 40px;
+    line-height: 1.1;
+  }
+
+  .hero p {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    text-align: center;
+    padding: 0 10px;
+  }
+
+  .hero .bgimg {
+    object-fit: cover;
+    object-position: 95% center;
+  }
+
+  .search-container {
+    flex-direction: column;
+    width: 90%;
+    margin: 0 auto;
+  }
+
+  .carousel-container {
+    padding: 2rem 1rem;
+  }
+
+  .carousel-title {
+    font-size: 1.3rem;
+  }
+
+  .carousel-box {
+    width: 90%;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .containerSubmitWork {
+    padding: 2rem 1rem;
+  }
+
+  .leftside h1 {
+    font-size: 38px;
+  }
+
+  .leftside p {
+    font-size: 0.95rem;
+  }
+
+  :host ::ng-deep .submit .p-button {
+    width: 100%;
+  }
+
+  .instructions {
+    font-size: 15px;
+    width: 90%;
+    height: auto;
+    padding: 12px;
+    text-align: left;
+  }
+}
+
+/* Extra small (≤480px) */
+@media (max-width: 480px) {
+  .hero {
+    padding: 1rem;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+  }
+
+  .hero p {
+    font-size: 0.9rem;
+  }
+  
+  .hero .bgimg {
+    object-fit: cover;        /* still fills screen */
+    object-position: 80% center;
+  }
+
+  .carousel-box {
+    width: 100%;
+  }
+
+  .carousel-title {
+    font-size: 1.1rem;
+  }
+
+  .instructions {
+    font-size: 14px;
+  }
 }
 
 /* ==================== SUBMIT WORK SECTION ==================== */

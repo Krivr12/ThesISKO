@@ -2,36 +2,45 @@
   <ng-template #start>
     <div class="nav-left">
       <h2 class="logo">ThesISKO</h2>
-      <p-button 
-        label="Home" 
-        text 
-        plain 
-        (click)="navigateToHome()"
-        [title]="'Go to home page'">
-      </p-button>
-      <p-button 
-        label="Search" 
-        text 
-        plain 
-        (click)="navigateToSearch()"
-        [title]="'Search for thesis'">
-      </p-button>
-      <p-button 
-        label="About" 
-        text 
-        plain 
-        (click)="navigateToAbout()"
-        [title]="'Navigate to About Us page'">
-      </p-button>
-      <p-button 
-        label="Submit" 
-        text 
-        plain 
-        [routerLink]="canSubmit() ? '/submission' : null"
-        [disabled]="!canSubmit()"
-        [title]="!isUserLoggedIn() ? 'Please log in to submit your thesis' : canSubmit() ? 'Submit your thesis' : 'Only students and group leaders can submit'"
-        [styleClass]="!canSubmit() ? 'p-button-text p-button-plain disabled-button' : ''">
-      </p-button>
+
+      <!-- Hamburger menu (visible only on mobile) -->
+      <button class="menu-toggle" (click)="toggleMenu()">
+        &#9776;
+      </button>
+
+      <!-- Navigation links -->
+      <div class="nav-links" [class.open]="isMenuOpen">
+        <p-button
+          label="Home"
+          text
+          plain
+          (click)="navigateToHome(); closeMenu()"
+          [title]="'Go to home page'">
+        </p-button>
+        <p-button
+          label="Search"
+          text
+          plain
+          (click)="navigateToSearch(); closeMenu()"
+          [title]="'Search for thesis'">
+        </p-button>
+        <p-button
+          label="About"
+          text
+          plain
+          (click)="navigateToAbout(); closeMenu()"
+          [title]="'Navigate to About Us page'">
+        </p-button>
+        <p-button
+          label="Submit"
+          text
+          plain
+          [routerLink]="canSubmit() ? '/submission' : null"
+          [disabled]="!canSubmit()"
+          [title]="!isUserLoggedIn() ? 'Please log in to submit your thesis' : canSubmit() ? 'Submit your thesis' : 'Only students and group leaders can submit'"
+          [styleClass]="!canSubmit() ? 'p-button-text p-button-plain disabled-button' : ''">
+        </p-button>
+      </div>
     </div>
   </ng-template>
 
