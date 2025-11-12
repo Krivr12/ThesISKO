@@ -59,8 +59,8 @@ export class FICHistoryPage implements OnInit {
   ) {}
   
   ngOnInit(): void {
-    // Get current user from local storage
-    const userStr = localStorage.getItem('currentUser');
+    // Get current user from session storage
+    const userStr = sessionStorage.getItem('currentUser');
     if (userStr) {
       const user = JSON.parse(userStr);
       this.currentUserEmail = user.email || '';

@@ -109,10 +109,10 @@ onLogin() {
         console.log('userData.role_id specifically:', userData.role_id);
         console.log('userData.role_id type:', typeof userData.role_id);
         
-        // Store user data in local storage for persistence
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('role', user.Status || 'student');
+        // Store user data in session storage for persistence
+        sessionStorage.setItem('currentUser', JSON.stringify(userData));
+        sessionStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('role', user.Status || 'student');
         
         // Update both AuthServices with user data
         console.log('About to set user in AuthService:', userData);

@@ -107,16 +107,11 @@ export class AuthService {
         sessionStorage.removeItem('loginTimestamp');
         sessionStorage.removeItem('pageHiddenAt');
         sessionStorage.removeItem('currentUser');
-        
-        // Clear localStorage
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('user');
-        localStorage.removeItem('role');
-        localStorage.removeItem('email');
+        sessionStorage.removeItem('email');
         
         console.log('After clear - localStorage keys:', Object.keys(localStorage));
         console.log('After clear - sessionStorage keys:', Object.keys(sessionStorage));
-        console.log('After clear - localStorage currentUser:', localStorage.getItem('currentUser'));
+        console.log('After clear - sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
       }
     }
   }
@@ -166,10 +161,6 @@ export class AuthService {
       // Clear local state immediately
       this.userSubject.next(null);
       sessionStorage.clear();
-      localStorage.removeItem('currentUser');
-      localStorage.removeItem('user');
-      localStorage.removeItem('role');
-      localStorage.removeItem('email');
       
       console.log('Browser close logout initiated');
     } catch (error) {

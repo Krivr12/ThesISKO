@@ -38,6 +38,9 @@ export class SearchResult implements OnInit, AfterViewInit {
   // ===== Templates for role-based dialogs =====
   @ViewChild('dlgRequestAccessStudent', { static: false }) dlgStudent!: TemplateRef<any>;
   @ViewChild('dlgRequestAccessGuest', { static: false }) dlgGuest!: TemplateRef<any>;
+  @ViewChild('dlgUserAffiliation', { static: false }) dlgUserAffiliation!: TemplateRef<any>;
+  @ViewChild('dlgExternalAffiliation', { static: false }) dlgExternalAffiliation!: TemplateRef<any>;
+  @ViewChild('dlgRequestDetails', { static: false }) dlgRequestDetails!: TemplateRef<any>;
   @ViewChild('dlgLoginRequired', { static: false }) dlgLoginRequired!: TemplateRef<any>;
   @ViewChild('dlgTerms', { static: false }) dlgTerms!: TemplateRef<any>;
 
@@ -142,15 +145,52 @@ export class SearchResult implements OnInit, AfterViewInit {
   requestOptions = ['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4', 'Chapter 5', 'All'] as const;
   selectedRequestChapters = new Set<string>();
 
-  // ===== Common form fields =====
+  // ===== STEP 1: BASIC USER INFO =====
+  guestFullName = '';
+  guestEmail = '';
+  guestContactNumber = '';
+
+  // ===== STEP 2A: PUP MEMBER DETAILS =====
+  colleges: string[] = [
+    'College of Computer and Information Sciences',
+    'College of Business Administration',
+    'College of Communication',
+  ];
+  departments: { [key: string]: string[] } = {
+    'College of Computer and Information Sciences': ['BSIT', 'BSCS'],
+    'College of Business Administration': ['Marketing', 'HR'],
+    'College of Communication': ['Broadcasting', 'Journalism']
+  };
+  selectedCollege = '';
+  selectedDepartment = '';
+  filteredDepartments: string[] = [];
+  userRoleForm: string = ''; // 'Student' or 'Faculty' for PUP members (different from userRole which is 'student'|'guest'|'group')
+  studentID = ''; // Student ID if role is Student
+  facultyID = ''; // Faculty ID if role is Faculty
+
+  // ===== STEP 2B: NON-PUP MEMBER DETAILS =====
+  affiliationCollege = '';
+  affiliationDepartment = '';
+  affiliationCountry = '';
+  affiliationRole = '';
+  countryList = ['Philippines', 'Japan', 'USA', 'Canada'];
+
+  // ===== STEP 3: REQUEST DETAILS =====
+  paperType = '';
+  selectedChapters = new Set<string>();
   requestPurpose = '';
+  requestRemarks = '';
+
+  // ===== Old document specific fields (added to STEP 3 when document is old) =====
+  oldDocumentJustification = ''; // Justification for requesting old documents
+  researchPurposeDetails = ''; // Research purpose details for old documents
+
+  // ===== STEP 4: TERMS =====
   termsAccepted = false;
 
-  // ===== Student-only fields =====
+  // ===== Legacy fields (keeping for backward compatibility) =====
   studentProgram: string = '';
   studentDepartment: string = '';
-
-  // ===== Guest-only fields =====
   requestEmail = '';       // guest email
   touchGuestEmail = false;
   guestCountry: string = '';
@@ -371,6 +411,7 @@ export class SearchResult implements OnInit, AfterViewInit {
     console.log('🔍 [REQUEST-DIALOG] Opening request dialog...');
     console.log('🔍 [REQUEST-DIALOG] User role:', this.userRole);
     console.log('🔍 [REQUEST-DIALOG] User email:', this.currentUserEmail);
+    console.log('🔍 [REQUEST-DIALOG] Document status:', this.thesis?.document_status);
     
     // Check if user is logged in
     if (!this.currentUserEmail) {
@@ -386,46 +427,105 @@ export class SearchResult implements OnInit, AfterViewInit {
     
     this.resetRequestDialog();
     
-    // Students and groups use the student template, guests use the guest template
-    const tpl = (this.userRole === 'student' || this.userRole === 'group') ? this.dlgStudent : this.dlgGuest;
-    console.log('🔍 [REQUEST-DIALOG] Selected template:', tpl ? 'Available' : 'Undefined');
-    console.log('🔍 [REQUEST-DIALOG] Template type:', this.userRole === 'student' || this.userRole === 'group' ? 'Student/Group' : 'Guest');
+    // Pre-fill email from logged-in user
+    this.guestEmail = this.currentUserEmail;
     
-    if (!tpl) {
-      console.error('❌ [REQUEST-DIALOG] Dialog template not available');
-      console.error('❌ [REQUEST-DIALOG] dlgStudent:', this.dlgStudent);
-      console.error('❌ [REQUEST-DIALOG] dlgGuest:', this.dlgGuest);
+    // Start with STEP 1: Basic user info
+    if (!this.dlgGuest) {
+      console.error('❌ [REQUEST-DIALOG] Guest dialog template not available');
       return;
     }
     
-    console.log('✅ [REQUEST-DIALOG] Opening dialog with template');
-    this.dialog.open(tpl, { width: '640px', autoFocus: false });
+    console.log('✅ [REQUEST-DIALOG] Opening STEP 1 (Basic User Info)');
+    this.dialog.open(this.dlgGuest, { width: '600px', disableClose: true });
   }
 
   resetRequestDialog(): void {
-    this.selectedRequestChapters.clear();
+    // STEP 1 fields
+    this.guestFullName = '';
+    this.guestEmail = '';
+    this.guestContactNumber = '';
+
+    // STEP 2A fields
+    this.selectedCollege = '';
+    this.selectedDepartment = '';
+    this.filteredDepartments = [];
+    this.userRoleForm = '';
+    this.studentID = '';
+    this.facultyID = '';
+
+    // STEP 2B fields
+    this.affiliationCollege = '';
+    this.affiliationDepartment = '';
+    this.affiliationCountry = '';
+    this.affiliationRole = '';
+
+    // STEP 3 fields
+    this.paperType = '';
+    this.selectedChapters.clear();
     this.requestPurpose = '';
+    this.requestRemarks = '';
+    this.oldDocumentJustification = '';
+    this.researchPurposeDetails = '';
 
-    // student fields
-    // (keep email from auth and auto-select course/department based on user account)
-    if (this.userRole === 'student') {
-      this.studentProgram = this.getCurrentUserCourse();
-      this.studentDepartment = this.getCurrentUserDepartment();
-    } else if (this.userRole === 'group') {
-      // Groups can also use program/department if needed
-      this.studentProgram = this.getCurrentUserCourse();
-      this.studentDepartment = this.getCurrentUserDepartment();
-    } else {
-      this.studentProgram = '';
-      this.studentDepartment = '';
-    }
+    // STEP 4 fields
+    this.termsAccepted = false;
 
-    // guest fields
+    // Legacy fields (for backward compatibility)
+    this.selectedRequestChapters.clear();
     this.requestEmail = '';
     this.touchGuestEmail = false;
     this.guestCountry = '';
     this.guestCity = '';
     this.guestSchool = '';
+    this.studentProgram = '';
+    this.studentDepartment = '';
+  }
+
+  // ===== Multi-step navigation methods =====
+  openAffiliationDialog(prevDialogRef: any): void {
+    prevDialogRef.close();
+    // Check user role to determine if PUP member or not
+    // 'student' and 'group' are PUP members, 'guest' is non-PUP
+    const isPUPMember = this.userRole === 'student' || this.userRole === 'group';
+    const target = isPUPMember
+      ? this.dlgUserAffiliation
+      : this.dlgExternalAffiliation;
+    this.dialog.open(target, { width: '600px', disableClose: true });
+  }
+
+  openRequestDetails(prevDialogRef: any): void {
+    prevDialogRef.close();
+    this.dialog.open(this.dlgRequestDetails, { width: '600px', disableClose: true });
+  }
+
+  openTerms(prevDialogRef: any): void {
+    prevDialogRef.close();
+    const ref = this.dialog.open(this.dlgTerms, { width: '720px', autoFocus: false, restoreFocus: false });
+    ref.afterClosed().subscribe(agreed => {
+      if (agreed === true) {
+        this.finalizeRequestSubmission();
+      }
+    });
+  }
+
+  toggleChapter(chapter: string, checked: boolean): void {
+    if (checked) {
+      this.selectedChapters.add(chapter);
+    } else {
+      this.selectedChapters.delete(chapter);
+    }
+  }
+
+  // Filter departments based on selected college
+  onCollegeChange(): void {
+    if (this.selectedCollege && this.departments[this.selectedCollege]) {
+      this.filteredDepartments = this.departments[this.selectedCollege];
+      this.selectedDepartment = ''; // Reset department when college changes
+    } else {
+      this.filteredDepartments = [];
+      this.selectedDepartment = '';
+    }
   }
 
   toggleRequestChapter(opt: string, checked: boolean): void {
@@ -504,30 +604,57 @@ export class SearchResult implements OnInit, AfterViewInit {
 
     this.isSubmittingRequest = true; // Show loading state
 
-    // Prepare chapters array
-    const chapters = this.selectedRequestChapters.has('All')
-      ? this.requestOptions.filter(o => o !== 'All')
-      : Array.from(this.selectedRequestChapters);
+    // Prepare chapters array from STEP 3
+    const chapters = Array.from(this.selectedChapters);
+
+    // Check if document is old
+    const isOldDocument = this.thesis?.document_status === 'old';
+
+    // Determine requester info based on user role
+    // 'student' and 'group' are PUP members, 'guest' is non-PUP
+    const isPUPMember = this.userRole === 'student' || this.userRole === 'group';
+    let requester: any;
+    if (isPUPMember) {
+      // PUP Member
+      requester = {
+        email: this.guestEmail.trim(),
+        fullName: this.guestFullName.trim(),
+        contactNumber: this.guestContactNumber.trim(),
+        college: this.selectedCollege,
+        department: this.selectedDepartment,
+        role: this.userRoleForm,
+        studentID: this.userRoleForm === 'Student' ? this.studentID.trim() : undefined,
+        facultyID: this.userRoleForm === 'Faculty' ? this.facultyID.trim() : undefined
+      };
+    } else {
+      // Non-PUP Member
+      requester = {
+        email: this.guestEmail.trim(),
+        fullName: this.guestFullName.trim(),
+        contactNumber: this.guestContactNumber.trim(),
+        college: this.affiliationCollege.trim(),
+        department: this.affiliationDepartment.trim(),
+        country: this.affiliationCountry,
+        role: this.affiliationRole
+      };
+    }
 
     // Transform data to backend format
-    const requestPayload = {
-      document_id: this.thesis._id, // Use thesis._id as document_id
-      userType: this.userRole === 'group' ? 'student' : this.userRole, // Map group to student
-      requester: this.userRole === 'student' || this.userRole === 'group'
-        ? {
-            email: this.currentUserEmail,
-            program: this.studentProgram,
-            department: this.studentDepartment
-          }
-        : {
-            email: this.requestEmail.trim(),
-            country: this.guestCountry.trim(),
-            city: this.guestCity.trim(),
-            school: this.guestSchool.trim()
-          },
+    const requestPayload: any = {
+      document_id: this.thesis._id,
+      userType: isPUPMember ? 'student' : 'guest',
+      requester: requester,
       chaptersRequested: chapters,
-      purpose: this.requestPurpose.trim()
+      paperType: this.paperType,
+      purpose: this.requestPurpose.trim(),
+      remarks: this.requestRemarks.trim()
     };
+
+    // Add old document specific fields if document is old
+    if (isOldDocument) {
+      requestPayload.oldDocumentJustification = this.oldDocumentJustification.trim();
+      requestPayload.researchPurposeDetails = this.researchPurposeDetails.trim();
+    }
 
     console.log('📤 [FINALIZE] Submitting to backend:', requestPayload);
 
