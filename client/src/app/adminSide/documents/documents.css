@@ -47,6 +47,7 @@
     grid-template-columns: 3fr 2fr 2fr 1fr;
     align-items: center;
     padding: 1rem;
+    gap: 1.5rem;
 }
 
 .table-header {

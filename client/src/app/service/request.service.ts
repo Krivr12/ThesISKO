@@ -27,15 +27,21 @@ export interface RequestDetails {
     userType: string;
     requester: {
       email: string;
+      fullName?: string;
+      role?: string;
       department?: string;
       program?: string;
       country?: string;
       city?: string;
       school?: string;
+      supervisor?: string;
+      contact_number?: string;
       [key: string]: any;
     };
     chaptersRequested: string[];
     purpose: string;
+    intendedUse?: string;
+    howDidYouLearn?: string;
     status: string;
     createdAt: string;
     updatedAt: string;

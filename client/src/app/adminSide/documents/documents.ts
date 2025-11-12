@@ -117,16 +117,7 @@ export class AdminDocuments implements OnInit {
       const dateField = record.submitted_at || record.created_at;
       
       // Format submission date
-      const submissionDate = dateField
-        ? new Date(dateField).toLocaleString('en-US', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-          }).replace(',', '')
-        : 'N/A';
+      const submissionDate = dateField ? this.formatDate(dateField) : '';
 
       // Create documents array with single manuscript entry
       const documents = [];
@@ -577,6 +568,27 @@ export class AdminDocuments implements OnInit {
       manuscriptFile: null,
       manuscriptFileName: ''
     };
+  }
+
+  // Helper methods
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    
+    // Format: Nov 11 2025 11:12PM
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    const hoursStr = hours.toString();
+    
+    return `${month} ${day} ${year} ${hoursStr}:${minutes}${ampm}`;
   }
 
   // Placeholder data
