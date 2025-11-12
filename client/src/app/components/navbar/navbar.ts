@@ -278,13 +278,6 @@ export class Navbar implements OnInit {
   navigateToProfile() {
     const currentUser = this.auth.currentUser;
     
-    // Debug logging
-    console.log('Edit Information clicked - Debug info:');
-    console.log('Current User:', currentUser);
-    console.log('User Status:', currentUser?.Status);
-    console.log('User role_id:', currentUser?.role_id);
-    console.log('Session Storage guestMode:', sessionStorage.getItem('guestMode'));
-    
     if (!currentUser) {
       console.error('No current user found, redirecting to login');
       this.router.navigate(['/login']);
@@ -292,27 +285,29 @@ export class Navbar implements OnInit {
     }
     
     // Check both Status field and role_id for reliability
-    const userStatus = currentUser.Status?.toLowerCase() || currentUser.status?.toLowerCase();
+    const userStatus = currentUser.Status?.toLowerCase();
     const userRoleId = currentUser.role_id;
     
-    // Determine user type
+    // Determine user type and navigate to appropriate profile page
     // Check for student: 'student', 'pup-ian', or role_id === 2
     const isGuest = userStatus === 'guest' || userRoleId === 1;
     const isStudent = userStatus === 'student' || userStatus === 'pup-ian' || userRoleId === 2;
     const isFaculty = userStatus === 'faculty' || userRoleId === 3 || userRoleId === 7 || userRoleId === 8;
+    const isAdmin = userRoleId === 4 || userRoleId === 5; // Admin or SuperAdmin
     
     if (isGuest) {
-      console.log('Edit Information clicked - navigating to /guest-profile');
       this.router.navigate(['/guest-profile']);
     } else if (isStudent) {
-      console.log('Edit Information clicked - navigating to /student-profile');
       this.router.navigate(['/student-profile']);
     } else if (isFaculty) {
-      console.log('Edit Information clicked - navigating to /faculty-change-password');
       this.router.navigate(['/faculty-change-password']);
+    } else if (isAdmin) {
+      // For admins/superadmins, navigate to student profile as default (or create admin profile page later)
+      this.router.navigate(['/student-profile']);
     } else {
-      console.error('Unknown user role or no role found:', { userStatus, userRoleId });
-      console.log('Available user properties:', Object.keys(currentUser || {}));
+      // Fallback: try student profile for any other user type
+      console.warn('Unknown user role, defaulting to student profile:', { userStatus, userRoleId });
+      this.router.navigate(['/student-profile']);
     }
   }
 
