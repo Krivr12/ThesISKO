@@ -319,7 +319,7 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    background-color: #007bff;
+    background-color: #800000;
     color: white;
     border: none;
     padding: 0.5rem 1rem;
@@ -328,17 +328,19 @@
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+    box-shadow: 0 2px 4px rgba(128, 0, 0, 0.2);
 }
 
 .edit-btn:hover {
-    background-color: #0056b3;
+    background-color: #910101;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 4px 8px rgba(128, 0, 0, 0.3);
 }
 
 .edit-btn svg {
     flex-shrink: 0;
+    fill: white;
+    color: white;
 }
 
 /* Delete Button (Icon Only) */
