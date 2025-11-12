@@ -80,15 +80,44 @@ router.get("/:request_id/details", async (req, res) => {
       console.log("⚠️ Request has no document_id field");
     }
 
+    // 3. Fetch requester data from Supabase (for backward compatibility, also check MongoDB)
+    let requesterData = null;
+    try {
+      const { data, error } = await supabase
+        .from("requesters_analytics")
+        .select("*")
+        .eq("request_id", request_id)
+        .single();
+      
+      if (!error && data) {
+        requesterData = {
+          email: data.email,
+          program: data.program,
+          department: data.department,
+          role: data.role,
+          fullName: data.full_name,
+          city: data.city,
+          country: data.country,
+          school: data.school,
+          supervisor: data.supervisor,
+          contact_number: data.contact_number
+        };
+      }
+    } catch (err) {
+      console.error("⚠️ Error fetching requester data from Supabase:", err);
+    }
+
     // 3. Combine and return
     res.json({
       request: {
         _id: request._id,
         document_id: request.document_id,
-        userType: request.userType,
-        requester: request.requester,
+        user_type: request.user_type || request.userType, // Support both old and new field names
+        requester: requesterData, // From Supabase table
         chaptersRequested: request.chaptersRequested,
         purpose: request.purpose,
+        intendedUse: request.intendedUse,
+        howDidYouLearn: request.howDidYouLearn,
         status: request.status,
         createdAt: request.createdAt,
         updatedAt: request.updatedAt,
@@ -120,23 +149,54 @@ router.get("/:request_id/details", async (req, res) => {
 /* -------------------- Create Request (Student/Guest) -------------------- */
 router.post("/", rateLimiter, validateRequest, async (req, res) => {
   try {
-    const { document_id, userType, requester, chaptersRequested, purpose } = req.body;
+    // Extract MongoDB-only fields (long texts and arrays)
+    const { 
+      document_id, 
+      user_type, 
+      chaptersRequested, 
+      purpose,
+      // Old document specific long text fields
+      intendedUse,
+      howDidYouLearn
+    } = req.body;
 
+    // Build MongoDB document (only long texts, arrays, and user_type)
     const newRequest = {
       document_id,
-      userType,
-      requester, // must contain at least { email }
+      user_type, // Only redundant field allowed
       chaptersRequested,
       purpose,
-      status: "pending",
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
+
+    // Add old document specific long text fields if present
+    if (intendedUse !== undefined) {
+      newRequest.intendedUse = intendedUse;
+    }
+    if (howDidYouLearn !== undefined) {
+      newRequest.howDidYouLearn = howDidYouLearn;
+    }
 
     const result = await collection.insertOne(newRequest);
 
+    // Extract structured data for PostgreSQL table (everything except MongoDB fields)
+    const structuredData = {
+      user_type: req.body.user_type,
+      email: req.body.email,
+      program: req.body.program || null,
+      department: req.body.department || null,
+      role: req.body.role || null,
+      full_name: req.body.full_name || null,
+      city: req.body.city || null,
+      country: req.body.country || null,
+      school: req.body.school || null,
+      supervisor: req.body.supervisor || null,
+      contact_number: req.body.contact_number || null,
+      consent_to_contact: req.body.consent_to_contact || null,
+      preferred_contact_method: req.body.preferred_contact_method || null
+    };
+
     // 🔹 Send analytics copy to Supabase
-    uploadRequestersData(requester, userType, result.insertedId.toString());
+    uploadRequestersData(structuredData, result.insertedId.toString());
 
     res
       .status(201)
@@ -204,6 +264,18 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
 
     console.log("✅ Supabase analytics updated");
 
+    // Fetch email from Supabase table
+    const { data: requesterData, error: supabaseError } = await supabase
+      .from("requesters_analytics")
+      .select("email")
+      .eq("request_id", id)
+      .single();
+
+    if (supabaseError || !requesterData) {
+      console.error("❌ Error fetching email from Supabase:", supabaseError);
+      return res.status(500).json({ error: "Failed to fetch requester email" });
+    }
+
     // Send email via unified email service
     const { sendEmail: unifiedSendEmail } = await import('../services/emailService.js');
     
@@ -214,10 +286,10 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
     
     const expiryTime = status === "approved" ? "2 days" : "";
 
-    console.log("📧 Sending email to:", request.requester.email);
+    console.log("📧 Sending email to:", requesterData.email);
     
     await unifiedSendEmail({
-      to: request.requester.email,
+      to: requesterData.email,
       subject: subject,
       template: 'requestApproval',
       data: {
@@ -278,11 +350,23 @@ router.post("/:id/reject", async (req, res) => {
     // Update Supabase analytics status
     updateRequestStatus(id, "rejected");
 
+    // Fetch email from Supabase table
+    const { data: requesterData, error: supabaseError } = await supabase
+      .from("requesters_analytics")
+      .select("email")
+      .eq("request_id", id)
+      .single();
+
+    if (supabaseError || !requesterData) {
+      console.error("❌ Error fetching email from Supabase:", supabaseError);
+      return res.status(500).json({ error: "Failed to fetch requester email" });
+    }
+
     // Send email via unified email service
     const { sendEmail: unifiedSendEmail } = await import('../services/emailService.js');
 
     await unifiedSendEmail({
-      to: request.requester.email,
+      to: requesterData.email,
       subject: "Your document request has been rejected",
       template: 'requestApproval',
       data: {

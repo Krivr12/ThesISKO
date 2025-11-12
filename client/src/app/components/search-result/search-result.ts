@@ -38,6 +38,16 @@ export class SearchResult implements OnInit, AfterViewInit {
   // ===== Templates for role-based dialogs =====
   @ViewChild('dlgRequestAccessStudent', { static: false }) dlgStudent!: TemplateRef<any>;
   @ViewChild('dlgRequestAccessGuest', { static: false }) dlgGuest!: TemplateRef<any>;
+  @ViewChild('dlgGuestStep2', { static: false }) dlgGuestStep2!: TemplateRef<any>;
+  @ViewChild('dlgGuestStep3', { static: false }) dlgGuestStep3!: TemplateRef<any>;
+  @ViewChild('dlgGuestStep4', { static: false }) dlgGuestStep4!: TemplateRef<any>;
+  @ViewChild('dlgOldPupianStep1', { static: false }) dlgOldPupianStep1!: TemplateRef<any>;
+  @ViewChild('dlgOldPupianStep2', { static: false }) dlgOldPupianStep2!: TemplateRef<any>;
+  @ViewChild('dlgOldPupianStep3', { static: false }) dlgOldPupianStep3!: TemplateRef<any>;
+  @ViewChild('dlgOldGuestStep1', { static: false }) dlgOldGuestStep1!: TemplateRef<any>;
+  @ViewChild('dlgOldGuestStep2', { static: false }) dlgOldGuestStep2!: TemplateRef<any>;
+  @ViewChild('dlgOldGuestStep3', { static: false }) dlgOldGuestStep3!: TemplateRef<any>;
+  @ViewChild('dlgOldGuestStep4', { static: false }) dlgOldGuestStep4!: TemplateRef<any>;
   @ViewChild('dlgUserAffiliation', { static: false }) dlgUserAffiliation!: TemplateRef<any>;
   @ViewChild('dlgExternalAffiliation', { static: false }) dlgExternalAffiliation!: TemplateRef<any>;
   @ViewChild('dlgRequestDetails', { static: false }) dlgRequestDetails!: TemplateRef<any>;
@@ -145,9 +155,7 @@ export class SearchResult implements OnInit, AfterViewInit {
   requestOptions = ['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4', 'Chapter 5', 'All'] as const;
   selectedRequestChapters = new Set<string>();
 
-  // ===== STEP 1: BASIC USER INFO =====
-  guestFullName = '';
-  guestEmail = '';
+  // ===== Legacy fields - removed for active documents =====
   guestContactNumber = '';
 
   // ===== STEP 2A: PUP MEMBER DETAILS =====
@@ -188,14 +196,34 @@ export class SearchResult implements OnInit, AfterViewInit {
   // ===== STEP 4: TERMS =====
   termsAccepted = false;
 
-  // ===== Legacy fields (keeping for backward compatibility) =====
+  // ===== PUPian form fields (Active Documents) =====
   studentProgram: string = '';
   studentDepartment: string = '';
+  pupianRole: string = ''; // 'Student' or 'Faculty' for PUPian form
+
+  // ===== Guest form fields (Active Documents) =====
+  guestEmail: string = '';
+  guestFullName: string = '';
+  guestCity: string = '';
+  guestCountry: string = '';
+  guestSchool: string = ''; // University/Organization
+  guestProgram: string = '';
+  guestDepartment: string = '';
+  guestRole: string = ''; // 'Student' or 'Faculty' for Guest form
+
+  // ===== Old document form fields =====
+  oldPupianSupervisor: string = ''; // Optional supervisor/adviser for PUPian
+  oldGuestSupervisor: string = ''; // Optional supervisor/adviser for Guest
+  oldPupianContactNumber: string = ''; // Contact number for old PUPian forms
+  oldGuestContactNumber: string = ''; // Contact number for old Guest forms
+  intendedUse: string = ''; // Intended use of information
+  howDidYouLearn: string = ''; // How did you learn about this document (optional)
+  consentToContact: boolean = false; // Consent to contact checkbox
+  preferredContactMethod: string = ''; // 'Email' or 'Phone'
+
+  // ===== Legacy fields (keeping for backward compatibility) =====
   requestEmail = '';       // guest email
   touchGuestEmail = false;
-  guestCountry: string = '';
-  guestCity: string = '';
-  guestSchool: string = '';
 
   onReturnClick(): void {
     this.router.navigate(['/search-thesis']);
@@ -236,16 +264,30 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   // ===== Validation helpers =====
-  // Student: email, program, department auto-filled from account; needs purpose, chapters
+  // PUPian: email (pre-filled), program, department, role, chapters, purpose (min 24 chars)
   get studentFormValid(): boolean {
-    const valid = this.chaptersValid && this.purposeValid && !!this.studentProgram && !!this.studentDepartment;
-    console.log('🔍 [VALIDATION] Student form valid:', valid, {
+    const valid = this.chaptersValid && this.purposeValid24 && !!this.studentProgram && !!this.studentDepartment && !!this.pupianRole;
+    console.log('🔍 [VALIDATION] PUPian form valid:', valid, {
       chaptersValid: this.chaptersValid,
-      purposeValid: this.purposeValid,
+      purposeValid24: this.purposeValid24,
       studentProgram: this.studentProgram,
-      studentDepartment: this.studentDepartment
+      studentDepartment: this.studentDepartment,
+      pupianRole: this.pupianRole
     });
     return valid;
+  }
+
+  // Guest form validation helpers
+  get guestStep1Valid(): boolean {
+    return !!(this.guestEmail && this.guestFullName && this.guestCity && this.guestCountry);
+  }
+
+  get guestStep2Valid(): boolean {
+    return !!(this.guestSchool && this.guestProgram && this.guestDepartment && this.guestRole);
+  }
+
+  get guestStep3Valid(): boolean {
+    return this.chaptersValid && this.purposeValid24;
   }
 
   // Static mapping of programs to departments
@@ -402,6 +444,9 @@ export class SearchResult implements OnInit, AfterViewInit {
   private get purposeValid(): boolean {
     return (this.requestPurpose?.trim().length ?? 0) >= 8;
   }
+  private get purposeValid24(): boolean {
+    return (this.requestPurpose?.trim().length ?? 0) >= 24;
+  }
   private get chaptersValid(): boolean {
     return this.selectedRequestChapters.size > 0;
   }
@@ -427,62 +472,182 @@ export class SearchResult implements OnInit, AfterViewInit {
     
     this.resetRequestDialog();
     
-    // Pre-fill email from logged-in user
-    this.guestEmail = this.currentUserEmail;
+    // Route to correct form based on document status and user role
+    const isOldDocument = this.thesis?.document_status === 'old';
+    const isPUPMember = this.userRole === 'student' || this.userRole === 'group';
     
-    // Start with STEP 1: Basic user info
-    if (!this.dlgGuest) {
-      console.error('❌ [REQUEST-DIALOG] Guest dialog template not available');
-      return;
+    if (isOldDocument) {
+      // Old document forms
+      if (isPUPMember) {
+        // Old PUPian form - Step 1
+        if (!this.dlgOldPupianStep1) {
+          console.error('❌ [REQUEST-DIALOG] Old PUPian Step 1 dialog template not available');
+          return;
+        }
+        console.log('✅ [REQUEST-DIALOG] Opening Old PUPian Step 1');
+        this.dialog.open(this.dlgOldPupianStep1, { width: '600px', disableClose: true });
+      } else {
+        // Old Guest form - Step 1
+        if (!this.dlgOldGuestStep1) {
+          console.error('❌ [REQUEST-DIALOG] Old Guest Step 1 dialog template not available');
+          return;
+        }
+        // Pre-fill email from logged-in user
+        this.guestEmail = this.currentUserEmail;
+        console.log('✅ [REQUEST-DIALOG] Opening Old Guest Step 1');
+        this.dialog.open(this.dlgOldGuestStep1, { width: '600px', disableClose: true });
+      }
+    } else {
+      // Active document forms
+      if (isPUPMember) {
+        // PUPian form - single dialog
+        if (!this.dlgStudent) {
+          console.error('❌ [REQUEST-DIALOG] Student dialog template not available');
+          return;
+        }
+        console.log('✅ [REQUEST-DIALOG] Opening PUPian form');
+        this.dialog.open(this.dlgStudent, { width: '600px', disableClose: true });
+      } else {
+        // Guest form - multi-step, start with Step 1
+        if (!this.dlgGuest) {
+          console.error('❌ [REQUEST-DIALOG] Guest dialog template not available');
+          return;
+        }
+        // Pre-fill email from logged-in user
+        this.guestEmail = this.currentUserEmail;
+        console.log('✅ [REQUEST-DIALOG] Opening Guest Step 1');
+        this.dialog.open(this.dlgGuest, { width: '600px', disableClose: true });
+      }
     }
-    
-    console.log('✅ [REQUEST-DIALOG] Opening STEP 1 (Basic User Info)');
-    this.dialog.open(this.dlgGuest, { width: '600px', disableClose: true });
   }
 
   resetRequestDialog(): void {
-    // STEP 1 fields
-    this.guestFullName = '';
-    this.guestEmail = '';
-    this.guestContactNumber = '';
+    // PUPian form fields
+    this.studentProgram = '';
+    this.studentDepartment = '';
+    this.pupianRole = '';
 
-    // STEP 2A fields
+    // Guest form fields
+    this.guestEmail = '';
+    this.guestFullName = '';
+    this.guestCity = '';
+    this.guestCountry = '';
+    this.guestSchool = '';
+    this.guestProgram = '';
+    this.guestDepartment = '';
+    this.guestRole = '';
+
+    // Common fields
+    this.selectedRequestChapters.clear();
+    this.requestPurpose = '';
+    this.termsAccepted = false;
+
+    // Old document fields
+    this.oldPupianSupervisor = '';
+    this.oldGuestSupervisor = '';
+    this.oldPupianContactNumber = '';
+    this.oldGuestContactNumber = '';
+    this.intendedUse = '';
+    this.howDidYouLearn = '';
+    this.consentToContact = false;
+    this.preferredContactMethod = '';
+
+    // Legacy fields (for backward compatibility)
+    this.guestContactNumber = '';
     this.selectedCollege = '';
     this.selectedDepartment = '';
     this.filteredDepartments = [];
     this.userRoleForm = '';
     this.studentID = '';
     this.facultyID = '';
-
-    // STEP 2B fields
     this.affiliationCollege = '';
     this.affiliationDepartment = '';
     this.affiliationCountry = '';
     this.affiliationRole = '';
-
-    // STEP 3 fields
     this.paperType = '';
     this.selectedChapters.clear();
-    this.requestPurpose = '';
     this.requestRemarks = '';
     this.oldDocumentJustification = '';
     this.researchPurposeDetails = '';
-
-    // STEP 4 fields
-    this.termsAccepted = false;
-
-    // Legacy fields (for backward compatibility)
-    this.selectedRequestChapters.clear();
     this.requestEmail = '';
     this.touchGuestEmail = false;
-    this.guestCountry = '';
-    this.guestCity = '';
-    this.guestSchool = '';
-    this.studentProgram = '';
-    this.studentDepartment = '';
   }
 
-  // ===== Multi-step navigation methods =====
+  // ===== Guest form navigation methods (Active Documents) =====
+  openGuestStep2(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgGuestStep2) {
+      console.error('❌ Guest Step 2 dialog template not available');
+      return;
+    }
+    this.dialog.open(this.dlgGuestStep2, { width: '600px', disableClose: true });
+  }
+
+  openGuestStep3(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgGuestStep3) {
+      console.error('❌ Guest Step 3 dialog template not available');
+      return;
+    }
+    this.dialog.open(this.dlgGuestStep3, { width: '600px', disableClose: true });
+  }
+
+  openGuestStep4(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgGuestStep4) {
+      console.error('❌ Guest Step 4 dialog template not available');
+      return;
+    }
+    this.dialog.open(this.dlgGuestStep4, { width: '720px', autoFocus: false, restoreFocus: false });
+  }
+
+  // ===== Old document form navigation methods =====
+  openOldPupianStep2(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldPupianStep2) {
+      console.error('❌ Old PUPian Step 2 dialog template not available');
+      return;
+    }
+    this.dialog.open(this.dlgOldPupianStep2, { width: '600px', disableClose: true });
+  }
+
+  openOldPupianStep3(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldPupianStep3) {
+      console.error('❌ Old PUPian Step 3 dialog template not available');
+      return;
+    }
+    this.dialog.open(this.dlgOldPupianStep3, { width: '720px', autoFocus: false, restoreFocus: false });
+  }
+
+  openOldGuestStep2(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldGuestStep2) {
+      console.error('❌ Old Guest Step 2 dialog template not available');
+      return;
+    }
+    this.dialog.open(this.dlgOldGuestStep2, { width: '600px', disableClose: true });
+  }
+
+  openOldGuestStep3(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldGuestStep3) {
+      console.error('❌ Old Guest Step 3 dialog template not available');
+      return;
+    }
+    this.dialog.open(this.dlgOldGuestStep3, { width: '600px', disableClose: true });
+  }
+
+  openOldGuestStep4(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldGuestStep4) {
+      console.error('❌ Old Guest Step 4 dialog template not available');
+      return;
+    }
+    this.dialog.open(this.dlgOldGuestStep4, { width: '720px', autoFocus: false, restoreFocus: false });
+  }
+
+  // ===== Multi-step navigation methods (Legacy - for old documents) =====
   openAffiliationDialog(prevDialogRef: any): void {
     prevDialogRef.close();
     // Check user role to determine if PUP member or not
@@ -581,7 +746,7 @@ export class SearchResult implements OnInit, AfterViewInit {
       if (agreed === true) {
         // Close the original request dialog and proceed
         if (prevDialogRef) prevDialogRef.close();
-        this.finalizeRequestSubmission();
+        this.finalizeRequestSubmission('pupian', 'active');
       } else {
         // User canceled; allow original dialog to be closed normally again
         if (prevDialogRef) prevDialogRef.disableClose = false;
@@ -589,9 +754,28 @@ export class SearchResult implements OnInit, AfterViewInit {
     });
   }
 
+  // ===== Submission methods for Active Documents =====
+  finalizeGuestRequest(dialogRef: any): void {
+    dialogRef.close();
+    this.finalizeRequestSubmission('guest', 'active');
+  }
+
+  // ===== Submission methods for Old Documents =====
+  finalizeOldPupianRequest(dialogRef: any): void {
+    dialogRef.close();
+    this.finalizeRequestSubmission('pupian', 'old');
+  }
+
+  finalizeOldGuestRequest(dialogRef: any): void {
+    dialogRef.close();
+    this.finalizeRequestSubmission('guest', 'old');
+  }
+
   // Your actual submit logic (API call, snackbar, etc.)
-  finalizeRequestSubmission(): void {
+  finalizeRequestSubmission(formType: 'pupian' | 'guest' = 'pupian', docStatus: 'active' | 'old' = 'active'): void {
     console.log('🔍 [FINALIZE] Starting final request submission...');
+    console.log('🔍 [FINALIZE] Form type:', formType);
+    console.log('🔍 [FINALIZE] Document status:', docStatus);
     console.log('🔍 [FINALIZE] User role:', this.userRole);
     console.log('🔍 [FINALIZE] Thesis ID:', this.thesis?._id);
     
@@ -604,59 +788,87 @@ export class SearchResult implements OnInit, AfterViewInit {
 
     this.isSubmittingRequest = true; // Show loading state
 
-    // Prepare chapters array from STEP 3
-    const chapters = Array.from(this.selectedChapters);
+    // Prepare chapters array
+    const chapters = Array.from(this.selectedRequestChapters);
 
-    // Check if document is old
-    const isOldDocument = this.thesis?.document_status === 'old';
+    // Determine user_type
+    const userType = formType === 'pupian' ? 'student' : 'guest';
 
-    // Determine requester info based on user role
-    // 'student' and 'group' are PUP members, 'guest' is non-PUP
-    const isPUPMember = this.userRole === 'student' || this.userRole === 'group';
-    let requester: any;
-    if (isPUPMember) {
-      // PUP Member
-      requester = {
-        email: this.guestEmail.trim(),
-        fullName: this.guestFullName.trim(),
-        contactNumber: this.guestContactNumber.trim(),
-        college: this.selectedCollege,
-        department: this.selectedDepartment,
-        role: this.userRoleForm,
-        studentID: this.userRoleForm === 'Student' ? this.studentID.trim() : undefined,
-        facultyID: this.userRoleForm === 'Faculty' ? this.facultyID.trim() : undefined
-      };
-    } else {
-      // Non-PUP Member
-      requester = {
-        email: this.guestEmail.trim(),
-        fullName: this.guestFullName.trim(),
-        contactNumber: this.guestContactNumber.trim(),
-        college: this.affiliationCollege.trim(),
-        department: this.affiliationDepartment.trim(),
-        country: this.affiliationCountry,
-        role: this.affiliationRole
-      };
-    }
-
-    // Transform data to backend format
-    const requestPayload: any = {
+    // Build MongoDB payload (only long texts and arrays)
+    const mongoPayload: any = {
       document_id: this.thesis._id,
-      userType: isPUPMember ? 'student' : 'guest',
-      requester: requester,
+      user_type: userType, // Only redundant field allowed
       chaptersRequested: chapters,
-      paperType: this.paperType,
-      purpose: this.requestPurpose.trim(),
-      remarks: this.requestRemarks.trim()
+      purpose: this.requestPurpose.trim()
     };
 
-    // Add old document specific fields if document is old
-    if (isOldDocument) {
-      requestPayload.oldDocumentJustification = this.oldDocumentJustification.trim();
-      requestPayload.researchPurposeDetails = this.researchPurposeDetails.trim();
+    // Add old document specific long text fields
+    if (docStatus === 'old') {
+      mongoPayload.intendedUse = this.intendedUse.trim();
+      if (this.howDidYouLearn) {
+        mongoPayload.howDidYouLearn = this.howDidYouLearn.trim();
+      }
     }
 
-    console.log('📤 [FINALIZE] Submitting to backend:', requestPayload);
+    // Build structured data for PostgreSQL table (sent separately, not in MongoDB)
+    const structuredData: any = {
+      user_type: userType,
+      email: formType === 'pupian' ? this.currentUserEmail.trim() : this.guestEmail.trim(),
+      program: formType === 'pupian' ? this.studentProgram : this.guestProgram.trim(),
+      department: formType === 'pupian' ? this.studentDepartment : this.guestDepartment.trim(),
+      role: formType === 'pupian' ? this.pupianRole : this.guestRole
+    };
+
+    // Add guest-specific structured fields
+    if (formType === 'guest') {
+      structuredData.full_name = this.guestFullName.trim();
+      structuredData.city = this.guestCity.trim();
+      structuredData.country = this.guestCountry.trim();
+      structuredData.school = this.guestSchool.trim();
+    }
+
+    // Add old document specific structured fields
+    if (docStatus === 'old') {
+      const supervisor = formType === 'pupian' ? this.oldPupianSupervisor : this.oldGuestSupervisor;
+      if (supervisor) {
+        structuredData.supervisor = supervisor.trim();
+      }
+      structuredData.consent_to_contact = this.consentToContact;
+      if (this.consentToContact) {
+        structuredData.preferred_contact_method = this.preferredContactMethod;
+      }
+      // Add contact number
+      const contactNumber = formType === 'pupian' ? this.oldPupianContactNumber : this.oldGuestContactNumber;
+      if (contactNumber) {
+        structuredData.contact_number = contactNumber.trim();
+      }
+    }
+
+    // Combine payload (MongoDB fields + structured data for table)
+    const requestPayload: any = {
+      ...mongoPayload,
+      ...structuredData
+    };
+
+    // Debug: Log all required fields to help identify missing ones
+    console.log('📤 [FINALIZE] Payload validation check:', {
+      document_id: requestPayload.document_id,
+      user_type: requestPayload.user_type,
+      email: requestPayload.email,
+      purpose: requestPayload.purpose,
+      purposeLength: requestPayload.purpose?.length || 0,
+      chaptersRequested: requestPayload.chaptersRequested,
+      chaptersLength: requestPayload.chaptersRequested?.length || 0,
+      hasAllRequired: !!(
+        requestPayload.document_id &&
+        requestPayload.user_type &&
+        requestPayload.email &&
+        requestPayload.purpose &&
+        Array.isArray(requestPayload.chaptersRequested)
+      )
+    });
+
+    console.log('📤 [FINALIZE] Full payload:', requestPayload);
 
     // Call backend API
     this.http.post(`${environment.authApiUrl}/requests/`, requestPayload).subscribe({
@@ -690,6 +902,12 @@ export class SearchResult implements OnInit, AfterViewInit {
         alert(`Error: ${errorMessage}`);
       }
     });
+  }
+
+  // Validation helper for contact number (numbers only)
+  isValidContactNumber(contactNumber: string): boolean {
+    if (!contactNumber) return false;
+    return /^[0-9]+$/.test(contactNumber);
   }
 
   // Get current user email from AuthService

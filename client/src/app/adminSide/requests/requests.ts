@@ -127,6 +127,36 @@ export class AdminRequests implements OnInit {
     }
   }
 
+  // View original manuscript from repository
+  viewOriginalManuscript(): void {
+    if (!this.selectedRequestDetails?.document?.file_key) {
+      alert('Document file not available.');
+      return;
+    }
+
+    this.currentPdfDocument = { 
+      name: 'Original Manuscript', 
+      file: this.selectedRequestDetails.document.file_key 
+    };
+    this.pdfLoading = true;
+    this.pdfError = '';
+    this.isPdfViewerVisible = true;
+    this.currentPdfUrl = null;
+
+    // Get signed URL from S3
+    this.s3Service.getRepositoryFileSignedUrl(this.selectedRequestDetails.document.file_key).subscribe({
+      next: (response) => {
+        this.currentPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(response.signedUrl);
+        this.pdfLoading = false;
+      },
+      error: (error) => {
+        console.error('Error getting signed URL:', error);
+        this.pdfError = 'Failed to load document. The file may be unavailable or access has expired.';
+        this.pdfLoading = false;
+      }
+    });
+  }
+
   // View file from repository
   viewFile(file: { key: string; file_key: string; filename: string }): void {
     if (!file?.file_key) {
@@ -355,19 +385,66 @@ export class AdminRequests implements OnInit {
 
   // Helper methods
   formatDate(dateString: string): string {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).replace(',', '');
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    
+    // Format: Nov 11 2025 11:12PM
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    const hoursStr = hours.toString();
+    
+    return `${month} ${day} ${year} ${hoursStr}:${minutes}${ampm}`;
   }
 
   formatChapters(chapters: string[]): string {
-    if (!chapters || chapters.length === 0) return 'N/A';
+    if (!chapters || chapters.length === 0) return '';
     return chapters.join(', ');
+  }
+
+  // Dynamic display helpers - check if value exists
+  hasValue(value: any): boolean {
+    return value !== null && value !== undefined && value !== '' && 
+           (typeof value !== 'string' || value.trim() !== '');
+  }
+
+  hasArrayValue(arr: any[] | null | undefined): boolean {
+    return Array.isArray(arr) && arr.length > 0;
+  }
+
+  // Check if requester section has any data to display
+  hasRequesterData(): boolean {
+    if (!this.selectedRequestDetails?.request?.requester) return false;
+    const req = this.selectedRequestDetails.request.requester;
+    return this.hasValue(req.email) || 
+           this.hasValue(req.fullName) || 
+           this.hasValue(req.role) || 
+           this.hasValue(req.school) || 
+           this.hasValue(req.city) || 
+           this.hasValue(req.country) || 
+           this.hasValue(req.department) || 
+           this.hasValue(req.program) ||
+           this.hasValue(req.supervisor) ||
+           this.hasValue(req.contact_number);
+  }
+
+  // Check if request section has additional data
+  hasRequestAdditionalData(): boolean {
+    if (!this.selectedRequestDetails?.request) return false;
+    const req = this.selectedRequestDetails.request;
+    return this.hasValue(req.intendedUse) || this.hasValue(req.howDidYouLearn);
+  }
+
+  // Check if document section has data
+  hasDocumentData(): boolean {
+    return this.selectedRequestDetails?.document !== null && 
+           this.selectedRequestDetails?.document !== undefined;
   }
 }

@@ -337,24 +337,48 @@ section {
     padding: 2rem 1rem;
   }
 
+  .containerSubmitWork .inner {
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+    gap: 30px;
+  }
+
+  .leftside {
+    padding: 20px;
+    text-align: center;
+    max-width: 100%;
+  }
+
   .leftside h1 {
     font-size: 38px;
   }
 
   .leftside p {
     font-size: 0.95rem;
+    max-width: 100%;
   }
 
   :host ::ng-deep .submit .p-button {
     width: 100%;
+    max-width: 100%;
+  }
+
+  .rightside {
+    width: 100%;
+    max-width: 100%;
+    padding: 20px;
+    align-items: center;
   }
 
   .instructions {
     font-size: 15px;
-    width: 90%;
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
     height: auto;
     padding: 12px;
-    text-align: left;
+    text-align: center;
   }
 }
 
@@ -406,7 +430,10 @@ section {
   gap: 40px;
   max-width: 1200px;         
   width: 100%;
-  padding: 0 40px;          
+  padding: 0 40px;
+  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
 }
 
 .leftside, .rightside {
@@ -419,10 +446,9 @@ section {
 
 .leftside {
   flex: 1;
-  padding: 100px;
+  padding: 40px 20px;
   max-width: 100%;
-  margin-left: 0;  
-  padding-left: 1px; 
+  margin: 0;
 }
 
 .leftside h1 {
@@ -456,7 +482,8 @@ section {
   font-weight: bold;
   cursor: pointer;
   height: 70px;
-  width: 480px;
+  width: 100%;
+  max-width: 480px;
   color: #800000;
 }
 
@@ -483,13 +510,14 @@ section {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-right: 0; 
-  padding-right: 120px;
+  margin: 0;
+  padding: 20px;
 }
 
 .instructions {
-  width: 552px;          
-  height: 80px; 
+  width: 100%;
+  max-width: 552px;
+  min-height: 80px; 
   color: #800000;  
   background-color: white;
   border: 2px solid #444;

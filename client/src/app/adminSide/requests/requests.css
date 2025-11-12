@@ -65,6 +65,7 @@
     grid-template-columns: 2fr 1fr 2fr 1fr;
     align-items: center;
     padding: 1rem;
+    gap: 1.5rem;
 }
 
 .table-header {
@@ -101,11 +102,37 @@
     border-bottom: none;
 }
 
+.row-item {
+    display: flex;
+    align-items: center;
+}
+
 .action-cell {
     text-align: right;
     display: flex;
     justify-content: flex-end;
     align-items: center;
+}
+
+/* User Type Tags */
+.user-type-tag {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.tag-pupian {
+    background-color: #800000;
+    color: white;
+}
+
+.tag-guest {
+    background-color: #FFC107;
+    color: #800000;
 }
 
 .verify-btn {

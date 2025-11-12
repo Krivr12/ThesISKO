@@ -435,10 +435,22 @@
 /* Dialog body & sections */
 .dialog-body {
   min-width: 520px;
+  padding: 8px 0;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .dialog-section {
-  margin: 12px 0 16px;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+}
+
+.dialog-section:first-child {
+  margin-top: 0;
+}
+
+.dialog-section:last-child {
+  margin-bottom: 1rem;
 }
 
 /* Checkbox grid layout */
@@ -464,12 +476,55 @@
   width: 100%; 
 }
 
+/* Section title spacing */
+.dialog-section .section-title {
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+}
+
+/* Form field spacing */
+.dialog-section mat-form-field {
+  margin-bottom: 0.5rem;
+}
+
 /* Comfy textarea height */
 mat-form-field.w-100 textarea[matInput] {
   min-height: 120px;
 }
 
-/* Tip line */
+/* Hint text spacing */
+.dialog-section .hint,
+.dialog-section mat-hint {
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Error text spacing */
+.dialog-section mat-error {
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Required field asterisk */
+.required-asterisk {
+  color: #d32f2f;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* Character count indicator */
+.char-count {
+  display: inline-block;
+  margin-left: 8px;
+  font-weight: 500;
+  color: #666;
+}
+
+.char-count-warning {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
 .hint {
   color: #6b6b6b;
   font-size: 12px;

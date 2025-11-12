@@ -31,7 +31,11 @@
                 <div class="table-body">
                     <div class="table-row" *ngFor="let req of paginatedRequests">
                         <div class="row-item">{{ formatDate(req.created_at) }}</div>
-                        <div class="row-item">{{ req.user_type || 'N/A' }}</div>
+                        <div class="row-item">
+                            <span class="user-type-tag" [class.tag-pupian]="req.user_type === 'student'" [class.tag-guest]="req.user_type === 'guest'">
+                                {{ req.user_type === 'student' ? 'PUPian' : (req.user_type === 'guest' ? 'Guest' : req.user_type) }}
+                            </span>
+                        </div>
                         <div class="row-item">{{ req.email }}</div>
                         <div class="row-item action-cell">
                             <button class="verify-btn" (click)="showDetailsView(req)">Open Request</button>
@@ -57,151 +61,201 @@
             <button class="return-btn" (click)="showListView()">&lt; Return to Requests List</button>
             
             <!-- Requested By Section -->
-            <div class="section-container">
+            <div class="section-container" *ngIf="hasRequesterData() || selectedRequestDetails?.request">
                 <h2 class="section-main-title">Requested By</h2>
                 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.email)">
                     <h3 class="section-title">Email</h3>
                     <div class="section-content">
-                        <p>{{ selectedRequestDetails.request.requester.email || 'N/A' }}</p>
+                        <p>{{ selectedRequestDetails.request.requester.email }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.['fullName'])">
+                    <h3 class="section-title">Full Name</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester['fullName'] }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.userType)">
                     <h3 class="section-title">User Type</h3>
                     <div class="section-content">
-                        <p>{{ selectedRequestDetails.request.userType || 'N/A' }}</p>
+                        <p>{{ selectedRequestDetails.request.userType }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.['role'])">
+                    <h3 class="section-title">Role</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester['role'] }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.createdAt)">
                     <h3 class="section-title">Request Date</h3>
                     <div class="section-content">
                         <p>{{ formatDate(selectedRequestDetails.request.createdAt) }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.school)">
                     <h3 class="section-title">School</h3>
                     <div class="section-content">
-                        <p>{{ selectedRequestDetails.request.requester.school || 'N/A' }}</p>
+                        <p>{{ selectedRequestDetails.request.requester.school }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.city)">
                     <h3 class="section-title">City</h3>
                     <div class="section-content">
-                        <p>{{ selectedRequestDetails.request.requester.city || 'N/A' }}</p>
+                        <p>{{ selectedRequestDetails.request.requester.city }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.country)">
                     <h3 class="section-title">Country</h3>
                     <div class="section-content">
-                        <p>{{ selectedRequestDetails.request.requester.country || 'N/A' }}</p>
+                        <p>{{ selectedRequestDetails.request.requester.country }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.department)">
                     <h3 class="section-title">Department</h3>
                     <div class="section-content">
-                        <p>{{ selectedRequestDetails.request.requester.department || 'N/A' }}</p>
+                        <p>{{ selectedRequestDetails.request.requester.department }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.program)">
                     <h3 class="section-title">Program</h3>
                     <div class="section-content">
-                        <p>{{ selectedRequestDetails.request.requester.program || 'N/A' }}</p>
+                        <p>{{ selectedRequestDetails.request.requester.program }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.['supervisor'])">
+                    <h3 class="section-title">Supervisor</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester['supervisor'] }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.requester?.['contact_number'])">
+                    <h3 class="section-title">Contact Number</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.requester['contact_number'] }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section" *ngIf="hasArrayValue(selectedRequestDetails?.request?.chaptersRequested)">
                     <h3 class="section-title">Chapters Requested</h3>
                     <div class="section-content">
                         <p>{{ formatChapters(selectedRequestDetails.request.chaptersRequested) }}</p>
                     </div>
                 </div>
 
-                <div class="details-section">
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.purpose)">
                     <h3 class="section-title">Purpose</h3>
                     <div class="section-content">
-                        <p>{{ selectedRequestDetails.request.purpose || 'N/A' }}</p>
+                        <p>{{ selectedRequestDetails.request.purpose }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.intendedUse)">
+                    <h3 class="section-title">Intended Use</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.intendedUse }}</p>
+                    </div>
+                </div>
+
+                <div class="details-section" *ngIf="hasValue(selectedRequestDetails?.request?.howDidYouLearn)">
+                    <h3 class="section-title">How Did You Learn</h3>
+                    <div class="section-content">
+                        <p>{{ selectedRequestDetails.request.howDidYouLearn }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Requested Data Section -->
-            <div class="section-container" *ngIf="selectedRequestDetails.document">
+            <div class="section-container" *ngIf="hasDocumentData()">
                 <h2 class="section-main-title">Requested Data</h2>
                 
-                <div class="details-section">
-                    <h3 class="section-title">Document ID</h3>
-                    <div class="section-content">
-                        <p>{{ selectedRequestDetails.document.document_id }}</p>
-                    </div>
-                </div>
-
-                <div class="details-section">
-                    <h3 class="section-title">Title</h3>
-                    <div class="section-content">
-                        <p>{{ selectedRequestDetails.document.title }}</p>
-                    </div>
-                </div>
-
-                <div class="details-section">
-                    <h3 class="section-title">Abstract</h3>
-                    <div class="section-content">
-                        <p>{{ selectedRequestDetails.document.abstract }}</p>
-                    </div>
-                </div>
-
-                <div class="details-section">
-                    <h3 class="section-title">Authors</h3>
-                    <div class="section-content">
-                        <p>{{ selectedRequestDetails.document.authors.join(', ') }}</p>
-                    </div>
-                </div>
-
-                <div class="details-section">
-                    <h3 class="section-title">Tags</h3>
-                    <div class="section-content">
-                        <div class="tags-container">
-                            <span *ngFor="let tag of selectedRequestDetails.document.tags" class="tag">{{ tag }}</span>
+                <ng-container *ngIf="selectedRequestDetails?.document as document">
+                    <div class="details-section" *ngIf="hasValue(document.document_id)">
+                        <h3 class="section-title">Document ID</h3>
+                        <div class="section-content">
+                            <p>{{ document.document_id }}</p>
                         </div>
                     </div>
-                </div>
 
-                <div class="details-section">
-                    <h3 class="section-title">Program</h3>
-                    <div class="section-content">
-                        <p>{{ selectedRequestDetails.document.program_name || 'N/A' }}</p>
+                    <div class="details-section" *ngIf="hasValue(document.title)">
+                        <h3 class="section-title">Title</h3>
+                        <div class="section-content">
+                            <p>{{ document.title }}</p>
+                        </div>
                     </div>
-                </div>
 
-                <div class="details-section">
-                    <h3 class="section-title">Department</h3>
-                    <div class="section-content">
-                        <p>{{ selectedRequestDetails.document.department || 'N/A' }}</p>
+                    <div class="details-section" *ngIf="hasValue(document.abstract)">
+                        <h3 class="section-title">Abstract</h3>
+                        <div class="section-content">
+                            <p>{{ document.abstract }}</p>
+                        </div>
                     </div>
-                </div>
 
-                <div class="details-section">
-                    <h3 class="section-title">Files</h3>
-                    <div class="section-content">
-                        <div *ngIf="selectedRequestDetails.document.files && selectedRequestDetails.document.files.length > 0" class="files-container">
-                            <button 
-                                *ngFor="let file of selectedRequestDetails.document.files" 
-                                class="file-link" 
-                                (click)="viewFile(file)">
-                                {{ file.filename }}
+                    <div class="details-section" *ngIf="hasArrayValue(document.authors)">
+                        <h3 class="section-title">Authors</h3>
+                        <div class="section-content">
+                            <p>{{ document.authors.join(', ') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="details-section" *ngIf="hasArrayValue(document.tags)">
+                        <h3 class="section-title">Tags</h3>
+                        <div class="section-content">
+                            <div class="tags-container">
+                                <span *ngFor="let tag of document.tags" class="tag">{{ tag }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-section" *ngIf="hasValue(document.program_name)">
+                        <h3 class="section-title">Program</h3>
+                        <div class="section-content">
+                            <p>{{ document.program_name }}</p>
+                        </div>
+                    </div>
+
+                    <div class="details-section" *ngIf="hasValue(document.department)">
+                        <h3 class="section-title">Department</h3>
+                        <div class="section-content">
+                            <p>{{ document.department }}</p>
+                        </div>
+                    </div>
+
+                    <div class="details-section" *ngIf="hasValue(document.file_key)">
+                        <h3 class="section-title">Original Manuscript</h3>
+                        <div class="section-content">
+                            <button class="file-link" (click)="viewOriginalManuscript()">
+                                View PDF
                             </button>
                         </div>
-                        <div *ngIf="!selectedRequestDetails.document.files || selectedRequestDetails.document.files.length === 0" class="no-files">
-                            <p>No files available</p>
+                    </div>
+
+                    <div class="details-section" *ngIf="hasArrayValue(document.files) && !hasValue(document.file_key)">
+                        <h3 class="section-title">Files</h3>
+                        <div class="section-content">
+                            <div class="files-container">
+                                <button 
+                                    *ngFor="let file of document.files" 
+                                    class="file-link" 
+                                    (click)="viewFile(file)">
+                                    {{ file.filename }}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </ng-container>
             </div>
 
             <!-- PDF Upload Section (Only for Pending) -->

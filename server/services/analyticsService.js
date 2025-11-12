@@ -1,19 +1,25 @@
 import { retry } from "./retryService.js";
 import supabase from "../databaseConnections/Supabase/supabase_connection.js";
 
-export async function uploadRequestersData(requester, userType, requestId) {
+export async function uploadRequestersData(structuredData, requestId) {
   try {
     const dataToInsert = {
       request_id: requestId,
-      user_type: userType,
-      email: requester.email,
+      user_type: structuredData.user_type,
+      email: structuredData.email,
       created_at: new Date().toISOString(),
       status: "pending",
-      department: requester.department || null,
-      program: requester.program || null,
-      country: requester.country || null,
-      city: requester.city || null,
-      school: requester.school || null,
+      department: structuredData.department || null,
+      program: structuredData.program || null,
+      role: structuredData.role || null,
+      country: structuredData.country || null,
+      city: structuredData.city || null,
+      school: structuredData.school || null,
+      full_name: structuredData.full_name || null,
+      supervisor: structuredData.supervisor || null,
+      contact_number: structuredData.contact_number || null,
+      consent_to_contact: structuredData.consent_to_contact || null,
+      preferred_contact_method: structuredData.preferred_contact_method || null
     };
 
     await retry(async () => {
