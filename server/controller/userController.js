@@ -559,6 +559,14 @@ const loginUser = async (req, res) => {
       };
       
       // Set HttpOnly cookie with user data
+      // Extract domain from FRONTEND_URL for cross-subdomain cookie sharing
+      const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
+      const urlObj = new URL(frontendUrl);
+      const cookieDomain = urlObj.hostname.startsWith('www.') 
+        ? urlObj.hostname.substring(4) 
+        : urlObj.hostname;
+      const domain = cookieDomain.includes('.') ? `.${cookieDomain.split('.').slice(-2).join('.')}` : cookieDomain;
+      
       res.cookie('auth_user', JSON.stringify({
         id: userWithoutPassword.StudentID,
         email: userWithoutPassword.Email,
@@ -575,6 +583,7 @@ const loginUser = async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
         sameSite: 'lax',
+        domain: domain, // Set domain for cross-subdomain access
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
       });
       
@@ -647,19 +656,20 @@ const getCurrentUser = async (req, res) => {
     const authCookie = req.cookies.auth_user;
     
     if (!authCookie) {
-      return res.status(401).json({ error: 'No authentication cookie found' });
+      return res.status(401).json({ authenticated: false, error: 'No authentication cookie found' });
     }
     
     try {
       const user = JSON.parse(authCookie);
-      res.json({ user });
+      // Return format expected by frontend: { authenticated: true, user }
+      res.json({ authenticated: true, user });
     } catch (parseError) {
       console.error('Error parsing auth cookie:', parseError);
-      res.status(401).json({ error: 'Invalid authentication cookie' });
+      res.status(401).json({ authenticated: false, error: 'Invalid authentication cookie' });
     }
   } catch (error) {
     console.error('Get current user error:', error);
-    res.status(500).json({ error: 'Error getting current user' });
+    res.status(500).json({ authenticated: false, error: 'Error getting current user' });
   }
 };
 

@@ -79,8 +79,22 @@ export class GoogleCallbackComponent implements OnInit {
     console.log('URL params - data:', dataParam ? 'present' : 'missing', 'error:', error);
     console.log('Full URL params:', Object.fromEntries(urlParams.entries()));
 
-    if (error === 'auth_failed') {
-      console.error('Google authentication failed');
+    if (error) {
+      const errorDetails = urlParams.get('details');
+      console.error('Google authentication error:', error);
+      if (errorDetails) {
+        console.error('Error details:', decodeURIComponent(errorDetails));
+      }
+      
+      // Show user-friendly error message
+      if (error === 'server_error') {
+        alert(`Google login failed due to a server error. Please try again later.\n\nError: ${errorDetails ? decodeURIComponent(errorDetails) : 'Unknown error'}`);
+      } else if (error === 'auth_failed') {
+        alert('Google authentication failed. Please try again.');
+      } else if (error === 'insert_failed') {
+        alert('Failed to create your account. Please try again or contact support.');
+      }
+      
       this.router.navigate(['/login']);
       return;
     }
@@ -97,8 +111,43 @@ export class GoogleCallbackComponent implements OnInit {
         console.log('Google Callback - Received user data:', JSON.stringify(user, null, 2));
         
         if (user) {
-          // Fetch fresh user data from database to get the stored avatar
-          this.fetchUserFromDatabase(user.id);
+          // Use the user data directly from the redirect (cookie should also be set by backend)
+          // Clear any existing guest mode flag since user is now authenticated
+          sessionStorage.removeItem('guestMode');
+          
+          // Map user data to AuthUser format
+          const authUser = {
+            id: user.id || user.user_id || user.StudentID,
+            email: user.email || user.Email,
+            Email: user.Email || user.email,
+            Status: user.Status || user.status || 'guest',
+            Firstname: user.Firstname || user.firstname || user.firstName,
+            Lastname: user.Lastname || user.lastname || user.lastName,
+            AvatarUrl: user.AvatarUrl || user.avatar_url || user.avatar,
+            role_id: user.role_id || 1,
+            displayName: (user.Firstname || user.firstname || user.firstName) && (user.Lastname || user.lastname || user.lastName)
+              ? `${user.Firstname || user.firstname || user.firstName} ${user.Lastname || user.lastname || user.lastName}`
+              : (user.email || user.Email)
+          };
+          
+          // Store user data in session storage for persistence
+          sessionStorage.setItem('currentUser', JSON.stringify(authUser));
+          sessionStorage.setItem('user', JSON.stringify(user));
+          sessionStorage.setItem('role', user.Status || user.status || 'guest');
+          sessionStorage.setItem('email', user.email || user.Email);
+          
+          console.log('Google Callback - Setting auth user from redirect data:', JSON.stringify(authUser, null, 2));
+          this.authService.setUser(authUser);
+          this.mainAuthService.setUser(authUser);
+          
+          // Add a small delay to ensure the AuthService state is updated
+          setTimeout(() => {
+            console.log('Google Callback - AuthService current user after timeout:', this.authService.currentUser);
+            // Navigate based on user role
+            console.log('About to navigate with role:', user.Status || 'guest', 'role_id:', user.role_id);
+            this.navigateByRoleId(user.role_id || 1); // Default to guest (role_id = 1)
+          }, 100);
+          
           return;
         } else {
           console.error('No user data in response:', response);
@@ -226,19 +275,24 @@ export class GoogleCallbackComponent implements OnInit {
 
   fetchUserFromDatabase(userId: string) {
     console.log('fetchUserFromDatabase called with userId:', userId);
-    // Fetch user data from database using the user ID
-    fetch(`${environment.authApiUrl}/api/users/${userId}`, {
+    // Use /auth/me endpoint which reads from the cookie set by backend
+    fetch(`${environment.authApiUrl}/auth/me`, {
       credentials: 'include'
     })
     .then(response => {
       console.log('fetchUserFromDatabase response status:', response.status);
       console.log('fetchUserFromDatabase response headers:', response.headers);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       return response.json();
     })
-    .then(userData => {
-      console.log('Google Callback - Fetched user from database:', JSON.stringify(userData, null, 2));
+    .then(data => {
+      console.log('Google Callback - Fetched user from /auth/me:', JSON.stringify(data, null, 2));
       
-      if (userData) {
+      // Check if authenticated and user exists
+      if (data.authenticated && data.user) {
+        const userData = data.user;
         // Clear any existing guest mode flag since user is now authenticated
         sessionStorage.removeItem('guestMode');
         
@@ -286,14 +340,16 @@ export class GoogleCallbackComponent implements OnInit {
         this.navigateByRoleId(userData.role_id || 1); // Default to guest (role_id = 1)
         }, 100);
       } else {
-        console.error('No user data found in database');
-        this.router.navigate(['/login']);
+        console.error('No user data found or not authenticated. Response:', data);
+        // Fallback: try checkAuthStatus
+        this.checkAuthStatus();
       }
     })
     .catch(error => {
-      console.error('Error fetching user from database:', error);
+      console.error('Error fetching user from /auth/me:', error);
       console.error('Error details:', error.message, error.stack);
-      this.router.navigate(['/login']);
+      // Fallback: try checkAuthStatus
+      this.checkAuthStatus();
     });
   }
 
