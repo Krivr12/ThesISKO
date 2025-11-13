@@ -44,7 +44,7 @@ const googleAuthSuccess = async (req, res) => {
       // Also check if email already exists (regardless of role) - JOIN with roles to get role_name
       const existingEmailUsers = await pool.query(
         `SELECT ui.user_id, ui.email, ui.firstname, ui.lastname, ui.role_id, ui.student_id, 
-                ui.course_id, ui.department_id, ui.group_id, ui.block_id, ui.avatar_url, 
+                ui.course, ui.department, ui.group_id, ui.block_id, ui.avatar_url, 
                 r.role_name 
          FROM users_info ui
          LEFT JOIN roles r ON ui.role_id = r.role_id
@@ -107,8 +107,8 @@ const googleAuthSuccess = async (req, res) => {
             Email: existingUser.email,
             role_id: existingUser.role_id, // Preserve original role_id
             StudentID: existingUser.student_id, // Include student_id if exists
-            Department: existingUser.department_id,
-            Course: existingUser.course_id,
+            Department: existingUser.department,
+            Course: existingUser.course,
             group_id: existingUser.group_id // Get group_id directly from users_info table
           };
           
@@ -167,10 +167,10 @@ const googleAuthSuccess = async (req, res) => {
         
         try {
           // For guest users, we don't need a password, so we'll use a placeholder
-          // Also set course_id and department_id to NULL since guests don't have these
+          // Also set course and department to NULL since guests don't have these
           // Store Google ID for proper identification
           const insertResult = await pool.query(
-            'INSERT INTO users_info (email, firstname, lastname, role_id, avatar_url, password_hash, course_id, department_id, google_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING user_id',
+            'INSERT INTO users_info (email, firstname, lastname, role_id, avatar_url, password_hash, course, department, google_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING user_id',
             [user.email, user.firstName, user.lastName, roleId, user.avatar, 'guest_no_password', null, null, user.googleId]
           );
           
