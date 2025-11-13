@@ -9,6 +9,25 @@ const googleAuthSuccess = async (req, res) => {
     const user = req.user;
     console.log('Google OAuth Success - User data:', JSON.stringify(user, null, 2));
     
+    // Validate user data from Google
+    if (!user) {
+      console.error('❌ No user data received from Google OAuth');
+      res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=auth_failed`);
+      return;
+    }
+    
+    if (!user.googleId) {
+      console.error('❌ Missing googleId in user data:', user);
+      res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=auth_failed`);
+      return;
+    }
+    
+    if (!user.email) {
+      console.error('❌ Missing email in user data:', user);
+      res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=auth_failed`);
+      return;
+    }
+    
     if (user) {
       // Import database pool
       const { default: pool } = await import('../data/database.js');
@@ -17,7 +36,7 @@ const googleAuthSuccess = async (req, res) => {
       // Check if guest user already exists by Google ID
       console.log('Checking for existing guest user with Google ID:', user.googleId);
       const existingUsers = await pool.query(
-        'SELECT * FROM users_info WHERE google_id = $1 AND role_id = (SELECT role_id FROM roles WHERE role_name = $2) LIMIT 1',
+        'SELECT * FROM users_info WHERE google_id = $1 AND role_id = (SELECT role_id FROM roles WHERE LOWER(role_name) = LOWER($2)) LIMIT 1',
         [user.googleId, 'guest']
       );
       console.log('Existing users query result:', existingUsers.rows);
@@ -29,16 +48,16 @@ const googleAuthSuccess = async (req, res) => {
                 r.role_name 
          FROM users_info ui
          LEFT JOIN roles r ON ui.role_id = r.role_id
-         WHERE ui.email = $1 LIMIT 1`,
+         WHERE LOWER(ui.email) = LOWER($1) LIMIT 1`,
         [user.email]
       );
       console.log('Existing email users query result:', existingEmailUsers.rows);
       console.log('🔍 group_id from query:', existingEmailUsers.rows[0]?.group_id);
       
-      // Get Guest role ID
-      const roleResult = await pool.query('SELECT role_id FROM roles WHERE role_name = $1', ['guest']);
-      const roleId = roleResult.rows[0]?.role_id;
-      console.log('Guest role ID:', roleId);
+      // Get Guest role ID - try both 'guest' and 'Guest' for case sensitivity
+      let roleResult = await pool.query('SELECT role_id FROM roles WHERE LOWER(role_name) = LOWER($1)', ['guest']);
+      let roleId = roleResult.rows[0]?.role_id;
+      console.log('Guest role ID (case-insensitive):', roleId);
       
       let guestUser;
       
@@ -124,12 +143,24 @@ const googleAuthSuccess = async (req, res) => {
         if (!roleId) {
           console.log('Guest role not found, creating it...');
           // Create Guest role if it doesn't exist
-          const createRoleResult = await pool.query(
-            'INSERT INTO roles (role_name) VALUES ($1) RETURNING role_id',
-            ['guest']
-          );
-          roleId = createRoleResult.rows[0]?.role_id;
-          console.log('Created Guest role with ID:', roleId);
+          try {
+            const createRoleResult = await pool.query(
+              'INSERT INTO roles (role_name) VALUES ($1) RETURNING role_id',
+              ['guest']
+            );
+            roleId = createRoleResult.rows[0]?.role_id;
+            console.log('Created Guest role with ID:', roleId);
+          } catch (createRoleError) {
+            console.error('Error creating Guest role:', createRoleError);
+            // Try to get role_id = 1 directly (assuming guest is role_id 1)
+            const fallbackRoleResult = await pool.query('SELECT role_id FROM roles WHERE role_id = $1', [1]);
+            if (fallbackRoleResult.rows.length > 0) {
+              roleId = 1;
+              console.log('Using fallback role_id = 1 for guest');
+            } else {
+              throw new Error('Failed to create or find Guest role');
+            }
+          }
         } else {
           console.log('Found existing Guest role with ID:', roleId);
         }
@@ -165,12 +196,27 @@ const googleAuthSuccess = async (req, res) => {
       }
       
       // Set auth cookie for the user
+      // Extract domain from FRONTEND_URL to set cookie domain correctly
+      const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
+      const urlObj = new URL(frontendUrl);
+      const cookieDomain = urlObj.hostname.startsWith('www.') 
+        ? urlObj.hostname.substring(4) 
+        : urlObj.hostname;
+      // Use leading dot for subdomain sharing (e.g., .thesisko.online)
+      const domain = cookieDomain.includes('.') ? `.${cookieDomain.split('.').slice(-2).join('.')}` : cookieDomain;
+      
+      console.log('Setting cookie with domain:', domain);
+      console.log('Cookie secure setting:', process.env.NODE_ENV === 'production');
+      
       res.cookie('auth_user', JSON.stringify(guestUser), {
         httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production (HTTPS)
         sameSite: 'lax',
+        domain: domain, // Set domain for cross-subdomain access
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
       });
+      
+      console.log('Cookie set successfully for user:', guestUser.email);
       
       // Encode user data and redirect to Google callback component
       console.log('About to redirect with guestUser:', JSON.stringify(guestUser, null, 2));
@@ -178,7 +224,6 @@ const googleAuthSuccess = async (req, res) => {
       console.log('User data object:', JSON.stringify(userData, null, 2));
       const encodedData = encodeURIComponent(JSON.stringify(userData));
       console.log('Encoded data length:', encodedData.length);
-      const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
       const redirectUrl = `${frontendUrl}/google-callback?data=${encodedData}`;
       console.log('Redirect URL:', redirectUrl);
       res.redirect(redirectUrl);
@@ -187,14 +232,30 @@ const googleAuthSuccess = async (req, res) => {
       res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=auth_failed`);
     }
   } catch (error) {
-    console.error('Google auth success error:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', {
+    console.error('❌ Google auth success error:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error details:', {
       message: error.message,
       name: error.name,
-      code: error.code
+      code: error.code,
+      sqlState: error.code, // PostgreSQL error code
+      sqlMessage: error.message
     });
-    res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=server_error`);
+    
+    // Log more details for debugging
+    if (error.code) {
+      console.error('❌ Database error code:', error.code);
+    }
+    if (error.detail) {
+      console.error('❌ Database error detail:', error.detail);
+    }
+    if (error.hint) {
+      console.error('❌ Database error hint:', error.hint);
+    }
+    
+    // Send error details in redirect for debugging (in production, you might want to remove this)
+    const errorMessage = encodeURIComponent(error.message || 'Unknown server error');
+    res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=server_error&details=${errorMessage}`);
   }
 };
 
