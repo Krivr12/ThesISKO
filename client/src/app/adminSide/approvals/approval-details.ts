@@ -32,7 +32,8 @@ interface Submission {
   access_level: string;
   document_type: string;
   submitter_email: string;
-  submitted_at: Date;
+  submitted_at?: Date;
+  created_at?: Date;
   files: any;
   status: string;
   chairperson_approval?: any;
@@ -336,14 +337,37 @@ export class ApprovalDetails implements OnInit {
     this.router.navigate(['/adminSide/approvals']);
   }
 
-  formatDate(date: Date): string {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  formatDate(date: Date | string | undefined | null): string {
+    if (!date) return 'N/A';
+    
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        return 'N/A';
+      }
+      
+      // Format as "12 Nov 2024"
+      const day = dateObj.getDate();
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = monthNames[dateObj.getMonth()];
+      const year = dateObj.getFullYear();
+      
+      return `${day} ${month} ${year}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'N/A';
+    }
+  }
+
+  // Get submission date - prefer created_at, fallback to submitted_at
+  getSubmissionDate(): Date | string | undefined {
+    const submission = this.submission();
+    if (!submission) return undefined;
+    
+    // Prefer created_at, fallback to submitted_at
+    return submission.created_at || submission.submitted_at;
   }
 
   loadRequirements() {

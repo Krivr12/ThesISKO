@@ -82,32 +82,6 @@ This message was sent from the "Got some concerns? Connect with us!" section on 
         recipientName: superadminName,
         message: 'You have received a new contact form submission.',
         mainContent: emailContent,
-        infoBoxes: [
-          {
-            icon: '👤',
-            title: 'Contact Information',
-            content: `Name: ${name}\nEmail: ${email}`,
-            background: '#f8f9fa',
-            border: '#dee2e6',
-            titleColor: '#800000'
-          },
-          {
-            icon: '📧',
-            title: 'Subject',
-            content: subject,
-            background: '#fff3cd',
-            border: '#ffc107',
-            titleColor: '#856404'
-          },
-          {
-            icon: '💬',
-            title: 'Message',
-            content: message,
-            background: '#e7f3ff',
-            border: '#0d6efd',
-            titleColor: '#004085'
-          }
-        ],
         footerNote: 'Please respond directly to the user at their provided email address.'
       }
     });

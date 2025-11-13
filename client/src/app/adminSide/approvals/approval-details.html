@@ -37,14 +37,16 @@
           <div class="detail-item">
             <label>Submitter</label>
             <p>{{ submission()!.submitter_email }}</p>
-          </div>
-          <div class="detail-item">
-            <label>Submitted Date</label>
-            <p>{{ formatDate(submission()!.submitted_at) }}</p>
-          </div>
-          <div class="detail-item">
-            <label>Document Type</label>
-            <p>{{ submission()!.document_type | titlecase }}</p>
+            <div class="nested-details">
+              <div class="detail-item">
+                <label>Submitted Date</label>
+                <p>{{ formatDate(getSubmissionDate()) }}</p>
+              </div>
+              <div class="detail-item">
+                <label>Document Type</label>
+                <p>{{ submission()!.document_type | titlecase }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
