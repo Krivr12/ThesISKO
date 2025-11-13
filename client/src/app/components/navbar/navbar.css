@@ -27,26 +27,68 @@ h2 {
   .logo {
     margin: 0;
     font-weight: bold;
+    color: white !important;
   }
   
   .login-button {
     font-weight: bold;
   }
   
+  /* Explicit white color for all navbar text elements */
+  h2 {
+    color: white !important;
+  }
 
-    :host ::ng-deep .nav-left .p-button:hover {
+  /* PrimeNG navigation buttons (Home, Search, About, Submit) - explicit white text */
+  :host ::ng-deep .nav-left .p-button,
+  :host ::ng-deep .nav-left .p-button-text,
+  :host ::ng-deep .nav-left .p-button-plain {
+    color: white !important;
+  }
+
+  :host ::ng-deep .nav-left .p-button .p-button-label {
+    color: white !important;
+  }
+
+  :host ::ng-deep .nav-left .p-button:hover {
     background-color: #a00000 !important;
+  }
+
+  :host ::ng-deep .nav-left .p-button:hover .p-button-label {
+    color: white !important;
+  }
+
+  /* Mobile nav links - ensure white text */
+  :host ::ng-deep .nav-links .p-button,
+  :host ::ng-deep .nav-links .p-button-text,
+  :host ::ng-deep .nav-links .p-button-plain {
+    color: white !important;
+  }
+
+  :host ::ng-deep .nav-links .p-button .p-button-label {
+    color: white !important;
   }
   
 :host ::ng-deep .p-toolbar {
     height: 80px;          
-    font-size: 16px;         
+    font-size: 16px;
+    color: white !important;
   }
   
   :host ::ng-deep .p-toolbar .p-toolbar-group-left,
   :host ::ng-deep .p-toolbar .p-toolbar-group-right {
     display: flex;
     align-items: center;
+    color: white !important;
+  }
+
+  /* Ensure all text elements in toolbar are white */
+  :host ::ng-deep .p-toolbar,
+  :host ::ng-deep .p-toolbar span,
+  :host ::ng-deep .p-toolbar p,
+  :host ::ng-deep .p-toolbar div,
+  :host ::ng-deep .p-toolbar label {
+    color: white !important;
   }
   
   :host ::ng-deep .dark .p-button {
