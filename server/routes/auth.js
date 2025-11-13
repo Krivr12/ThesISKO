@@ -51,7 +51,7 @@ router.get('/test-google-callback', async (req, res) => {
     
     // Test user creation
     const insertResult = await pool.query(
-      'INSERT INTO users_info (email, firstname, lastname, role_id, avatar_url, password_hash, course_id, department_id, google_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING user_id',
+      'INSERT INTO users_info (email, firstname, lastname, role_id, avatar_url, password_hash, course, department, google_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING user_id',
       [mockUser.email, mockUser.firstName, mockUser.lastName, roleId, mockUser.avatar, 'guest_no_password', null, null, mockUser.googleId]
     );
     
