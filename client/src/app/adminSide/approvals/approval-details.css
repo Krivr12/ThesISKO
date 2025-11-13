@@ -157,6 +157,23 @@
   font-size: 1rem;
 }
 
+.nested-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.nested-details .detail-item {
+  gap: 0.5rem;
+}
+
+.nested-details .detail-item label {
+  font-size: 0.875rem;
+}
+
 /* Abstract */
 .abstract-text {
   color: #333;

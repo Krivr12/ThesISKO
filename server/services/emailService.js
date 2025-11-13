@@ -117,43 +117,95 @@ function loadTemplate(templateName, data = {}) {
 
     // Simple template variable replacement
     const processTemplate = (template, variables) => {
-      let processed = template;
-      
-      // Replace simple variables {{variable}}
-      Object.keys(variables).forEach(key => {
-        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-        processed = processed.replace(regex, variables[key] || '');
-      });
-
-      // Handle conditional blocks {{#if variable}}...{{/if}}
-      processed = processed.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, condition, content) => {
-        return variables[condition] ? content : '';
-      });
-
-      // Handle each loops {{#each array}}...{{/each}}
-      processed = processed.replace(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, arrayName, template) => {
-        const array = variables[arrayName];
-        if (!Array.isArray(array)) return '';
+      try {
+        let processed = template;
         
-        return array.map(item => {
-          let itemHtml = template;
-          
-          // Handle simple string items
-          if (typeof item === 'string') {
-            itemHtml = itemHtml.replace(/\{\{this\}\}/g, item);
-          } else {
-            // Handle object items
-            Object.keys(item).forEach(key => {
-              const regex = new RegExp(`\\{\\{this\\.${key}\\}\\}`, 'g');
-              itemHtml = itemHtml.replace(regex, item[key] || '');
-            });
-          }
-          
-          return itemHtml;
-        }).join('');
-      });
+        // Replace simple variables {{variable}}
+        Object.keys(variables).forEach(key => {
+          const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+          const value = variables[key];
+          processed = processed.replace(regex, value !== undefined && value !== null ? String(value) : '');
+        });
 
-      return processed;
+        // Helper function to process nested conditionals recursively
+        const processNestedConditionals = (html, itemVars) => {
+          try {
+            // Process {{#if this.property}} conditionals
+            let result = html;
+            result = result.replace(/\{\{#if\s+this\.(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, prop, content) => {
+              return itemVars && itemVars[prop] ? processNestedConditionals(content, itemVars) : '';
+            });
+            return result;
+          } catch (error) {
+            console.error('Error processing nested conditionals:', error);
+            return html;
+          }
+        };
+
+        // Handle each loops {{#each array}}...{{/each}} - process before conditionals to handle nested conditionals
+        processed = processed.replace(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, arrayName, loopTemplate) => {
+          try {
+            const array = variables[arrayName];
+            if (!Array.isArray(array)) return '';
+            
+            return array.map(item => {
+              let itemHtml = loopTemplate;
+              
+              // Handle simple string items
+              if (typeof item === 'string') {
+                itemHtml = itemHtml.replace(/\{\{this\}\}/g, item);
+              } else if (item && typeof item === 'object') {
+                // First, process nested conditionals (e.g., {{#if this.title}})
+                itemHtml = processNestedConditionals(itemHtml, item);
+                
+                // Then replace all {{this.property}} references
+                Object.keys(item).forEach(key => {
+                  const regex = new RegExp(`\\{\\{this\\.${key}\\}\\}`, 'g');
+                  const value = item[key];
+                  itemHtml = itemHtml.replace(regex, value !== undefined && value !== null ? String(value) : '');
+                });
+              }
+              
+              return itemHtml;
+            }).join('');
+          } catch (error) {
+            console.error(`Error processing each loop for ${arrayName}:`, error);
+            return '';
+          }
+        });
+
+        // Handle conditional blocks {{#if variable}}...{{/if}} - process after each loops
+        // Only match simple variable names (not nested properties like this.title)
+        let maxIterations = 10; // Prevent infinite loops
+        let iteration = 0;
+        while (iteration < maxIterations) {
+          const before = processed;
+          processed = processed.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, condition, content) => {
+            // Skip if this looks like a nested property (should have been processed in each loops)
+            if (condition.includes('.')) {
+              return match; // Return unchanged to avoid processing
+            }
+            const value = variables[condition];
+            // Check if value is truthy (but not just checking existence)
+            return value ? content : '';
+          });
+          if (before === processed) break; // No more changes
+          iteration++;
+        }
+
+        // Clean up any remaining unprocessed template syntax (only if it looks like template syntax)
+        // Remove orphaned {{#if}} tags (but be careful not to remove too much)
+        processed = processed.replace(/\{\{#if\s+[^}]+?\}\}/g, '');
+        // Remove orphaned {{/if}} tags
+        processed = processed.replace(/\{\{\/if\}\}/g, '');
+        // Remove any remaining {{#if this.xxx}} patterns that weren't processed
+        processed = processed.replace(/\{\{#if\s+this\.[^}]+\}\}([\s\S]*?)\{\{\/if\}\}/g, '');
+
+        return processed;
+      } catch (error) {
+        console.error('Error in processTemplate:', error);
+        throw error;
+      }
     };
 
     // Process content template first
