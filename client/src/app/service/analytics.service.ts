@@ -45,6 +45,21 @@ export interface MonthlyRequestsData {
   guestRequests: number[];
 }
 
+export interface DocumentViewStats {
+  document_id: string;
+  title: string;
+  authors: string[];
+  year: string;
+  program: string;
+  views: number;
+}
+
+export interface ViewedDocumentsResponse {
+  mostViewed: DocumentViewStats[];
+  leastViewed: DocumentViewStats[];
+  totalDocuments: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -62,6 +77,12 @@ export class AnalyticsService {
   getMonthlyRequestsData(months: number = 6): Observable<MonthlyRequestsData> {
     return this.http.get<MonthlyRequestsData>(`${this.apiUrl}/requests-by-month`, {
       params: { months: months.toString() }
+    });
+  }
+
+  getViewedDocuments(limit: number = 5): Observable<ViewedDocumentsResponse> {
+    return this.http.get<ViewedDocumentsResponse>(`${this.apiUrl}/viewed-documents`, {
+      params: { limit: limit.toString() }
     });
   }
 }

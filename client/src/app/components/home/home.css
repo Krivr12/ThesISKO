@@ -512,6 +512,7 @@ section {
   justify-content: center;
   margin: 0;
   padding: 20px;
+  position: relative;
 }
 
 .instructions {
@@ -530,7 +531,38 @@ section {
   margin: 10px 0; 
   font-size: 18px;
   font-weight: bold;
-  opacity: 1;            
+  opacity: 1;
+  position: relative;
+}
+
+/* Add connecting lines between instruction boxes */
+.instructions:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 12px;
+  background-color: #ffd966;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+/* Arrow at the end of the line */
+.instructions:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid #ffd966;
+  opacity: 0.8;
+  z-index: 2;
 }
 
 /* ==================== CAROUSEL: TAGS ==================== */

@@ -70,7 +70,7 @@
           Want to Submit <span class="break">Your Work?</span>
         </h1>
         <p>Publish with pride! register using Iskolarngbayan, upload, and reach the readers who matter.</p>
-        <p-button class="submit" [disabled]="true">Submit Work</p-button>
+        <p-button *ngIf="isPupian()" class="submit" routerLink="/submission">Submit Work</p-button>
       </div>
   
       <div class="rightside">

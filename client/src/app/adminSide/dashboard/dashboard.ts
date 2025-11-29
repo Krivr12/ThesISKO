@@ -45,6 +45,7 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
   
   // Loading state
   isLoading: boolean = true;
+  isLoadingViewedDocs: boolean = true;
   
   // Selected period
   selectedPeriod: string = 'this_month';
@@ -70,6 +71,9 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
   topKeywords: { name: string; access: number }[] = [];
   docsPerDepartment: { name: string; total: number }[] = [];
   requestsByType = { student: 0, guest: 0 };
+  mostViewedDocs: any[] = [];
+  leastViewedDocs: any[] = [];
+  totalDocuments: number = 0;
 
   constructor() {
     // Get current user data
@@ -164,6 +168,25 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
               this.createRequestTypeChart();
               this.createTagsChart();
             }, 100);
+          }
+        });
+
+        // Fetch most and least viewed documents
+        this.analyticsService.getViewedDocuments(3).subscribe({
+          next: (viewedData) => {
+            console.log('📊 Viewed documents RAW response:', viewedData);
+            console.log('📊 Most viewed count:', viewedData.mostViewed?.length);
+            console.log('📊 Least viewed count:', viewedData.leastViewed?.length);
+            this.mostViewedDocs = viewedData.mostViewed || [];
+            this.leastViewedDocs = viewedData.leastViewed || [];
+            this.totalDocuments = viewedData.totalDocuments || 0;
+            this.isLoadingViewedDocs = false;
+            console.log('📊 Viewed documents loaded successfully');
+          },
+          error: (error) => {
+            console.error('❌ Error loading viewed documents:', error);
+            console.error('❌ Error details:', error.message, error.status);
+            this.isLoadingViewedDocs = false;
           }
         });
       },
