@@ -35,7 +35,7 @@
             <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h2 class="stat-title">Total Thesis</h2>
+                    <h2 class="stat-title">Total Documents</h2>
                     <p class="stat-value">{{ stats.totalThesis }}</p>
                     <div class="stat-change" [ngClass]="getChangeClass(changes.thesis)">
                         <span>{{ getChangeSymbol(changes.thesis) }} {{ Math.abs(changes.thesis) }}%</span>
@@ -113,6 +113,65 @@
                         </div>
                         <div *ngIf="docsPerDepartment.length === 0" class="list-item">
                             <span>No data available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Most and Least Viewed Documents -->
+            <div class="two-column-grid">
+                <!-- Most Viewed Documents -->
+                <div class="stat-card">
+                    <h2 class="stat-title mb-4">
+                        <span class="icon"></span>
+                        Most Viewed Documents
+                    </h2>
+                    <div *ngIf="isLoadingViewedDocs" class="loading-mini">
+                        <div class="spinner-small"></div>
+                        <p>Loading...</p>
+                    </div>
+                    <div *ngIf="!isLoadingViewedDocs && mostViewedDocs.length === 0" class="no-data">
+                        <p>No viewing data available</p>
+                    </div>
+                    <div *ngIf="!isLoadingViewedDocs && mostViewedDocs.length > 0" class="documents-list">
+                        <div *ngFor="let doc of mostViewedDocs; let i = index" class="document-item">
+                            <div class="doc-rank">{{ i + 1 }}</div>
+                            <div class="doc-info">
+                                <p class="doc-title">{{ doc.title }}</p>
+                                <p class="doc-meta">{{ doc.program }} • {{ doc.year }}</p>
+                            </div>
+                            <div class="doc-views">
+                                <span class="view-count">{{ doc.views }}</span>
+                                <span class="view-label">views</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Least Viewed Documents -->
+                <div class="stat-card">
+                    <h2 class="stat-title mb-4">
+                        <span class="icon"></span>
+                        Least Viewed Documents
+                    </h2>
+                    <div *ngIf="isLoadingViewedDocs" class="loading-mini">
+                        <div class="spinner-small"></div>
+                        <p>Loading...</p>
+                    </div>
+                    <div *ngIf="!isLoadingViewedDocs && leastViewedDocs.length === 0" class="no-data">
+                        <p>No viewing data available</p>
+                    </div>
+                    <div *ngIf="!isLoadingViewedDocs && leastViewedDocs.length > 0" class="documents-list">
+                        <div *ngFor="let doc of leastViewedDocs; let i = index" class="document-item">
+                            <div class="doc-rank">{{ i + 1 }}</div>
+                            <div class="doc-info">
+                                <p class="doc-title">{{ doc.title }}</p>
+                                <p class="doc-meta">{{ doc.program }} • {{ doc.year }}</p>
+                            </div>
+                            <div class="doc-views">
+                                <span class="view-count">{{ doc.views }}</span>
+                                <span class="view-label">views</span>
+                            </div>
                         </div>
                     </div>
                 </div>

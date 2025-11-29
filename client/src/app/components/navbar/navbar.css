@@ -33,7 +33,31 @@ h2 {
   .login-button {
     font-weight: bold;
   }
-  
+
+  /* Style for Login button - white background with black text */
+  :host ::ng-deep .dark .p-button {
+    background-color: white !important;
+    border: none;
+    width: 105px;
+    height: 44px;
+    color: black !important;
+  }
+
+  :host ::ng-deep .dark .p-button .p-button-label {
+    color: black !important;
+  }
+
+  :host ::ng-deep .dark .p-button:hover {
+    background-color: #f5f5f5 !important;
+    border: none;
+    width: 105px;
+    height: 44px;
+    color: black !important;
+  }
+
+  :host ::ng-deep .dark .p-button:hover .p-button-label {
+    color: black !important;
+  }
   /* Explicit white color for all navbar text elements */
   h2 {
     color: white !important;
@@ -89,20 +113,6 @@ h2 {
   :host ::ng-deep .p-toolbar div,
   :host ::ng-deep .p-toolbar label {
     color: white !important;
-  }
-  
-  :host ::ng-deep .dark .p-button {
-    background-color: #fbea31 !important;
-    border: none;
-    width: 105px;
-    height: 44px;
-  }
-
-  :host ::ng-deep .dark .p-button:hover {
-    background-color: #fff477 !important;
-    border: none;
-    width: 105px;
-    height: 44px;
   }
 
   /* User Profile Card Styles */

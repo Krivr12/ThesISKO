@@ -32,13 +32,12 @@
           [title]="'Navigate to About Us page'">
         </p-button>
         <p-button
+          *ngIf="canSubmit()"
           label="Submit"
           text
           plain
-          [routerLink]="canSubmit() ? '/submission' : null"
-          [disabled]="!canSubmit()"
-          [title]="!isUserLoggedIn() ? 'Please log in to submit your thesis' : canSubmit() ? 'Submit your thesis' : 'Only students and group leaders can submit'"
-          [styleClass]="!canSubmit() ? 'p-button-text p-button-plain disabled-button' : ''">
+          [routerLink]="'/submission'"
+          [title]="'Submit your thesis'">
         </p-button>
       </div>
     </div>

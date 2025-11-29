@@ -353,5 +353,57 @@ router.get('/requests-by-month', async (req, res) => {
   }
 });
 
+// GET /analytics/viewed-documents - Get most and least viewed documents overall
+router.get('/viewed-documents', async (req, res) => {
+  try {
+    console.log('📊 Fetching most and least viewed documents...');
+
+    if (!recordsCollection || !requestsCollection) {
+      return res.status(500).json({ error: 'MongoDB connection not available' });
+    }
+
+    const limit = parseInt(req.query.limit) || 5; // Default to top/bottom 5
+
+    // Get all documents
+    const allDocuments = await recordsCollection.find({}).toArray();
+    console.log(`🔍 Total documents found: ${allDocuments.length}`);
+
+    // Get view count for each document
+    const documentsWithViews = await Promise.all(
+      allDocuments.map(async (doc) => {
+        const docId = doc._id.toString();
+        const viewCount = await requestsCollection.countDocuments({ document_id: docId });
+        return {
+          document_id: docId,
+          title: doc.title || 'Untitled Document',
+          authors: doc.authors || [],
+          year: doc.year || 'N/A',
+          program: doc.Program || doc.program_name || 'Unknown Program',
+          views: viewCount
+        };
+      })
+    );
+
+    // Sort by views (descending)
+    documentsWithViews.sort((a, b) => b.views - a.views);
+
+    // Get most and least viewed
+    const mostViewed = documentsWithViews.slice(0, limit);
+    const leastViewed = documentsWithViews.slice(-limit).reverse();
+
+    console.log(`✅ Most viewed: ${mostViewed.length}, Least viewed: ${leastViewed.length}`);
+    
+    res.status(200).json({
+      mostViewed,
+      leastViewed,
+      totalDocuments: allDocuments.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching viewed documents:', error);
+    res.status(500).json({ error: 'Failed to fetch viewed documents' });
+  }
+});
+
 export default router;
 

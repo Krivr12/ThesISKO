@@ -6,9 +6,10 @@ import { ButtonModule } from 'primeng/button';
 import { CarouselModule } from 'primeng/carousel';
 import { Footer } from '../footer/footer';
 import { RecordsService } from '../../service/records.service';
-import { DatePipe } from '@angular/common';
+import { DatePipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
+import { Auth } from '../../service/auth';
 
 interface UpdateItem {
   // data para sa carousel cards (matches backend /latest/ endpoint)
@@ -31,7 +32,9 @@ interface UpdateItem {
     ButtonModule,
     CarouselModule,
     DatePipe,
-    FormsModule
+    FormsModule,
+    CommonModule,
+    RouterLink
   ],
   providers: [DatePipe],
   templateUrl: './home.html',
@@ -51,7 +54,8 @@ export class Home implements OnInit {
   constructor(
     private router: Router,                 
     private recordsService: RecordsService, // API calls
-    private datePipe: DatePipe             
+    private datePipe: DatePipe,
+    private authService: Auth
   ) {}
 
   // carousel data
@@ -63,6 +67,17 @@ export class Home implements OnInit {
       },
       error: (err) => console.error('Error fetching latest records:', err) 
     });
+  }
+
+  // Check if user is a PUPian (student or group leader) AND logged in
+  isPupian(): boolean {
+    const currentUser = this.authService.currentUser;
+    
+    // If no user is logged in, don't show button
+    if (!currentUser) return false;
+    
+    // Role ID 2 = Student, Role ID 6 = Group Leader
+    return currentUser.role_id === 2 || currentUser.role_id === 6;
   }
 
   // click sa carousel item -> punta sa Search Result 
