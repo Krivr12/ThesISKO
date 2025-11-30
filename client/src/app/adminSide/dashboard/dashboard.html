@@ -10,46 +10,48 @@
                 <h1 class="welcome-title">Welcome back, {{ userName }}!</h1>
                 <p class="user-role">{{ userRole }}</p>
             </div>
+            <button class="btn-refresh" (click)="refreshDashboard()" [disabled]="isLoading">
+                <span *ngIf="!isLoading">🔄 Refresh</span>
+                <span *ngIf="isLoading">Loading...</span>
+            </button>
         </header>
 
+        <!-- Error State -->
+        <div *ngIf="hasError && !isLoading" class="error-container">
+            <div class="error-message">
+                <p>⚠️ {{ errorMessage }}</p>
+                <button class="btn-retry" (click)="refreshDashboard()">Retry</button>
+            </div>
+        </div>
+
         <!-- Loading State -->
-        <div *ngIf="isLoading" class="loading-container">
+        <div *ngIf="isLoading && !hasError" class="loading-container">
             <div class="spinner"></div>
             <p>Loading dashboard data...</p>
         </div>
 
         <!-- Dashboard Content -->
-        <div *ngIf="!isLoading">
+        <div *ngIf="!isLoading && !hasError">
             <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <h2 class="stat-title">Total Documents</h2>
                     <p class="stat-value">{{ stats.totalThesis }}</p>
-                    <div class="stat-change" [ngClass]="getChangeClass(changes.thesis)">
-                        <span>{{ getChangeSymbol(changes.thesis) }} {{ Math.abs(changes.thesis) }}%</span>
-                    </div>
                 </div>
 
                 <div class="stat-card">
                     <h2 class="stat-title">Total Users</h2>
                     <p class="stat-value">{{ stats.totalUsers }}</p>
-                    <div class="stat-change" [ngClass]="getChangeClass(changes.users)">
-                        <span>{{ getChangeSymbol(changes.users) }} {{ Math.abs(changes.users) }}%</span>
-                    </div>
                 </div>
 
                 <div class="stat-card">
                     <h2 class="stat-title">Total Requests</h2>
                     <p class="stat-value">{{ stats.totalRequests }}</p>
-                    <div class="stat-change" [ngClass]="getChangeClass(changes.requests)">
-                        <span>{{ getChangeSymbol(changes.requests) }} {{ Math.abs(changes.requests) }}%</span>
-                    </div>
                 </div>
 
                 <div class="stat-card">
                     <h2 class="stat-title">Pending Approvals</h2>
                     <p class="stat-value">{{ stats.pendingApprovals }}</p>
-                    <p class="stat-subtitle">Requires your attention</p>
                 </div>
             </div>
 
@@ -57,7 +59,11 @@
             <div class="chart-grid">
                 <div class="stat-card">
                     <h2 class="stat-title mb-4">User Growth</h2>
-                    <div class="chart-wrapper">
+                    <div *ngIf="isLoadingUserGrowth" class="loading-mini">
+                        <div class="spinner-small"></div>
+                        <p>Loading chart data...</p>
+                    </div>
+                    <div *ngIf="!isLoadingUserGrowth" class="chart-wrapper">
                         <canvas #userChart></canvas>
                     </div>
                 </div>
@@ -71,12 +77,7 @@
             </div>
 
             <!-- Bottom Section -->
-            <div class="three-column-grid">
-                <div class="stat-card">
-                    <h2 class="stat-title">Non-PUP Users</h2>
-                    <p class="text-5xl font-bold mt-4">{{ stats.registeredNonPUP }}</p>
-                </div>
-                
+            <div class="two-column-grid-bottom">
                 <div class="stat-card">
                     <h2 class="stat-title mb-4">Tags in the Repository</h2>
                     <div class="chart-container-with-legend">
@@ -91,35 +92,18 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="stat-card">
-                    <h2 class="list-title">Documents per Program</h2>
-                    <div class="list-content">
-                        <div *ngFor="let dept of docsPerDepartment; let i = index" class="list-item">
-                            <span>{{ i + 1 }}. {{ dept.name }}</span>
-                            <span class="font-semibold">{{ dept.total }}</span>
-                        </div>
-                        <div *ngIf="docsPerDepartment.length === 0" class="list-item">
-                            <span>No data available</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Most and Least Viewed Documents -->
-            <div class="two-column-grid">
-                <!-- Most Viewed Documents -->
                 <div class="stat-card">
                     <h2 class="stat-title mb-4">
                         <span class="icon"></span>
-                        Most Viewed Documents
+                        Most Requested Documents
                     </h2>
                     <div *ngIf="isLoadingViewedDocs" class="loading-mini">
                         <div class="spinner-small"></div>
                         <p>Loading...</p>
                     </div>
                     <div *ngIf="!isLoadingViewedDocs && mostViewedDocs.length === 0" class="no-data">
-                        <p>No viewing data available</p>
+                        <p>No request data available</p>
                     </div>
                     <div *ngIf="!isLoadingViewedDocs && mostViewedDocs.length > 0" class="documents-list">
                         <div *ngFor="let doc of mostViewedDocs; let i = index" class="document-item">
@@ -130,35 +114,7 @@
                             </div>
                             <div class="doc-views">
                                 <span class="view-count">{{ doc.views }}</span>
-                                <span class="view-label">views</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Least Viewed Documents -->
-                <div class="stat-card">
-                    <h2 class="stat-title mb-4">
-                        <span class="icon"></span>
-                        Least Viewed Documents
-                    </h2>
-                    <div *ngIf="isLoadingViewedDocs" class="loading-mini">
-                        <div class="spinner-small"></div>
-                        <p>Loading...</p>
-                    </div>
-                    <div *ngIf="!isLoadingViewedDocs && leastViewedDocs.length === 0" class="no-data">
-                        <p>No viewing data available</p>
-                    </div>
-                    <div *ngIf="!isLoadingViewedDocs && leastViewedDocs.length > 0" class="documents-list">
-                        <div *ngFor="let doc of leastViewedDocs; let i = index" class="document-item">
-                            <div class="doc-rank">{{ i + 1 }}</div>
-                            <div class="doc-info">
-                                <p class="doc-title">{{ doc.title }}</p>
-                                <p class="doc-meta">{{ doc.program }} • {{ doc.year }}</p>
-                            </div>
-                            <div class="doc-views">
-                                <span class="view-count">{{ doc.views }}</span>
-                                <span class="view-label">views</span>
+                                <span class="view-label">requests</span>
                             </div>
                         </div>
                     </div>

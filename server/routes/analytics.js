@@ -152,48 +152,108 @@ router.get('/dashboard', async (req, res) => {
     let docsPerProgram = [];
     if (recordsCollection) {
       try {
+        // First, let's check what's actually in the collection
+        const totalDocs = await recordsCollection.countDocuments({});
+        console.log(`📊 Total documents in records collection: ${totalDocs}`);
+        
+        // Check a sample document to see its structure
+        const sampleDoc = await recordsCollection.findOne({});
+        if (sampleDoc) {
+          console.log(`📊 Sample document fields:`, Object.keys(sampleDoc));
+          console.log(`📊 Sample document program field:`, sampleDoc.program);
+          console.log(`📊 Sample document program_id field:`, sampleDoc.program_id);
+          console.log(`📊 Sample document program_name field:`, sampleDoc.program_name);
+        }
+        
         const programsCollection = RepoMongodb.collection("programs");
         
-        // Aggregate documents by program_id
+        // Try multiple field names - program, program_id, program_name, Program
         const programStats = await recordsCollection.aggregate([
           {
-            $match: { program_id: { $exists: true, $ne: null } }
+            $match: {
+              $or: [
+                { program: { $exists: true, $ne: null, $ne: "" } },
+                { program_id: { $exists: true, $ne: null, $ne: "" } },
+                { program_name: { $exists: true, $ne: null, $ne: "" } },
+                { Program: { $exists: true, $ne: null, $ne: "" } }
+              ]
+            }
+          },
+          {
+            $addFields: {
+              // Use the first available program field
+              programValue: {
+                $ifNull: [
+                  "$program",
+                  { $ifNull: ["$program_id", { $ifNull: ["$program_name", "$Program"] }] }
+                ]
+              }
+            }
           },
           {
             $group: {
-              _id: "$program_id",
+              _id: "$programValue",
               count: { $sum: 1 }
             }
           }
         ]).toArray();
 
-        // Get program names
+        console.log(`📊 Found ${programStats.length} unique programs in records`);
+        console.log(`📊 Program stats:`, JSON.stringify(programStats, null, 2));
+
+        // Process each program stat to get full program names
         for (const stat of programStats) {
+          // Clean the program ID (remove any trailing slashes, trim whitespace)
+          // Handle both string and other types
+          let rawProgramId = stat._id;
+          if (rawProgramId === null || rawProgramId === undefined) {
+            console.log('⚠️ Skipping null/undefined program ID');
+            continue;
+          }
+          
+          const programId = String(rawProgramId)
+            .replace(/\/+$/, '') // Remove trailing slashes
+            .replace(/^\/+/, '') // Remove leading slashes
+            .trim(); // Remove whitespace
+          
+          let programName = null;
+          let programIdValue = programId;
+
           try {
-            const program = await programsCollection.findOne({ program_id: stat._id });
+            // Look up the program in programs collection using program_id
+            const program = await programsCollection.findOne({ program_id: programId });
             if (program) {
-              docsPerProgram.push({
-                program_id: stat._id,
-                program_name: program.program_name || program.name || `Program ${stat._id}`,
-                count: stat.count
-              });
+              programName = program.program_name || program.name || programId;
+              programIdValue = program.program_id;
+              console.log(`✅ Found program: ${programId} -> ${programName} (${stat.count} documents)`);
+            } else {
+              // Program not found in programs collection, use the program_id as name
+              programName = programId;
+              console.log(`⚠️ Program ${programId} not found in programs collection, using ID as name (${stat.count} documents)`);
             }
           } catch (error) {
-            console.error(`❌ Error fetching program ${stat._id}:`, error);
-            docsPerProgram.push({
-              program_id: stat._id,
-              program_name: `Program ${stat._id}`,
-              count: stat.count
-            });
+            console.error(`❌ Error fetching program ${programId}:`, error);
+            programName = programId; // Fallback to using the program_id as name
           }
+
+          // Add to results
+          docsPerProgram.push({
+            program_id: programIdValue,
+            program_name: programName,
+            count: stat.count
+          });
         }
 
         // Sort by count descending
         docsPerProgram.sort((a, b) => b.count - a.count);
-        console.log(`✅ Documents per Program: ${docsPerProgram.length} programs`);
+        console.log(`✅ Documents per Program: ${docsPerProgram.length} programs with ${docsPerProgram.reduce((sum, p) => sum + p.count, 0)} total documents`);
+        console.log(`✅ Final docsPerProgram:`, JSON.stringify(docsPerProgram, null, 2));
       } catch (error) {
         console.error('❌ Error fetching documents per program:', error);
+        console.error('❌ Error stack:', error.stack);
       }
+    } else {
+      console.log('⚠️ recordsCollection is not available');
     }
 
     // 6. Common Keywords (most frequent tags from records collection)
@@ -257,6 +317,20 @@ router.get('/dashboard', async (req, res) => {
       console.error('❌ Error fetching non-PUP users:', error);
     }
 
+    // 9. Pending Approvals (submissions with status pending_chairperson or pending_dean)
+    let pendingApprovals = 0;
+    try {
+      const submissionsCollection = RepoMongodb ? RepoMongodb.collection("submissions") : null;
+      if (submissionsCollection) {
+        pendingApprovals = await submissionsCollection.countDocuments({
+          status: { $in: ['pending_chairperson', 'pending_dean'] }
+        });
+        console.log(`✅ Pending Approvals: ${pendingApprovals}`);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching pending approvals:', error);
+    }
+
     // Return all analytics
     const analytics = {
       totalThesis,
@@ -264,6 +338,7 @@ router.get('/dashboard', async (req, res) => {
       totalRequests,
       totalDownloads,
       registeredNonPUP,
+      pendingApprovals,
       docsPerProgram,
       commonKeywords,
       requestsByType,
@@ -350,6 +425,75 @@ router.get('/requests-by-month', async (req, res) => {
   } catch (error) {
     console.error('❌ Error fetching monthly requests data:', error);
     res.status(500).json({ error: 'Failed to fetch monthly requests data' });
+  }
+});
+
+// GET /analytics/user-growth - Get user growth data over time
+router.get('/user-growth', async (req, res) => {
+  try {
+    const months = parseInt(req.query.months) || 6; // Default to last 6 months
+    console.log(`📊 Fetching user growth data for last ${months} months...`);
+
+    // Calculate date range for the last N months
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+
+    // Query PostgreSQL for monthly user registrations
+    const result = await pool.query(`
+      SELECT 
+        DATE_TRUNC('month', created_at) as month,
+        COUNT(*) as count
+      FROM users_info
+      WHERE created_at >= $1
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY month ASC
+    `, [startDate]);
+
+    // Format data for frontend
+    const monthlyData = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Generate array of last N months
+    for (let i = months - 1; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = monthNames[date.getMonth()];
+      const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      monthlyData.push({
+        month: monthLabel,
+        yearMonth: yearMonth,
+        count: 0
+      });
+    }
+
+    // Fill in actual counts from database
+    result.rows.forEach(row => {
+      const date = new Date(row.month);
+      const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      const monthData = monthlyData.find(m => m.yearMonth === yearMonth);
+      if (monthData) {
+        monthData.count = parseInt(row.count);
+      }
+    });
+
+    // Calculate cumulative totals for line chart
+    let cumulativeTotal = 0;
+    const cumulativeData = monthlyData.map(m => {
+      cumulativeTotal += m.count;
+      return cumulativeTotal;
+    });
+
+    console.log('✅ User growth data fetched successfully');
+    res.status(200).json({
+      months: monthlyData.map(m => m.month),
+      newUsers: monthlyData.map(m => m.count),
+      cumulativeUsers: cumulativeData
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching user growth data:', error);
+    res.status(500).json({ error: 'Failed to fetch user growth data' });
   }
 });
 
