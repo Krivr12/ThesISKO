@@ -688,54 +688,74 @@ router.get('/pending-dean/:email', async (req, res) => {
     const submissionsCollection = getSubmissionsCollection();
     const programsCollection = getDb().collection('programs');
 
-    // Get all submissions with status pending_dean
-    console.log(`🔍 Looking for submissions with status: pending_dean`);
-    const allPendingSubmissions = await submissionsCollection.find({
-      status: 'pending_dean'
-    }).toArray();
+    // Step 1: Get dean's department_id from users_info (where department_head matches)
+    const deanResult = await pool.query(
+      'SELECT department_head FROM users_info WHERE email = $1',
+      [email]
+    );
 
-    console.log(`📊 Found ${allPendingSubmissions.length} submissions with status pending_dean`);
-
-    // Filter submissions based on dean's programs and enrich with program info
-    const filteredSubmissions = [];
-    
-    for (const submission of allPendingSubmissions) {
-      console.log(`🔍 Checking submission ${submission.submission_id} (department: ${submission.department})`);
-      
-      // Find program by matching department
-      const program = await programsCollection.findOne({
-        department_id: submission.department
-      });
-      
-      if (program) {
-        console.log(`📋 Found program ${program.program_id} for department ${submission.department}`);
-        console.log(`👤 Program dean_email: ${program.dean_email}, Requested email: ${email}`);
-        
-        // Check if this dean is responsible for this program
-        if (program.dean_email === email) {
-          console.log(`✅ Dean ${email} is responsible for submission ${submission.submission_id}`);
-          
-          // Enrich submission with program info
-          const enrichedSubmission = {
-            ...submission,
-            program_info: {
-              program_name: program.program_name,
-              department_name: program.department_name,
-              chairperson_email: program.chairperson_email
-            }
-          };
-          
-          filteredSubmissions.push(enrichedSubmission);
-        } else {
-          console.log(`❌ Dean ${email} is NOT responsible for submission ${submission.submission_id}`);
-        }
-      } else {
-        console.log(`⚠️ No program found for department: ${submission.department}`);
-      }
+    if (deanResult.rows.length === 0 || !deanResult.rows[0].department_head) {
+      console.log(`⚠️ No department found for dean: ${email}`);
+      return res.json({ success: true, data: [] });
     }
 
-    console.log(`📊 Final result: ${filteredSubmissions.length} submissions for dean ${email}`);
-    console.log(`📋 Filtered submissions:`, filteredSubmissions.map(s => ({ 
+    const departmentId = deanResult.rows[0].department_head;
+    console.log(`✅ Dean ${email} manages department: ${departmentId}`);
+
+    // Step 2: Get all programs in that department
+    const programs = await programsCollection.find({ 
+      department_id: departmentId 
+    }).toArray();
+    
+    const programIds = programs.map(p => p.program_id);
+    console.log(`✅ Found ${programs.length} programs in department ${departmentId}:`, programIds);
+
+    if (programIds.length === 0) {
+      console.log(`⚠️ No programs found for department ${departmentId}`);
+      return res.json({ success: true, data: [] });
+    }
+
+    // Step 3: Get all submissions with status pending_dean that belong to these programs
+    console.log(`🔍 Looking for submissions with status: pending_dean and program in:`, programIds);
+    console.log(`🔍 Program IDs type:`, typeof programIds[0], `Value:`, JSON.stringify(programIds));
+    
+    // Debug: Check all pending_dean submissions first
+    const allPendingDeanSubmissions = await submissionsCollection.find({
+      status: 'pending_dean'
+    }).toArray();
+    console.log(`📋 Total submissions with status pending_dean: ${allPendingDeanSubmissions.length}`);
+    if (allPendingDeanSubmissions.length > 0) {
+      console.log(`📋 Sample submission programs:`, allPendingDeanSubmissions.map(s => ({
+        id: s.submission_id,
+        program: s.program,
+        program_type: typeof s.program,
+        department: s.department
+      })));
+    }
+    
+    const allPendingSubmissions = await submissionsCollection.find({
+      status: 'pending_dean',
+      program: { $in: programIds }
+    }).toArray();
+
+    console.log(`📊 Found ${allPendingSubmissions.length} submissions pending dean approval matching programs`);
+
+    // Step 4: Enrich submissions with program info
+    const enrichedSubmissions = allPendingSubmissions.map(submission => {
+      const program = programs.find(p => p.program_id === submission.program);
+      
+      return {
+        ...submission,
+        program_info: program ? {
+          program_name: program.program_name,
+          department_name: program.department_name,
+          chairperson_email: program.chairperson_email
+        } : null
+      };
+    });
+
+    console.log(`📊 Final result: ${enrichedSubmissions.length} submissions for dean ${email}`);
+    console.log(`📋 Filtered submissions:`, enrichedSubmissions.map(s => ({ 
       id: s.submission_id, 
       program: s.program, 
       department: s.department,
@@ -743,7 +763,7 @@ router.get('/pending-dean/:email', async (req, res) => {
       chairperson_approved_by: s.chairperson_approval?.approved_by
     })));
 
-    res.json({ success: true, data: filteredSubmissions });
+    res.json({ success: true, data: enrichedSubmissions });
   } catch (error) {
     console.error('❌ Error fetching dean submissions:', error);
     res.status(500).json({ 

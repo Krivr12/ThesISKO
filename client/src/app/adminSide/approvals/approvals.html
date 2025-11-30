@@ -28,11 +28,13 @@
 
       <div class="filter-group">
         <label for="docType">Document Type</label>
-        <select id="docType" [(ngModel)]="filterDocumentType" class="filter-select">
+        <select id="docType" [(ngModel)]="filterDocumentType" class="filter-select" [disabled]="loadingDocumentTypes()">
           <option value="">All Types</option>
-          <option value="capstone_paper">Capstone Paper</option>
-          <option value="thesis">Thesis</option>
+          <option *ngFor="let docType of documentTypes()" [value]="docType">
+            {{ docType | titlecase }}
+          </option>
         </select>
+        <small *ngIf="loadingDocumentTypes()" class="form-hint">Loading document types...</small>
       </div>
     </div>
 

@@ -42,6 +42,8 @@ export class Approvals implements OnInit {
   loading = signal<boolean>(false);
   searchTerm = signal<string>('');
   filterDocumentType = signal<string>('');
+  documentTypes = signal<string[]>([]);
+  loadingDocumentTypes = signal<boolean>(false);
 
   currentUser = signal<any>(null);
   isDean = computed(() => this.currentUser()?.role_id === 5);
@@ -71,9 +73,13 @@ export class Approvals implements OnInit {
   });
 
   private apiUrl = `${environment.apiUrl}/submissions`;
+  private requirementsUrl = `${environment.apiUrl}/requirements`;
 
   ngOnInit() {
     console.log('Approvals component initialized');
+    // Load document types on component init
+    this.loadDocumentTypes();
+    
     // Subscribe to auth service to get current user
     this.authService.currentUser$.subscribe(user => {
       console.log('Auth service user update:', user);
@@ -90,6 +96,25 @@ export class Approvals implements OnInit {
         console.log('User object keys:', user ? Object.keys(user) : 'null');
       }
     });
+  }
+
+  loadDocumentTypes() {
+    this.loadingDocumentTypes.set(true);
+    console.log('Loading document types from:', `${this.requirementsUrl}/document-types`);
+    
+    this.http.get<{ success: boolean; data: string[] }>(`${this.requirementsUrl}/document-types`)
+      .subscribe({
+        next: (response) => {
+          console.log('Document types loaded:', response);
+          this.documentTypes.set(response.data || []);
+          this.loadingDocumentTypes.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading document types:', error);
+          // Don't show alert, just log error and continue
+          this.loadingDocumentTypes.set(false);
+        }
+      });
   }
 
   loadSubmissions() {
