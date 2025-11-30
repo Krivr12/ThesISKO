@@ -94,6 +94,25 @@
       <div class="search-results">
         <h2 class="results-count">{{ totalItems }} records found.</h2>
 
+        <!-- No Results Message -->
+        <div *ngIf="totalItems === 0" class="no-results-container">
+          <h3 class="no-results-title">No documents found</h3>
+          <p class="no-results-message">
+            We couldn't find any documents matching your search criteria.
+          </p>
+          <div class="no-results-suggestions">
+            <p class="suggestions-title">Try:</p>
+            <ul class="suggestions-list">
+              <li>Checking your spelling or trying different keywords</li>
+              <li>Clearing your filters to see more results</li>
+              <li>Searching with broader terms</li>
+            </ul>
+          </div>
+          <button class="clear-filters-button" (click)="clearFilters()">
+            Clear All Filters
+          </button>
+        </div>
+
         <div class="result-card" *ngFor="let thesis of displayedTheses" (click)="viewThesis(thesis)">
           <h3 class="thesis-title">{{ thesis.title }}</h3>
           <p class="thesis-meta">By: {{ thesis.author }} </p>

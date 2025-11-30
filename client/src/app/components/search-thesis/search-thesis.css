@@ -57,19 +57,38 @@ body {
   align-items: center;
   justify-content: flex-start;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .search-page-container {
-  max-width: 1400px;
+  width: 100%; /* Fixed width - always 100% of parent */
+  max-width: 1400px; /* Maximum width constraint */
   margin: 40px auto;
   padding: 0 40px;
   min-height: 600px; /* Ensure consistent page height */
+  box-sizing: border-box; /* Include padding in width calculation */
+  flex-shrink: 0; /* Prevent shrinking */
+  position: relative; /* For proper positioning */
+}
+
+.main-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .search-bar-container {
   display: flex;
   gap: 15px;
   margin-bottom: 50px;
+  width: 100%; /* Fixed width - never changes */
+  max-width: 100%;
+  min-width: 0; /* Prevent overflow */
+  box-sizing: border-box;
+  position: relative; /* Ensure it stays in place */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .search-input {
@@ -107,28 +126,40 @@ body {
   display: flex;
   gap: 60px;
   align-items: flex-start;
-  width: 100%; /* Ensure full width */
-  transition: gap 0.3s ease-in-out; /* Smooth gap transition */
+  width: 100%; /* Always match search-bar-container width */
+  max-width: 100%; /* Match search bar max-width */
+  min-width: 0; /* Prevent overflow */
+  box-sizing: border-box;
+  transition: gap 0.3s ease-in-out 0.1s; /* Smooth gap transition with delay */
+  position: relative; /* For proper positioning */
+  flex-shrink: 0; /* Prevent shrinking - maintain unified width */
 }
 
 .filter-sidebar {
-  flex: 0 0 300px; /* Fixed width, no grow/shrink */
+  flex: 0 0 300px; /* Fixed width when expanded */
   padding-right: 20px;
   position: sticky;
   top: 40px;
-  transition: flex-basis 0.3s ease-in-out, padding-right 0.3s ease-in-out;
+  transition: flex-basis 0.3s ease-in-out 0.1s, padding-right 0.3s ease-in-out 0.1s; /* Delay width shrink until content is hidden */
   overflow: hidden; /* Hide content when collapsed */
   min-width: 0; /* Allow flex item to shrink */
   box-sizing: border-box; /* Include padding in width calculation */
+  margin-right: 0; /* Keep left edge fixed */
+  flex-shrink: 1; /* Allow shrinking when collapsed */
+  /* Shrinks from right to left - left edge stays fixed */
+  /* Width animation is delayed to allow content to hide first */
 }
 
 .filter-sidebar.sidebar-collapsed {
-  flex: 0 0 100px; /* Collapse to button width */
+  flex: 0 0 130px; /* Collapse to button width with space for one-line text */
   padding-right: 10px;
+  flex-shrink: 1; /* Allow shrinking */
+  /* Left edge remains fixed, right edge moves left */
 }
 
 .results-layout:has(.sidebar-collapsed) {
   gap: 20px; /* Reduce gap when sidebar is collapsed */
+  transition: gap 0.3s ease-in-out 0.1s; /* Delay gap reduction until content is hidden */
 }
 
 .filter-header {
@@ -159,20 +190,24 @@ body {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap; /* Prevent text wrapping to keep on one line */
 }
 
 .filter-options-wrapper {
   overflow: hidden;
-  transition: max-height 0.3s ease-in-out;
   max-height: 1000px; /* Set a reasonable max height for expanded state */
+  opacity: 1; /* Fully visible when expanded */
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  transition: max-height 0.3s ease-in-out 0.1s, opacity 0.1s ease-in-out; /* Fade in after sidebar expands, fast fade out when collapsing */
 }
 
 .filter-options-wrapper.collapsed {
   max-height: 0;
   margin-bottom: 0;
+  opacity: 0; /* Hide content immediately to prevent text warping */
+  transition: max-height 0.3s ease-in-out, opacity 0.1s ease-in-out; /* Fast fade out, then collapse height */
 }
 
 .filter-options-wrapper.collapsed > * {
@@ -211,11 +246,14 @@ body {
 }
 
 .search-results {
-  flex: 1 1 auto; /* Allow grow and shrink */
+  flex: 1 1 auto; /* Grow to fill remaining space */
   min-width: 0; /* Prevent flex item from overflowing */
-  max-width: 100%; /* Responsive - don't exceed container */
+  max-width: 100%; /* Don't exceed container */
   box-sizing: border-box;
-  transition: flex-grow 0.3s ease-in-out; /* Smooth expansion */
+  transition: flex-grow 0.3s ease-in-out 0.1s; /* Delay expansion until content is hidden */
+  /* Expands from right to left when filter hides, shrinks when filter shows */
+  /* Always fills remaining space to match search bar width */
+  flex-shrink: 1; /* Allow shrinking when filter expands */
 }
 
 .results-count {
@@ -228,6 +266,118 @@ body {
   margin-bottom: 30px;
   display: inline-block;
   margin-top: 0; /* Align with filter button */
+}
+
+/* Style results count when no results */
+.search-results:has(.no-results-container) .results-count {
+  color: #a94442;
+  background-color: #f2dede;
+}
+
+/* No Results Container */
+.no-results-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 30px;
+  margin: 0 0 25px 0; /* Match result card margin-bottom */
+  background-color: #f9f9f9;
+  border-radius: 12px; /* Match result card border-radius */
+  border: 2px dashed #e0e0e0;
+  text-align: center;
+  width: 100%; /* Match result card width */
+  max-width: 100%; /* Match result card max-width */
+  box-sizing: border-box; /* Include padding and border in width calculation */
+  min-height: auto; /* Natural height based on content */
+}
+
+.no-results-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+.no-results-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #800000;
+  margin: 0 0 12px 0;
+}
+
+.no-results-message {
+  font-size: 1rem;
+  color: #616161;
+  margin: 0 0 25px 0;
+  max-width: 100%;
+  line-height: 1.6;
+}
+
+.no-results-suggestions {
+  background-color: #fff;
+  padding: 20px 25px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.suggestions-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #800000;
+  margin: 0 0 15px 0;
+  text-align: left;
+}
+
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.suggestions-list li {
+  font-size: 0.95rem;
+  color: #616161;
+  margin-bottom: 10px;
+  padding-left: 25px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.suggestions-list li:before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #800000;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.suggestions-list li:last-child {
+  margin-bottom: 0;
+}
+
+.clear-filters-button {
+  padding: 12px 30px;
+  font-size: 1rem;
+  border: 2px solid #800000;
+  border-radius: 8px;
+  background-color: #800000;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-filters-button:hover {
+  background-color: #6a0000;
+  border-color: #6a0000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(128, 0, 0, 0.2);
 }
 
 .result-card {
@@ -660,6 +810,29 @@ body {
     -webkit-line-clamp: 4; /* 4 lines on smaller tablets */
     line-clamp: 4;
   }
+
+  .no-results-container {
+    padding: 40px 25px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 20px 0;
+  }
+
+  .no-results-title {
+    font-size: 1.4rem;
+  }
+
+  .no-results-message {
+    font-size: 0.95rem;
+  }
+
+  .no-results-icon {
+    font-size: 3.5rem;
+  }
+
+  .no-results-title {
+    font-size: 1.6rem;
+  }
 }
 
 /* Small tablets and large phones */
@@ -690,18 +863,21 @@ body {
   }
   
   .search-bar-container {
-    flex-direction: column;
+    flex-direction: row; /* Keep button on the right side */
     gap: 10px;
     margin-bottom: 30px;
   }
   
   .search-input {
     padding: 12px 16px;
+    flex: 1 1 auto; /* Allow input to grow and take available space */
+    min-width: 0; /* Allow shrinking */
   }
   
   .search-button {
     padding: 12px 20px;
-    width: 100%;
+    flex: 0 0 auto; /* Don't grow or shrink, maintain button size */
+    white-space: nowrap; /* Prevent button text from wrapping */
   }
   
   .search-results {
@@ -731,6 +907,48 @@ body {
   
   .filter-options-wrapper:not(.collapsed) {
     max-height: 1500px; /* Larger max-height for mobile to accommodate all filters */
+  }
+
+  .no-results-container {
+    padding: 35px 20px;
+    margin: 0 0 20px 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .no-results-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+  }
+
+  .no-results-title {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+  }
+
+  .no-results-message {
+    font-size: 1rem;
+    margin-bottom: 25px;
+  }
+
+  .no-results-suggestions {
+    padding: 20px;
+    margin-bottom: 25px;
+  }
+
+  .suggestions-title {
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+
+  .suggestions-list li {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .clear-filters-button {
+    padding: 10px 25px;
+    font-size: 0.95rem;
   }
 }
 
@@ -785,7 +1003,49 @@ body {
   .add-tag-button {
     padding: 8px 15px;
   }
-  
+
+  .no-results-container {
+    padding: 30px 15px;
+    margin: 0 0 15px 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .no-results-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+  }
+
+  .no-results-title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+
+  .no-results-message {
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+
+  .no-results-suggestions {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .suggestions-title {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+
+  .suggestions-list li {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    padding-left: 20px;
+  }
+
+  .clear-filters-button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
 }
 
 /* Small mobile phones */
@@ -836,5 +1096,38 @@ body {
   
   .filter-list {
     max-height: 150px;
+  }
+
+  .no-results-container {
+    padding: 25px 12px;
+    margin: 0 0 12px 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .no-results-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+
+  .no-results-title {
+    font-size: 1.1rem;
+  }
+
+  .no-results-message {
+    font-size: 0.9rem;
+  }
+
+  .no-results-suggestions {
+    padding: 12px;
+  }
+
+  .suggestions-list li {
+    font-size: 0.8rem;
+  }
+
+  .clear-filters-button {
+    padding: 8px 18px;
+    font-size: 0.85rem;
   }
 }
