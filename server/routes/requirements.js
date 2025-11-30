@@ -26,6 +26,31 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET unique document types (for dropdowns and filters)
+// NOTE: This route must be placed BEFORE parameterized routes like /:document_type/files
+router.get('/document-types', async (req, res) => {
+  try {
+    console.log('📋 Fetching unique document types from requirements collection');
+    const collection = getRequirementsCollection();
+    const requirements = await collection
+      .find({ is_active: true })
+      .project({ document_type: 1, _id: 0 })
+      .toArray();
+
+    console.log(`📊 Found ${requirements.length} active requirements`);
+
+    // Extract unique document types
+    const uniqueTypes = [...new Set(requirements.map(r => r.document_type))].sort();
+
+    console.log(`✅ Returning ${uniqueTypes.length} unique document types:`, uniqueTypes);
+
+    res.json({ success: true, data: uniqueTypes });
+  } catch (error) {
+    console.error('❌ Error fetching document types:', error);
+    res.status(500).json({ error: 'Error fetching document types' });
+  }
+});
+
 // GET requirements by document type
 router.get('/by-type/:document_type', async (req, res) => {
   try {
