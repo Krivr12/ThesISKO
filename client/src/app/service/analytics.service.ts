@@ -9,6 +9,7 @@ export interface DashboardAnalytics {
   totalRequests: number;
   totalDownloads: number;
   registeredNonPUP: number;
+  pendingApprovals: number;
   docsPerProgram: ProgramStats[];
   commonKeywords: KeywordStats[];
   requestsByType: RequestsByType;
@@ -43,6 +44,12 @@ export interface MonthlyRequestsData {
   months: string[];
   studentRequests: number[];
   guestRequests: number[];
+}
+
+export interface UserGrowthData {
+  months: string[];
+  newUsers: number[];
+  cumulativeUsers: number[];
 }
 
 export interface DocumentViewStats {
@@ -83,6 +90,12 @@ export class AnalyticsService {
   getViewedDocuments(limit: number = 5): Observable<ViewedDocumentsResponse> {
     return this.http.get<ViewedDocumentsResponse>(`${this.apiUrl}/viewed-documents`, {
       params: { limit: limit.toString() }
+    });
+  }
+
+  getUserGrowthData(months: number = 6): Observable<UserGrowthData> {
+    return this.http.get<UserGrowthData>(`${this.apiUrl}/user-growth`, {
+      params: { months: months.toString() }
     });
   }
 }

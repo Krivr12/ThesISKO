@@ -1,10 +1,12 @@
 import { Component, AfterViewInit, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { AdminSideNav } from '../admin-side-nav/admin-side-nav';
 import { Auth } from '../../service/auth';
 import { User } from '../../interface/auth';
 import { AnalyticsService } from '../../service/analytics.service';
+import { environment } from '../../../environments/environment';
 import Chart from 'chart.js/auto';
 
 @Component({
@@ -36,6 +38,7 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
   // Services
   private authService = inject(Auth);
   private analyticsService = inject(AnalyticsService);
+  private http = inject(HttpClient);
   
   // Current user data
   currentUser: User | null = null;
@@ -46,9 +49,9 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
   // Loading state
   isLoading: boolean = true;
   isLoadingViewedDocs: boolean = true;
-  
-  // Selected period
-  selectedPeriod: string = 'this_month';
+  isLoadingUserGrowth: boolean = true;
+  hasError: boolean = false;
+  errorMessage: string = '';
   
   // Role-based stats
   stats = {
@@ -56,7 +59,6 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
     totalUsers: '0',
     totalRequests: '0',
     totalDownloads: '0',
-    registeredNonPUP: '0',
     pendingApprovals: '0'
   };
 
@@ -69,20 +71,24 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
   };
 
   topKeywords: { name: string; access: number }[] = [];
-  docsPerDepartment: { name: string; total: number }[] = [];
   requestsByType = { student: 0, guest: 0 };
   mostViewedDocs: any[] = [];
-  leastViewedDocs: any[] = [];
   totalDocuments: number = 0;
+  userGrowthData: { months: string[]; cumulativeUsers: number[] } = { months: [], cumulativeUsers: [] };
 
   constructor() {
-    // Get current user data
+        // Get current user data
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
         this.userName = user.Firstname || user.firstname || 'Admin';
         this.userRole = this.getUserRole(user.role_id);
         this.isDean = user.role_id === 5;
+        // Load pending approvals when user is available
+        const userEmail = user.Email || user.email;
+        if (userEmail) {
+          this.loadPendingApprovals();
+        }
       }
     });
   }
@@ -92,7 +98,8 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
   }
 
   ngAfterViewInit(): void {
-    // Charts will be created after data is loaded
+    // Charts will be created after data is loaded in loadDashboardData
+    // This ensures the view is ready before creating charts
   }
 
   getUserRole(roleId?: number): string {
@@ -106,15 +113,50 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
     }
   }
 
-  onPeriodChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.selectedPeriod = target.value;
+  refreshDashboard(): void {
     this.loadDashboardData();
+    // Also refresh pending approvals
+    this.loadPendingApprovals();
+  }
+
+  loadPendingApprovals(): void {
+    const user = this.currentUser;
+    // Check for both Email and email properties
+    const userEmail = user?.Email || user?.email;
+    if (!user || !userEmail) {
+      console.log('⚠️ No user email available for pending approvals');
+      this.stats.pendingApprovals = '0';
+      return;
+    }
+
+    // Determine endpoint based on user role
+    const isDean = user.role_id === 5;
+    const endpoint = isDean 
+      ? `${environment.apiUrl}/submissions/pending-dean/${userEmail}`
+      : `${environment.apiUrl}/submissions/pending-chairperson/${userEmail}`;
+
+    console.log(`📊 Loading pending approvals from: ${endpoint}`);
+
+    this.http.get<{ success: boolean; data: any[] }>(endpoint)
+      .subscribe({
+        next: (response) => {
+          const count = response.data?.length || 0;
+          this.stats.pendingApprovals = this.formatNumber(count);
+          console.log(`✅ Pending approvals loaded: ${count}`);
+        },
+        error: (error) => {
+          console.error('❌ Error loading pending approvals:', error);
+          this.stats.pendingApprovals = '0';
+        }
+      });
   }
 
   loadDashboardData(): void {
     this.isLoading = true;
-    this.analyticsService.getDashboardAnalytics(this.selectedPeriod).subscribe({
+    this.hasError = false;
+    this.errorMessage = '';
+    
+    this.analyticsService.getDashboardAnalytics('this_month').subscribe({
       next: (data) => {
         console.log('📊 Dashboard analytics loaded:', data);
         
@@ -124,20 +166,16 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
           totalUsers: this.formatNumber(data.totalUsers),
           totalRequests: this.formatNumber(data.totalRequests),
           totalDownloads: this.formatNumber(data.totalDownloads),
-          registeredNonPUP: this.formatNumber(data.registeredNonPUP),
-          pendingApprovals: '0'
+          pendingApprovals: '0' // Will be updated by loadPendingApprovals
         };
+
+        // Load pending approvals based on user role
+        this.loadPendingApprovals();
 
         // Update keywords
         this.topKeywords = data.commonKeywords.slice(0, 5).map(k => ({
           name: k.keyword,
           access: k.count
-        }));
-
-        // Update documents per program
-        this.docsPerDepartment = data.docsPerProgram.map(p => ({
-          name: p.program_name,
-          total: p.count
         }));
 
         // Update requests by type
@@ -146,45 +184,77 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
         // Update percentage changes
         this.changes = data.changes;
 
-        this.isLoading = false;
+        // Fetch user growth data
+        this.isLoadingUserGrowth = true;
+        this.analyticsService.getUserGrowthData(6).subscribe({
+          next: (growthData) => {
+            this.userGrowthData = {
+              months: growthData.months,
+              cumulativeUsers: growthData.cumulativeUsers
+            };
+            this.isLoadingUserGrowth = false;
+            // Create user growth chart after view update
+            setTimeout(() => {
+              if (this.chartRef?.nativeElement) {
+                this.createChart();
+              }
+            }, 200);
+          },
+          error: (error) => {
+            console.error('❌ Error loading user growth data:', error);
+            this.isLoadingUserGrowth = false;
+            // Create chart with empty data
+            setTimeout(() => {
+              if (this.chartRef?.nativeElement) {
+                this.createChart();
+              }
+            }, 200);
+          }
+        });
 
         // Fetch monthly requests data for time-based chart
         this.analyticsService.getMonthlyRequestsData(6).subscribe({
           next: (monthlyData) => {
             this.monthlyRequestsData = monthlyData;
-            
-            // Create charts after all data is loaded
+            // Create request type chart after view update
             setTimeout(() => {
-              this.createChart();
-              this.createRequestTypeChart();
-              this.createTagsChart();
-            }, 100);
+              if (this.requestTypeChartRef?.nativeElement) {
+                this.createRequestTypeChart();
+              }
+            }, 200);
           },
           error: (error) => {
             console.error('❌ Error loading monthly requests data:', error);
-            // Still create charts even if monthly data fails
+            // Create chart with empty data
             setTimeout(() => {
-              this.createChart();
-              this.createRequestTypeChart();
-              this.createTagsChart();
-            }, 100);
+              if (this.requestTypeChartRef?.nativeElement) {
+                this.createRequestTypeChart();
+              }
+            }, 200);
           }
         });
 
-        // Fetch most and least viewed documents
-        this.analyticsService.getViewedDocuments(3).subscribe({
+        // Create tags chart after keywords are loaded
+        setTimeout(() => {
+          if (this.tagsChartRef?.nativeElement) {
+            this.createTagsChart();
+          }
+        }, 200);
+        
+        this.isLoading = false;
+
+        // Fetch most requested documents
+        this.analyticsService.getViewedDocuments(5).subscribe({
           next: (viewedData) => {
-            console.log('📊 Viewed documents RAW response:', viewedData);
-            console.log('📊 Most viewed count:', viewedData.mostViewed?.length);
-            console.log('📊 Least viewed count:', viewedData.leastViewed?.length);
+            console.log('📊 Requested documents RAW response:', viewedData);
+            console.log('📊 Most requested count:', viewedData.mostViewed?.length);
             this.mostViewedDocs = viewedData.mostViewed || [];
-            this.leastViewedDocs = viewedData.leastViewed || [];
             this.totalDocuments = viewedData.totalDocuments || 0;
             this.isLoadingViewedDocs = false;
-            console.log('📊 Viewed documents loaded successfully');
+            console.log('📊 Requested documents loaded successfully');
           },
           error: (error) => {
-            console.error('❌ Error loading viewed documents:', error);
+            console.error('❌ Error loading requested documents:', error);
             console.error('❌ Error details:', error.message, error.status);
             this.isLoadingViewedDocs = false;
           }
@@ -193,6 +263,8 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
       error: (error) => {
         console.error('❌ Error loading dashboard analytics:', error);
         this.isLoading = false;
+        this.hasError = true;
+        this.errorMessage = 'Failed to load dashboard data. Please try again.';
       }
     });
   }
@@ -202,17 +274,6 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
       return num.toLocaleString('en-US');
     }
     return num.toString();
-  }
-
-  getComparisonText(): string {
-    switch (this.selectedPeriod) {
-      case 'today':
-        return 'vs. yesterday';
-      case 'this_year':
-        return 'vs. last year';
-      default:
-        return 'vs. last month';
-    }
   }
 
   createChart(): void {
@@ -227,30 +288,37 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
         this.chart.destroy();
       }
 
-      const totalUsers = parseInt(this.stats.totalUsers.replace(/,/g, ''));
-      const maxValue = Math.ceil(totalUsers / 100) * 100;
+      // Use real user growth data
+      const labels = this.userGrowthData.months.length > 0 
+        ? this.userGrowthData.months 
+        : ['No data'];
+      const data = this.userGrowthData.cumulativeUsers.length > 0
+        ? this.userGrowthData.cumulativeUsers
+        : [0];
+      
+      // Calculate max value for y-axis, ensure it's at least 10
+      const maxDataValue = data.length > 0 && Math.max(...data) > 0
+        ? Math.max(...data)
+        : 10;
+      const maxValue = Math.ceil(maxDataValue / 100) * 100;
 
       this.chart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ['8:00 AM', '11:00 AM', '2:00 PM', '5:00 PM', '8:00 PM', '11:00 PM'],
+          labels: labels,
           datasets: [{
-            label: 'Users',
-            data: [
-              Math.floor(totalUsers * 0.4),
-              Math.floor(totalUsers * 0.5),
-              Math.floor(totalUsers * 0.7),
-              Math.floor(totalUsers * 0.85),
-              Math.floor(totalUsers * 0.95),
-              totalUsers
-            ],
+            label: 'Total Users',
+            data: data,
             borderColor: '#800000',
-            backgroundColor: 'transparent',
-            fill: false,
+            backgroundColor: 'rgba(128, 0, 0, 0.1)',
+            fill: true,
             tension: 0.4,
             borderWidth: 2,
-            pointRadius: 0,
-            pointHoverRadius: 0
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#800000',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
           }]
         },
         options: {
@@ -286,16 +354,17 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
             },
             y: {
               beginAtZero: true,
-              max: maxValue,
+              max: maxValue > 0 ? maxValue : undefined,
               grid: {
                 color: '#f0f0f0'
               },
               ticks: {
-                stepSize: Math.ceil(maxValue / 5),
+                stepSize: maxValue > 0 ? Math.ceil(maxValue / 5) : undefined,
                 color: '#666',
                 font: {
                   size: 11
-                }
+                },
+                precision: 0
               },
               border: {
                 display: false
@@ -330,7 +399,7 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
       // Use real data from backend (fetched via analytics service)
       const monthLabels = this.monthlyRequestsData.months.length > 0 
         ? this.monthlyRequestsData.months 
-        : ['Loading...'];
+        : ['No data'];
       const studentRequestsData = this.monthlyRequestsData.studentRequests.length > 0
         ? this.monthlyRequestsData.studentRequests
         : [0];
@@ -464,9 +533,15 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
       }
 
       // Prepare data from topKeywords
-      const labels = this.topKeywords.map(k => k.name);
-      const data = this.topKeywords.map(k => k.access);
-      const colors = this.topKeywords.map((_, i) => this.getChartColor(i));
+      const labels = this.topKeywords.length > 0 
+        ? this.topKeywords.map(k => k.name)
+        : ['No data'];
+      const data = this.topKeywords.length > 0
+        ? this.topKeywords.map(k => k.access)
+        : [1];
+      const colors = this.topKeywords.length > 0
+        ? this.topKeywords.map((_, i) => this.getChartColor(i))
+        : ['#CCCCCC'];
 
       this.tagsChart = new Chart(ctx, {
         type: 'pie',
