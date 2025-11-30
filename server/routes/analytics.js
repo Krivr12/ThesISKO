@@ -366,9 +366,18 @@ router.get('/requests-by-month', async (req, res) => {
     const months = parseInt(req.query.months) || 6; // Default to last 6 months
     console.log(`📊 Fetching monthly requests data for last ${months} months...`);
 
-    // Calculate date range for the last N months
+    // Calculate date range for the last N months (rolling window)
     const now = new Date();
+    // Start from the 1st day of the oldest month (6 months ago)
     const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+    // End at the last day of the current month (31st)
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    // Convert to ISO strings for PostgreSQL (ensures proper timezone handling)
+    const startDateISO = startDate.toISOString();
+    const endDateISO = endDate.toISOString();
+
+    console.log(`📅 Date range: ${startDateISO} to ${endDateISO}`);
 
     // Query PostgreSQL for monthly breakdown
     const result = await pool.query(`
@@ -377,16 +386,16 @@ router.get('/requests-by-month', async (req, res) => {
         user_type,
         COUNT(*) as count
       FROM requesters_analytics
-      WHERE created_at >= $1
+      WHERE created_at >= $1 AND created_at <= $2
       GROUP BY DATE_TRUNC('month', created_at), user_type
       ORDER BY month ASC
-    `, [startDate]);
+    `, [startDateISO, endDateISO]);
 
     // Format data for frontend
     const monthlyData = [];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
-    // Generate array of last N months
+    // Generate array of last N months (always show all 6 months, even with 0 data)
     for (let i = months - 1; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const monthLabel = monthNames[date.getMonth()];
@@ -400,10 +409,16 @@ router.get('/requests-by-month', async (req, res) => {
       });
     }
 
+    console.log(`📊 Generated ${monthlyData.length} months:`, monthlyData.map(m => m.month).join(', '));
+    console.log(`📊 Database returned ${result.rows.length} rows`);
+
     // Fill in actual counts from database
     result.rows.forEach(row => {
-      const date = new Date(row.month);
-      const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      // Parse the PostgreSQL timestamp properly
+      const dbDate = new Date(row.month);
+      const yearMonth = `${dbDate.getFullYear()}-${String(dbDate.getMonth() + 1).padStart(2, '0')}`;
+      
+      console.log(`📊 Processing row: month=${row.month}, yearMonth=${yearMonth}, user_type=${row.user_type}, count=${row.count}`);
       
       const monthData = monthlyData.find(m => m.yearMonth === yearMonth);
       if (monthData) {
@@ -412,8 +427,12 @@ router.get('/requests-by-month', async (req, res) => {
         } else if (row.user_type === 'guest') {
           monthData.guest = parseInt(row.count);
         }
+      } else {
+        console.log(`⚠️ No matching month found for yearMonth: ${yearMonth}`);
       }
     });
+
+    console.log(`📊 Final monthly data:`, monthlyData.map(m => `${m.month}: ${m.student} student, ${m.guest} guest`).join(' | '));
 
     console.log('✅ Monthly requests data fetched successfully');
     res.status(200).json({
