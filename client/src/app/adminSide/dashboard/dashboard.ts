@@ -244,7 +244,7 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
         this.isLoading = false;
 
         // Fetch most requested documents
-        this.analyticsService.getViewedDocuments(5).subscribe({
+        this.analyticsService.getViewedDocuments(3).subscribe({
           next: (viewedData) => {
             console.log('📊 Requested documents RAW response:', viewedData);
             console.log('📊 Most requested count:', viewedData.mostViewed?.length);
