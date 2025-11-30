@@ -36,8 +36,7 @@ export class AdminSideNav {
     { label: 'Programs', icon: '', route: '/adminSide/programs', deanOnly: true },
     { label: 'Faculties', icon: '', route: '/adminSide/faculties', deanOnly: true },
     { label: 'Requirements', icon: '', route: '/adminSide/requirements', deanOnly: true },
-    { label: 'Request', icon: '', route: '/adminSide/requests' },
-    { label: 'Template', icon: '', route: '/adminSide/templates' }
+    { label: 'Request', icon: '', route: '/adminSide/requests' }
   ];
 
   // Filtered menu items based on user role

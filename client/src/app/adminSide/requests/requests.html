@@ -30,13 +30,13 @@
                 </div>
                 <div class="table-body">
                     <div class="table-row" *ngFor="let req of paginatedRequests">
-                        <div class="row-item">{{ formatDate(req.created_at) }}</div>
-                        <div class="row-item">
+                        <div class="row-item date-cell">{{ formatDate(req.created_at) }}</div>
+                        <div class="row-item user-type-cell">
                             <span class="user-type-tag" [class.tag-pupian]="req.user_type === 'student'" [class.tag-guest]="req.user_type === 'guest'">
                                 {{ req.user_type === 'student' ? 'PUPian' : (req.user_type === 'guest' ? 'Guest' : req.user_type) }}
                             </span>
                         </div>
-                        <div class="row-item">{{ req.email }}</div>
+                        <div class="row-item email-cell" [title]="req.email">{{ req.email }}</div>
                         <div class="row-item action-cell">
                             <button class="verify-btn" (click)="showDetailsView(req)">Open Request</button>
                         </div>

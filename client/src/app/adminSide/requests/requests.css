@@ -68,6 +68,10 @@
     gap: 1.5rem;
 }
 
+.table-header .header-item {
+    text-align: left;
+}
+
 .table-header {
     background-color: #f9f9f9;
     font-weight: 600;
@@ -105,6 +109,26 @@
 .row-item {
     display: flex;
     align-items: center;
+    text-align: left;
+    overflow: hidden;
+}
+
+/* Cell-specific styles */
+.date-cell {
+    text-align: left;
+}
+
+.user-type-cell {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+.email-cell {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100%;
+    text-align: left;
 }
 
 .action-cell {
@@ -123,6 +147,7 @@
     font-weight: 600;
     text-transform: capitalize;
     white-space: nowrap;
+    text-align: left;
 }
 
 .tag-pupian {
