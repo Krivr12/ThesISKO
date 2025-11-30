@@ -21,7 +21,7 @@ if (uri && uri.startsWith("mongodb")) {
     await client.connect();
     await client.db("admin").command({ ping: 1 });
     console.log("✅ Pinged your deployment. Connected to MongoDB Atlas!");
-    db = client.db("DocumentsRepo");
+    db = client.db("thesisko");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
     console.log("⚠️ Continuing without MongoDB connection...");
