@@ -188,7 +188,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 160px;
-  width: 160px;
+  width: 200px;
   display: flex;
   align-items: center;
   justify-content: space-between;
