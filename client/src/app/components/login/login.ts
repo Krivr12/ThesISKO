@@ -11,6 +11,9 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { take } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { createLogger } from '../../utils/logger';
+
+const log = createLogger('LoginComponent');
 
 @Component({
   selector: 'app-login',
@@ -74,15 +77,12 @@ onLogin() {
         const userStatus = user.Status?.toLowerCase();
         const userRoleId = user.role_id;
         
-        // Debug logging
-        console.log('Login attempt - User data:', user);
-        console.log('User Status:', userStatus);
-        console.log('User Role ID:', userRoleId);
+        log.debug('Login attempt:', { role_id: userRoleId, status: userStatus });
         
         // Only allow student (role_id: 2), group leader (role_id: 6), and guest (role_id: 1) roles to login through this component
         // Block faculty (3), admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
         if (userRoleId === 3 || userRoleId === 4 || userRoleId === 5 || userRoleId === 7 || userRoleId === 8) {
-          console.log('Access denied - User role not allowed for this login page');
+          log.warn('Access denied - User role not allowed for this login page:', userRoleId);
           this.messageService.add({
             severity: 'error',
             summary: 'Access Denied',
@@ -90,8 +90,6 @@ onLogin() {
           });
           return;
         }
-        
-        console.log('Access granted - User role allowed for this login page (role_id:', userRoleId, ')');
         
         // Regular user login (student, group leader, and guest)
         const userData = {
@@ -105,9 +103,7 @@ onLogin() {
           group_id: user.group_id // Include group_id for group leaders
         };
         
-        console.log('Created userData object:', userData);
-        console.log('userData.role_id specifically:', userData.role_id);
-        console.log('userData.role_id type:', typeof userData.role_id);
+        log.debug('User data created:', { id: userData.id, role_id: userData.role_id });
         
         // Store user data in session storage for persistence
         sessionStorage.setItem('currentUser', JSON.stringify(userData));
@@ -115,28 +111,19 @@ onLogin() {
         sessionStorage.setItem('role', user.Status || 'student');
         
         // Update both AuthServices with user data
-        console.log('About to set user in AuthService:', userData);
         this.authService.setUser(userData);
         this.navAuthService.setUser(userData);
-        console.log('AuthService user after setUser:', this.authService.currentUser);
-        console.log('NavAuthService user after setUser:', this.navAuthService.currentUser);
         
         // Wait for AuthService observable to be updated
         this.authService.currentUser$.pipe(take(1)).subscribe((authUser: any) => {
-          console.log('AuthService observable user:', authUser);
+          log.debug('User authenticated, navigating...');
           
           // Navigate based on user status (only student and guest)
-          console.log('About to navigate - User Status:', user.Status);
-          
           if (user.Status === 'Pending') {
-            console.log('Navigating to verify-message');
             this.router.navigate(['/verify-message']);
           } else {
-            console.log('Navigating to home');
-            this.router.navigate(['/home']).then(success => {
-              console.log('Navigation to home successful:', success);
-            }).catch(error => {
-              console.error('Navigation to home failed:', error);
+            this.router.navigate(['/home']).catch(error => {
+              log.error('Navigation failed:', error);
             });
           }
         });
@@ -149,10 +136,11 @@ onLogin() {
       }
     },
     error: (error: any) => {
-      console.error('Login error:', error);
-      console.error('Error status:', error.status);
-      console.error('Error message:', error.message);
-      console.error('Error details:', error.error);
+      log.error('Login failed:', { 
+        status: error.status, 
+        message: error.message,
+        details: error.error 
+      });
       this.messageService.add({
         severity: 'error',
         summary: 'Error',

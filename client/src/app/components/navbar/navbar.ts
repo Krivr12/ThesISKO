@@ -360,19 +360,13 @@ export class Navbar implements OnInit {
   /** Check if current user can submit (students or group leaders) */
   canSubmit(): boolean {
     const currentUser = this.auth.currentUser;
-    console.log('🔍 canSubmit() called - Current user:', currentUser);
-    console.log('🔍 Current user role_id:', currentUser?.role_id);
     
     if (!currentUser) {
-      console.log('❌ No user logged in - hiding Submit button');
       return false;
     }
     
     // Allow students (role_id = 2) and group leaders (role_id = 6)
-    const canSubmit = currentUser.role_id === 2 || currentUser.role_id === 6;
-    console.log('🔍 Can submit result:', canSubmit);
-    
-    return canSubmit;
+    return currentUser.role_id === 2 || currentUser.role_id === 6;
   }
 
   /** Check if any user is logged in */

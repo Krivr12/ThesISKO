@@ -3,22 +3,20 @@ import { inject } from '@angular/core';
 import { Auth } from '../service/auth';
 import { map, take } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/api';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger('AuthGuard');
 
 export const authGuard: CanActivateFn = (route, state) => {
-  console.log('🚨 Auth Guard is running for path:', state.url);
+  log.debug('Auth Guard running for path:', state.url);
   const authService = inject(Auth);
   const router = inject(Router);
   const confirmationService = inject(ConfirmationService);
-
-  console.log('🔍 Auth Guard - About to subscribe to currentUser$');
-  console.log('🔍 Auth Guard - Current user before subscription:', authService.currentUser);
   
   return authService.currentUser$.pipe(
     take(1),
     map(user => {
       const currentPath = state.url;
-      console.log('🔍 Auth Guard - User from observable:', user);
-      console.log('🔍 Auth Guard - Current path:', currentPath);
       
       // Special handling for login route
       if (currentPath === '/login') {
@@ -86,12 +84,8 @@ export const authGuard: CanActivateFn = (route, state) => {
       const userRole = user.role_id;
       const userStatus = user.Status?.toLowerCase();
 
-      // Debug logging
-      console.log('🔍 Auth Guard Debug:');
-      console.log('  - User object:', user);
-      console.log('  - User role_id:', userRole);
-      console.log('  - User Status:', userStatus);
-      console.log('  - Current path:', currentPath);
+      // Debug logging (only in development)
+      log.debug('Auth check:', { role_id: userRole, status: userStatus, path: currentPath });
 
       // Define allowed paths for each role
       const allowedPaths: Record<string, string[]> = {
@@ -125,13 +119,14 @@ export const authGuard: CanActivateFn = (route, state) => {
         userRoleCategory = 'superadmin_faculty';
       }
 
-      console.log('  - Determined role category:', userRoleCategory);
-
       // Check if current path is allowed for this user
       const isPathAllowed = allowedPaths[userRoleCategory]?.some((path: string) => currentPath.startsWith(path));
       
-      console.log('  - Is path allowed:', isPathAllowed);
-      console.log('  - Allowed paths for role:', allowedPaths[userRoleCategory]);
+      log.debug('Path authorization:', { 
+        roleCategory: userRoleCategory, 
+        path: currentPath, 
+        allowed: isPathAllowed 
+      });
 
       if (!isPathAllowed) {
         // Show logout confirmation dialog

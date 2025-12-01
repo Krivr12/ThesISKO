@@ -558,16 +558,10 @@ const loginUser = async (req, res) => {
         group_id: userWithoutPassword.group_id
       };
       
-      // Set HttpOnly cookie with user data
-      // Extract domain from FRONTEND_URL for cross-subdomain cookie sharing
-      const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
-      const urlObj = new URL(frontendUrl);
-      const cookieDomain = urlObj.hostname.startsWith('www.') 
-        ? urlObj.hostname.substring(4) 
-        : urlObj.hostname;
-      const domain = cookieDomain.includes('.') ? `.${cookieDomain.split('.').slice(-2).join('.')}` : cookieDomain;
+      // Set HttpOnly cookie with user data using centralized security configuration
+      const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
       
-      res.cookie('auth_user', JSON.stringify({
+      res.cookie(AUTH_COOKIE_NAME, JSON.stringify({
         id: userWithoutPassword.StudentID,
         email: userWithoutPassword.Email,
         Status: userWithoutPassword.Status,
@@ -579,13 +573,7 @@ const loginUser = async (req, res) => {
         role_id: userWithoutPassword.role_id,
         group_id: userWithoutPassword.group_id,
         account_type: 'user'
-      }), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-        sameSite: 'lax',
-        domain: domain, // Set domain for cross-subdomain access
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-      });
+      }), getAuthCookieConfig());
       
       res.json({
         message: 'Login successful',
@@ -623,11 +611,17 @@ const logoutUser = async (req, res) => {
     const logoutReason = req.body?.reason || 'manual_logout';
     // User logout initiated
     
-    // Clear the HttpOnly cookie
-    res.clearCookie('auth_user', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+    // Clear the HttpOnly cookie using centralized configuration
+    const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+    const cookieConfig = getAuthCookieConfig();
+    
+    // Clear cookie with same settings used to set it
+    res.clearCookie(AUTH_COOKIE_NAME, {
+      httpOnly: cookieConfig.httpOnly,
+      secure: cookieConfig.secure,
+      sameSite: cookieConfig.sameSite,
+      domain: cookieConfig.domain,
+      path: cookieConfig.path
     });
     
     // Destroy session
@@ -653,7 +647,8 @@ const logoutUser = async (req, res) => {
 // Get current user from cookie
 const getCurrentUser = async (req, res) => {
   try {
-    const authCookie = req.cookies.auth_user;
+    const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+    const authCookie = req.cookies[AUTH_COOKIE_NAME];
     
     if (!authCookie) {
       return res.status(401).json({ authenticated: false, error: 'No authentication cookie found' });
