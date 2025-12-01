@@ -26,11 +26,43 @@ export const getCookieDomain = () => {
 };
 
 /**
+ * Determine if cookies should be secure (HTTPS only)
+ * Checks multiple indicators to ensure Secure flag is set in production
+ */
+const shouldUseSecureCookies = () => {
+  // Method 1: Check NODE_ENV
+  if (process.env.NODE_ENV === 'production') {
+    return true;
+  }
+  
+  // Method 2: Check if FRONTEND_URL uses HTTPS
+  const frontendUrl = process.env.FRONTEND_URL || '';
+  if (frontendUrl.startsWith('https://')) {
+    return true;
+  }
+  
+  // Method 3: Check FORCE_SECURE_COOKIES environment variable (explicit override)
+  if (process.env.FORCE_SECURE_COOKIES === 'true') {
+    return true;
+  }
+  
+  // Method 4: Check if domain is production domain (not localhost)
+  const domain = getCookieDomain();
+  if (domain && !domain.includes('localhost') && domain !== 'localhost') {
+    // If domain is set to production domain, assume HTTPS
+    return true;
+  }
+  
+  // Default: false for local development
+  return false;
+};
+
+/**
  * Standard cookie configuration for authentication cookies
  * 
  * Security settings:
  * - httpOnly: true - Prevents JavaScript access (XSS protection)
- * - secure: true in production - Only sent over HTTPS
+ * - secure: true in production/HTTPS - Only sent over HTTPS
  * - sameSite: 'lax' - Allows cross-subdomain requests while preventing most CSRF
  *   Note: Using 'lax' instead of 'strict' to support subdomain sharing
  *   (thesisko.online <-> server.thesisko.online). Modern browsers treat
@@ -42,11 +74,11 @@ export const getCookieDomain = () => {
  * @returns {Object} Cookie configuration object
  */
 export const getAuthCookieConfig = (options = {}) => {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isSecure = shouldUseSecureCookies();
   
   return {
     httpOnly: true, // Prevent JavaScript access (XSS protection)
-    secure: isProduction, // Only send over HTTPS in production
+    secure: isSecure, // Only send over HTTPS in production/HTTPS environments
     sameSite: 'lax', // Allow cross-subdomain (thesisko.online <-> server.thesisko.online)
                      // Prevents most CSRF while maintaining subdomain compatibility
     domain: getCookieDomain(), // Enable cross-subdomain cookie sharing
