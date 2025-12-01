@@ -197,24 +197,13 @@ const googleAuthSuccess = async (req, res) => {
       
       // Set auth cookie for the user
       // Extract domain from FRONTEND_URL to set cookie domain correctly
-      const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
-      const urlObj = new URL(frontendUrl);
-      const cookieDomain = urlObj.hostname.startsWith('www.') 
-        ? urlObj.hostname.substring(4) 
-        : urlObj.hostname;
-      // Use leading dot for subdomain sharing (e.g., .thesisko.online)
-      const domain = cookieDomain.includes('.') ? `.${cookieDomain.split('.').slice(-2).join('.')}` : cookieDomain;
+      // Set HttpOnly cookie with user data using centralized security configuration
+      const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
       
-      console.log('Setting cookie with domain:', domain);
-      console.log('Cookie secure setting:', process.env.NODE_ENV === 'production');
+      console.log('Setting cookie with domain:', getAuthCookieConfig().domain);
+      console.log('Cookie secure setting:', getAuthCookieConfig().secure);
       
-      res.cookie('auth_user', JSON.stringify(guestUser), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production (HTTPS)
-        sameSite: 'lax',
-        domain: domain, // Set domain for cross-subdomain access
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-      });
+      res.cookie(AUTH_COOKIE_NAME, JSON.stringify(guestUser), getAuthCookieConfig());
       
       console.log('Cookie set successfully for user:', guestUser.email);
       

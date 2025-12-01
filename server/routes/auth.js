@@ -199,8 +199,10 @@ router.post('/admin-login', async (req, res) => {
           role_id: userWithoutPassword.role_id
         };
         
-        // Set HttpOnly cookie with user data
-        res.cookie('auth_user', JSON.stringify({
+        // Set HttpOnly cookie with user data using centralized security configuration
+        const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+        
+        res.cookie(AUTH_COOKIE_NAME, JSON.stringify({
           id: userWithoutPassword.StudentID,
           email: userWithoutPassword.Email,
           Status: userWithoutPassword.Status,
@@ -211,12 +213,7 @@ router.post('/admin-login', async (req, res) => {
           AvatarUrl: userWithoutPassword.AvatarUrl,
           role_id: userWithoutPassword.role_id,
           account_type: 'admin'
-        }), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
+        }), getAuthCookieConfig());
         
         res.json({
           message: 'Admin login successful',
