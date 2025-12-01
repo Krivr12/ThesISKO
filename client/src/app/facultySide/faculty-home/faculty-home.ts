@@ -152,7 +152,7 @@ export class FacultyHome implements OnInit, AfterViewInit {
   loadFacultyBlocks(): void {
     this.isLoadingBlocks = true;
     this.http.get<{ success: boolean; data: { ficBlocks: ProgramBlocks[], panelistBlocks: ProgramBlocks[] } }>(
-      `${environment.authApiUrl}/blocks/faculty/${encodeURIComponent(this.currentUserEmail)}`
+      `${environment.authApiUrl}/blocks/faculty`
     ).subscribe({
       next: (response) => {
         if (response.success) {

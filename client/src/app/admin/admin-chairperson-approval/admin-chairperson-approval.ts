@@ -101,9 +101,9 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
   loadGroups(): void {
     console.log(`📋 [loadGroups] Starting...`);
     console.log(`📧 [loadGroups] Email: "${this.currentUserEmail}"`);
-    console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-chairperson/${this.currentUserEmail}`);
+    console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-chairperson`);
     
-    this.http.get<any>(`${environment.authApiUrl}/groups/by-chairperson/${this.currentUserEmail}`)
+    this.http.get<any>(`${environment.authApiUrl}/groups/by-chairperson`)
       .subscribe({
         next: (response) => {
           console.log('✅ [loadGroups] API Response:', response);

@@ -20,8 +20,9 @@ export interface GroupItem {
 export class GroupsService {
   constructor(private http: HttpClient) {}
 
-  getPendingGroupApprovals(email: string): Observable<GroupItem[]> {
-    return this.http.get<{ success: boolean, data: GroupItem[] }>(`/api/groups/by-chairperson/${email}`)
+  getPendingGroupApprovals(): Observable<GroupItem[]> {
+    // Email removed from URL - comes from auth cookie
+    return this.http.get<{ success: boolean, data: GroupItem[] }>(`/api/groups/by-chairperson`)
       .pipe(map((result: { success: boolean, data: GroupItem[] }) => result.data));
   }
 

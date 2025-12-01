@@ -609,37 +609,91 @@ const logoutUser = async (req, res) => {
   try {
     // Log the logout reason if provided
     const logoutReason = req.body?.reason || 'manual_logout';
-    // User logout initiated
+    console.log('🚪 User logout initiated:', logoutReason);
     
     // Clear the HttpOnly cookie using centralized configuration
     const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
     const cookieConfig = getAuthCookieConfig();
     
-    // Clear cookie with same settings used to set it
-    res.clearCookie(AUTH_COOKIE_NAME, {
+    // Method 1: Clear cookie with same settings used to set it (standard method)
+    const clearCookieOptions1 = {
       httpOnly: cookieConfig.httpOnly,
       secure: cookieConfig.secure,
       sameSite: cookieConfig.sameSite,
-      domain: cookieConfig.domain,
-      path: cookieConfig.path
-    });
+      path: cookieConfig.path || '/'
+    };
+    
+    // Only set domain if it was defined in the original config
+    if (cookieConfig.domain !== undefined) {
+      clearCookieOptions1.domain = cookieConfig.domain;
+    }
+    
+    res.clearCookie(AUTH_COOKIE_NAME, clearCookieOptions1);
+    
+    // Method 2: Also set cookie with expiration in the past (ensures removal)
+    // This is a more aggressive approach that guarantees cookie removal
+    const clearCookieOptions = {
+      httpOnly: cookieConfig.httpOnly,
+      secure: cookieConfig.secure,
+      sameSite: cookieConfig.sameSite,
+      path: cookieConfig.path || '/',
+      expires: new Date(0) // Set expiration to epoch (Jan 1, 1970) - effectively deletes cookie
+    };
+    
+    // Only set domain if it was defined in the original config
+    if (cookieConfig.domain !== undefined) {
+      clearCookieOptions.domain = cookieConfig.domain;
+    }
+    
+    // Set empty cookie with past expiration to force removal
+    res.cookie(AUTH_COOKIE_NAME, '', clearCookieOptions);
+    
+    console.log('✅ Authentication cookie cleared');
     
     // Destroy session
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Session destruction error:', err);
-        return res.status(500).json({ error: 'Error during logout' });
-      }
-      
-      // For sendBeacon requests (browser close), send minimal response
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('❌ Session destruction error:', err);
+          // Still send success response even if session destruction fails
+          // The cookie is already cleared, which is the main security concern
+        } else {
+          console.log('✅ Session destroyed');
+        }
+        
+        // For sendBeacon requests (browser close), send minimal response
+        if (logoutReason === 'browser_close') {
+          res.status(204).send(); // No content response for sendBeacon
+        } else {
+          res.json({ 
+            success: true,
+            message: 'Logout successful',
+            authenticated: false
+          });
+        }
+      });
+    } else {
+      // No session to destroy, just send response
       if (logoutReason === 'browser_close') {
-        res.status(204).send(); // No content response for sendBeacon
+        res.status(204).send();
       } else {
-        res.json({ message: 'Logout successful' });
+        res.json({ 
+          success: true,
+          message: 'Logout successful',
+          authenticated: false
+        });
       }
-    });
+    }
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('❌ Logout error:', error);
+    // Even if there's an error, try to clear the cookie
+    try {
+      const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+      res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+      res.cookie(AUTH_COOKIE_NAME, '', { expires: new Date(0), path: '/' });
+    } catch (clearError) {
+      console.error('❌ Failed to clear cookie during error handling:', clearError);
+    }
     res.status(500).json({ error: 'Error during logout' });
   }
 };

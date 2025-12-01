@@ -102,9 +102,9 @@ export class DeanApproval implements OnInit, OnDestroy, AfterViewInit {
   loadGroups(): void {
     console.log(`📋 [loadGroups] Starting...`);
     console.log(`📧 [loadGroups] Email: "${this.currentUserEmail}"`);
-    console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-dean/${this.currentUserEmail}`);
+    console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-dean`);
     
-    this.http.get<any>(`${environment.authApiUrl}/groups/by-dean/${this.currentUserEmail}`)
+    this.http.get<any>(`${environment.authApiUrl}/groups/by-dean`)
       .subscribe({
         next: (response) => {
           console.log('✅ [loadGroups] API Response:', response);

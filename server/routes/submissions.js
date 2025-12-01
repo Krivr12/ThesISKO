@@ -9,6 +9,16 @@ import {
   CopyObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
+import { requireAuth } from '../middlewares/authMiddleware.js';
+import {
+  requireRole,
+  requireStudentAccess,
+  requireDeanAccess,
+  requireChairpersonAccess,
+  requireSubmissionOwnership,
+  requireChairpersonSubmissionAccess,
+  requireDeanSubmissionAccess
+} from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
@@ -410,30 +420,37 @@ router.get('/check-duplicates', async (req, res) => {
   }
 });
 
-// GET my submissions (by email)
-router.get('/my-submissions/:email', async (req, res) => {
-  try {
-    const { email } = req.params;
+// GET my submissions (authenticated user's own submissions)
+router.get('/my-submissions', 
+  requireAuth,
+  requireStudentAccess,
+  async (req, res) => {
+    try {
+      const email = req.user?.email || req.user?.Email;
 
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+      if (!email) {
+        return res.status(400).json({ error: 'User email not found' });
+      }
+
+      const submissionsCollection = getSubmissionsCollection();
+      const submissions = await submissionsCollection
+        .find({ submitter_email: email })
+        .sort({ submitted_at: -1 })
+        .toArray();
+
+      res.json({ success: true, data: submissions });
+    } catch (error) {
+      console.error('❌ Error fetching submissions:', error);
+      res.status(500).json({ error: 'Error fetching submissions' });
     }
-
-    const submissionsCollection = getSubmissionsCollection();
-    const submissions = await submissionsCollection
-      .find({ submitter_email: email })
-      .sort({ submitted_at: -1 })
-      .toArray();
-
-    res.json({ success: true, data: submissions });
-  } catch (error) {
-    console.error('❌ Error fetching submissions:', error);
-    res.status(500).json({ error: 'Error fetching submissions' });
   }
-});
+);
 
 // PATCH resubmit (update files after rejection)
-router.patch('/:submission_id/resubmit', async (req, res) => {
+router.patch('/:submission_id/resubmit',
+  requireAuth,
+  requireSubmissionOwnership,
+  async (req, res) => {
   try {
     const { submission_id } = req.params;
     const { files, updated_by } = req.body;
@@ -499,59 +516,54 @@ router.patch('/:submission_id/resubmit', async (req, res) => {
 // ==================== CHAIRPERSON ROUTES ====================
 
 // GET submissions pending chairperson approval
-router.get('/pending-chairperson/:email', async (req, res) => {
-  try {
-    const { email } = req.params;
+router.get('/pending-chairperson',
+  requireAuth,
+  requireChairpersonAccess,
+  async (req, res) => {
+    try {
+      const email = req.chairpersonEmail;
+      const programId = req.chairpersonProgramId;
 
-    console.log(`👨‍🏫 Fetching submissions pending chairperson approval for: ${email}`);
+      console.log(`👨‍🏫 Fetching submissions pending chairperson approval for: ${email}`);
 
-    // Get programs collection to find chairperson's programs
-    const programsCollection = getDb().collection('programs');
-    const programs = await programsCollection
-      .find({ chairperson_email: email })
-      .toArray();
+      // Find submissions for this chairperson's program that are pending chairperson approval
+      const submissionsCollection = getSubmissionsCollection();
+      const submissions = await submissionsCollection
+        .find({ 
+          status: 'pending_chairperson',
+          program: programId
+        })
+        .sort({ submitted_at: -1 })
+        .toArray();
 
-    if (programs.length === 0) {
-      console.log(`⚠️ No programs found for chairperson: ${email}`);
-      return res.json({ success: true, data: [] });
+      console.log(`📊 Found ${submissions.length} submissions pending chairperson approval for program: ${programId}`);
+
+      res.json({ success: true, data: submissions });
+    } catch (error) {
+      console.error('❌ Error fetching chairperson submissions:', error);
+      res.status(500).json({ error: 'Error fetching submissions' });
     }
-
-    // Extract program IDs that this chairperson is responsible for
-    const programIds = programs.map(p => p.program_id);
-    console.log(`📋 Chairperson ${email} is responsible for programs: ${programIds.join(', ')}`);
-
-    // Find submissions for these programs that are pending chairperson approval
-    const submissionsCollection = getSubmissionsCollection();
-    const submissions = await submissionsCollection
-      .find({ 
-        status: 'pending_chairperson',
-        program: { $in: programIds }
-      })
-      .sort({ submitted_at: -1 })
-      .toArray();
-
-    console.log(`📊 Found ${submissions.length} submissions pending chairperson approval for programs: ${programIds.join(', ')}`);
-
-    res.json({ success: true, data: submissions });
-  } catch (error) {
-    console.error('❌ Error fetching chairperson submissions:', error);
-    res.status(500).json({ error: 'Error fetching submissions' });
   }
-});
+);
 
 // PATCH chairperson approve
-router.patch('/:submission_id/chairperson-approve', async (req, res) => {
-  try {
-    const { submission_id } = req.params;
-    const { chairperson_name } = req.body;
+router.patch('/:submission_id/chairperson-approve',
+  requireAuth,
+  requireChairpersonAccess,
+  requireChairpersonSubmissionAccess,
+  async (req, res) => {
+    try {
+      const { submission_id } = req.params;
+      const { chairperson_name } = req.body;
+      const submission = req.submission; // From middleware
 
-    if (!chairperson_name) {
-      return res.status(400).json({ error: 'chairperson_name is required' });
-    }
+      if (!chairperson_name) {
+        return res.status(400).json({ error: 'chairperson_name is required' });
+      }
 
-    console.log(`✅ Chairperson ${chairperson_name} approving: ${submission_id}`);
+      console.log(`✅ Chairperson ${chairperson_name} approving: ${submission_id}`);
 
-    const submissionsCollection = getSubmissionsCollection();
+      const submissionsCollection = getSubmissionsCollection();
 
     const result = await submissionsCollection.updateOne(
       { submission_id },
@@ -587,24 +599,23 @@ router.patch('/:submission_id/chairperson-approve', async (req, res) => {
 });
 
 // PATCH chairperson reject
-router.patch('/:submission_id/chairperson-reject', async (req, res) => {
-  try {
-    const { submission_id } = req.params;
-    const { chairperson_name, reason, rejected_files } = req.body;
+router.patch('/:submission_id/chairperson-reject',
+  requireAuth,
+  requireChairpersonAccess,
+  requireChairpersonSubmissionAccess,
+  async (req, res) => {
+    try {
+      const { submission_id } = req.params;
+      const { chairperson_name, reason, rejected_files } = req.body;
+      const submission = req.submission; // From middleware
 
-    if (!chairperson_name || !reason) {
-      return res.status(400).json({ error: 'chairperson_name and reason are required' });
-    }
+      if (!chairperson_name || !reason) {
+        return res.status(400).json({ error: 'chairperson_name and reason are required' });
+      }
 
-    console.log(`❌ Chairperson ${chairperson_name} rejecting: ${submission_id}`);
+      console.log(`❌ Chairperson ${chairperson_name} rejecting: ${submission_id}`);
 
-    const submissionsCollection = getSubmissionsCollection();
-
-    // Get submission details for email
-    const submission = await submissionsCollection.findOne({ submission_id });
-    if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
-    }
+      const submissionsCollection = getSubmissionsCollection();
 
     const rejectedFilesList = Array.isArray(rejected_files) ? rejected_files : [];
 
@@ -679,118 +690,87 @@ router.patch('/:submission_id/chairperson-reject', async (req, res) => {
 // ==================== DEAN ROUTES ====================
 
 // GET submissions pending dean approval
-router.get('/pending-dean/:email', async (req, res) => {
-  try {
-    const { email } = req.params;
+router.get('/pending-dean',
+  requireAuth,
+  requireDeanAccess,
+  async (req, res) => {
+    try {
+      const email = req.deanEmail;
+      const departmentId = req.deanDepartmentId;
 
-    console.log(`👨‍💼 Fetching submissions pending dean approval for: ${email}`);
+      console.log(`👨‍💼 Fetching submissions pending dean approval for: ${email}`);
 
-    const submissionsCollection = getSubmissionsCollection();
-    const programsCollection = getDb().collection('programs');
+      const submissionsCollection = getSubmissionsCollection();
+      const programsCollection = getDb().collection('programs');
 
-    // Step 1: Get dean's department_id from users_info (where department_head matches)
-    const deanResult = await pool.query(
-      'SELECT department_head FROM users_info WHERE email = $1',
-      [email]
-    );
-
-    if (deanResult.rows.length === 0 || !deanResult.rows[0].department_head) {
-      console.log(`⚠️ No department found for dean: ${email}`);
-      return res.json({ success: true, data: [] });
-    }
-
-    const departmentId = deanResult.rows[0].department_head;
-    console.log(`✅ Dean ${email} manages department: ${departmentId}`);
-
-    // Step 2: Get all programs in that department
-    const programs = await programsCollection.find({ 
-      department_id: departmentId 
-    }).toArray();
-    
-    const programIds = programs.map(p => p.program_id);
-    console.log(`✅ Found ${programs.length} programs in department ${departmentId}:`, programIds);
-
-    if (programIds.length === 0) {
-      console.log(`⚠️ No programs found for department ${departmentId}`);
-      return res.json({ success: true, data: [] });
-    }
-
-    // Step 3: Get all submissions with status pending_dean that belong to these programs
-    console.log(`🔍 Looking for submissions with status: pending_dean and program in:`, programIds);
-    console.log(`🔍 Program IDs type:`, typeof programIds[0], `Value:`, JSON.stringify(programIds));
-    
-    // Debug: Check all pending_dean submissions first
-    const allPendingDeanSubmissions = await submissionsCollection.find({
-      status: 'pending_dean'
-    }).toArray();
-    console.log(`📋 Total submissions with status pending_dean: ${allPendingDeanSubmissions.length}`);
-    if (allPendingDeanSubmissions.length > 0) {
-      console.log(`📋 Sample submission programs:`, allPendingDeanSubmissions.map(s => ({
-        id: s.submission_id,
-        program: s.program,
-        program_type: typeof s.program,
-        department: s.department
-      })));
-    }
-    
-    const allPendingSubmissions = await submissionsCollection.find({
-      status: 'pending_dean',
-      program: { $in: programIds }
-    }).toArray();
-
-    console.log(`📊 Found ${allPendingSubmissions.length} submissions pending dean approval matching programs`);
-
-    // Step 4: Enrich submissions with program info
-    const enrichedSubmissions = allPendingSubmissions.map(submission => {
-      const program = programs.find(p => p.program_id === submission.program);
+      // Get all programs in the dean's department
+      const programs = await programsCollection.find({ 
+        department_id: departmentId 
+      }).toArray();
       
-      return {
-        ...submission,
-        program_info: program ? {
-          program_name: program.program_name,
-          department_name: program.department_name,
-          chairperson_email: program.chairperson_email
-        } : null
-      };
-    });
+      const programIds = programs.map(p => p.program_id);
+      console.log(`✅ Found ${programs.length} programs in department ${departmentId}:`, programIds);
 
-    console.log(`📊 Final result: ${enrichedSubmissions.length} submissions for dean ${email}`);
-    console.log(`📋 Filtered submissions:`, enrichedSubmissions.map(s => ({ 
-      id: s.submission_id, 
-      program: s.program, 
-      department: s.department,
-      status: s.status,
-      chairperson_approved_by: s.chairperson_approval?.approved_by
-    })));
+      if (programIds.length === 0) {
+        console.log(`⚠️ No programs found for department ${departmentId}`);
+        return res.json({ success: true, data: [] });
+      }
 
-    res.json({ success: true, data: enrichedSubmissions });
-  } catch (error) {
-    console.error('❌ Error fetching dean submissions:', error);
-    res.status(500).json({ 
-      error: 'Error fetching submissions',
-      details: error.message 
-    });
+      // Get all submissions with status pending_dean that belong to these programs
+      console.log(`🔍 Looking for submissions with status: pending_dean and program in:`, programIds);
+      
+      const allPendingSubmissions = await submissionsCollection.find({
+        status: 'pending_dean',
+        program: { $in: programIds }
+      }).toArray();
+
+      console.log(`📊 Found ${allPendingSubmissions.length} submissions pending dean approval matching programs`);
+
+      // Enrich submissions with program info
+      const enrichedSubmissions = allPendingSubmissions.map(submission => {
+        const program = programs.find(p => p.program_id === submission.program);
+        
+        return {
+          ...submission,
+          program_info: program ? {
+            program_name: program.program_name,
+            department_name: program.department_name,
+            chairperson_email: program.chairperson_email
+          } : null
+        };
+      });
+
+      console.log(`📊 Final result: ${enrichedSubmissions.length} submissions for dean ${email}`);
+
+      res.json({ success: true, data: enrichedSubmissions });
+    } catch (error) {
+      console.error('❌ Error fetching dean submissions:', error);
+      res.status(500).json({ 
+        error: 'Error fetching submissions',
+        details: error.message 
+      });
+    }
   }
-});
+);
 
 // PATCH dean approve (triggers archiving)
-router.patch('/:submission_id/dean-approve', async (req, res) => {
-  try {
-    const { submission_id } = req.params;
-    const { dean_name } = req.body;
+router.patch('/:submission_id/dean-approve',
+  requireAuth,
+  requireDeanAccess,
+  requireDeanSubmissionAccess,
+  async (req, res) => {
+    try {
+      const { submission_id } = req.params;
+      const { dean_name } = req.body;
+      const submission = req.submission; // From middleware
 
-    if (!dean_name) {
-      return res.status(400).json({ error: 'dean_name is required' });
-    }
+      if (!dean_name) {
+        return res.status(400).json({ error: 'dean_name is required' });
+      }
 
-    console.log(`✅ Dean ${dean_name} approving: ${submission_id}`);
+      console.log(`✅ Dean ${dean_name} approving: ${submission_id}`);
 
-    const submissionsCollection = getSubmissionsCollection();
-    const submission = await submissionsCollection.findOne({ submission_id });
-
-    if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
-    }
+      const submissionsCollection = getSubmissionsCollection();
 
     // Validate chairperson approved first
     if (!submission.chairperson_approval?.approved) {
@@ -1069,24 +1049,23 @@ router.patch('/:submission_id/dean-approve', async (req, res) => {
 });
 
 // PATCH dean reject
-router.patch('/:submission_id/dean-reject', async (req, res) => {
-  try {
-    const { submission_id } = req.params;
-    const { dean_name, reason, rejected_files } = req.body;
+router.patch('/:submission_id/dean-reject',
+  requireAuth,
+  requireDeanAccess,
+  requireDeanSubmissionAccess,
+  async (req, res) => {
+    try {
+      const { submission_id } = req.params;
+      const { dean_name, reason, rejected_files } = req.body;
+      const submission = req.submission; // From middleware
 
-    if (!dean_name || !reason) {
-      return res.status(400).json({ error: 'dean_name and reason are required' });
-    }
+      if (!dean_name || !reason) {
+        return res.status(400).json({ error: 'dean_name and reason are required' });
+      }
 
-    console.log(`❌ Dean ${dean_name} rejecting: ${submission_id}`);
+      console.log(`❌ Dean ${dean_name} rejecting: ${submission_id}`);
 
-    const submissionsCollection = getSubmissionsCollection();
-
-    // Get submission details for email
-    const submission = await submissionsCollection.findOne({ submission_id });
-    if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
-    }
+      const submissionsCollection = getSubmissionsCollection();
 
     const rejectedFilesList = Array.isArray(rejected_files) ? rejected_files : [];
 

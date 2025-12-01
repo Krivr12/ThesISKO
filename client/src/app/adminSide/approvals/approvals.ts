@@ -126,10 +126,10 @@ export class Approvals implements OnInit {
 
     this.loading.set(true);
 
-    // Use the role-specific API endpoints that handle filtering on the backend
+    // Use the role-specific API endpoints (email removed from URL - comes from auth cookie)
     const endpoint = this.isDean() 
-      ? `${this.apiUrl}/pending-dean/${user.Email}`
-      : `${this.apiUrl}/pending-chairperson/${user.Email}`;
+      ? `${this.apiUrl}/pending-dean`
+      : `${this.apiUrl}/pending-chairperson`;
 
     console.log('Loading submissions from:', endpoint);
 
