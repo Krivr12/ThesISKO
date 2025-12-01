@@ -1,6 +1,8 @@
 import express from "express";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 import pool from "../data/database.js"; // PostgreSQL connection for users_info
+import { requireAuth } from "../middlewares/authMiddleware.js";
+import { requireFacultyAccess } from "../middlewares/authorizationMiddleware.js";
 
 const router = express.Router();
 const collection = RepoMongodb.collection("blocks"); // collection name
@@ -9,23 +11,22 @@ const programsCollection = RepoMongodb.collection("programs"); // programs colle
 // -------------------- Routes --------------------
 
 // GET faculty's blocks (FIC and Panelist)
-router.get("/faculty/:email", async (req, res) => {
-  try {
-    const { email } = req.params;
-    
-    if (!email) {
-      return res.status(400).json({ error: "Email parameter is required" });
-    }
+router.get("/faculty",
+  requireAuth,
+  requireFacultyAccess,
+  async (req, res) => {
+    try {
+      const email = req.facultyEmail;
 
-    // Find blocks where faculty is FIC
-    const ficBlocks = await collection.find({ 
-      faculty_in_charge_email: email 
-    }).toArray();
+      // Find blocks where faculty is FIC
+      const ficBlocks = await collection.find({ 
+        faculty_in_charge_email: email 
+      }).toArray();
 
-    // Find blocks where faculty is a panelist
-    const panelistBlocks = await collection.find({ 
-      panelists_email: email 
-    }).toArray();
+      // Find blocks where faculty is a panelist
+      const panelistBlocks = await collection.find({ 
+        panelists_email: email 
+      }).toArray();
 
     // Get unique program_ids
     const ficProgramIds = [...new Set(ficBlocks.map(b => b.program_id))];

@@ -12,6 +12,12 @@ import pool from "../data/database.js"; // PostgreSQL connection for users_info
 import { transporter } from "../config/mailer.js"; // Email transporter
 import bcrypt from "bcrypt";
 import { generatePassword } from "../utils/passwordGenerator.js";
+import { requireAuth } from "../middlewares/authMiddleware.js";
+import {
+  requireFacultyAccess,
+  requireChairpersonAccess,
+  requireDeanAccess
+} from "../middlewares/authorizationMiddleware.js";
 
 const router = express.Router();
 const groupsCollection = RepoMongodb.collection("groups");
@@ -182,264 +188,241 @@ router.get("/", async (req, res) => {
 });
 
 // Route: Get groups by Faculty-in-Charge email
-router.get("/by-fic/:email", async (req, res) => {
-  try {
-    const { email } = req.params;
-    const { program_id } = req.query;
+router.get("/by-fic",
+  requireAuth,
+  requireFacultyAccess,
+  async (req, res) => {
+    try {
+      const email = req.facultyEmail;
+      const { program_id } = req.query;
 
-    if (!email) {
-      return res.status(400).json({ error: "Email parameter is required" });
-    }
+      console.log(`📚 Fetching FIC groups for: ${email}, program: ${program_id || 'all'}`);
 
-    console.log(`📚 Fetching FIC groups for: ${email}, program: ${program_id || 'all'}`);
-
-    // Find blocks where faculty is FIC
-    const blockQuery = { faculty_in_charge_email: email };
-    if (program_id) {
-      blockQuery.program_id = program_id;
-    }
-
-    const blocks = await blocksCollection.find(blockQuery).toArray();
-    const blockIds = blocks.map(b => b.block_id);
-
-    console.log(`✅ Found ${blocks.length} blocks:`, blockIds);
-
-    if (blockIds.length === 0) {
-      return res.json({ success: true, data: [] });
-    }
-
-    // Find all groups in these blocks
-    const groups = await groupsCollection.find({ 
-      block_id: { $in: blockIds } 
-    }).toArray();
-
-    console.log(`✅ Found ${groups.length} groups for FIC`);
-
-    // Enrich groups with block info and calculate forApproval
-    const enrichedGroups = groups.map(group => {
-      const block = blocks.find(b => b.block_id === group.block_id);
-      
-      // Calculate forApproval count for FIC
-      // FIC needs to approve upload_manuscript after all panelists
-      const uploadManuscript = group.milestones?.find(m => m.type === "upload_manuscript");
-      const requiredPanelistCount = block?.panelists?.length || 3;
-      
-      let forApproval = 0;
-      if (uploadManuscript) {
-        const panelistsApproved = uploadManuscript.approved_by?.length || 0;
-        const facultyApproved = uploadManuscript.verified?.faculty_in_charge?.approved || false;
-        
-        // If all panelists approved but faculty hasn't
-        if (panelistsApproved >= requiredPanelistCount && !facultyApproved) {
-          forApproval = 1;
-        }
+      // Find blocks where faculty is FIC
+      const blockQuery = { faculty_in_charge_email: email };
+      if (program_id) {
+        blockQuery.program_id = program_id;
       }
 
-      return {
-        ...group,
-        block_code: block?.block_code,
-        academic_year: block?.academic_year,
-        forApproval
-      };
-    });
+      const blocks = await blocksCollection.find(blockQuery).toArray();
+      const blockIds = blocks.map(b => b.block_id);
 
-    res.json({ success: true, data: enrichedGroups });
-  } catch (err) {
-    console.error("❌ Error fetching FIC groups:", err);
-    res.status(500).json({ error: "Error fetching groups" });
+      console.log(`✅ Found ${blocks.length} blocks:`, blockIds);
+
+      if (blockIds.length === 0) {
+        return res.json({ success: true, data: [] });
+      }
+
+      // Find all groups in these blocks
+      const groups = await groupsCollection.find({ 
+        block_id: { $in: blockIds } 
+      }).toArray();
+
+      console.log(`✅ Found ${groups.length} groups for FIC`);
+
+      // Enrich groups with block info and calculate forApproval
+      const enrichedGroups = groups.map(group => {
+        const block = blocks.find(b => b.block_id === group.block_id);
+        
+        // Calculate forApproval count for FIC
+        // FIC needs to approve upload_manuscript after all panelists
+        const uploadManuscript = group.milestones?.find(m => m.type === "upload_manuscript");
+        const requiredPanelistCount = block?.panelists?.length || 3;
+        
+        let forApproval = 0;
+        if (uploadManuscript) {
+          const panelistsApproved = uploadManuscript.approved_by?.length || 0;
+          const facultyApproved = uploadManuscript.verified?.faculty_in_charge?.approved || false;
+          
+          // If all panelists approved but faculty hasn't
+          if (panelistsApproved >= requiredPanelistCount && !facultyApproved) {
+            forApproval = 1;
+          }
+        }
+
+        return {
+          ...group,
+          block_code: block?.block_code,
+          academic_year: block?.academic_year,
+          forApproval
+        };
+      });
+
+      res.json({ success: true, data: enrichedGroups });
+    } catch (err) {
+      console.error("❌ Error fetching FIC groups:", err);
+      res.status(500).json({ error: "Error fetching groups" });
+    }
   }
-});
+);
 
 // Route: Get groups by Chairperson email (for Stage 6 approval)
-router.get("/by-chairperson/:email", async (req, res) => {
-  try {
-    const { email } = req.params;
+router.get("/by-chairperson",
+  requireAuth,
+  requireChairpersonAccess,
+  async (req, res) => {
+    try {
+      const email = req.chairpersonEmail;
+      const programId = req.chairpersonProgramId;
 
-    if (!email) {
-      return res.status(400).json({ error: "Email parameter is required" });
-    }
+      console.log(`📋 Fetching chairperson groups for: ${email}`);
 
-    console.log(`📋 Fetching chairperson groups for: ${email}`);
-
-    // Step 1: Get chairperson's program_id from programs collection
-    const program = await programsCollection.findOne({ chairperson_email: email });
-    
-    if (!program) {
-      console.log(`⚠️ No program found where ${email} is chairperson`);
-      return res.json({ success: true, data: [] });
-    }
-
-    console.log(`✅ Chairperson manages program: ${program.program_id}`);
-
-    // Step 2: Get all blocks in that program
-    const blocks = await blocksCollection.find({ 
-      program_id: program.program_id 
-    }).toArray();
-    
-    const blockIds = blocks.map(b => b.block_id);
-    console.log(`✅ Found ${blocks.length} blocks in program`);
-
-    if (blockIds.length === 0) {
-      return res.json({ success: true, data: [] });
-    }
-
-    // Step 3: Get all groups in those blocks
-    const groups = await groupsCollection.find({ 
-      block_id: { $in: blockIds } 
-    }).toArray();
-
-    console.log(`✅ Found ${groups.length} total groups in program`);
-
-    // Step 4: Filter groups where milestones 2-5 are complete (need chairperson approval)
-    const pendingGroups = groups.filter(g => {
-      const m1 = g.milestones?.find(m => m.type === 'upload_manuscript');
-      const m2 = g.milestones?.find(m => m.type === 'complete_copyright');
-      const m3 = g.milestones?.find(m => m.type === 'pass_turnitin');
-      const m4 = g.milestones?.find(m => m.type === 'upload_all_docs');
-      const m5 = g.milestones?.find(m => m.type === 'describe_work');
+      // Get all blocks in chairperson's program
+      const blocks = await blocksCollection.find({ 
+        program_id: programId 
+      }).toArray();
       
-      // Must have: FIC approved manuscript + all other milestones completed
-      const manuscriptApproved = m1?.verified?.faculty_in_charge?.approved === true;
-      const copyrightComplete = m2?.status === true;
-      const turnitinComplete = m3?.status === true;
-      const allDocsComplete = m4?.status === true;
-      const workDescribed = m5?.status === true;
-      
-      // Check group-level chairperson approval (not milestone-level)
-      const notApprovedByChairperson = g.chairperson_approval?.approved !== true;
-      
-      return manuscriptApproved && copyrightComplete && turnitinComplete && 
-             allDocsComplete && workDescribed && notApprovedByChairperson;
-    });
+      const blockIds = blocks.map(b => b.block_id);
+      console.log(`✅ Found ${blocks.length} blocks in program`);
 
-    console.log(`📊 ${pendingGroups.length} groups pending chairperson approval`);
-
-    // Enrich groups with block info and forApproval count
-    const enrichedGroups = pendingGroups.map(group => {
-      const block = blocks.find(b => b.block_id === group.block_id);
-      
-      return {
-        ...group,
-        block_code: block?.block_code,
-        academic_year: block?.academic_year,
-        forApproval: 1 // All groups in this list need approval
-      };
-    });
-
-    res.json({ success: true, data: enrichedGroups });
-  } catch (err) {
-    console.error("❌ Error fetching chairperson groups:", err);
-    res.status(500).json({ error: "Error fetching groups" });
-  }
-});
-
-// Route: Get groups by Panelist email
-router.get("/by-panelist/:email", async (req, res) => {
-  try {
-    const { email } = req.params;
-    const { program_id } = req.query;
-
-    if (!email) {
-      return res.status(400).json({ error: "Email parameter is required" });
-    }
-
-    console.log(`👥 Fetching panelist groups for: ${email}, program: ${program_id || 'all'}`);
-
-    // Find blocks where faculty is a panelist
-    const blockQuery = { panelists_email: email };
-    if (program_id) {
-      blockQuery.program_id = program_id;
-    }
-
-    const blocks = await blocksCollection.find(blockQuery).toArray();
-    const blockIds = blocks.map(b => b.block_id);
-
-    console.log(`✅ Found ${blocks.length} blocks:`, blockIds);
-
-    if (blockIds.length === 0) {
-      return res.json({ success: true, data: [] });
-    }
-
-    // Find all groups in these blocks
-    const groups = await groupsCollection.find({ 
-      block_id: { $in: blockIds } 
-    }).toArray();
-
-    console.log(`✅ Found ${groups.length} groups for panelist`);
-
-    // Enrich groups with block info and calculate forApproval
-    const enrichedGroups = groups.map(group => {
-      const block = blocks.find(b => b.block_id === group.block_id);
-      
-      // Calculate forApproval count for panelist
-      // Panelist needs to approve upload_manuscript if they haven't yet
-      const uploadManuscript = group.milestones?.find(m => m.type === "upload_manuscript");
-      
-      let forApproval = 0;
-      if (uploadManuscript) {
-        const hasApproved = uploadManuscript.approved_by?.some(
-          approval => approval.panelist_id === email || approval.name?.includes(email)
-        );
-        
-        // If manuscript has files and panelist hasn't approved yet
-        if (uploadManuscript.s3_key?.length > 0 && !hasApproved) {
-          forApproval = 1;
-        }
+      if (blockIds.length === 0) {
+        return res.json({ success: true, data: [] });
       }
 
-      return {
-        ...group,
-        block_code: block?.block_code,
-        academic_year: block?.academic_year,
-        forApproval
-      };
-    });
+      // Get all groups in those blocks
+      const groups = await groupsCollection.find({ 
+        block_id: { $in: blockIds } 
+      }).toArray();
 
-    res.json({ success: true, data: enrichedGroups });
-  } catch (err) {
-    console.error("❌ Error fetching panelist groups:", err);
-    res.status(500).json({ error: "Error fetching groups" });
+      console.log(`✅ Found ${groups.length} total groups in program`);
+
+      // Filter groups where milestones 2-5 are complete (need chairperson approval)
+      const pendingGroups = groups.filter(g => {
+        const m1 = g.milestones?.find(m => m.type === 'upload_manuscript');
+        const m2 = g.milestones?.find(m => m.type === 'complete_copyright');
+        const m3 = g.milestones?.find(m => m.type === 'pass_turnitin');
+        const m4 = g.milestones?.find(m => m.type === 'upload_all_docs');
+        const m5 = g.milestones?.find(m => m.type === 'describe_work');
+        
+        // Must have: FIC approved manuscript + all other milestones completed
+        const manuscriptApproved = m1?.verified?.faculty_in_charge?.approved === true;
+        const copyrightComplete = m2?.status === true;
+        const turnitinComplete = m3?.status === true;
+        const allDocsComplete = m4?.status === true;
+        const workDescribed = m5?.status === true;
+        
+        // Check group-level chairperson approval (not milestone-level)
+        const notApprovedByChairperson = g.chairperson_approval?.approved !== true;
+        
+        return manuscriptApproved && copyrightComplete && turnitinComplete && 
+               allDocsComplete && workDescribed && notApprovedByChairperson;
+      });
+
+      console.log(`📊 ${pendingGroups.length} groups pending chairperson approval`);
+
+      // Enrich groups with block info and forApproval count
+      const enrichedGroups = pendingGroups.map(group => {
+        const block = blocks.find(b => b.block_id === group.block_id);
+        
+        return {
+          ...group,
+          block_code: block?.block_code,
+          academic_year: block?.academic_year,
+          forApproval: 1 // All groups in this list need approval
+        };
+      });
+
+      res.json({ success: true, data: enrichedGroups });
+    } catch (err) {
+      console.error("❌ Error fetching chairperson groups:", err);
+      res.status(500).json({ error: "Error fetching groups" });
+    }
   }
-});
+);
+
+// Route: Get groups by Panelist email
+router.get("/by-panelist",
+  requireAuth,
+  requireFacultyAccess,
+  async (req, res) => {
+    try {
+      const email = req.facultyEmail;
+      const { program_id } = req.query;
+
+      console.log(`👥 Fetching panelist groups for: ${email}, program: ${program_id || 'all'}`);
+
+      // Find blocks where faculty is a panelist
+      const blockQuery = { panelists_email: email };
+      if (program_id) {
+        blockQuery.program_id = program_id;
+      }
+
+      const blocks = await blocksCollection.find(blockQuery).toArray();
+      const blockIds = blocks.map(b => b.block_id);
+
+      console.log(`✅ Found ${blocks.length} blocks:`, blockIds);
+
+      if (blockIds.length === 0) {
+        return res.json({ success: true, data: [] });
+      }
+
+      // Find all groups in these blocks
+      const groups = await groupsCollection.find({ 
+        block_id: { $in: blockIds } 
+      }).toArray();
+
+      console.log(`✅ Found ${groups.length} groups for panelist`);
+
+      // Enrich groups with block info and calculate forApproval
+      const enrichedGroups = groups.map(group => {
+        const block = blocks.find(b => b.block_id === group.block_id);
+        
+        // Calculate forApproval count for panelist
+        // Panelist needs to approve upload_manuscript if they haven't yet
+        const uploadManuscript = group.milestones?.find(m => m.type === "upload_manuscript");
+        
+        let forApproval = 0;
+        if (uploadManuscript) {
+          const hasApproved = uploadManuscript.approved_by?.some(
+            approval => approval.panelist_id === email || approval.name?.includes(email)
+          );
+          
+          // If manuscript has files and panelist hasn't approved yet
+          if (uploadManuscript.s3_key?.length > 0 && !hasApproved) {
+            forApproval = 1;
+          }
+        }
+
+        return {
+          ...group,
+          block_code: block?.block_code,
+          academic_year: block?.academic_year,
+          forApproval
+        };
+      });
+
+      res.json({ success: true, data: enrichedGroups });
+    } catch (err) {
+      console.error("❌ Error fetching panelist groups:", err);
+      res.status(500).json({ error: "Error fetching groups" });
+    }
+  }
+);
 
 // Route: Get groups by Dean email (for final Stage 6 approval & archiving)
-router.get("/by-dean/:email", async (req, res) => {
-  try {
-    const { email } = req.params;
+router.get("/by-dean",
+  requireAuth,
+  requireDeanAccess,
+  async (req, res) => {
+    try {
+      const email = req.deanEmail;
+      const departmentId = req.deanDepartmentId;
 
-    if (!email) {
-      return res.status(400).json({ error: "Email parameter is required" });
-    }
+      console.log(`👨‍💼 Fetching dean groups for: ${email}`);
 
-    console.log(`👨‍💼 Fetching dean groups for: ${email}`);
+      // Get all programs in dean's department
+      const programs = await programsCollection.find({ 
+        department_id: departmentId 
+      }).toArray();
+      
+      const programIds = programs.map(p => p.program_id);
+      console.log(`✅ Found ${programs.length} programs in department`);
 
-    // Step 1: Get dean's department_id from users_info (where department_head matches)
-    const deanResult = await pool.query(
-      'SELECT department_head FROM users_info WHERE email = $1',
-      [email]
-    );
-
-    if (deanResult.rows.length === 0 || !deanResult.rows[0].department_head) {
-      console.log(`⚠️ No department found for dean: ${email}`);
+      if (programIds.length === 0) {
       return res.json({ success: true, data: [] });
     }
 
-    const departmentId = deanResult.rows[0].department_head;
-    console.log(`✅ Dean manages department: ${departmentId}`);
-
-    // Step 2: Get all programs in that department
-    const programs = await programsCollection.find({ 
-      department_id: departmentId 
-    }).toArray();
-    
-    const programIds = programs.map(p => p.program_id);
-    console.log(`✅ Found ${programs.length} programs in department`);
-
-    if (programIds.length === 0) {
-      return res.json({ success: true, data: [] });
-    }
-
-    // Step 3: Get all blocks in those programs
+    // Get all blocks in those programs
     const blocks = await blocksCollection.find({ 
       program_id: { $in: programIds } 
     }).toArray();
@@ -451,14 +434,14 @@ router.get("/by-dean/:email", async (req, res) => {
       return res.json({ success: true, data: [] });
     }
 
-    // Step 4: Get all groups in those blocks
+    // Get all groups in those blocks
     const groups = await groupsCollection.find({ 
       block_id: { $in: blockIds } 
     }).toArray();
 
     console.log(`✅ Found ${groups.length} total groups in department`);
 
-    // Step 5: Filter groups where chairperson approved all milestones (ready for dean approval)
+    // Filter groups where chairperson approved all milestones (ready for dean approval)
     const pendingGroups = groups.filter(g => {
       const m1 = g.milestones?.find(m => m.type === 'upload_manuscript');
       const m2 = g.milestones?.find(m => m.type === 'complete_copyright');
@@ -505,7 +488,8 @@ router.get("/by-dean/:email", async (req, res) => {
     console.error("❌ Error fetching dean groups:", err);
     res.status(500).json({ error: "Error fetching groups" });
   }
-});
+  }
+);
 
 // Route: Get single group by group_id
 router.get("/:group_id", async (req, res) => {

@@ -129,11 +129,11 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
       return;
     }
 
-    // Determine endpoint based on user role
+    // Determine endpoint based on user role (email removed from URL - comes from auth cookie)
     const isDean = user.role_id === 5;
     const endpoint = isDean 
-      ? `${environment.apiUrl}/submissions/pending-dean/${userEmail}`
-      : `${environment.apiUrl}/submissions/pending-chairperson/${userEmail}`;
+      ? `${environment.apiUrl}/submissions/pending-dean`
+      : `${environment.apiUrl}/submissions/pending-chairperson`;
 
     console.log(`📊 Loading pending approvals from: ${endpoint}`);
 
