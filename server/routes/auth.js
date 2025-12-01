@@ -243,6 +243,70 @@ router.post('/admin-login', async (req, res) => {
 // Get current user
 router.get('/me', getCurrentUser);
 
+// Test endpoint to check cookie status (no auth required)
+router.get('/cookie-status', async (req, res) => {
+  try {
+    const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+    const authCookie = req.cookies[AUTH_COOKIE_NAME];
+    
+    res.json({
+      hasCookie: !!authCookie,
+      cookieName: AUTH_COOKIE_NAME,
+      allCookies: Object.keys(req.cookies || {}),
+      cookieValue: authCookie ? (authCookie.length > 100 ? authCookie.substring(0, 100) + '...' : authCookie) : null,
+      parsedUser: authCookie ? (() => {
+        try {
+          const user = JSON.parse(authCookie);
+          return {
+            id: user.id || user.user_id,
+            email: user.email || user.Email,
+            status: user.Status
+          };
+        } catch (e) {
+          return { error: 'Failed to parse cookie' };
+        }
+      })() : null
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Test protected endpoint - requires authentication
+// This endpoint tests the requireAuth middleware
+router.get('/protected-test', async (req, res) => {
+  try {
+    // Import middleware dynamically
+    const { requireAuth } = await import('../middlewares/authMiddleware.js');
+    
+    // Apply middleware - it will call next() if auth succeeds, or return 401 if it fails
+    requireAuth(req, res, () => {
+      // This callback only runs if authentication succeeds
+      res.json({ 
+        success: true,
+        message: 'Protected route accessed successfully!',
+        user: {
+          id: req.user.id || req.user.user_id,
+          email: req.user.email || req.user.Email,
+          status: req.user.Status,
+          role_id: req.user.role_id,
+          firstname: req.user.Firstname || req.user.firstname,
+          lastname: req.user.Lastname || req.user.lastname
+        },
+        timestamp: new Date().toISOString(),
+        note: 'If you see this message, the authentication middleware is working correctly!'
+      });
+    });
+  } catch (error) {
+    console.error('Protected test endpoint error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
+});
+
 // Logout
 router.post('/logout', logoutUser);
 

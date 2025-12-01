@@ -6,10 +6,22 @@
 /**
  * Get the cookie domain for cross-subdomain cookie sharing
  * Extracts the base domain from FRONTEND_URL (e.g., .thesisko.online)
+ * For localhost development, returns undefined (no domain restriction)
  * 
- * @returns {string} Cookie domain (e.g., '.thesisko.online')
+ * @returns {string|undefined} Cookie domain (e.g., '.thesisko.online') or undefined for localhost
  */
 export const getCookieDomain = () => {
+  // Check if we're in development (localhost)
+  const isLocalhost = process.env.NODE_ENV === 'development' || 
+                      !process.env.FRONTEND_URL || 
+                      process.env.FRONTEND_URL.includes('localhost');
+  
+  // For localhost development, don't set domain (allows cookie to work on localhost)
+  if (isLocalhost) {
+    return undefined; // undefined means cookie works for current domain (localhost)
+  }
+  
+  // For production, extract domain from FRONTEND_URL
   const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
   const urlObj = new URL(frontendUrl);
   const cookieDomain = urlObj.hostname.startsWith('www.') 
@@ -75,17 +87,24 @@ const shouldUseSecureCookies = () => {
  */
 export const getAuthCookieConfig = (options = {}) => {
   const isSecure = shouldUseSecureCookies();
+  const domain = getCookieDomain();
   
-  return {
+  const config = {
     httpOnly: true, // Prevent JavaScript access (XSS protection)
     secure: isSecure, // Only send over HTTPS in production/HTTPS environments
     sameSite: 'lax', // Allow cross-subdomain (thesisko.online <-> server.thesisko.online)
                      // Prevents most CSRF while maintaining subdomain compatibility
-    domain: getCookieDomain(), // Enable cross-subdomain cookie sharing
     path: '/', // Available for entire domain
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     ...options // Allow overrides for specific cases
   };
+  
+  // Only set domain if it's defined (undefined means current domain - works for localhost)
+  if (domain !== undefined) {
+    config.domain = domain;
+  }
+  
+  return config;
 };
 
 /**
