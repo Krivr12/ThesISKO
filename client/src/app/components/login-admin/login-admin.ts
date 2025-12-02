@@ -15,6 +15,7 @@ import { MessageService } from 'primeng/api';
     ButtonModule,
     InputTextModule,
     PasswordModule,
+    RouterLink,
   ],
   templateUrl: './login-admin.html',
   styleUrl: './login-admin.css'

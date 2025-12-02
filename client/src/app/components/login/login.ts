@@ -1,10 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Auth } from '../../service/auth';
 import { AuthService } from '../navbar/navbar';
 import { MessageService } from 'primeng/api';
@@ -31,16 +31,53 @@ const log = createLogger('LoginComponent');
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login {
+export class Login implements OnInit {
 login = {
   email: '',
   password: '',
 }
 
+// Control whether Google login button is shown
+// Google login is only for guests, not for PUPians who have their own accounts
+showGoogleLogin = false;
+
 private authService = inject(Auth);
 private navAuthService = inject(AuthService);
 private router = inject(Router);
+private route = inject(ActivatedRoute);
 private messageService = inject(MessageService);
+
+ngOnInit(): void {
+  // Read query parameter to determine login type
+  const loginType = this.route.snapshot.queryParams['type'];
+  
+  // Check if user is in guest mode (fallback check - only used if no query param)
+  const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
+  
+  // Show Google login ONLY if explicitly set to 'guest' in query parameter
+  // Priority: Query parameter > sessionStorage guestMode
+  // If type=pupian is explicitly set, respect it and hide Google login
+  // If type=guest is explicitly set, show Google login
+  // If no query param but guestMode is true, show Google login (fallback for backward compatibility)
+  if (loginType === 'guest') {
+    // Explicitly guest - show Google login
+    this.showGoogleLogin = true;
+  } else if (loginType === 'pupian') {
+    // Explicitly PUPian - hide Google login (even if guestMode is set)
+    this.showGoogleLogin = false;
+    // Clear guest mode since user explicitly chose PUPian login
+    sessionStorage.removeItem('guestMode');
+  } else {
+    // No query param - use fallback: check guestMode
+    this.showGoogleLogin = isGuestMode;
+  }
+  
+  log.debug('Login page initialized', { 
+    loginType, 
+    isGuestMode, 
+    showGoogleLogin: this.showGoogleLogin 
+  });
+}
 
 onLogin() {
   const {email, password} = this.login;

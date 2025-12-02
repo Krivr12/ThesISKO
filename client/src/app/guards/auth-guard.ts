@@ -17,9 +17,11 @@ export const authGuard: CanActivateFn = (route, state) => {
     take(1),
     map(user => {
       const currentPath = state.url;
+      // Extract path without query parameters for route matching
+      const pathWithoutQuery = currentPath.split('?')[0];
       
-      // Special handling for login route
-      if (currentPath === '/login') {
+      // Special handling for login route (with or without query parameters)
+      if (pathWithoutQuery === '/login') {
         if (!user) {
           // User not logged in, allow access to login page
           return true;

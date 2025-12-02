@@ -189,3 +189,24 @@ h1 {
     .header { font-size: 32px; }
     .form-container { max-width: calc(100% - 32px); }
   }
+
+  /* Back to Home link */
+  .back-link {
+    margin-top: 1.5rem;
+    text-align: center;
+    width: 100%;
+  }
+
+  .back-button {
+    color: #800000;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+    display: inline-block;
+  }
+
+  .back-button:hover {
+    color: #a00000;
+    text-decoration: underline;
+  }
