@@ -126,12 +126,6 @@ export class ApprovalDetails implements OnInit {
       `${this.apiUrl}/${submissionId}`
     ).subscribe({
       next: (response) => {
-        console.log('📋 Submission data received:', response.data);
-        console.log('📋 Authors field:', response.data.authors);
-        console.log('📋 Panelists field:', response.data.panelists);
-        console.log('📋 Year field:', response.data.year);
-        console.log('📋 Abstract field:', response.data.abstract);
-        
         this.submission.set(response.data);
         this.duplicateSubmissions.set(response.potential_duplicates || []);
         this.initializeFilesList();
@@ -145,7 +139,6 @@ export class ApprovalDetails implements OnInit {
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading submission:', error);
         alert('Failed to load submission details');
         this.router.navigate(['/adminSide/approvals']);
         this.loading.set(false);
@@ -194,7 +187,6 @@ export class ApprovalDetails implements OnInit {
         this.pdfLoading.set(false);
       },
       error: (error) => {
-        console.error('Error getting file URL:', error);
         this.pdfLoading.set(false);
         this.pdfError.set('Failed to load document. The file may be unavailable.');
       }
@@ -237,14 +229,14 @@ export class ApprovalDetails implements OnInit {
       ? { dean_name: `${user.Firstname || user.firstname} ${user.Lastname || user.lastname}` }
       : { chairperson_name: `${user.Firstname || user.firstname} ${user.Lastname || user.lastname}` };
 
-    this.http.patch(endpoint, payload).subscribe({
+    this.http.patch(endpoint, payload, {
+      withCredentials: true // Include cookies in request
+    }).subscribe({
       next: () => {
         alert('Submission approved successfully!');
         this.router.navigate(['/adminSide/approvals']);
       },
       error: (error) => {
-        console.error('Error approving submission:', error);
-        
         // Handle specific error cases
         if (error.error?.error === 'Approval recorded but archiving failed') {
           const details = error.error?.details || 'Unknown archiving error';
@@ -320,13 +312,14 @@ export class ApprovalDetails implements OnInit {
           rejected_files: filesToResubmit
         };
 
-    this.http.patch(endpoint, payload).subscribe({
+    this.http.patch(endpoint, payload, {
+      withCredentials: true // Include cookies in request
+    }).subscribe({
       next: () => {
         alert('Submission rejected. Student will be notified to resubmit the specified files.');
         this.router.navigate(['/adminSide/approvals']);
       },
       error: (error) => {
-        console.error('Error rejecting submission:', error);
         alert(error.error?.error || 'Failed to reject submission');
         this.loading.set(false);
       }
@@ -356,7 +349,6 @@ export class ApprovalDetails implements OnInit {
       
       return `${day} ${month} ${year}`;
     } catch (error) {
-      console.error('Error formatting date:', error);
       return 'N/A';
     }
   }
@@ -377,7 +369,7 @@ export class ApprovalDetails implements OnInit {
           this.requirements.set(response.data);
         },
         error: (error) => {
-          console.error('Error loading requirements:', error);
+          // Silently fail - requirements are optional
         }
       });
   }

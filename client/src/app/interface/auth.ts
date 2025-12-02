@@ -45,4 +45,7 @@ export interface User {
     // Additional info
     AvatarUrl?: string;
     avatar_url?: string;
+    
+    // Group information (for group leaders)
+    group_id?: string;
 }

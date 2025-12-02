@@ -124,7 +124,6 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
     // Check for both Email and email properties
     const userEmail = user?.Email || user?.email;
     if (!user || !userEmail) {
-      console.log('⚠️ No user email available for pending approvals');
       this.stats.pendingApprovals = '0';
       return;
     }
@@ -135,17 +134,15 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
       ? `${environment.apiUrl}/submissions/pending-dean`
       : `${environment.apiUrl}/submissions/pending-chairperson`;
 
-    console.log(`📊 Loading pending approvals from: ${endpoint}`);
-
-    this.http.get<{ success: boolean; data: any[] }>(endpoint)
+    this.http.get<{ success: boolean; data: any[] }>(endpoint, {
+      withCredentials: true // Include cookies in request
+    })
       .subscribe({
         next: (response) => {
           const count = response.data?.length || 0;
           this.stats.pendingApprovals = this.formatNumber(count);
-          console.log(`✅ Pending approvals loaded: ${count}`);
         },
         error: (error) => {
-          console.error('❌ Error loading pending approvals:', error);
           this.stats.pendingApprovals = '0';
         }
       });
@@ -158,8 +155,6 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
     
     this.analyticsService.getDashboardAnalytics('this_month').subscribe({
       next: (data) => {
-        console.log('📊 Dashboard analytics loaded:', data);
-        
         // Update stats with formatting
         this.stats = {
           totalThesis: this.formatNumber(data.totalThesis),
@@ -201,7 +196,6 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
             }, 200);
           },
           error: (error) => {
-            console.error('❌ Error loading user growth data:', error);
             this.isLoadingUserGrowth = false;
             // Create chart with empty data
             setTimeout(() => {
@@ -224,7 +218,6 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
             }, 200);
           },
           error: (error) => {
-            console.error('❌ Error loading monthly requests data:', error);
             // Create chart with empty data
             setTimeout(() => {
               if (this.requestTypeChartRef?.nativeElement) {
@@ -246,22 +239,16 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
         // Fetch most requested documents
         this.analyticsService.getViewedDocuments(3).subscribe({
           next: (viewedData) => {
-            console.log('📊 Requested documents RAW response:', viewedData);
-            console.log('📊 Most requested count:', viewedData.mostViewed?.length);
             this.mostViewedDocs = viewedData.mostViewed || [];
             this.totalDocuments = viewedData.totalDocuments || 0;
             this.isLoadingViewedDocs = false;
-            console.log('📊 Requested documents loaded successfully');
           },
           error: (error) => {
-            console.error('❌ Error loading requested documents:', error);
-            console.error('❌ Error details:', error.message, error.status);
             this.isLoadingViewedDocs = false;
           }
         });
       },
       error: (error) => {
-        console.error('❌ Error loading dashboard analytics:', error);
         this.isLoading = false;
         this.hasError = true;
         this.errorMessage = 'Failed to load dashboard data. Please try again.';
