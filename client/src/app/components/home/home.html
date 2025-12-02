@@ -47,7 +47,7 @@
           (keyup.space)="navigateToRecord(item)">
 
           <h3 class="title">{{ item.title }}</h3>
-          <p class="date">Year: {{ item.submitted_at ? (item.submitted_at | date:'yyyy') : 'No year' }}</p>
+          <p class="date">Year: {{ item.year || (item.submitted_at ? (item.submitted_at | date:'yyyy') : 'N/A') }}</p>
           <p class="authors">Author: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}</p>
 
           <div class="tags">Keywords: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}</div>

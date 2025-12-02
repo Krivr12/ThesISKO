@@ -138,16 +138,33 @@ section {
   color: #800000;
 }
 
-:host ::ng-deep .custom-carousel .p-carousel-content { justify-content: center; }
-:host ::ng-deep .custom-carousel .p-carousel-items-content { padding: 0 !important; overflow: visible; }
-:host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 20px; box-sizing: border-box; }
-:host ::ng-deep .custom-carousel .p-carousel-indicators { justify-content: center; }
+/* Carousel container styles */
+:host ::ng-deep .custom-carousel .p-carousel-content { 
+  justify-content: center; 
+}
 
+:host ::ng-deep .custom-carousel .p-carousel-items-content { 
+  padding: 0 !important; 
+  overflow: hidden !important; /* Prevent partial items from showing */
+}
+
+:host ::ng-deep .custom-carousel .p-carousel-item { 
+  padding: 0 20px; 
+  box-sizing: border-box;
+  flex: 0 0 auto; /* Prevent items from shrinking */
+}
+
+:host ::ng-deep .custom-carousel .p-carousel-indicators { 
+  justify-content: center; 
+}
+
+/* Carousel item box - responsive width */
 .carousel-box {
   background: #ffd966;
   border: 1px solid #d7c178;
   border-radius: 12px;
-  width: 360px; 
+  width: 100%; /* Fill carousel item container */
+  max-width: 100%; /* Don't exceed container */
   height: 320px; 
   padding: 14px 16px;
   display: flex;
@@ -158,6 +175,8 @@ section {
   box-sizing: border-box;
   overflow: hidden;
   word-break: break-word;
+  /* Ensure smooth transitions */
+  transition: width 0.3s ease-in-out;
 }
 
 .carousel-box h3,
@@ -215,10 +234,37 @@ section {
 }
 
 /* ==================== CAROUSEL: RESPONSIVE ==================== */
-@media (max-width: 768px) {
-  .carousel-shell { padding: 0 12px; }
-  :host ::ng-deep .custom-carousel .p-carousel-item { padding: 0 12px; }
-  .carousel-box { padding: 12px; }
+
+/* Tablet screens (< 1024px) - 2 items visible */
+@media (max-width: 1023px) {
+  .carousel-shell { 
+    padding: 0 16px; 
+  }
+  
+  :host ::ng-deep .custom-carousel .p-carousel-item { 
+    padding: 0 16px; 
+  }
+  
+  .carousel-box { 
+    padding: 14px 16px;
+    height: 320px; /* Maintain consistent height */
+  }
+}
+
+/* Mobile screens (< 768px) - 1 item visible */
+@media (max-width: 767px) {
+  .carousel-shell { 
+    padding: 0 12px; 
+  }
+  
+  :host ::ng-deep .custom-carousel .p-carousel-item { 
+    padding: 0 12px; 
+  }
+  
+  .carousel-box { 
+    padding: 12px;
+    height: 320px; /* Maintain consistent height */
+  }
 }
 
 /* ==================== RESPONSIVE STYLES ==================== */
@@ -255,9 +301,7 @@ section {
     height: 60px;
   }
 
-  .carousel-box {
-    width: 280px;
-  }
+  /* Carousel box width is now handled by responsive carousel, no fixed width needed */
 
   .containerSubmitWork .inner {
     flex-direction: column;
