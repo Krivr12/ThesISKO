@@ -8,6 +8,7 @@ export interface UpdateItem {
   document_id: string;
   title: string;
   submitted_at: string;
+  year?: number | string; // Year extracted from document (may be from year, metadata.year, student.year, or submitted_at)
   authors: string[];
   tags: string[];
 }

@@ -17,6 +17,7 @@ interface UpdateItem {
   document_id: string;
   title: string;
   submitted_at: string;
+  year?: number | string; // Year extracted from submitted_at or from document year field
   authors: string[];
   tags: string[];
 }
@@ -45,10 +46,25 @@ export class Home implements OnInit {
   updates: UpdateItem[] = []; // items shown in carousel
 
  
+  /**
+   * Responsive options for PrimeNG carousel
+   * Breakpoints work as max-width (applies when screen width <= breakpoint)
+   * 
+   * - Default (≥1024px): 3 items visible
+   * - ≤1023px: 2 items visible
+   * - ≤767px: 1 item visible
+   */
   responsiveOptions = [
-    { breakpoint: '1200px', numVisible: 3, numScroll: 1 },
-    { breakpoint: '992px',  numVisible: 2, numScroll: 1 },
-    { breakpoint: '768px',  numVisible: 1, numScroll: 1 }
+    {
+      breakpoint: '1023px',
+      numVisible: 2,
+      numScroll: 1
+    },
+    {
+      breakpoint: '767px',
+      numVisible: 1,
+      numScroll: 1
+    }
   ];
 
   constructor(
@@ -64,6 +80,20 @@ export class Home implements OnInit {
       next: (data) => {
         // Backend now returns the correct structure, no mapping needed
         this.updates = data || [];
+        
+        // Debug: Log first item to check year field and full structure
+        if (this.updates.length > 0) {
+          console.log('📊 First carousel item (full object):', this.updates[0]);
+          console.log('📅 Year value:', this.updates[0].year);
+          console.log('📅 Year type:', typeof this.updates[0].year);
+          
+          // Check if year is accessible
+          if (this.updates[0].year) {
+            console.log('✅ Year is available:', this.updates[0].year);
+          } else {
+            console.warn('⚠️ Year is missing or undefined');
+          }
+        }
       },
       error: (err) => console.error('Error fetching latest records:', err) 
     });

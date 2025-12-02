@@ -138,10 +138,7 @@ body {
 }
 
 .filter-sidebar {
-  flex: 0 0 300px; /* Fixed width when expanded */
-  width: 300px;
-  min-width: 100%;
-  max-width: 100%;
+  flex: 0 0 800px; /* Fixed width when expanded */
   padding-right: 20px;
   position: sticky;
   top: 40px;
@@ -156,10 +153,7 @@ body {
 }
 
 .filter-sidebar.sidebar-collapsed {
-  flex: 0 0 130px; /* Collapse to button width with space for one-line text */
-  width: 130px;
-  min-width: 130px;
-  max-width: 130px;
+  flex: 0 0 400px; /* Collapse to button width with space for one-line text */
   padding-right: 10px;
   flex-shrink: 1; /* Allow shrinking */
   /* Left edge remains fixed, right edge moves left */
@@ -258,12 +252,13 @@ body {
 .search-results {
   flex: 1 1 auto; /* Grow to fill remaining space */
   min-width: 0; /* Prevent flex item from overflowing */
-  max-width: 100%; /* Don't exceed container */
+  max-width: 100%; /* Don't exceed container - right edge aligns with search bar */
   box-sizing: border-box;
   transition: flex-grow 0.3s ease-in-out 0.1s; /* Delay expansion until content is hidden */
-  /* Expands from right to left when filter hides, shrinks when filter shows */
-  /* Always fills remaining space to match search bar width */
+  /* Right edge is fixed (aligned with search bar), left edge moves with filter */
+  /* When filter expands: left edge moves right, when filter collapses: left edge moves left */
   flex-shrink: 1; /* Allow shrinking when filter expands */
+  /* Cards fill available space between filter and fixed right edge */
 }
 
 .results-count {
@@ -400,7 +395,7 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   min-height: 200px; /* Minimum height, allows growth */
   height: auto; /* Allow height to grow with content */
-  width: 100%; /* Always fill container width - responsive */
+  width: 100%; /* Always fill search-results container width */
   max-width: 100%; /* Don't exceed container */
   display: flex;
   flex-direction: column;

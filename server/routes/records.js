@@ -81,11 +81,106 @@ router.get("/latest", async (req, res) => {
     
     // Transform to same format as /records/ endpoint
     const transformedResults = results.map(doc => {
+      // Comprehensive year extraction - check all possible locations
+      let year = null;
+      
+      // 1. Check direct year field
+      if (doc.year !== null && doc.year !== undefined) {
+        year = doc.year;
+      }
+      
+      // 2. Check nested metadata.year (if metadata is an object)
+      if (!year && doc.metadata) {
+        if (typeof doc.metadata === 'object' && doc.metadata.year) {
+          year = doc.metadata.year;
+        } else if (typeof doc.metadata === 'string') {
+          // If metadata is a JSON string, try to parse it
+          try {
+            const parsedMetadata = JSON.parse(doc.metadata);
+            if (parsedMetadata && parsedMetadata.year) {
+              year = parsedMetadata.year;
+            }
+          } catch (e) {
+            // Not valid JSON, skip
+          }
+        }
+      }
+      
+      // 3. Check nested student.year (if student is an object)
+      if (!year && doc.student) {
+        if (typeof doc.student === 'object' && doc.student.year) {
+          year = doc.student.year;
+        } else if (typeof doc.student === 'string') {
+          // If student is a JSON string, try to parse it
+          try {
+            const parsedStudent = JSON.parse(doc.student);
+            if (parsedStudent && parsedStudent.year) {
+              year = parsedStudent.year;
+            }
+          } catch (e) {
+            // Not valid JSON, skip
+          }
+        }
+      }
+      
+      // 4. Check metadata.student.year (nested path)
+      if (!year && doc.metadata && typeof doc.metadata === 'object' && doc.metadata.student) {
+        if (typeof doc.metadata.student === 'object' && doc.metadata.student.year) {
+          year = doc.metadata.student.year;
+        }
+      }
+      
+      // 5. Extract from submitted_at if still no year found
+      if (!year && doc.submitted_at) {
+        try {
+          const date = doc.submitted_at instanceof Date 
+            ? doc.submitted_at 
+            : new Date(doc.submitted_at);
+          
+          if (!isNaN(date.getTime())) {
+            year = date.getFullYear();
+          }
+        } catch (error) {
+          console.warn('Error parsing submitted_at date:', doc.submitted_at, error);
+        }
+      }
+      
+      // 6. Validate and convert year to number
+      if (year !== null && year !== undefined) {
+        // Try to convert to number
+        const numYear = Number(year);
+        if (!isNaN(numYear) && numYear > 1900 && numYear <= new Date().getFullYear() + 1) {
+          year = numYear;
+        } else {
+          year = null; // Invalid year, reset
+        }
+      }
+      
+      // 7. Fallback to current year if still no valid year
+      if (!year) {
+        year = new Date().getFullYear();
+      }
+      
+      // Debug log for first document to help troubleshoot
+      if (results.indexOf(doc) === 0) {
+        console.log('📋 Document structure check (first item):', {
+          hasYear: !!doc.year,
+          yearValue: doc.year,
+          hasMetadata: !!doc.metadata,
+          metadataType: typeof doc.metadata,
+          hasStudent: !!doc.student,
+          studentType: typeof doc.student,
+          hasSubmittedAt: !!doc.submitted_at,
+          extractedYear: year
+        });
+      }
+      
       return {
         _id: doc._id || doc.id, // Handle both _id and id fields
         document_id: doc.document_id || doc.doc_id || (doc._id || doc.id)?.toString(), // Handle doc_id field
         title: doc.title || "Untitled",
         submitted_at: doc.submitted_at, // Keep original field name for frontend
+        year: year, // Add year field extracted from all possible locations (always a number)
         authors: doc.authors || [], // Keep original field name for frontend
         tags: doc.tags || [] // Keep original field name for frontend
       };
