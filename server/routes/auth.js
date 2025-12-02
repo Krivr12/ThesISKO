@@ -83,26 +83,16 @@ router.get('/test-google-callback', async (req, res) => {
 
 // Google OAuth routes
 router.get('/google', (req, res, next) => {
-  // Google OAuth route accessed
-  console.log('🚀 Google OAuth route accessed');
   try {
     passport.authenticate('google', { 
       scope: ['profile', 'email'] 
     })(req, res, next);
   } catch (error) {
-    console.error('❌ Google OAuth route error:', error);
     res.status(500).json({ error: 'Google OAuth initialization failed', details: error.message });
   }
 });
 
 router.get('/google/callback',
-  (req, res, next) => {
-    console.log('🚀 Google OAuth callback reached!');
-    console.log('🚀 Query params:', req.query);
-    console.log('🚀 Body:', req.body);
-    console.log('🚀 Headers:', req.headers);
-    next();
-  },
   passport.authenticate('google', { failureRedirect: '/auth/google/failure' }),
   googleAuthSuccess
 );
