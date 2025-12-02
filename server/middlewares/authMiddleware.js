@@ -35,7 +35,9 @@ export const requireAuth = async (req, res, next) => {
     
     // Check if cookie exists
     if (!authCookie) {
-      console.log(`[authMiddleware] ❌ No authentication cookie found for ${req.method} ${req.originalUrl}`);
+      if (process.env.DEBUG_AUTH === 'true') {
+        console.log(`[authMiddleware] ❌ No authentication cookie found for ${req.method} ${req.originalUrl}`);
+      }
       return res.status(401).json({ 
         authenticated: false, 
         error: 'Authentication required',
@@ -48,7 +50,9 @@ export const requireAuth = async (req, res, next) => {
     try {
       user = JSON.parse(authCookie);
     } catch (parseError) {
-      console.error(`[authMiddleware] ❌ Invalid JSON in auth cookie for ${req.method} ${req.originalUrl}:`, parseError.message);
+      if (process.env.DEBUG_AUTH === 'true') {
+        console.error(`[authMiddleware] ❌ Invalid JSON in auth cookie for ${req.method} ${req.originalUrl}:`, parseError.message);
+      }
       return res.status(401).json({ 
         authenticated: false, 
         error: 'Invalid authentication token',
@@ -58,7 +62,9 @@ export const requireAuth = async (req, res, next) => {
     
     // Validate required user fields
     if (!user || typeof user !== 'object') {
-      console.error(`[authMiddleware] ❌ Invalid user object structure for ${req.method} ${req.originalUrl}`);
+      if (process.env.DEBUG_AUTH === 'true') {
+        console.error(`[authMiddleware] ❌ Invalid user object structure for ${req.method} ${req.originalUrl}`);
+      }
       return res.status(401).json({ 
         authenticated: false, 
         error: 'Invalid user data',
@@ -69,7 +75,9 @@ export const requireAuth = async (req, res, next) => {
     // Check for required fields (id or user_id, and email)
     const userId = user.id || user.user_id;
     if (!userId) {
-      console.error(`[authMiddleware] ❌ Missing user ID in cookie for ${req.method} ${req.originalUrl}`);
+      if (process.env.DEBUG_AUTH === 'true') {
+        console.error(`[authMiddleware] ❌ Missing user ID in cookie for ${req.method} ${req.originalUrl}`);
+      }
       return res.status(401).json({ 
         authenticated: false, 
         error: 'Invalid user data',
@@ -78,7 +86,9 @@ export const requireAuth = async (req, res, next) => {
     }
     
     if (!user.email && !user.Email) {
-      console.error(`[authMiddleware] ❌ Missing email in cookie for ${req.method} ${req.originalUrl}`);
+      if (process.env.DEBUG_AUTH === 'true') {
+        console.error(`[authMiddleware] ❌ Missing email in cookie for ${req.method} ${req.originalUrl}`);
+      }
       return res.status(401).json({ 
         authenticated: false, 
         error: 'Invalid user data',
@@ -100,7 +110,9 @@ export const requireAuth = async (req, res, next) => {
     
   } catch (error) {
     // Handle unexpected errors
-    console.error(`[authMiddleware] ❌ Unexpected error during authentication for ${req.method} ${req.originalUrl}:`, error);
+    if (process.env.DEBUG_AUTH === 'true') {
+      console.error(`[authMiddleware] ❌ Unexpected error during authentication for ${req.method} ${req.originalUrl}:`, error);
+    }
     return res.status(500).json({ 
       authenticated: false, 
       error: 'Authentication error',
@@ -143,7 +155,9 @@ export const optionalAuth = async (req, res, next) => {
     next();
   } catch (error) {
     // Don't block request on optional auth errors
-    console.error(`[authMiddleware] ⚠️ Optional auth error:`, error);
+    if (process.env.DEBUG_AUTH === 'true') {
+      console.error(`[authMiddleware] ⚠️ Optional auth error:`, error);
+    }
     next();
   }
 };
