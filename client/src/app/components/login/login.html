@@ -54,25 +54,32 @@
                 }
             </div>
 
-            <p-button class="loginbtn"
-            label = "LOGIN"
-            styleClass="w-full"
-            [disabled]="loginForm.invalid"
-            type = "submit">
-            </p-button>
-
-            <div class="divider">
-                <hr />
-                <span>or</span>
-                <hr />
+            <div class="field">
+                <p-button class="loginbtn"
+                label = "LOGIN"
+                styleClass="w-full"
+                [disabled]="loginForm.invalid"
+                type = "submit">
+                </p-button>
             </div>
 
-            <p-button class="gglbtn" styleClass="w-full" (click)="loginWithGoogle()" type="button">
-                <ng-template pTemplate="content">
-                  <img src="/googleLogo.png" alt="Google Logo" style="height: 20px; margin-right: 8px; vertical-align: middle;">
-                  Login with Google
-                </ng-template>
-              </p-button>
+            <!-- Google login option - only shown for guests, not for PUPians -->
+            @if (showGoogleLogin) {
+              <div class="divider">
+                  <hr />
+                  <span>or</span>
+                  <hr />
+              </div>
+
+              <div class="field">
+                  <p-button class="gglbtn" styleClass="w-full" (click)="loginWithGoogle()" type="button">
+                      <ng-template pTemplate="content">
+                        <img src="/googleLogo.png" alt="Google Logo" style="height: 20px; margin-right: 8px; vertical-align: middle;">
+                        Login with Google
+                      </ng-template>
+                    </p-button>
+              </div>
+            }
               
             <div class="mt-2"> New User? <a routerLink="/signup"> Signup </a> </div>
 

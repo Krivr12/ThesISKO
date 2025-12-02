@@ -395,13 +395,14 @@ export class Navbar implements OnInit {
 
   /** Navigate to Login page */
   navigateToLogin(): void {
-    console.log('Login button clicked - navigating to /login');
-    console.log('Current user:', this.auth.currentUser);
-    console.log('Guest mode:', sessionStorage.getItem('guestMode'));
+    // Check if user is in guest mode
+    // Guests can use Google login, PUPians cannot
+    const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
+    const loginType = isGuestMode ? 'guest' : 'pupian';
     
-    this.router.navigate(['/login']).then(success => {
+    this.router.navigate(['/login'], { queryParams: { type: loginType } }).then(success => {
       if (success) {
-        console.log('Navigation to /login successful');
+        console.log('Navigation to /login successful with type:', loginType);
       } else {
         console.error('Navigation to /login failed');
       }
