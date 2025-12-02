@@ -67,24 +67,13 @@ export class GoogleCallbackComponent implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit() {
-    console.log('Google Callback component initialized');
-    console.log('Current URL:', window.location.href);
-    console.log('Current AuthService user:', this.authService.currentUser);
-    
     // Check URL parameters for user data
     const urlParams = new URLSearchParams(window.location.search);
     const dataParam = urlParams.get('data');
     const error = urlParams.get('error');
 
-    console.log('URL params - data:', dataParam ? 'present' : 'missing', 'error:', error);
-    console.log('Full URL params:', Object.fromEntries(urlParams.entries()));
-
     if (error) {
       const errorDetails = urlParams.get('details');
-      console.error('Google authentication error:', error);
-      if (errorDetails) {
-        console.error('Error details:', decodeURIComponent(errorDetails));
-      }
       
       // Show user-friendly error message
       if (error === 'server_error') {
@@ -101,14 +90,9 @@ export class GoogleCallbackComponent implements OnInit {
 
     if (dataParam) {
       try {
-        console.log('Raw dataParam:', dataParam);
         const decodedData = decodeURIComponent(dataParam);
-        console.log('Decoded dataParam:', decodedData);
         const response = JSON.parse(decodedData);
-        console.log('Parsed response:', response);
         const user = response.user;
-        
-        console.log('Google Callback - Received user data:', JSON.stringify(user, null, 2));
         
         if (user) {
           // Use the user data directly from the redirect (cookie should also be set by backend)
@@ -136,25 +120,19 @@ export class GoogleCallbackComponent implements OnInit {
           sessionStorage.setItem('role', user.Status || user.status || 'guest');
           sessionStorage.setItem('email', user.email || user.Email);
           
-          console.log('Google Callback - Setting auth user from redirect data:', JSON.stringify(authUser, null, 2));
           this.authService.setUser(authUser);
           this.mainAuthService.setUser(authUser);
           
           // Add a small delay to ensure the AuthService state is updated
           setTimeout(() => {
-            console.log('Google Callback - AuthService current user after timeout:', this.authService.currentUser);
             // Navigate based on user role
-            console.log('About to navigate with role:', user.Status || 'guest', 'role_id:', user.role_id);
             this.navigateByRoleId(user.role_id || 1); // Default to guest (role_id = 1)
           }, 100);
           
           return;
-        } else {
-          console.error('No user data in response:', response);
         }
       } catch (e) {
-        console.error('Error parsing user data:', e);
-        console.error('Raw dataParam that failed to parse:', dataParam);
+        // Error parsing user data - fall through to checkAuthStatus
       }
     }
 
@@ -163,133 +141,67 @@ export class GoogleCallbackComponent implements OnInit {
     
     // Additional fallback: If no data and no error, wait a bit then redirect to home
     setTimeout(() => {
-      console.log('Fallback: Redirecting to home after timeout');
       this.router.navigate(['/home']);
     }, 3000);
   }
 
   private navigateByRole(role: string) {
-    console.log('navigateByRole called with role:', role);
     const roleLower = role?.toLowerCase();
     
     // Navigate based on user role
     if (roleLower === 'guest') {
-      console.log('Navigating to home page for guest user');
-      this.router.navigate(['/home']).then(success => {
-        console.log('Navigation to home successful:', success);
-      }).catch(error => {
-        console.error('Navigation to home failed:', error);
-      });
+      this.router.navigate(['/home']);
     } else if (roleLower === 'faculty' || roleLower === 'admin_faculty' || roleLower === 'superadmin_faculty') {
-      console.log('Navigating to faculty home for faculty user:', role);
-      this.router.navigate(['/faculty-home']).then(success => {
-        console.log('Navigation to faculty home successful:', success);
-      }).catch(error => {
-        console.error('Navigation to faculty home failed:', error);
-      });
+      this.router.navigate(['/faculty-home']);
     } else if (roleLower === 'admin' || roleLower === 'superadmin') {
-      console.log('Navigating to admin dashboard for admin user:', role);
-      this.router.navigate(['/admin-dashboard']).then(success => {
-        console.log('Navigation to admin dashboard successful:', success);
-      }).catch(error => {
-        console.error('Navigation to admin dashboard failed:', error);
-      });
+      this.router.navigate(['/admin-dashboard']);
     } else if (roleLower === 'student') {
-      console.log('Navigating to home page for student user');
-      this.router.navigate(['/home']).then(success => {
-        console.log('Navigation to home successful:', success);
-      }).catch(error => {
-        console.error('Navigation to home failed:', error);
-      });
+      this.router.navigate(['/home']);
     } else {
-      console.warn('Unknown role:', role, '. Redirecting to home.');
       this.router.navigate(['/home']);
     }
   }
 
   private navigateByRoleId(roleId: number) {
-    console.log('navigateByRoleId called with role_id:', roleId);
-    
     // Navigate based on role_id
     if (roleId === 1) {
       // Guest
-      console.log('Navigating to home page for guest user (role_id = 1)');
-      this.router.navigate(['/home']).then(success => {
-        console.log('Navigation to home successful:', success);
-      }).catch(error => {
-        console.error('Navigation to home failed:', error);
-      });
+      this.router.navigate(['/home']);
     } else if (roleId === 2) {
       // Student
-      console.log('Navigating to home page for student user (role_id = 2)');
-      this.router.navigate(['/home']).then(success => {
-        console.log('Navigation to home successful:', success);
-      }).catch(error => {
-        console.error('Navigation to home failed:', error);
-      });
+      this.router.navigate(['/home']);
     } else if (roleId === 3) {
       // Faculty
-      console.log('Navigating to faculty home for faculty user (role_id = 3)');
-      this.router.navigate(['/faculty-home']).then(success => {
-        console.log('Navigation to faculty home successful:', success);
-      }).catch(error => {
-        console.error('Navigation to faculty home failed:', error);
-      });
+      this.router.navigate(['/faculty-home']);
     } else if (roleId === 4) {
-      // Admin
-      console.log('Navigating to admin dashboard for admin user (role_id = 4)');
-      this.router.navigate(['/admin-dashboard']).then(success => {
-        console.log('Navigation to admin dashboard successful:', success);
-      }).catch(error => {
-        console.error('Navigation to admin dashboard failed:', error);
-      });
+      // Chairperson - Unified AdminSide Dashboard
+      this.router.navigate(['/adminSide/dashboard']);
     } else if (roleId === 5) {
-      // Superadmin
-      console.log('Navigating to superadmin dashboard for superadmin user (role_id = 5)');
-      this.router.navigate(['/superadmin-dashboard']).then(success => {
-        console.log('Navigation to superadmin dashboard successful:', success);
-      }).catch(error => {
-        console.error('Navigation to superadmin dashboard failed:', error);
-      });
+      // Dean - Unified AdminSide Dashboard
+      this.router.navigate(['/adminSide/dashboard']);
     } else if (roleId === 7) {
       // Admin + Faculty
-      console.log('Navigating to admin dashboard for admin+faculty user (role_id = 7)');
-      this.router.navigate(['/admin-dashboard']).then(success => {
-        console.log('Navigation to admin dashboard successful:', success);
-      }).catch(error => {
-        console.error('Navigation to admin dashboard failed:', error);
-      });
+      this.router.navigate(['/adminSide/dashboard']);
     } else if (roleId === 8) {
       // Superadmin + Faculty
-      console.log('Navigating to superadmin dashboard for superadmin+faculty user (role_id = 8)');
-      this.router.navigate(['/superadmin-dashboard']).then(success => {
-        console.log('Navigation to superadmin dashboard successful:', success);
-      }).catch(error => {
-        console.error('Navigation to superadmin dashboard failed:', error);
-      });
+      this.router.navigate(['/adminSide/dashboard']);
     } else {
-      console.warn('Unknown role_id:', roleId, '. Redirecting to home.');
       this.router.navigate(['/home']);
     }
   }
 
   fetchUserFromDatabase(userId: string) {
-    console.log('fetchUserFromDatabase called with userId:', userId);
     // Use /auth/me endpoint which reads from the cookie set by backend
     fetch(`${environment.authApiUrl}/auth/me`, {
       credentials: 'include'
     })
     .then(response => {
-      console.log('fetchUserFromDatabase response status:', response.status);
-      console.log('fetchUserFromDatabase response headers:', response.headers);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.json();
     })
     .then(data => {
-      console.log('Google Callback - Fetched user from /auth/me:', JSON.stringify(data, null, 2));
-      
       // Check if authenticated and user exists
       if (data.authenticated && data.user) {
         const userData = data.user;
@@ -317,37 +229,20 @@ export class GoogleCallbackComponent implements OnInit {
         sessionStorage.setItem('role', userData.Status || userData.status || 'guest');
         sessionStorage.setItem('email', userData.Email || userData.email);
         
-        console.log('Google Callback - Raw userData from database:', JSON.stringify(userData, null, 2));
-        console.log('Google Callback - Mapped authUser:', JSON.stringify(authUser, null, 2));
-        console.log('Google Callback - userData.user_id:', userData.user_id);
-        console.log('Google Callback - userData.StudentID:', userData.StudentID);
-        console.log('Google Callback - userData.Email:', userData.Email);
-        console.log('Google Callback - userData.Firstname:', userData.Firstname);
-        console.log('Google Callback - userData.Lastname:', userData.Lastname);
-        
-        console.log('Google Callback - Setting auth user from database:', JSON.stringify(authUser, null, 2));
-        console.log('Google Callback - AuthService current user before setUser:', this.authService.currentUser);
         this.authService.setUser(authUser);
         this.mainAuthService.setUser(authUser);
-        console.log('Google Callback - AuthService current user after setUser:', this.authService.currentUser);
-        console.log('Google Callback - MainAuthService current user after setUser:', this.mainAuthService.currentUser);
         
         // Add a small delay to ensure the AuthService state is updated
         setTimeout(() => {
-          console.log('Google Callback - AuthService current user after timeout:', this.authService.currentUser);
-        // Navigate based on user role
-        console.log('About to navigate with role:', userData.Status || 'guest', 'role_id:', userData.role_id);
-        this.navigateByRoleId(userData.role_id || 1); // Default to guest (role_id = 1)
+          // Navigate based on user role
+          this.navigateByRoleId(userData.role_id || 1); // Default to guest (role_id = 1)
         }, 100);
       } else {
-        console.error('No user data found or not authenticated. Response:', data);
         // Fallback: try checkAuthStatus
         this.checkAuthStatus();
       }
     })
     .catch(error => {
-      console.error('Error fetching user from /auth/me:', error);
-      console.error('Error details:', error.message, error.stack);
       // Fallback: try checkAuthStatus
       this.checkAuthStatus();
     });
@@ -384,8 +279,6 @@ export class GoogleCallbackComponent implements OnInit {
         this.authService.setUser(authUser);
         this.mainAuthService.setUser(authUser);
         
-        console.log('Google OAuth API: User authenticated and navbar should update', data.user);
-        
         // Navigate based on user role
         const userRoleId = data.user.role_id || 1;
         this.navigateByRoleId(userRoleId);
@@ -395,7 +288,6 @@ export class GoogleCallbackComponent implements OnInit {
       }
     })
     .catch(error => {
-      console.error('Auth check failed:', error);
       this.router.navigate(['/login']);
     });
   }
