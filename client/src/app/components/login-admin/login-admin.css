@@ -195,6 +195,7 @@ h1 {
     margin-top: 1.5rem;
     text-align: center;
     width: 100%;
+    max-width: 480px;
   }
 
   .back-button {
