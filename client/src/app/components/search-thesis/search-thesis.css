@@ -138,25 +138,25 @@ body {
 }
 
 .filter-sidebar {
-  flex: 0 0 800px; /* Fixed width when expanded */
+  width: 280px; /* Fixed width - never changes */
+  min-width: 280px; /* Prevent shrinking */
+  max-width: 280px; /* Prevent growing */
+  flex: 0 0 280px; /* Fixed flex basis */
   padding-right: 20px;
   position: sticky;
   top: 40px;
-  transition: flex-basis 0.3s ease-in-out 0.1s, padding-right 0.3s ease-in-out 0.1s; /* Delay width shrink until content is hidden */
+  align-self: flex-start; /* Keep sidebar at top */
   overflow: hidden; /* Hide content when collapsed */
-  min-width: 0; /* Allow flex item to shrink */
   box-sizing: border-box; /* Include padding in width calculation */
-  margin-right: 0; /* Keep left edge fixed */
-  flex-shrink: 1; /* Allow shrinking when collapsed */
-  /* Shrinks from right to left - left edge stays fixed */
-  /* Width animation is delayed to allow content to hide first */
+  transition: width 0.3s ease-in-out, min-width 0.3s ease-in-out, max-width 0.3s ease-in-out, flex 0.3s ease-in-out, padding-right 0.3s ease-in-out;
 }
 
 .filter-sidebar.sidebar-collapsed {
-  flex: 0 0 400px; /* Collapse to button width with space for one-line text */
+  width: 120px; /* Collapsed width */
+  min-width: 120px;
+  max-width: 120px;
+  flex: 0 0 120px;
   padding-right: 10px;
-  flex-shrink: 1; /* Allow shrinking */
-  /* Left edge remains fixed, right edge moves left */
 }
 
 .results-layout:has(.sidebar-collapsed) {
@@ -253,12 +253,9 @@ body {
   flex: 1 1 auto; /* Grow to fill remaining space */
   min-width: 0; /* Prevent flex item from overflowing */
   max-width: 100%; /* Don't exceed container - right edge aligns with search bar */
+  min-height: 800px; /* Stable minimum height to prevent layout shifts */
   box-sizing: border-box;
   transition: flex-grow 0.3s ease-in-out 0.1s; /* Delay expansion until content is hidden */
-  /* Right edge is fixed (aligned with search bar), left edge moves with filter */
-  /* When filter expands: left edge moves right, when filter collapses: left edge moves left */
-  flex-shrink: 1; /* Allow shrinking when filter expands */
-  /* Cards fill available space between filter and fixed right edge */
 }
 
 .results-count {
@@ -763,7 +760,17 @@ body {
   }
   
   .filter-sidebar {
-    flex-basis: 280px;
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+    flex: 0 0 250px;
+  }
+  
+  .filter-sidebar.sidebar-collapsed {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+    flex: 0 0 120px;
   }
   
   .search-results {
@@ -794,7 +801,17 @@ body {
   }
   
   .filter-sidebar {
-    flex-basis: 250px;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+    flex: 0 0 220px;
+  }
+  
+  .filter-sidebar.sidebar-collapsed {
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
+    flex: 0 0 110px;
   }
   
   .search-bar-container {
@@ -804,6 +821,7 @@ body {
   .search-results {
     flex: 1 1 auto;
     max-width: 100%;
+    min-height: 600px;
   }
   
   .result-card {
@@ -849,12 +867,17 @@ body {
   
   .filter-sidebar {
     width: 100%;
+    min-width: 100%;
+    max-width: 100%;
     padding-right: 0;
     position: static;
     flex: 0 0 auto; /* Reset flex for mobile */
   }
   
   .filter-sidebar.sidebar-collapsed {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
     flex: 0 0 auto; /* Don't collapse width on mobile */
   }
   
@@ -888,6 +911,7 @@ body {
   .search-results {
     flex: 0 0 100%;
     max-width: 100%;
+    min-height: auto; /* Remove min-height on mobile */
   }
   
   .result-card {

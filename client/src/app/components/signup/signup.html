@@ -45,20 +45,20 @@
         </div>
  
         <div class="field">
-          <label for="email">Email</label>
+          <label for="email">PUP Webmail</label>
           <input
             pInputText
             class="w-full"
             id="email"
             formControlName="email"
-            placeholder="Enter email"
+            placeholder="Enter PUP Webmail"
           />
           @if(email.invalid &&  (email.dirty || email.touched)) {
               <small class="block p-error">
                   @if(email.hasError('required')) {
-                      <span> Email is required. </span>
+                      <span> PUP Webmail is required. </span>
                   } @else if(email.hasError('pattern')) {
-                      <span> Email is Invalid. </span>
+                      <span> PUP Webmail is Invalid. </span>
                   }
               </small>
           }

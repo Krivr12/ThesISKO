@@ -16,7 +16,7 @@
         <form #loginForm = "ngForm" (ngSubmit)="onLogin()" class="loginform">
 
             <div class = 'field'>
-                <label for = "email"> Email or Username </label>
+                <label for = "email"> PUP Webmail </label>
                 <input type="text" pInputText 
                 [(ngModel)]="login.email"  
                 class="w-full"
@@ -24,12 +24,12 @@
                 name = "email"
                 #email = "ngModel"
                 required
-                placeholder="Enter email or group username"
+                placeholder="Enter PUP Webmail"
                 />
                 @if(email.invalid &&  (email.dirty || email.touched)) {
                     <small class="block p-error">
                         @if(email.hasError('required')) {
-                            <span> Email or Username is required. </span>
+                            <span> PUP Webmail is required. </span>
                         }
                     </small>
                 }
@@ -67,7 +67,7 @@
             @if (showGoogleLogin) {
               <div class="divider">
                   <hr />
-                  <span>or</span>
+                  <span>No PUP account? continue with Google</span>
                   <hr />
               </div>
 

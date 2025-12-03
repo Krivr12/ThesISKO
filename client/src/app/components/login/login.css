@@ -226,7 +226,10 @@ h1 {
   
   .divider span {
     color: #800000;
-    font-weight: bold;
+    font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    padding: 0 0.5rem;
   }
 
 .mt-2 {
