@@ -13,6 +13,22 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const confirmationService = inject(ConfirmationService);
   
+  // First, check sessionStorage for user data (faster than waiting for observable)
+  // This is critical for page refreshes where the observable might not have emitted yet
+  let sessionUser: any = null;
+  try {
+    const userData = sessionStorage.getItem('currentUser');
+    if (userData) {
+      sessionUser = JSON.parse(userData);
+      // If we have sessionStorage data but observable hasn't emitted, set it immediately
+      if (!authService.currentUser) {
+        authService.setUser(sessionUser);
+      }
+    }
+  } catch (e) {
+    // Invalid sessionStorage data, ignore
+  }
+  
   return authService.currentUser$.pipe(
     take(1),
     map(user => {
@@ -20,9 +36,12 @@ export const authGuard: CanActivateFn = (route, state) => {
       // Extract path without query parameters for route matching
       const pathWithoutQuery = currentPath.split('?')[0];
       
+      // Use sessionUser as fallback if observable hasn't emitted yet
+      const currentUser = user || sessionUser;
+      
       // Special handling for login route (with or without query parameters)
       if (pathWithoutQuery === '/login') {
-        if (!user) {
+        if (!currentUser) {
           // User not logged in, allow access to login page
           return true;
         } else {
@@ -40,7 +59,7 @@ export const authGuard: CanActivateFn = (route, state) => {
             },
             reject: () => {
               // Redirect to appropriate home page
-              const userRole = user.role_id;
+              const userRole = currentUser.role_id;
               if (userRole === 1) {
                 router.navigate(['/home']); // guest
               } else if (userRole === 2 || userRole === 6) {
@@ -60,8 +79,8 @@ export const authGuard: CanActivateFn = (route, state) => {
         }
       }
 
-      if (!user) {
-        // Check if in guest mode
+      if (!currentUser) {
+        // Check if in guest mode (for unauthenticated browsing)
         const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
         if (isGuestMode) {
           // Allow access to guest routes in guest mode
@@ -82,9 +101,9 @@ export const authGuard: CanActivateFn = (route, state) => {
         }
       }
 
-      // Get the current user's role
-      const userRole = user.role_id;
-      const userStatus = user.Status?.toLowerCase();
+      // Get the current user's role (use currentUser which includes sessionUser fallback)
+      const userRole = currentUser.role_id;
+      const userStatus = currentUser.Status?.toLowerCase();
 
       // Debug logging (only in development)
       log.debug('Auth check:', { role_id: userRole, status: userStatus, path: currentPath });

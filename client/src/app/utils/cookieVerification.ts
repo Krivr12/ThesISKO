@@ -44,7 +44,7 @@ export async function verifyAuthCookie(http: HttpClient): Promise<CookieVerifica
         user: response.user,
       };
     } else {
-      // Server says not authenticated
+      // Server says not authenticated (401 response but with authenticated: false)
       return {
         authenticated: false,
         user: null,
@@ -62,20 +62,29 @@ export async function verifyAuthCookie(http: HttpClient): Promise<CookieVerifica
         error: 'Authentication cookie is missing or invalid',
         errorType: 'no_cookie',
       };
-    } else if (error.status === 0 || error.status === undefined) {
-      // Network error or CORS issue
+    } else if (error.status === 0 || error.status === undefined || error.name === 'TimeoutError') {
+      // Network error, CORS issue, or timeout
+      // Don't treat this as authentication failure - let the caller decide
       return {
         authenticated: false,
         user: null,
         error: 'Network error - unable to verify authentication',
         errorType: 'network_error',
       };
-    } else {
-      // Server error
+    } else if (error.status >= 500) {
+      // Server error (5xx) - don't treat as auth failure
       return {
         authenticated: false,
         user: null,
         error: error.message || 'Server error during authentication verification',
+        errorType: 'server_error',
+      };
+    } else {
+      // Other HTTP errors (4xx except 401)
+      return {
+        authenticated: false,
+        user: null,
+        error: error.message || 'Error during authentication verification',
         errorType: 'server_error',
       };
     }
