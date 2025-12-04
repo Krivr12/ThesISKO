@@ -11,16 +11,11 @@
     Upload your manuscript, showcase your authorship, 
     and help the next generation of iskolar move ideas forward.</p>
 
-  <div class="search-container">
-    <input
-      type="text"
-      placeholder="Look for a thesis"
-      [(ngModel)]="homeQuery"
-      (keyup.enter)="goSearch()" />
-  
-    <!-- PrimeNG directive button -->
-    <button pButton class="search" type="button" (click)="goSearch()">Search</button>
-  </div>
+  <app-search-bar
+    placeholder="Look for a thesis"
+    [(value)]="homeQuery"
+    (search)="goSearch()">
+  </app-search-bar>
 </div> 
 </div>
 

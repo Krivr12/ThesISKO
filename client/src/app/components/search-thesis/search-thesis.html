@@ -12,15 +12,12 @@
       <!-- Main Content -->
       <div *ngIf="!isLoading" class="main-content">
       <div class="search-bar-container">
-      <input 
-        type="text" 
-        placeholder="Search by title, author, or keywords..." 
-        class="search-input" 
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="onSearch()"
-      />
-      <button class="search-button" (click)="onSearch()">Search</button>
-    </div>
+        <app-search-bar
+          placeholder="Search by title, author, or keywords..."
+          [(value)]="searchQuery"
+          (search)="onSearch()">
+        </app-search-bar>
+      </div>
 
     <div class="results-layout">
       <aside class="filter-sidebar" [ngClass]="{'sidebar-collapsed': isCollapsed}">

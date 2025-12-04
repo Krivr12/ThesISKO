@@ -6,12 +6,13 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import { Navbar } from '../navbar/navbar';
 import { Footer } from '../footer/footer';
+import { SearchBar } from '../search-bar/search-bar';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-about-us',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule, Navbar, Footer],
+  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule, Navbar, Footer, SearchBar],
   templateUrl: './about-us.html',
   styleUrls: ['./about-us.css'],
 })

@@ -37,6 +37,14 @@ export interface AuthUser {
   members?: any[];
 }
 
+export interface NavItem {
+  label: string;
+  route?: string;
+  action?: () => void;
+  title: string;
+  visible: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private userSubject = new BehaviorSubject<AuthUser | null>(null);
@@ -202,7 +210,7 @@ export class Navbar implements OnInit {
   isMenuOpen = false;
   /** Default fallback image in assets */
   defaultAvatar = 'profile.png';
-  
+  navItems: NavItem[] = [];
 
   constructor(private auth: AuthService, private router: Router, private confirmationService: ConfirmationService) {
     this.user$ = this.auth.user$; // assign in ctor to avoid DI timing issues
@@ -212,7 +220,11 @@ export class Navbar implements OnInit {
     // Initialize profile items based on user role
     this.user$.subscribe(user => {
       this.updateProfileItems(user);
+      // Update navigation items when user changes
+      this.updateNavItems();
     });
+    // Initial load
+    this.updateNavItems();
   }
 
   // Hamburger menu toggle
@@ -367,6 +379,76 @@ export class Navbar implements OnInit {
     
     // Allow students (role_id = 2) and group leaders (role_id = 6)
     return currentUser.role_id === 2 || currentUser.role_id === 6;
+  }
+
+  /** Check if current user is a PUPian (authenticated non-guest user) */
+  isPUPianUser(): boolean {
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) return false;
+    
+    // PUPian users are authenticated users who are NOT guests
+    const isGuest = currentUser.Status?.toLowerCase() === 'guest' || currentUser.role_id === 1;
+    return !isGuest;
+  }
+
+  /** Update navigation items based on current user type */
+  private updateNavItems(): void {
+    const currentUser = this.auth.currentUser;
+    const isPUPian = this.isPUPianUser();
+    
+    // Base items that all users see
+    const items: NavItem[] = [
+      {
+        label: 'Home',
+        action: () => {
+          this.navigateToHome();
+          this.closeMenu();
+        },
+        title: 'Go to home page',
+        visible: true
+      },
+      {
+        label: 'Search',
+        action: () => {
+          this.navigateToSearch();
+          this.closeMenu();
+        },
+        title: 'Search for thesis',
+        visible: true
+      }
+    ];
+
+    // For PUPian users, add Submit before About
+    if (isPUPian && this.canSubmit()) {
+      items.push({
+        label: 'Submit',
+        route: '/submission',
+        action: () => {
+          this.closeMenu();
+        },
+        title: 'Submit your thesis',
+        visible: true
+      });
+    }
+
+    // About is always last
+    items.push({
+      label: 'About',
+      action: () => {
+        this.navigateToAbout();
+        this.closeMenu();
+      },
+      title: 'Navigate to About Us page',
+      visible: true
+    });
+
+    // Filter out any items that shouldn't be visible (for future extensibility)
+    this.navItems = items.filter(item => item.visible);
+  }
+
+  /** Get navigation items (for template access) */
+  getNavItems(): NavItem[] {
+    return this.navItems;
   }
 
   /** Check if any user is logged in */

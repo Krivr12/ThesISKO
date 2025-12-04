@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
 import { Footer } from "../footer/footer";
+import { SearchBar } from '../search-bar/search-bar';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -20,7 +21,7 @@ interface Thesis {
 @Component({
   selector: 'app-search-thesis',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar, Footer, HttpClientModule, MatPaginatorModule],
+  imports: [CommonModule, FormsModule, Navbar, Footer, SearchBar, HttpClientModule, MatPaginatorModule],
   templateUrl: './search-thesis.html',
   styleUrl: './search-thesis.css'
 })
