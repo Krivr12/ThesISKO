@@ -16,7 +16,25 @@ export class Auth {
   private isInitializing = false; // Prevent multiple simultaneous initializations
 
   constructor(private http: HttpClient) {
-    // Initialize user by verifying cookie with server on service creation
+    // CRITICAL: Restore user from sessionStorage immediately (synchronously)
+    // This ensures the user is available before guards run on page refresh
+    // This is especially important for guests to prevent redirects
+    try {
+      const userData = sessionStorage.getItem('currentUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        // Validate that it's a proper user object
+        if (user && (user.id || user.user_id || user.StudentID) && (user.email || user.Email)) {
+          // Set user immediately so guards can access it
+          this.currentUserSubject.next(user);
+          console.log('✅ User restored synchronously from sessionStorage in constructor');
+        }
+      }
+    } catch (e) {
+      // Invalid sessionStorage data, will be handled by initializeUser
+    }
+    
+    // Then verify cookie with server asynchronously
     // This ensures sessionStorage is in sync with server-side cookie state
     this.initializeUser();
   }
@@ -137,10 +155,11 @@ export class Auth {
    * This ensures client-side state (sessionStorage) matches server-side state (cookie)
    * 
    * Flow:
-   * 1. First, try to verify cookie via /auth/me endpoint
-   * 2. If cookie is valid, sync sessionStorage with server response
-   * 3. If cookie is invalid/missing, clear sessionStorage and set user to null
-   * 4. If network error, fall back to sessionStorage (but log warning)
+   * 1. First, check sessionStorage for existing user data (for faster initial load)
+   * 2. Then, try to verify cookie via /auth/me endpoint
+   * 3. If cookie is valid, sync sessionStorage with server response
+   * 4. If cookie is invalid/missing (401), clear sessionStorage and set user to null
+   * 5. If network error, keep sessionStorage data (don't clear on network issues)
    */
   async initializeUser(): Promise<void> {
     // Don't initialize if we're in the middle of logging out
@@ -154,6 +173,27 @@ export class Auth {
     }
 
     this.isInitializing = true;
+
+    // Step 0: First, restore from sessionStorage for immediate UI update
+    // This is critical for page refreshes - ensures user is available immediately
+    const userData = sessionStorage.getItem('currentUser');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        // Validate that it's a proper user object
+        if (user && (user.id || user.user_id || user.StudentID) && (user.email || user.Email)) {
+          // Set user immediately so UI doesn't show logged out state
+          // This is especially important for guests (role_id = 1) to prevent redirects
+          this.currentUserSubject.next(user);
+          console.log('✅ User restored from sessionStorage:', { id: user.id, role_id: user.role_id, email: user.email || user.Email });
+        } else {
+          console.warn('Invalid user data in sessionStorage, will verify with server');
+        }
+      } catch (parseError) {
+        // Invalid sessionStorage data, will be cleared below
+        console.warn('Invalid sessionStorage data, will verify with server');
+      }
+    }
 
     try {
       // Step 1: Verify cookie with server
@@ -181,27 +221,33 @@ export class Auth {
         // Update observable
         this.currentUserSubject.next(user);
       } else {
-        // Cookie is invalid or missing - clear local state
-        // Clear all auth-related storage
-        clearAuthStorage();
-        
-        // Clear observable
-        this.currentUserSubject.next(null);
+        // Cookie is invalid or missing (401 response) - clear local state
+        // Only clear if we got a 401 (unauthorized), not on network errors
+        if (verificationResult.errorType === 'no_cookie' || verificationResult.errorType === 'invalid') {
+          clearAuthStorage();
+          this.currentUserSubject.next(null);
+        }
+        // If it's a network error, keep existing sessionStorage data
       }
     } catch (error: any) {
-      // Unexpected error during verification
-      // Fallback: check sessionStorage
-      const userData = sessionStorage.getItem('currentUser');
+      // Network error or other unexpected error during verification
+      // Don't clear sessionStorage on network errors - keep existing user data
+      // This prevents users from being logged out due to temporary network issues
+      console.warn('Cookie verification failed (network error), keeping existing session:', error.message);
+      
+      // If we have sessionStorage data, keep it
       if (userData) {
         try {
           const user = JSON.parse(userData);
+          // Keep the user logged in based on sessionStorage
           this.currentUserSubject.next(user);
         } catch (parseError) {
+          // Invalid sessionStorage data - clear it
           clearAuthStorage();
           this.currentUserSubject.next(null);
         }
       } else {
-        // No sessionStorage data either - user is not logged in
+        // No sessionStorage data - user is not logged in
         this.currentUserSubject.next(null);
       }
     } finally {

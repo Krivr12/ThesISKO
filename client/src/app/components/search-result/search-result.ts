@@ -15,7 +15,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatOptionModule } from '@angular/material/core';
 
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { NgIf, NgFor, DatePipe } from '@angular/common';
+import { NgIf, NgFor } from '@angular/common';
 import { Footer } from "../footer/footer";
 import { Navbar, AuthService } from "../navbar/navbar";
 
@@ -26,7 +26,7 @@ type UserRole = 'student' | 'guest' | 'group';
   standalone: true,
   imports: [
     Footer, Navbar,
-    NgIf, NgFor, DatePipe, CommonModule, FormsModule,
+    NgIf, NgFor, CommonModule, FormsModule,
     MatDialogModule, MatCheckboxModule, MatFormFieldModule, MatInputModule, MatButtonModule,
     MatSelectModule, MatDividerModule,
     HttpClientModule, MatOptionModule
@@ -73,8 +73,16 @@ export class SearchResult implements OnInit, AfterViewInit {
     console.log('🔍 [SEARCH-RESULT] Navigation state:', nav?.extras?.state);
     console.log('🔍 [SEARCH-RESULT] Document ID from state:', nav?.extras?.state?.['document_id']);
     
-    if (nav?.extras?.state && nav.extras.state['document_id']) {
-      const documentId = nav.extras.state['document_id'];
+    // Try to get document_id from navigation state first
+    let documentId = nav?.extras?.state?.['document_id'];
+    
+    // If not in navigation state, try to get from browser history state (for page refreshes)
+    if (!documentId && window.history.state && window.history.state['document_id']) {
+      documentId = window.history.state['document_id'];
+      console.log('🔍 [SEARCH-RESULT] Found document_id from history state:', documentId);
+    }
+    
+    if (documentId) {
       console.log('✅ [SEARCH-RESULT] Found document_id, calling loadThesisDetails:', documentId);
       this.loadThesisDetails(documentId);
     } else {
