@@ -301,13 +301,22 @@ router.post("/bulk", async (req, res) => {
 // POST semantic search
 router.post("/search", async (req, res) => {
   try {
-    const { query, topK = 5 } = req.body;
+    const { query, topK = 5, numCandidates = null } = req.body;
 
     if (!query || typeof query !== "string") {
       return res.status(400).json({ error: "Query (string) is required" });
     }
 
-    const results = await semanticSearch(query, topK);
+    // Validate topK
+    const validTopK = Math.max(1, Math.min(parseInt(topK) || 5, 100)); // Clamp between 1 and 100
+
+    // Validate numCandidates if provided (optional parameter)
+    let validNumCandidates = null;
+    if (numCandidates !== null && numCandidates !== undefined) {
+      validNumCandidates = Math.max(10, Math.min(parseInt(numCandidates) || null, 1000)); // Clamp between 10 and 1000
+    }
+
+    const results = await semanticSearch(query, validTopK, validNumCandidates);
     return res.json({ results });
   } catch (err) {
     console.error("❌ Semantic search error:", err);

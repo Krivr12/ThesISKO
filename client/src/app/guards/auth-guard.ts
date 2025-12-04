@@ -1,7 +1,7 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { Auth } from '../service/auth';
-import { map, take } from 'rxjs/operators';
+import { map, take, startWith } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/api';
 import { createLogger } from '../utils/logger';
 
@@ -29,7 +29,9 @@ export const authGuard: CanActivateFn = (route, state) => {
     // Invalid sessionStorage data, ignore
   }
   
+  // Use startWith to ensure we have a value immediately (from sessionStorage)
   return authService.currentUser$.pipe(
+    startWith(sessionUser), // Start with sessionUser if available
     take(1),
     map(user => {
       const currentPath = state.url;
@@ -37,7 +39,22 @@ export const authGuard: CanActivateFn = (route, state) => {
       const pathWithoutQuery = currentPath.split('?')[0];
       
       // Use sessionUser as fallback if observable hasn't emitted yet
-      const currentUser = user || sessionUser;
+      // Also check sessionStorage again in case it was updated
+      let currentUser = user || sessionUser;
+      if (!currentUser) {
+        try {
+          const userData = sessionStorage.getItem('currentUser');
+          if (userData) {
+            currentUser = JSON.parse(userData);
+            // Set it in the service if not already set
+            if (!authService.currentUser) {
+              authService.setUser(currentUser);
+            }
+          }
+        } catch (e) {
+          // Invalid sessionStorage data, ignore
+        }
+      }
       
       // Special handling for login route (with or without query parameters)
       if (pathWithoutQuery === '/login') {
@@ -106,7 +123,14 @@ export const authGuard: CanActivateFn = (route, state) => {
       const userStatus = currentUser.Status?.toLowerCase();
 
       // Debug logging (only in development)
-      log.debug('Auth check:', { role_id: userRole, status: userStatus, path: currentPath });
+      log.debug('Auth check:', { 
+        role_id: userRole, 
+        status: userStatus, 
+        path: currentPath,
+        hasUser: !!currentUser,
+        userFromObservable: !!user,
+        userFromSession: !!sessionUser
+      });
 
       // Define allowed paths for each role
       const allowedPaths: Record<string, string[]> = {
