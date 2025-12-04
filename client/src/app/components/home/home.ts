@@ -114,9 +114,34 @@ export class Home implements OnInit {
 
   // click sa carousel item -> punta sa Search Result 
   navigateToRecord(item: UpdateItem) {
+    if (!item || !item._id) {
+      console.error('Invalid carousel item - missing _id');
+      return;
+    }
+    
+    console.log('Carousel item clicked - navigating to search-result with document_id:', item._id);
+    console.log('Current user:', this.authService.currentUser);
+    
     // Pass document_id in state (same pattern as search-thesis -> search-result)
-    this.router.navigate(['/search-result'], { 
+    // Use navigateByUrl with state for more reliable navigation
+    this.router.navigateByUrl('/search-result', { 
       state: { document_id: item._id } 
+    }).then(success => {
+      if (success) {
+        console.log('Navigation to /search-result successful');
+      } else {
+        console.error('Navigation to /search-result failed - guard may have blocked it');
+        // If navigation fails, try again after a short delay (in case user is still loading)
+        setTimeout(() => {
+          this.router.navigateByUrl('/search-result', { 
+            state: { document_id: item._id } 
+          }).catch(err => {
+            console.error('Retry navigation failed:', err);
+          });
+        }, 100);
+      }
+    }).catch(error => {
+      console.error('Navigation error:', error);
     });
   }
 

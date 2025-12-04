@@ -54,10 +54,49 @@ export class AuthService {
   private mainAuthService = inject(Auth);
 
   constructor() {
+    // CRITICAL: Restore user from sessionStorage immediately (synchronously)
+    // This ensures the user is available before guards run on page refresh
+    // This is especially important for guests to prevent redirects
+    try {
+      const userData = sessionStorage.getItem('currentUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        // Validate that it's a proper user object
+        if (user && (user.id || user.user_id || user.StudentID) && (user.email || user.Email)) {
+          // Set user immediately so guards can access it
+          this.userSubject.next(user);
+          console.log('✅ Navbar AuthService: User restored synchronously from sessionStorage');
+        }
+      }
+    } catch (e) {
+      // Invalid sessionStorage data, will be handled by initializeUser
+    }
+    
     // Initialize user state from server on service creation
     this.initializeUser();
     // Set up browser close logout handler
     this.setupBrowserCloseLogout();
+    
+    // Also sync with main Auth service
+    this.mainAuthService.currentUser$.subscribe(user => {
+      if (user) {
+        // Map User type to AuthUser type
+        const authUser: AuthUser = {
+          id: user.id?.toString() || user.user_id?.toString() || user.StudentID?.toString() || '',
+          email: user.email || user.Email,
+          Email: user.Email || user.email,
+          Status: user.Status,
+          Firstname: user.Firstname,
+          Lastname: user.Lastname,
+          AvatarUrl: user.AvatarUrl,
+          role_id: user.role_id,
+          Course: user.Course,
+          Department: user.Department,
+          group_id: user.group_id
+        };
+        this.userSubject.next(authUser);
+      }
+    });
   }
 
   private async initializeUser() {
@@ -74,9 +113,35 @@ export class AuthService {
       if (error?.status === 401) {
         // 401 is expected when no user is logged in - don't log as error
         console.log('No authenticated user session found');
+        // On 401, check sessionStorage as fallback
+        try {
+          const userData = sessionStorage.getItem('currentUser');
+          if (userData) {
+            const user = JSON.parse(userData);
+            if (user && (user.id || user.user_id || user.StudentID)) {
+              this.userSubject.next(user);
+              console.log('✅ Navbar AuthService: Using sessionStorage fallback after 401');
+            }
+          }
+        } catch (e) {
+          // Invalid sessionStorage data
+        }
       } else {
         // Other errors might be network issues or server problems
         console.warn('Auth check failed:', error?.message || error);
+        // On network error, keep sessionStorage data
+        try {
+          const userData = sessionStorage.getItem('currentUser');
+          if (userData) {
+            const user = JSON.parse(userData);
+            if (user && (user.id || user.user_id || user.StudentID)) {
+              this.userSubject.next(user);
+              console.log('✅ Navbar AuthService: Using sessionStorage fallback after network error');
+            }
+          }
+        } catch (e) {
+          // Invalid sessionStorage data
+        }
       }
     }
   }
@@ -461,14 +526,22 @@ export class Navbar implements OnInit {
   /** Navigate to About Us page */
   navigateToAbout(): void {
     console.log('About button clicked - navigating to /about-us');
-    console.log('Current user:', this.auth.currentUser);
-    console.log('User role:', this.auth.currentUser?.Status);
+    const currentUser = this.auth.currentUser;
+    console.log('Current user:', currentUser);
+    console.log('User role:', currentUser?.Status);
     
-    this.router.navigate(['/about-us']).then(success => {
+    // Use navigateByUrl for more reliable navigation
+    this.router.navigateByUrl('/about-us').then(success => {
       if (success) {
         console.log('Navigation to /about-us successful');
       } else {
-        console.error('Navigation to /about-us failed');
+        console.error('Navigation to /about-us failed - guard may have blocked it');
+        // If navigation fails, try again after a short delay (in case user is still loading)
+        setTimeout(() => {
+          this.router.navigateByUrl('/about-us').catch(err => {
+            console.error('Retry navigation failed:', err);
+          });
+        }, 100);
       }
     }).catch(error => {
       console.error('Navigation error:', error);
@@ -496,15 +569,22 @@ export class Navbar implements OnInit {
   /** Navigate to Search page */
   navigateToSearch(): void {
     console.log('Search button clicked - navigating to /search-thesis');
-    console.log('Current user:', this.auth.currentUser);
-    console.log('User role:', this.auth.currentUser?.Status);
+    const currentUser = this.auth.currentUser;
+    console.log('Current user:', currentUser);
+    console.log('User role:', currentUser?.Status);
     
-    
-    this.router.navigate(['/search-thesis']).then(success => {
+    // Use navigateByUrl for more reliable navigation
+    this.router.navigateByUrl('/search-thesis').then(success => {
       if (success) {
         console.log('Navigation to /search-thesis successful');
       } else {
-        console.error('Navigation to /search-thesis failed');
+        console.error('Navigation to /search-thesis failed - guard may have blocked it');
+        // If navigation fails, try again after a short delay (in case user is still loading)
+        setTimeout(() => {
+          this.router.navigateByUrl('/search-thesis').catch(err => {
+            console.error('Retry navigation failed:', err);
+          });
+        }, 100);
       }
     }).catch(error => {
       console.error('Navigation error:', error);
