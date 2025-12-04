@@ -81,7 +81,6 @@ body {
 
 .search-bar-container {
   display: flex;
-  gap: 15px;
   margin-bottom: 50px;
   width: 100%; /* Fixed width - never changes */
   max-width: 100%;
@@ -89,6 +88,15 @@ body {
   box-sizing: border-box;
   position: relative; /* Ensure it stays in place */
   flex-shrink: 0; /* Prevent shrinking */
+}
+
+.search-bar-container app-search-bar {
+  width: 100%;
+  display: block;
+}
+
+.search-bar-container app-search-bar .app-search-bar {
+  max-width: 100%;
 }
 
 .search-input {

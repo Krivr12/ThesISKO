@@ -11,33 +11,13 @@
       <!-- Navigation links -->
       <div class="nav-links" [class.open]="isMenuOpen">
         <p-button
-          label="Home"
+          *ngFor="let item of navItems"
+          [label]="item.label"
           text
           plain
-          (click)="navigateToHome(); closeMenu()"
-          [title]="'Go to home page'">
-        </p-button>
-        <p-button
-          label="Search"
-          text
-          plain
-          (click)="navigateToSearch(); closeMenu()"
-          [title]="'Search for thesis'">
-        </p-button>
-        <p-button
-          label="About"
-          text
-          plain
-          (click)="navigateToAbout(); closeMenu()"
-          [title]="'Navigate to About Us page'">
-        </p-button>
-        <p-button
-          *ngIf="canSubmit()"
-          label="Submit"
-          text
-          plain
-          [routerLink]="'/submission'"
-          [title]="'Submit your thesis'">
+          [routerLink]="item.route || undefined"
+          (click)="item.action?.()"
+          [title]="item.title">
         </p-button>
       </div>
     </div>

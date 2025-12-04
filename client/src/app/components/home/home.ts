@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Navbar } from '../navbar/navbar';
+import { SearchBar } from '../search-bar/search-bar';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ButtonModule } from 'primeng/button';
@@ -28,6 +29,7 @@ interface UpdateItem {
   imports: [
     Navbar,
     Footer,
+    SearchBar,
     IconFieldModule,
     InputIconModule,
     ButtonModule,
