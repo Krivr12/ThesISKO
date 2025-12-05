@@ -1,10 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import {MatToolbarModule} from '@angular/material/toolbar';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +18,30 @@ import { HttpClientModule } from '@angular/common/http';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   protected readonly title = signal('ThesISKO');
+  private http = inject(HttpClient);
+
+  ngOnInit() {
+    this.checkSessionMismatch();
+  }
+
+  private checkSessionMismatch() {
+    const currentUser = sessionStorage.getItem('currentUser');
+    
+    // If no user in sessionStorage, clear any lingering backend cookies
+    if (!currentUser) {
+      // Call logout to clear any existing cookies
+      this.http.post(`${environment.authApiUrl}/auth/logout`, { reason: 'session_mismatch' }, { withCredentials: true })
+        .subscribe({
+          next: () => {
+            console.log('✅ Cleared stale authentication cookie');
+          },
+          error: (err) => {
+            // Ignore errors - cookie might not exist
+            console.log('ℹ️ No stale cookie to clear or already cleared');
+          }
+        });
+    }
+  }
 }

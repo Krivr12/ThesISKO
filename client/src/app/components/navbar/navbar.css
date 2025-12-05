@@ -569,11 +569,13 @@ h2 {
     flex-direction: column;
     background-color: #800000;
     position: absolute;
-    top: 60px; /* just below the toolbar */
+    top: 60px;
     left: 0;
     width: 100%;
     padding: 1rem 0;
     border-top: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 99;
   }
 
@@ -587,23 +589,36 @@ h2 {
   }
 
   .nav-left img {
-    margin-left: 200px; /* adjust as you like */
+    margin-left: 200px;
   }
 
   .user-info {
-    display: none !important; /* hides name/email container */
+    display: none !important;
   }
   
   .user-profile-card {
     min-width: auto !important;
     padding: 6px !important;
-    border-radius: 50% !important; /* makes it round if you want */
+    border-radius: 50% !important;
     background-color: transparent !important;
     border: none !important;
   }
   
   .user-avatar .p-avatar {
     width: 36px !important;
+    height: 36px !important;
+  }
+
+  /* Smaller login button on mobile */
+  :host ::ng-deep .dark .p-button {
+    width: 80px !important;
+    height: 36px !important;
+    font-size: 0.85rem !important;
+    border-width: 1.5px !important;
+  }
+
+  :host ::ng-deep .dark .p-button:hover {
+    width: 80px !important;
     height: 36px !important;
   }
 
@@ -614,16 +629,14 @@ h2 {
     padding: 0 !important;
   }
   
-  /* Style the sign-out item itself */
   :host ::ng-deep .p-menu .p-menuitem-link {
     background: none !important;
-    color: #fff !important; /* white text for red navbar */
+    color: #fff !important;
     font-size: 10px !important;
     padding: 0 !important;
     margin: 0 !important;
   }
   
-  /* Optional: subtle hover */
   :host ::ng-deep .p-menu .p-menuitem-link:hover {
     text-decoration: underline !important;
     background: none !important;

@@ -6,6 +6,8 @@
   align-items: center;   
   justify-content: center;
   width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
@@ -15,6 +17,8 @@ body {
   background-color: #800000;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 section {
@@ -129,6 +133,8 @@ section {
   max-width: 1320px;
   margin: 0 auto;
   padding: 0 20px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .carousel-title {
@@ -329,8 +335,16 @@ section {
 /* Mobile devices (≤768px) */
 @media (max-width: 768px) {
   html, body {
-    overflow-x: hidden;
-    width: 100%;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+  
+  .page-wrapper,
+  .carousel-container,
+  .containerSubmitWork {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
   }
 
   .hero {

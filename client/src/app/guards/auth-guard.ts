@@ -162,6 +162,11 @@ export const authGuard: CanActivateFn = (route, state) => {
         userRoleCategory = 'admin_faculty';
       } else if (userRole === 8) {
         userRoleCategory = 'superadmin_faculty';
+      } else if (userStatus === 'guest' || !userRole) {
+        // Fallback: if role_id is missing but Status is 'guest', or role_id is undefined
+        // treat as guest to maintain backward compatibility
+        userRoleCategory = 'guest';
+        log.warn('User has missing/invalid role_id, falling back to guest:', { role_id: userRole, status: userStatus });
       }
 
       // Check if current path is allowed for this user
