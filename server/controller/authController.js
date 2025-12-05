@@ -62,7 +62,8 @@ const googleAuthSuccess = async (req, res) => {
           Firstname: user.firstName,
           Lastname: user.lastName,
           AvatarUrl: user.avatar,
-          Email: existingUser.email
+          Email: existingUser.email,
+          role_id: existingUser.role_id || roleId || 1 // Include role_id for proper guest identification
         };
       } else if (existingEmailUsers.rows.length > 0) {
         // Email exists - check if it's a registered user (students, faculty, admin)
