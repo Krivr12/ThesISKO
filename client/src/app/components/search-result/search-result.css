@@ -103,20 +103,20 @@
 }
 
 .request-button {
-  background-color: transparent;
-  border: 1px solid #800000;
-  color: #800000;
+  background-color: transparent !important;
+  border: 1px solid #800000 !important;
+  color: #000000 !important;
   padding: 0.5rem 1.25rem;
-  border-radius: 4px;
+  border-radius: 4px !important;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s;
 }
 
 .request-button:hover {
-  background-color: #800000;
-  border-color: #aaa;
-  color: #f5f5f5;
+  background-color: #800000 !important;
+  border-color: #800000 !important;
+  color: #ffffff !important;
 }
 
 .main-title {
@@ -179,11 +179,11 @@
 
 /* Main citation button */
 .citation-button {
-  background-color: transparent;
-  border: 1px solid #800000;
-  color: #800000;
+  background-color: transparent !important;
+  border: 1px solid #800000 !important;
+  color: #000000 !important;
   padding: 0.5rem 1.25rem;
-  border-radius: 4px;
+  border-radius: 4px !important;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -195,9 +195,9 @@
 }
 
 .citation-button:hover {
-  background-color: #800000;
-  border-color: #aaa;
-  color: #f5f5f5;
+  background-color: #800000 !important;
+  border-color: #800000 !important;
+  color: #ffffff !important;
 }
 
 /* Citation button copied state */
@@ -580,26 +580,35 @@ mat-form-field.w-100 textarea[matInput] {
   
   .card-header {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     align-items: flex-start;
+    width: 100%;
   }
   
   .actions {
-    width: 100%;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: nowrap;
+    align-self: flex-end;
   }
   
-  .citation-dropdown,
+  .citation-dropdown {
+    flex: 0 1 auto;
+  }
+  
   .request-button {
-    width: 100%;
+    flex: 0 1 auto;
   }
   
   .citation-button,
   .request-button {
-    width: 100%;
     justify-content: center;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    background-color: transparent !important;
+    border: 1px solid #800000 !important;
+    color: #000000 !important;
   }
   
   .main-title h1 {
@@ -646,6 +655,13 @@ mat-form-field.w-100 textarea[matInput] {
     border-radius: 8px;
   }
   
+  .card-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    width: 100%;
+  }
+  
   .main-title h1 {
     font-size: 1.3rem;
   }
@@ -659,14 +675,35 @@ mat-form-field.w-100 textarea[matInput] {
   }
   
   .return-link {
-    font-size: 0.9rem;
-    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .actions {
+    flex-direction: row;
+    gap: 8px;
+    align-self: flex-end;
+  }
+  
+  .citation-dropdown,
+  .request-button {
+    flex: 0 1 auto;
   }
   
   .citation-button,
   .request-button {
-    font-size: 0.9rem;
-    padding: 10px 16px;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    background-color: transparent !important;
+    border: 1px solid #800000 !important;
+    color: #000000 !important;
+  }
+  
+  .citation-options {
+    min-width: 100px;
+  }
+  
+  .dropdown-arrow {
+    font-size: 0.6em;
   }
   
   .detail-label {
@@ -702,21 +739,29 @@ mat-form-field.w-100 textarea[matInput] {
   }
   
   .card-header {
-    gap: 12px;
-  }
-  
-  .actions {
     gap: 8px;
   }
   
+  .actions {
+    gap: 6px;
+  }
+  
   .return-link {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
   
   .citation-button,
   .request-button {
-    font-size: 0.85rem;
-    padding: 8px 12px;
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    background-color: transparent !important;
+    border: 1px solid #800000 !important;
+    color: #000000 !important;
+  }
+  
+  .dropdown-arrow {
+    font-size: 0.55em;
+    margin-left: 4px;
   }
   
   .detail-item {
@@ -752,7 +797,15 @@ mat-form-field.w-100 textarea[matInput] {
   
   .citation-button,
   .request-button {
-    font-size: 0.8rem;
-    padding: 6px 10px;
+    font-size: 0.7rem;
+    padding: 5px 8px;
+    background-color: transparent !important;
+    border: 1px solid #800000 !important;
+    color: #000000 !important;
+  }
+  
+  .citation-option {
+    padding: 8px 10px;
+    font-size: 0.75rem;
   }
 }

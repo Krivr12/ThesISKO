@@ -235,19 +235,148 @@
   flex: 1;
 }
 
-/* Responsive design */
+/* Responsive design - Tablet */
+@media (max-width: 992px) {
+  .leftside {
+    display: none;
+  }
+  
+  .rightside {
+    flex: 1;
+    width: 100%;
+    padding: 1rem;
+  }
+  
+  .form-container {
+    max-width: 500px;
+  }
+}
+
+/* Responsive design - Mobile */
 @media (max-width: 768px) {
+  .background {
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .leftside {
+    display: none;
+  }
+  
+  .rightside {
+    width: 100%;
+    padding: 2.5rem 2rem;
+    align-items: center;
+  }
+  
+  .form-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 0;
+  }
+  
+  .signupForm {
+    padding: 2rem;
+    max-width: 100%;
+  }
+  
   .form-row {
     flex-direction: column;
-    gap: 0;
+    gap: 0.75rem;
+  }
+  
+  .field {
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .field label {
+    margin-bottom: 0.6rem;
+    margin-top: 0.6rem;
+  }
+  
+  .form-row .department-field,
+  .form-row .course-field {
+    flex: 1;
+    width: 100%;
   }
   
   .login-header {
-    font-size: 36px;
+    font-size: 38px;
+    margin-bottom: 1.5rem;
   }
   
   :host ::ng-deep .p-button {
     width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 2rem !important;
+  }
+  
+  .p-inputtext,
+  :host ::ng-deep .p-password input {
+    height: 52px;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+    height: 52px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Responsive design - Small Mobile */
+@media (max-width: 480px) {
+  .rightside {
+    padding: 2rem 1.5rem;
+  }
+  
+  .signupForm {
+    padding: 1.5rem;
+  }
+  
+  .login-header {
+    font-size: 34px;
+    margin-bottom: 1.25rem;
+  }
+  
+  .field {
+    margin-bottom: 0.85rem;
+  }
+  
+  .field label {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .format-hint {
+    font-size: 0.85rem;
+  }
+  
+  :host ::ng-deep .p-button {
+    height: 54px !important;
+    font-size: 1rem !important;
+    margin-top: 1.75rem !important;
+  }
+  
+  .modal-container {
+    padding: 40px 35px;
+    margin: 0 20px;
+  }
+  
+  .modal-title {
+    font-size: 26px;
+  }
+  
+  .modal-message {
+    font-size: 15px;
+    margin-bottom: 28px;
+  }
+  
+  .modal-button {
+    padding: 14px 50px;
+    font-size: 15px;
   }
 }
 
