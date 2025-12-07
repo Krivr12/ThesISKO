@@ -157,6 +157,7 @@ body {
   overflow: hidden; /* Hide content when collapsed */
   box-sizing: border-box; /* Include padding in width calculation */
   transition: width 0.3s ease-in-out, min-width 0.3s ease-in-out, max-width 0.3s ease-in-out, flex 0.3s ease-in-out, padding-right 0.3s ease-in-out;
+  z-index: 10; /* Ensure sidebar is above other content */
 }
 
 .filter-sidebar.sidebar-collapsed {
@@ -179,6 +180,12 @@ body {
   margin-bottom: 0; /* Remove bottom margin to align with results-count */
   margin-top: 0; /* Align top with results-count */
   transition: margin-bottom 0.3s ease-in-out;
+  position: relative; /* Ensure proper positioning */
+  z-index: 11; /* Ensure header is above other content */
+  width: 100%; /* Full width of sidebar */
+  overflow: visible; /* Allow button text to be visible */
+  margin-right: -20px; /* Extend beyond sidebar padding to prevent overlap */
+  padding-right: 20px; /* Compensate for negative margin */
 }
 
 .filter-sidebar:has(.filter-options-wrapper.collapsed) .filter-header,
@@ -201,6 +208,10 @@ body {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap; /* Prevent text wrapping to keep on one line */
+  position: relative; /* Ensure proper positioning */
+  z-index: 12; /* Highest z-index to ensure button is always visible */
+  padding: 0; /* Remove any default padding */
+  margin: 0; /* Remove any default margin */
 }
 
 .filter-options-wrapper {
@@ -210,7 +221,6 @@ body {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  box-sizing: border-box;
   box-sizing: border-box;
   transition: max-height 0.3s ease-in-out 0.1s, opacity 0.1s ease-in-out; /* Fade in after sidebar expands, fast fade out when collapsing */
 }
@@ -264,6 +274,8 @@ body {
   min-height: 800px; /* Stable minimum height to prevent layout shifts */
   box-sizing: border-box;
   transition: flex-grow 0.3s ease-in-out 0.1s; /* Delay expansion until content is hidden */
+  position: relative; /* Ensure proper positioning */
+  z-index: 1; /* Lower than sidebar to prevent overlap */
 }
 
 .results-count {
