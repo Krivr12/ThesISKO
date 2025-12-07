@@ -5,6 +5,7 @@
  justify-content: center;
  width: 100%;
  overflow-x: hidden;
+ padding-top: 80px; /* Account for fixed navbar */
 }
 
 

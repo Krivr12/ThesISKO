@@ -36,6 +36,7 @@
   min-height: 100vh; /* Full viewport height */
   width: 100%;
   background-color: #fff;
+  padding-top: 80px; /* Account for fixed navbar */
 }
 
 .main-content-area {
