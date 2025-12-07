@@ -41,7 +41,7 @@ h2 {
     z-index: 1000;
     box-shadow: none !important;
     border-radius: 0 !important;
-    overflow: visible;
+    overflow: visible !important;
     width: 100%;
     display: flex;
     align-items: center;
@@ -151,6 +151,17 @@ h2 {
     align-items: center !important;
   }
   
+  :host ::ng-deep .p-toolbar .p-toolbar-group-right {
+    overflow: visible !important;
+    position: relative;
+    z-index: 1001;
+  }
+  
+  /* Ensure the container for user profile card allows dropdown positioning */
+  :host ::ng-deep .p-toolbar .p-toolbar-group-right > * {
+    position: relative;
+  }
+  
   :host ::ng-deep .p-toolbar .p-toolbar-group-left,
   :host ::ng-deep .p-toolbar .p-toolbar-group-right {
     display: flex;
@@ -181,6 +192,13 @@ h2 {
     min-width: 220px;
     position: relative;
     overflow: visible;
+    z-index: 1001;
+  }
+  
+  /* Ensure the profile card container allows dropdown to position correctly */
+  :host ::ng-deep .p-toolbar-group-right {
+    position: relative;
+    overflow: visible !important;
   }
 
   .user-profile-card:hover {
@@ -211,6 +229,8 @@ h2 {
     cursor: pointer;
     padding: 0.25rem 0.5rem;
     display: none; /* hidden by default */
+    z-index: 1001;
+    position: relative;
   }
 
   /* Remove PrimeNG button default box shadow and border if applied */
@@ -227,6 +247,8 @@ h2 {
     display: flex;
     align-items: center;
     gap: 1rem;
+    position: relative;
+    z-index: 1001;
   }
 
   .user-name {
@@ -330,16 +352,27 @@ h2 {
   }
 
 /* MODIFIED CSS - vincent */
-/* dropdown menu of profile card*/
-:host ::ng-deep .user-profile-card + .p-menu-overlay {
-  margin-top: 8px !important;
-  position: absolute !important;
+/* dropdown menu of profile card - positioned below the card */
+:host ::ng-deep .p-menu-overlay {
+  pointer-events: auto !important;
   z-index: 1001 !important;
-  overflow: visible !important;
+}
+
+/* Specific targeting for profile menu - ensure it appears below the user card */
+/* When appendTo="body", the overlay is appended to body, so we target it directly */
+:host ::ng-deep body > .p-menu-overlay {
+  z-index: 1001 !important;
   pointer-events: auto !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu {
+/* Also target menu overlays in general */
+:host ::ng-deep .p-menu-overlay {
+  z-index: 1001 !important;
+  pointer-events: auto !important;
+}
+
+/* Profile menu styling - works with appendTo="body" */
+:host ::ng-deep .p-menu-overlay .p-menu {
   background: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(10px) !important;
   border: 2px solid rgba(255, 255, 255, 0.3) !important;
@@ -349,13 +382,13 @@ h2 {
   min-width: 200px !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem {
   margin: 2px 0 !important;
   border-radius: 8px !important;
   transition: all 0.3s ease !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link {
   padding: 12px 16px !important;
   border-radius: 8px !important;
   color: #800000 !important;
@@ -364,55 +397,55 @@ h2 {
   border: none !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link:hover {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link:hover {
   background-color: rgba(128, 0, 0, 0.1) !important;
   color: #800000 !important;
   transform: translateY(-1px) !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-link:active {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link:active {
   background-color: rgba(128, 0, 0, 0.15) !important;
   transform: translateY(0) !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-icon {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-icon {
   color: #800000 !important;
   font-size: 14px !important;
   margin-right: 12px !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem-text {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-text {
   color: #800000 !important;
   font-size: 14px !important;
   font-weight: 500 !important;
 }
 
 /* making sign out stand out */
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link {
   border-top: 1px solid rgba(128, 0, 0, 0.1) !important;
   margin-top: 4px !important;
   padding-top: 14px !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link:hover {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link:hover {
   background-color: rgba(220, 53, 69, 0.1) !important;
   color: #dc3545 !important;
 }
 
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-icon,
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-text {
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-icon,
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-text {
   color: #dc3545 !important;
 }
 
 /* removes default setting */
-:host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu .p-submenu-header {
+:host ::ng-deep .p-menu-overlay .p-menu .p-submenu-header {
   background: transparent !important;
   border: none !important;
   color: #800000 !important;
 }
 
 /* dropdown animation */
-:host ::ng-deep .user-profile-card + .p-menu-overlay {
+:host ::ng-deep .p-menu-overlay {
   animation: slideDown 0.2s ease-out !important;
 }
 
@@ -616,22 +649,24 @@ h2 {
 /* ====== MOBILE STYLES ====== */
 @media (max-width: 768px) {
   .menu-toggle {
-    display: block;
+    display: block !important;
+    z-index: 1001 !important;
+    position: relative !important;
   }
 
   .nav-links {
     display: none;
     flex-direction: column;
     background-color: #800000;
-    position: absolute;
-    top: 60px;
+    position: fixed;
+    top: 80px;
     left: 0;
     width: 100%;
     padding: 1rem 0;
     border-top: 1px solid rgba(255,255,255,0.2);
     border-bottom: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 99;
+    z-index: 999;
   }
 
   .nav-links.open {
@@ -646,6 +681,13 @@ h2 {
   .nav-left img {
     margin-left: 200px;
   }
+  
+  /* Ensure hamburger button is always on top and clickable */
+  .nav-left .menu-toggle {
+    position: relative;
+    z-index: 1002;
+    pointer-events: auto;
+  }
 
   .user-info {
     display: none !important;
@@ -657,6 +699,8 @@ h2 {
     border-radius: 50% !important;
     background-color: transparent !important;
     border: none !important;
+    z-index: 1001 !important;
+    position: relative !important;
   }
   
   .user-avatar .p-avatar {
@@ -680,24 +724,55 @@ h2 {
     outline: none !important;
   }
 
+  /* Profile dropdown menu on mobile - ensure it's visible and clickable */
+  /* When appendTo="body", menu overlay is in body, so target it directly */
+  :host ::ng-deep body > .p-menu-overlay {
+    z-index: 1002 !important;
+    pointer-events: auto !important;
+  }
+  
   :host ::ng-deep .p-menu-overlay {
-    background: transparent !important;
-    box-shadow: none !important;
+    z-index: 1002 !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Profile menu on mobile - use same styling as desktop */
+  :host ::ng-deep .p-menu-overlay .p-menu {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+    padding: 8px !important;
+    min-width: 200px !important;
+  }
+  
+  :host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link {
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    color: #800000 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
     border: none !important;
-    padding: 0 !important;
   }
   
-  :host ::ng-deep .p-menu .p-menuitem-link {
-    background: none !important;
-    color: #fff !important;
-    font-size: 10px !important;
-    padding: 0 !important;
-    margin: 0 !important;
+  :host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link:hover {
+    background-color: rgba(128, 0, 0, 0.1) !important;
+    color: #800000 !important;
+    transform: translateY(-1px) !important;
   }
   
-  :host ::ng-deep .p-menu .p-menuitem-link:hover {
-    text-decoration: underline !important;
-    background: none !important;
+  :host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-icon {
+    color: #800000 !important;
+    font-size: 14px !important;
+    margin-right: 12px !important;
+  }
+  
+  :host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-text {
+    color: #800000 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
   }
 }
 

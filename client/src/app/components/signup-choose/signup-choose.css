@@ -48,18 +48,16 @@
   .rightside {
     flex: 1;
     display: flex;
-    justify-content: center;   /* <-- THIS centers .form-container horizontally */
-    align-items: flex-start;    /* stick to the top */
+    justify-content: center;   /* centers .form-container horizontally */
+    align-items: center;       /* centers .form-container vertically */
     background-color: white;
-    place-items: center;        
     position: relative;
   }
   
   .form-container {
     width: 520px;
     max-width: calc(100% - 48px);
-    margin-top: 48px;
-    padding: 0 8px;
+    padding: 0 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -82,11 +80,11 @@
     text-align: center;
   }
   
-  /* PrimeNG button sizing/shape (let .form-container gap handle spacing) */
+  /* PrimeNG button sizing/shape - both buttons same size */
   :host ::ng-deep .p-button {
     width: 480px !important;
-    max-width: 100% !important;
-    height: 50px !important;
+    max-width: 100% !important; /* Will respect container padding for side spacing */
+    height: 55px !important; /* Same height for both buttons */
     border-radius: 10px !important;
     font-weight: bold !important;
     font-size: 1rem !important;
@@ -94,21 +92,23 @@
     margin: 0 !important;
   }
   
-  /* Solid maroon for PUPian button */
+  /* Solid maroon for PUPian button - same size as Guest button */
   :host ::ng-deep .studentButton .p-button,
   :host ::ng-deep .facultyButton .p-button {
     background-color: #800000 !important;
     border: 2px solid #800000 !important;
     color: white !important;
-    height: 55px !important;
+    width: 480px !important; /* Same width as Guest button */
+    height: 55px !important; /* Same height as Guest button */
   }
   
-  /* Outlined style for Guest button - white background */
+  /* Outlined style for Guest button - same size as PUPian button */
   :host ::ng-deep .guestButton .p-button {
     background-color: white !important;
     border: 2px solid #800000 !important;
     color: #800000 !important;
-    height: 55px !important;
+    width: 480px !important; /* Same width as PUPian button */
+    height: 55px !important; /* Same height as PUPian button */
   }
   
   :host ::ng-deep .guestButton .p-button:hover {
@@ -167,11 +167,28 @@
   @media (max-width: 1024px) {
     .background { flex-direction: column; }
     .leftside { display: none; }
-    .rightside { align-items: flex-start; }
-    .form-container { margin-top: 32px; }
+    .rightside { 
+      align-items: center; /* Keep centered vertically on mobile */
+      padding: 20px 0; /* Add some vertical padding */
+    }
+    .form-container { 
+      width: 100%;
+      max-width: calc(100% - 48px);
+      padding: 0 24px; /* Ensure side spacing */
+    }
   }
   
   @media (max-width: 480px) {
     .header { font-size: 32px; }
-    .form-container { max-width: calc(100% - 32px); }
+    .form-container { 
+      max-width: calc(100% - 32px);
+      padding: 0 20px; /* Adequate side spacing on very small screens */
+    }
+    /* Buttons will automatically respect container padding for side spacing */
+    /* Both buttons maintain same size - width adjusts to container but stays equal */
+    :host ::ng-deep .studentButton .p-button,
+    :host ::ng-deep .guestButton .p-button {
+      width: 100% !important; /* Full width of container (which has padding) */
+      max-width: 100% !important;
+    }
   }
