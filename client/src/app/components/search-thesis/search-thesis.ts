@@ -294,7 +294,10 @@ export class SearchThesis implements OnInit {
     console.log('🔍 [SEARCH-THESIS] Document ID for display:', thesis.document_id);
     console.log('🔍 [SEARCH-THESIS] Full thesis object:', thesis);
     this.router.navigate(['/search-result'], { 
-      state: { document_id: thesis._id } // Use _id for navigation
+      state: { 
+        document_id: thesis._id,
+        searchQuery: this.searchQuery // Preserve search query for return navigation
+      }
     });
   }
 }
