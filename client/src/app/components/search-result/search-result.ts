@@ -1133,10 +1133,9 @@ export class SearchResult implements OnInit, AfterViewInit {
       ? new Date(this.thesis.submitted_at).getFullYear()
       : 'n.d.';
 
-    // Title in sentence case (only first word + proper nouns capitalized)
+    // Title in Title Case (capitalize each major word) with period at end
     const title = this.thesis.title
-      ? this.thesis.title.charAt(0).toUpperCase() +
-        this.thesis.title.slice(1).toLowerCase()
+      ? this.toTitleCase(this.thesis.title)
       : 'Untitled';
 
     // Thesis type
@@ -1144,8 +1143,8 @@ export class SearchResult implements OnInit, AfterViewInit {
 
     const university = 'Polytechnic University of the Philippines';
 
-    // APA 7th edition format
-    const apaCitation = `${authorsAPA} (${year}). ${title} [${thesisType}, ${university}].`;
+    // APA 7th edition format - with italicized title ending in period
+    const apaCitation = `${authorsAPA} (${year}). *${title}.* [${thesisType}, ${university}].`;
 
     // Copy to clipboard with fallback
     console.log('Generated APA citation:', apaCitation);
@@ -1306,14 +1305,21 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   private toTitleCase(str: string): string {
-    // Words that should stay lowercase in titles (except when first word)
+    // Words that should stay lowercase in titles (except when first word or after colon)
     const articles = ['a', 'an', 'the'];
     const prepositions = ['in', 'on', 'at', 'by', 'for', 'with', 'without', 'to', 'from', 'up', 'down', 'of', 'and', 'or', 'but'];
     const exceptions = [...articles, ...prepositions];
     
-    return str.toLowerCase().split(' ').map((word, index) => {
-      // Always capitalize first word, or if not in exceptions list
-      if (index === 0 || !exceptions.includes(word)) {
+    let capitalizeNext = true; // Start with true to capitalize first word
+    
+    return str.toLowerCase().split(' ').map((word) => {
+      // Check if previous word ended with a colon (word after colon should be capitalized)
+      const shouldCapitalize = capitalizeNext || !exceptions.includes(word.replace(/[^a-z]/gi, ''));
+      
+      // Check if this word ends with a colon for the next word
+      capitalizeNext = word.endsWith(':');
+      
+      if (shouldCapitalize) {
         return word.charAt(0).toUpperCase() + word.slice(1);
       }
       return word;
