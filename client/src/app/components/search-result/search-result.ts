@@ -1,7 +1,7 @@
 import { Component, TemplateRef, ViewChild, HostListener, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 /* Angular Material */
@@ -60,8 +60,11 @@ export class SearchResult implements OnInit, AfterViewInit {
   isLoading: boolean = true; // Loading state for spinner
   isSubmittingRequest: boolean = false; // Loading state for request submission
 
+  private searchQuery: string = ''; // Store search query from navigation state
+
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private dialog: MatDialog,
     private http: HttpClient,
     private authService: AuthService
@@ -76,10 +79,19 @@ export class SearchResult implements OnInit, AfterViewInit {
     // Try to get document_id from navigation state first
     let documentId = nav?.extras?.state?.['document_id'];
     
+    // Store search query from navigation state for return navigation
+    this.searchQuery = nav?.extras?.state?.['searchQuery'] || '';
+    
     // If not in navigation state, try to get from browser history state (for page refreshes)
     if (!documentId && window.history.state && window.history.state['document_id']) {
       documentId = window.history.state['document_id'];
       console.log('🔍 [SEARCH-RESULT] Found document_id from history state:', documentId);
+    }
+    
+    // Also try to get search query from history state
+    if (!this.searchQuery && window.history.state && window.history.state['searchQuery']) {
+      this.searchQuery = window.history.state['searchQuery'];
+      console.log('🔍 [SEARCH-RESULT] Found searchQuery from history state:', this.searchQuery);
     }
     
     if (documentId) {
@@ -234,7 +246,14 @@ export class SearchResult implements OnInit, AfterViewInit {
   touchGuestEmail = false;
 
   onReturnClick(): void {
-    this.router.navigate(['/search-thesis']);
+    // Navigate back to search-thesis with the preserved search query
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      this.router.navigate(['/search-thesis'], {
+        queryParams: { q: this.searchQuery }
+      });
+    } else {
+      this.router.navigate(['/search-thesis']);
+    }
   }
 
   // ===== Role helpers =====
