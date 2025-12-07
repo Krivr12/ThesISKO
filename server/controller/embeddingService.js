@@ -115,8 +115,6 @@ export async function semanticSearch(query, topK = 5, numCandidates = null) {
   // Calculate optimal numCandidates dynamically
   const optimalNumCandidates = calculateNumCandidates(topK, totalDocuments, numCandidates);
 
-  console.log(`🔍 Search params: topK=${topK}, numCandidates=${optimalNumCandidates}, totalDocs=${totalDocuments || 'unknown'}`);
-
   // Generate the query embedding
   const queryEmbedding = await generateEmbedding(query);
 
@@ -134,7 +132,12 @@ export async function semanticSearch(query, topK = 5, numCandidates = null) {
       },
       {
         $addFields: {
-          score: { $meta: "searchScore" },
+          score: { $meta: "vectorSearchScore" },
+        },
+      },
+      {
+        $match: {
+          score: { $gte: 0.6 },
         },
       },
       {
@@ -149,8 +152,6 @@ export async function semanticSearch(query, topK = 5, numCandidates = null) {
       },
     ]).toArray();
 
-    console.log(`🔍 Semantic search: ${results.length} results returned`);
-    console.log(`🔍 Raw results:`, results.slice(0, 3).map(r => ({ title: r.title, score: r.score })));
     return results;
   } catch (err) {
     console.error("⚠️ Semantic search failed:", err.message);
