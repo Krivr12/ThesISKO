@@ -1,5 +1,6 @@
 import { Component, OnInit, Injectable, inject } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -276,12 +277,23 @@ export class Navbar implements OnInit {
   /** Default fallback image in assets */
   defaultAvatar = 'profile.png';
   navItems: NavItem[] = [];
+  shouldShowNavbar: boolean = true;
 
   constructor(private auth: AuthService, private router: Router, private confirmationService: ConfirmationService) {
     this.user$ = this.auth.user$; // assign in ctor to avoid DI timing issues
   }
 
   ngOnInit() {
+    // Check current route and hide navbar on login/admin pages
+    this.checkRouteAndToggleNavbar();
+    
+    // Subscribe to route changes to hide/show navbar dynamically
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.checkRouteAndToggleNavbar();
+    });
+
     // Initialize profile items based on user role
     this.user$.subscribe(user => {
       this.updateProfileItems(user);
@@ -290,6 +302,29 @@ export class Navbar implements OnInit {
     });
     // Initial load
     this.updateNavItems();
+  }
+
+  private checkRouteAndToggleNavbar(): void {
+    const currentUrl = this.router.url;
+    
+    // Routes where navbar SHOULD be shown (whitelist approach)
+    const allowedRoutes = [
+      '/home',
+      '/search-thesis',
+      '/search-result',
+      '/submission',
+      '/submission-old',
+      '/about-us',
+      '/thank-you',
+      '/student-profile',
+      '/guest-profile'
+    ];
+    
+    // Check if current route matches any allowed route
+    const isAllowedRoute = allowedRoutes.some(route => currentUrl === route || currentUrl.startsWith(route + '/'));
+    
+    // Show navbar only on allowed routes
+    this.shouldShowNavbar = isAllowedRoute;
   }
 
   // Hamburger menu toggle

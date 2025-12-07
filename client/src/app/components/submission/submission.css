@@ -12,6 +12,7 @@
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
+  padding-top: 80px; /* Account for fixed navbar */
 }
 
 .submission-container {

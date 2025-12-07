@@ -1,3 +1,19 @@
+:host {
+  display: block;
+  background-color: #800000 !important;
+  border-radius: 0 !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 80px;
+  min-height: 80px;
+  max-height: 80px;
+  overflow: visible;
+}
+
 *{
     background-color: #800000;
 }
@@ -10,12 +26,25 @@ h2 {
   }
   
   .navbar {
-    background-color: #800000;
+    background-color: #800000 !important;
     color: white;
     padding: 0 2rem;
     height: 80px; 
+    min-height: 80px;
+    max-height: 80px;
     font-size: 16px; 
     border: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible;
+    width: 100%;
+    display: flex;
+    align-items: center;
   }
   
   .nav-left {
@@ -34,13 +63,20 @@ h2 {
     font-weight: bold;
   }
 
-  /* Style for Login button - white background with dark maroon border */
+  /* Style for Login button - white background with no border */
   :host ::ng-deep .dark .p-button {
     background-color: white !important;
-    border: 2px solid #5c0000 !important;
+    border: none !important;
+    outline: none !important;
     width: 105px;
     height: 44px;
     color: black !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  :host ::ng-deep .dark .p-button:focus {
+    outline: none !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
   }
 
@@ -49,16 +85,17 @@ h2 {
   }
 
   :host ::ng-deep .dark .p-button:hover {
-    background-color: #f5f5f5 !important;
-    border: 2px solid #5c0000 !important;
+    background-color: #6b7280 !important;
+    border: none !important;
+    outline: none !important;
     width: 105px;
     height: 44px;
-    color: black !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
   }
 
   :host ::ng-deep .dark .p-button:hover .p-button-label {
-    color: black !important;
+    color: white !important;
   }
   /* Explicit white color for all navbar text elements */
   h2 {
@@ -96,9 +133,22 @@ h2 {
   }
   
 :host ::ng-deep .p-toolbar {
-    height: 80px;          
+    height: 80px !important;
+    min-height: 80px !important;
+    max-height: 80px !important;
     font-size: 16px;
     color: white !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-radius: 0 !important;
+    background-color: #800000 !important;
+    width: 100%;
+    overflow: visible !important;
+    display: flex !important;
+    align-items: center !important;
   }
   
   :host ::ng-deep .p-toolbar .p-toolbar-group-left,
@@ -127,14 +177,15 @@ h2 {
     border-radius: 40px;
     padding: 6px 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
     min-width: 220px;
+    position: relative;
+    overflow: visible;
   }
 
   .user-profile-card:hover {
     background-color: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
   }
 
   .user-info {
@@ -282,6 +333,10 @@ h2 {
 /* dropdown menu of profile card*/
 :host ::ng-deep .user-profile-card + .p-menu-overlay {
   margin-top: 8px !important;
+  position: absolute !important;
+  z-index: 1001 !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
 }
 
 :host ::ng-deep .user-profile-card + .p-menu-overlay .p-menu {
@@ -614,12 +669,15 @@ h2 {
     width: 80px !important;
     height: 36px !important;
     font-size: 0.85rem !important;
-    border-width: 1.5px !important;
+    border: none !important;
+    outline: none !important;
   }
 
   :host ::ng-deep .dark .p-button:hover {
     width: 80px !important;
     height: 36px !important;
+    border: none !important;
+    outline: none !important;
   }
 
   :host ::ng-deep .p-menu-overlay {
