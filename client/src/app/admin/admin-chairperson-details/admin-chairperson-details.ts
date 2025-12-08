@@ -90,7 +90,7 @@ export class AdminChairpersonDetails implements OnInit {
   }
 
   loadGroupDetails(groupId: string): void {
-    this.http.get<any>(`${environment.authApiUrl}/groups/${groupId}`)
+    this.http.get<any>(`${environment.authApiUrl}/groups/${groupId}`, { withCredentials: true })
       .subscribe({
         next: (response) => {
           console.log('📦 [Chairperson Details] Raw response:', response);
@@ -234,7 +234,7 @@ export class AdminChairpersonDetails implements OnInit {
 
     this.http.patch(`${environment.authApiUrl}/groups/${group.group_id}/chairperson-approve-final`, {
       chairperson_name: userName
-    }).subscribe({
+    }, { withCredentials: true }).subscribe({
       next: (response: any) => {
         if (response.success) {
           alert('✅ Group approved successfully! Forwarded to Dean.');
@@ -274,7 +274,7 @@ export class AdminChairpersonDetails implements OnInit {
       chairperson_name: userName,
       reason: reason.trim(),
       milestone_to_fix: milestone
-    }).subscribe({
+    }, { withCredentials: true }).subscribe({
       next: (response: any) => {
         if (response.success) {
           alert('Group rejected. The group will be notified to resubmit the specified milestone.');

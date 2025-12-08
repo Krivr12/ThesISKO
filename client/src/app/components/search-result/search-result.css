@@ -438,6 +438,119 @@
   padding: 8px 0;
   max-height: 70vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Mobile responsive dialog */
+@media (max-width: 768px) {
+  .dialog-body {
+    min-width: unset;
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .dialog-section {
+    margin-bottom: 0.3rem;
+    margin-top: 0.2rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Labels - make them readable */
+  .dialog-section .section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #800000;
+  }
+  
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+    gap: 1px 2px;
+  }
+  
+  /* Fix form field widths on mobile */
+  .w-100,
+  .dialog-section mat-form-field,
+  .dialog-section .mat-mdc-form-field {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Input boxes - make them smaller */
+  :host ::ng-deep .mat-mdc-text-field-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    padding: 0 8px !important;
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field-flex,
+  :host ::ng-deep .mat-mdc-form-field-infix {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    padding: 4px 0 !important;
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mdc-text-field {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field input,
+  :host ::ng-deep .mat-mdc-form-field textarea {
+    width: 100% !important;
+    box-sizing: border-box;
+    font-size: 11px !important;
+  }
+  
+  /* Reduce form field subscript (hints/errors) spacing */
+  :host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field-hint-wrapper,
+  :host ::ng-deep .mat-mdc-form-field-error-wrapper {
+    padding: 0 !important;
+  }
+  
+  :host ::ng-deep mat-hint {
+    font-size: 0.55rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  /* Compact select dropdowns */
+  :host ::ng-deep .mat-mdc-select-value-text {
+    font-size: 11px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-select-placeholder {
+    font-size: 11px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-select {
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-select-arrow-wrapper {
+    height: 20px !important;
+  }
 }
 
 .dialog-section {
@@ -568,6 +681,61 @@ mat-form-field.w-100 textarea[matInput] {
 }
 
 /* ===================== SMALLER SCREENS ======================= */
+
+/* Mobile responsive dialog container */
+@media (max-width: 768px) {
+  :host ::ng-deep .cdk-overlay-pane {
+    max-width: 280px !important;
+    width: 280px !important;
+    margin: 0 auto !important;
+    max-height: calc(100vh - 100px) !important;
+    margin-top: 90px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    max-height: calc(100vh - 100px) !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-surface {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    border-radius: 10px !important;
+    max-height: calc(100vh - 100px) !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-content {
+    padding: 0 12px 4px !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    max-height: calc(100vh - 200px) !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-title {
+    padding: 10px 12px 4px !important;
+    font-size: 14px !important;
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-actions {
+    padding: 4px 12px 10px !important;
+    gap: 8px !important;
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-actions button {
+    font-size: 12px !important;
+    padding: 6px 14px !important;
+    min-width: unset !important;
+    min-height: unset !important;
+    line-height: 1.3 !important;
+  }
+}
 
 @media (max-width: 768px) {
   .search-page-container {
