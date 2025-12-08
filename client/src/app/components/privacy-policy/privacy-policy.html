@@ -1,0 +1,88 @@
+<app-navbar></app-navbar>
+
+<div class="page-background">
+  <div class="document-card">
+    <div class="card-header">
+      <button type="button" class="btn-return" (click)="goHome()">
+        &larr; Return to Home
+      </button>
+      <h1>Privacy Policy for ThesISKO</h1>
+      <p class="last-updated">Last Updated: December 5, 2025</p>
+    </div>
+
+    <div class="card-content">
+      <section class="policy-section">
+        <h2>1. Introduction</h2>
+        <p>
+          Welcome to ThesISKO. We respect your privacy and are committed to protecting the personal data and intellectual property of our students and faculty. This policy outlines our practices in compliance with the Data Privacy Act of 2012 (Republic Act No. 10173).
+        </p>
+      </section>
+
+      <section class="policy-section">
+        <h2>2. Information We Collect</h2>
+        <p>
+          We collect the following data to facilitate thesis archiving and management:
+        </p>
+        <ul>
+          <li><strong>Account Information:</strong> Name, Student/Faculty ID, Email Address, and encrypted password credentials.</li>
+          <li><strong>Academic Records:</strong> Thesis Title, Abstract, Year Level, Course, and Adviser details.</li>
+          <li><strong>Uploaded Files:</strong> Thesis manuscripts (PDF/Docx) and related documents.</li>
+          <li><strong>Cookies & Usage Data:</strong> We use session cookies to maintain your login session while you navigate the system.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>3. How We Store Your Data (Technical Architecture)</h2>
+        <p>
+          Our system operates on a secure architecture:
+        </p>
+        <ul>
+          <li><strong>Database:</strong> User profiles and thesis metadata (titles, abstracts) are stored in a MongoDB database.</li>
+          <li><strong>File Storage:</strong> Actual thesis files (PDFs) are uploaded via Multer and securely stored on Amazon Web Services (AWS) S3 Cloud Storage.</li>
+          <li><strong>Authentication:</strong> We use Passport.js to handle secure login authentication.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>4. How We Use Your Data</h2>
+        <ul>
+          <li><strong>Archiving:</strong> To create a digital repository of university research.</li>
+          <li><strong>Access Control:</strong> To ensure only authorized students and faculty can access specific documents.</li>
+          <li><strong>Session Management:</strong> We use express-session cookies to verify your identity across different pages of the application.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>5. Data Sharing and Third Parties</h2>
+        <p>
+          We do not sell your data. However, your data is processed by the following third-party infrastructure providers necessary for the system's operation:
+        </p>
+        <ul>
+          <li><strong>Amazon Web Services (AWS):</strong> For secure cloud storage of files.</li>
+          <li><strong>University Administration:</strong> Authorized personnel may access records for auditing and grading purposes.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>6. Your Rights</h2>
+        <p>
+          Under the Data Privacy Act of 2012, you have the right to:
+        </p>
+        <ul>
+          <li>Access your personal data and uploaded manuscripts.</li>
+          <li>Request correction of inaccurate data.</li>
+          <li>Request the removal of your data (subject to University archival retention policies).</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>7. Contact Us</h2>
+        <p>
+          If you have questions about how your data is handled, please contact the system administrators at <a href="mailto:privacy@thesisko.online">privacy@thesisko.online</a>.
+        </p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

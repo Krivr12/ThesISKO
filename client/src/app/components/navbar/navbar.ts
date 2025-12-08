@@ -318,7 +318,9 @@ export class Navbar implements OnInit {
       '/about-us',
       '/thank-you',
       '/student-profile',
-      '/guest-profile'
+      '/guest-profile',
+      '/privacy-policy',
+      '/terms-and-conditions'
     ];
     
     // Check if current route matches any allowed route
