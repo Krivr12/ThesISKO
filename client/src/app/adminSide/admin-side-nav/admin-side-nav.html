@@ -9,8 +9,18 @@
             routerLinkActive="active-link">
             {{ item.label }}
         </a>
+        
+        <!-- Logout as navigation item -->
+        <a 
+            class="nav-link"
+            (click)="logout(); $event.preventDefault()"
+            href="javascript:void(0)"
+            style="cursor: pointer;">
+            Logout
+        </a>
     </div>
-
-    <button class="logout" (click)="logout()">Logout</button>
 </div>
+
+<!-- Custom Confirmation Dialog -->
+<app-custom-confirm-dialog></app-custom-confirm-dialog>
 
