@@ -49,18 +49,19 @@ const googleAuthSuccess = async (req, res) => {
       
       if (existingUsers.rows.length > 0) {
         // Update existing guest user with new avatar and Google ID
+        // PRESERVE database names - don't overwrite with Google names
         const existingUser = existingUsers.rows[0];
         await pool.query(
-          'UPDATE users_info SET avatar_url = $1, firstname = $2, lastname = $3, google_id = $4 WHERE user_id = $5',
-          [user.avatar, user.firstName, user.lastName, user.googleId, existingUser.user_id]
+          'UPDATE users_info SET avatar_url = $1, google_id = $2 WHERE user_id = $3',
+          [user.avatar, user.googleId, existingUser.user_id]
         );
         
         guestUser = {
           id: existingUser.user_id,
           email: existingUser.email,
           Status: 'guest',
-          Firstname: user.firstName,
-          Lastname: user.lastName,
+          Firstname: existingUser.firstname, // Use DB firstname, not Google's
+          Lastname: existingUser.lastname,   // Use DB lastname, not Google's
           AvatarUrl: user.avatar,
           Email: existingUser.email,
           role_id: existingUser.role_id || roleId || 1 // Include role_id for proper guest identification
@@ -96,19 +97,37 @@ const googleAuthSuccess = async (req, res) => {
           };
         } else {
           // For true guests (role_id = 1 or null), update their info
-          await pool.query(
-            'UPDATE users_info SET role_id = $1, avatar_url = $2, firstname = $3, lastname = $4, google_id = $5 WHERE user_id = $6',
-            [roleId, user.avatar, user.firstName, user.lastName, user.googleId, existingUser.user_id]
-          );
+          // PRESERVE database names - only update if they are null/empty in DB
+          // Build dynamic update query to only update fields that need updating
+          let updateFields = ['role_id = $1', 'avatar_url = $2', 'google_id = $3'];
+          let updateParams = [roleId, user.avatar, user.googleId];
+          let paramIndex = 4;
+          
+          // Only update firstname if it's null/empty in database
+          if (!existingUser.firstname || existingUser.firstname.trim() === '') {
+            updateFields.push(`firstname = $${paramIndex++}`);
+            updateParams.push(user.firstName);
+          }
+          
+          // Only update lastname if it's null/empty in database
+          if (!existingUser.lastname || existingUser.lastname.trim() === '') {
+            updateFields.push(`lastname = $${paramIndex++}`);
+            updateParams.push(user.lastName);
+          }
+          
+          updateParams.push(existingUser.user_id);
+          const updateQuery = `UPDATE users_info SET ${updateFields.join(', ')} WHERE user_id = $${paramIndex}`;
+          
+          await pool.query(updateQuery, updateParams);
           
           guestUser = {
             id: existingUser.user_id,
-            email: user.email,
+            email: existingUser.email || user.email,
             Status: 'guest',
-            Firstname: user.firstName,
-            Lastname: user.lastName,
+            Firstname: existingUser.firstname || user.firstName, // Use DB name if exists, otherwise Google
+            Lastname: existingUser.lastname || user.lastName,     // Use DB name if exists, otherwise Google
             AvatarUrl: user.avatar,
-            Email: user.email,
+            Email: existingUser.email || user.email,
             role_id: roleId
           };
         }
