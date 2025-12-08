@@ -996,6 +996,36 @@ radio-group {
     order: 1;
   }
   
+  /* Make step list horizontal on mobile */
+  .step-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .step-item {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    background-color: #f3f4f6;
+    border-radius: 1rem;
+    white-space: nowrap;
+  }
+  
+  .step-item.active {
+    background-color: #800000;
+    color: white;
+  }
+  
+  .step-item.completed {
+    background-color: #dcfce7;
+    color: #15803d;
+  }
+  
+  .sidebar-title {
+    text-align: center;
+  }
+  
   .file-drop-zone {
     padding: 1.5rem;
   }

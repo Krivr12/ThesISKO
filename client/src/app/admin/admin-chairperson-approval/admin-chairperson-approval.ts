@@ -103,7 +103,7 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
     console.log(`📧 [loadGroups] Email: "${this.currentUserEmail}"`);
     console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-chairperson`);
     
-    this.http.get<any>(`${environment.authApiUrl}/groups/by-chairperson`)
+    this.http.get<any>(`${environment.authApiUrl}/groups/by-chairperson`, { withCredentials: true })
       .subscribe({
         next: (response) => {
           console.log('✅ [loadGroups] API Response:', response);
@@ -165,7 +165,8 @@ The group will then be forwarded to the Dean for final approval.`;
     // Use single group-level approval endpoint
     this.http.patch(
       `${environment.authApiUrl}/groups/${group.group_id}/chairperson-approve-final`,
-      { name: userName }
+      { name: userName },
+      { withCredentials: true }
     ).subscribe({
       next: (response) => {
         console.log('✅ Group approved successfully:', response);
@@ -202,7 +203,8 @@ The group will then be forwarded to the Dean for final approval.`;
 
     this.http.patch(
       `${environment.authApiUrl}/groups/${group.group_id}/chairperson-reject`,
-      { name: userName, reason: reason.trim(), milestone }
+      { name: userName, reason: reason.trim(), milestone },
+      { withCredentials: true }
     ).subscribe({
       next: (response) => {
         console.log('✅ Group rejected successfully:', response);

@@ -104,7 +104,7 @@ export class DeanApproval implements OnInit, OnDestroy, AfterViewInit {
     console.log(`📧 [loadGroups] Email: "${this.currentUserEmail}"`);
     console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-dean`);
     
-    this.http.get<any>(`${environment.authApiUrl}/groups/by-dean`)
+    this.http.get<any>(`${environment.authApiUrl}/groups/by-dean`, { withCredentials: true })
       .subscribe({
         next: (response) => {
           console.log('✅ [loadGroups] API Response:', response);
@@ -172,7 +172,8 @@ This action cannot be undone.`;
     // Use dean approval endpoint which triggers automatic archiving
     this.http.patch(
       `${environment.authApiUrl}/groups/${group.group_id}/dean-approve`,
-      { dean_name: userName }
+      { dean_name: userName },
+      { withCredentials: true }
     ).subscribe({
       next: (response: any) => {
         console.log('✅ Dean approval and archiving successful:', response);
@@ -225,7 +226,8 @@ Please check the system logs or contact the administrator.`);
 
     this.http.patch(
       `${environment.authApiUrl}/groups/${group.group_id}/dean-reject`,
-      { dean_name: userName, reason: reason.trim(), milestone_to_fix: milestone }
+      { dean_name: userName, reason: reason.trim(), milestone_to_fix: milestone },
+      { withCredentials: true }
     ).subscribe({
       next: (response) => {
         console.log('✅ Group rejected successfully:', response);

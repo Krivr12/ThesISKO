@@ -95,7 +95,7 @@ export class DeanDetails implements OnInit {
   }
 
   loadGroupDetails(groupId: string): void {
-    this.http.get<any>(`${environment.authApiUrl}/groups/${groupId}`)
+    this.http.get<any>(`${environment.authApiUrl}/groups/${groupId}`, { withCredentials: true })
       .subscribe({
         next: (response) => {
           console.log('📦 [Dean Details] Raw response:', response);
@@ -235,7 +235,7 @@ export class DeanDetails implements OnInit {
 
     this.http.patch(`${environment.authApiUrl}/groups/${group.group_id}/dean-approve`, {
       dean_name: userName
-    }).subscribe({
+    }, { withCredentials: true }).subscribe({
       next: (response: any) => {
         if (response.success) {
           alert('✅ Group approved and archived successfully!');
@@ -275,7 +275,7 @@ export class DeanDetails implements OnInit {
       dean_name: userName,
       reason: reason.trim(),
       milestone_to_fix: milestone
-    }).subscribe({
+    }, { withCredentials: true }).subscribe({
       next: (response: any) => {
         if (response.success) {
           alert('Group rejected. The group will be notified to resubmit the specified milestone.');

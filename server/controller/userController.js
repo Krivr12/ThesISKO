@@ -860,16 +860,16 @@ const updateUser = async (req, res) => {
     let hashedNewPassword = null;
     if (newPassword && currentPassword) {
       // Get user's current password hash
-      const [userResult] = await pool.query(
-        'SELECT password_hash FROM users_info WHERE user_id = ? LIMIT 1',
+      const userResult = await pool.query(
+        'SELECT password_hash FROM users_info WHERE user_id = $1 LIMIT 1',
         [userId]
       );
 
-      if (userResult.length === 0) {
+      if (userResult.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const user = userResult[0];
+      const user = userResult.rows[0];
       
       // Verify current password
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
@@ -890,33 +890,32 @@ const updateUser = async (req, res) => {
       hashedNewPassword = await bcrypt.hash(newPassword, 10);
     }
 
-    // Update user information
-    let updateQuery = `
-      UPDATE users_info 
-      SET 
-        firstname = ?,
-        lastname = ?
-    `;
-    
+    // Build update query with PostgreSQL syntax
+    let paramIndex = 1;
+    let setClauses = [`firstname = $${paramIndex++}`, `lastname = $${paramIndex++}`];
     let updateParams = [firstname, lastname];
     
     // Only update student_id if it's provided (for student users)
     if (student_id !== undefined && student_id !== null) {
-      updateQuery += `, student_id = ?`;
+      setClauses.push(`student_id = $${paramIndex++}`);
       updateParams.push(student_id);
     }
     
     if (hashedNewPassword) {
-      updateQuery += `, password_hash = ?`;
+      setClauses.push(`password_hash = $${paramIndex++}`);
       updateParams.push(hashedNewPassword);
     }
     
-    updateQuery += ` WHERE user_id = ?`;
     updateParams.push(userId);
+    const updateQuery = `
+      UPDATE users_info 
+      SET ${setClauses.join(', ')}
+      WHERE user_id = $${paramIndex}
+    `;
 
-    const [result] = await pool.query(updateQuery, updateParams);
+    const result = await pool.query(updateQuery, updateParams);
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
