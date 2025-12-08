@@ -12,6 +12,8 @@ import { SignupChoose } from './components/signup-choose/signup-choose';
 import { LoginAdmin } from './components/login-admin/login-admin';
 import { StudentProfile } from './components/student-profile/student-profile';
 import { GuestProfile } from './components/guest-profile/guest-profile';
+import { PrivacyPolicy } from './components/privacy-policy/privacy-policy';
+import { TermsAndConditions } from './components/terms-and-conditions/terms-and-conditions';
 import { GoogleCallbackComponent } from './components/google-callback/google-callback';
 import { AdminDashboard } from './admin/admin-dashboard/admin-dashboard';
 import { AdminBlock } from './admin/admin-block/admin-block';
@@ -62,6 +64,8 @@ export const routes: Routes = [
     {path: 'thank-you', component: ThankYou, canActivate: [authGuard]},
     {path: 'student-profile', component: StudentProfile, canActivate: [authGuard]},
     {path: 'guest-profile', component: GuestProfile, canActivate: [authGuard]},
+    {path: 'privacy-policy', component: PrivacyPolicy},
+    {path: 'terms-and-conditions', component: TermsAndConditions},
     {path: 'google-callback', component: GoogleCallbackComponent},
     {path: 'role-test', component: RoleTestComponent},
     
