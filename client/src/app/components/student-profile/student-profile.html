@@ -60,20 +60,16 @@
               </div>
 
               <div class="form-field">
-                <label for="studentId">Student ID *</label>
+                <label for="studentId">Student ID</label>
                 <input 
                   pInputText 
                   id="studentId" 
                   formControlName="studentId"
-                  placeholder="Enter your student ID"
-                  [class.ng-invalid]="studentId?.invalid && studentId?.touched"
+                  placeholder="Your student ID"
+                  readonly
+                  title="Student ID cannot be changed"
                 />
-                <small 
-                  class="error-message" 
-                  *ngIf="studentId?.invalid && studentId?.touched"
-                >
-                  Student ID is required
-                </small>
+                <small class="info-message">Student ID cannot be modified</small>
               </div>
             </div>
           </div>
@@ -161,25 +157,23 @@
 
         <!-- Action Buttons -->
         <div class="form-actions">
-          <p-button 
-            label="Cancel" 
-            icon="pi pi-times" 
-            severity="secondary"
+          <button 
             type="button"
+            class="btn-cancel"
             (click)="onCancel()"
-            styleClass="cancel-button"
           >
-          </p-button>
+            Cancel
+          </button>
           
-          <p-button 
-            label="Save Changes" 
-            icon="pi pi-check" 
+          <button 
             type="submit"
-            [loading]="isLoading"
+            class="btn-save"
             [disabled]="profileForm.invalid || isLoading"
-            [style]="{'background-color': '#ffd966', 'border-color': '#ffd966', 'color': '#800000'}"
           >
-          </p-button>
+            <span *ngIf="isLoading" class="btn-spinner"></span>
+            <span *ngIf="!isLoading">Save Changes</span>
+            <span *ngIf="isLoading">Saving...</span>
+          </button>
         </div>
       </form>
     </p-card>

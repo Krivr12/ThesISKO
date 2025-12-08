@@ -12,9 +12,11 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
 import { MenuModule } from 'primeng/menu';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
 import { MenuItem } from 'primeng/api';
+
+/* Custom Components */
+import { CustomConfirmDialog } from '../custom-confirm-dialog/custom-confirm-dialog';
+import { CustomConfirmService } from '../../service/custom-confirm.service';
 
 
 export interface AuthUser {
@@ -265,8 +267,7 @@ export class AuthService {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, ToolbarModule, ButtonModule, AvatarModule, MenuModule, ConfirmDialogModule],
-  providers: [ConfirmationService],
+  imports: [CommonModule, RouterModule, ToolbarModule, ButtonModule, AvatarModule, MenuModule, CustomConfirmDialog],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css'],
 })
@@ -279,7 +280,7 @@ export class Navbar implements OnInit {
   navItems: NavItem[] = [];
   shouldShowNavbar: boolean = true;
 
-  constructor(private auth: AuthService, private router: Router, private confirmationService: ConfirmationService) {
+  constructor(private auth: AuthService, private router: Router, private customConfirmService: CustomConfirmService) {
     this.user$ = this.auth.user$; // assign in ctor to avoid DI timing issues
   }
 
@@ -338,14 +339,13 @@ export class Navbar implements OnInit {
 
 
   logout() {
-    // All users (student, guest, faculty, admin) use the same PrimeNG confirmation dialog
-    this.confirmationService.confirm({
+    // All users (student, guest, faculty, admin) use the custom confirmation dialog
+    this.customConfirmService.confirm({
       message: 'Are you sure you want to sign out?',
       header: 'Confirm Sign Out',
-      icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Yes',
       rejectLabel: 'Cancel',
-      accept: async () => {
+      acceptCallback: async () => {
         await this.performLogout();
       }
     });
