@@ -26,6 +26,7 @@ import documentTypes from "./routes/document-types.js";
 import requirements from "./routes/requirements.js";
 import submissions from "./routes/submissions.js";
 import contact from "./routes/contact.js";
+import webhooks from "./routes/webhooks.js";
 import { preloadModel } from "./controller/embeddingService.js";
 preloadModel();
 
@@ -125,6 +126,7 @@ app.use("/document-types", documentTypes);
 app.use("/requirements", requirements);
 app.use("/submissions", submissions);
 app.use("/contact", contact);
+app.use("/webhooks", webhooks);
 
 // Direct verification route (for email links)
 app.get("/verify-student", async (req, res) => {
