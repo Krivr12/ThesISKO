@@ -965,6 +965,28 @@ router.patch('/:submission_id/dean-approve',
 
       await recordsCollection.insertOne(archivedRecord);
 
+      // If document is old, immediately transition to Glacier (async, don't block response)
+      if (documentStatus === 'old') {
+        console.log(`🧊 Document ${document_id} is old (year: ${year}, age: ${age}), initiating immediate Glacier transition...`);
+        
+        // Import and transition asynchronously (don't await to avoid blocking response)
+        import('../services/glacierService.js').then(({ transitionOldDocumentImmediately }) => {
+          transitionOldDocumentImmediately(archivedRecord)
+            .then((result) => {
+              if (result.success) {
+                console.log(`✅ Immediate Glacier transition completed for document ${document_id}`);
+              } else {
+                console.error(`⚠️ Immediate Glacier transition failed for document ${document_id}, will retry in weekly check`);
+              }
+            })
+            .catch((error) => {
+              console.error(`❌ Error in immediate Glacier transition for document ${document_id}:`, error);
+            });
+        }).catch((importError) => {
+          console.error('⚠️ Failed to import glacierService for immediate transition:', importError);
+        });
+      }
+
       // Update submission with archive info
       await submissionsCollection.updateOne(
         { submission_id },
@@ -1410,6 +1432,28 @@ router.post('/:submission_id/repository', async (req, res) => {
     // 8. Insert into records
     const recordsCollection = getRecordsCollection();
     await recordsCollection.insertOne(recordDoc);
+
+    // If document is old, immediately transition to Glacier (async, don't block response)
+    if (documentStatus === 'old') {
+      console.log(`🧊 Document ${document_id} is old (year: ${year}, age: ${age}), initiating immediate Glacier transition...`);
+      
+      // Import and transition asynchronously (don't await to avoid blocking response)
+      import('../services/glacierService.js').then(({ transitionOldDocumentImmediately }) => {
+        transitionOldDocumentImmediately(recordDoc)
+          .then((result) => {
+            if (result.success) {
+              console.log(`✅ Immediate Glacier transition completed for document ${document_id}`);
+            } else {
+              console.error(`⚠️ Immediate Glacier transition failed for document ${document_id}, will retry in weekly check`);
+            }
+          })
+          .catch((error) => {
+            console.error(`❌ Error in immediate Glacier transition for document ${document_id}:`, error);
+          });
+      }).catch((importError) => {
+        console.error('⚠️ Failed to import glacierService for immediate transition:', importError);
+      });
+    }
 
     console.log(`✅ Repository record created successfully: ${document_id}`);
 

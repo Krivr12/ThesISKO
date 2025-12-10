@@ -21,6 +21,7 @@
                         Document ID
                         <span class="sort-arrow" *ngIf="sortColumn === 'id'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
                     </div>
+                    <div class="header-item">Status</div>
                     <div class="header-item">Actions</div>
                 </div>
                 <div class="table-body">
@@ -28,6 +29,13 @@
                         <div class="row-item">{{ doc.title }}</div>
                         <div class="row-item">{{ doc.submissionDate }}</div>
                         <div class="row-item">{{ doc.id }}</div>
+                        <div class="row-item">
+                            <span class="status-badge" 
+                                  [class.status-active]="doc.document_status === 'active'"
+                                  [class.status-archived]="doc.document_status === 'old'">
+                                {{ doc.document_status === 'old' ? 'Archived' : 'Active' }}
+                            </span>
+                        </div>
                         <div class="row-item action-cell">
                             <button class="update-btn" (click)="openUpdateModal(doc)">Update</button>
                         </div>
