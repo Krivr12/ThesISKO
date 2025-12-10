@@ -22,18 +22,22 @@
 <div class="carousel-container">
   <h3 class="carousel-title">Check this Out</h3>
 
-  <div class="carousel-shell">
-    <p-carousel
-      [value]="updates"
-      [numVisible]="3"
-      [numScroll]="1"
-      [circular]="true"
-      [responsiveOptions]="responsiveOptions"
-      [autoplayInterval]="3000"
-      class="custom-carousel">
+  <div class="carousel-shell"
+       (mouseenter)="onCarouselMouseEnter()"
+       (mouseleave)="onCarouselMouseLeave()"
+       (touchstart)="onTouchStart($event)"
+       (touchend)="onTouchEnd($event)">
+    
+    <!-- Previous Button -->
+    <button class="carousel-nav carousel-prev" (click)="prevSlide()" aria-label="Previous">
+      ‹
+    </button>
 
-      <ng-template pTemplate="item" let-item>
+    <!-- Carousel Items -->
+    <div class="carousel-track">
+      <div class="carousel-items" [style.transform]="'translateX(' + translateX + '%)'">
         <div
+          *ngFor="let item of updates"
           class="carousel-box"
           role="button"
           tabindex="0"
@@ -43,16 +47,27 @@
 
           <h3 class="title">{{ item.title }}</h3>
           <p class="date">Year: {{ item.year || (item.submitted_at ? (item.submitted_at | date:'yyyy') : 'N/A') }}</p>
-          <p class="authors">Author: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}</p>
-
-          <div class="tags">Keywords: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}</div>
-          
-        
-          
+          <p class="authors">Author: {{ item.authors.length ? item.authors.join(', ') : 'N/A' }}</p>
+          <div class="tags">Keywords: {{ item.tags.length ? item.tags.join(', ') : 'None' }}</div>
         </div>
-      </ng-template>
+      </div>
+    </div>
 
-    </p-carousel>
+    <!-- Next Button -->
+    <button class="carousel-nav carousel-next" (click)="nextSlide()" aria-label="Next">
+      ›
+    </button>
+  </div>
+
+  <!-- Indicators -->
+  <div class="carousel-indicators">
+    <button
+      *ngFor="let page of [].constructor(totalPages); let i = index"
+      class="carousel-indicator"
+      [class.active]="i === currentIndex"
+      (click)="goToPage(i)"
+      [attr.aria-label]="'Go to slide ' + (i + 1)">
+    </button>
   </div>
 </div>
 

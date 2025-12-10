@@ -1148,22 +1148,24 @@ export class SearchResult implements OnInit, AfterViewInit {
     }
 
     // Year (APA needs only year, not full date)
-    const year = this.thesis.submitted_at
-      ? new Date(this.thesis.submitted_at).getFullYear()
-      : 'n.d.';
+    // First check for direct year field, then try submitted_at, finally fallback to 'n.d.'
+    const year = this.thesis.year 
+      || (this.thesis.submitted_at ? new Date(this.thesis.submitted_at).getFullYear() : null)
+      || 'n.d.';
 
-    // Title in Title Case (capitalize each major word) with period at end
+    // Title in sentence case for APA 7th edition (only first word and proper nouns capitalized)
+    // Normalize spaces (remove double spaces) and trim
     const title = this.thesis.title
-      ? this.toTitleCase(this.thesis.title)
+      ? this.toSentenceCase(this.thesis.title.replace(/\s+/g, ' ').trim())
       : 'Untitled';
 
     // Thesis type
-    const thesisType = this.thesis.document_type || 'Thesis';
+    const thesisType = this.thesis.document_type || 'Capstone Project';
 
     const university = 'Polytechnic University of the Philippines';
 
-    // APA 7th edition format - with italicized title ending in period
-    const apaCitation = `${authorsAPA} (${year}). *${title}.* [${thesisType}, ${university}].`;
+    // APA 7th edition format: Author (Year). *Title in italics* [Thesis type, Institution].
+    const apaCitation = `${authorsAPA} (${year}). *${title}* [${thesisType}, ${university}].`;
 
     // Copy to clipboard with fallback
     console.log('Generated APA citation:', apaCitation);
@@ -1191,7 +1193,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   private generateMLACitation(): void {
-    // Convert authors to MLA format: "Last, First M., et al." or "Last, First M."
     console.log('Authors data:', this.thesis.authors, typeof this.thesis.authors);
     
     let authorsRaw: string[];
@@ -1203,7 +1204,7 @@ export class SearchResult implements OnInit, AfterViewInit {
       authorsRaw = ['Unknown Author'];
     }
     
-    // MLA author formatting
+    // MLA 9th edition author formatting
     let authorsMLA = '';
     if (authorsRaw.length === 1) {
       // Single author: Last, First
@@ -1212,7 +1213,7 @@ export class SearchResult implements OnInit, AfterViewInit {
       const firstName = parts.join(' ');
       authorsMLA = `${lastName}, ${firstName}`;
     } else if (authorsRaw.length === 2) {
-      // Two authors: Last1, First1, and Last2 First2
+      // Two authors: Last1, First1, and First2 Last2
       const author1Parts = authorsRaw[0].trim().split(' ');
       const lastName1 = author1Parts.pop() || '';
       const firstName1 = author1Parts.join(' ');
@@ -1222,45 +1223,47 @@ export class SearchResult implements OnInit, AfterViewInit {
       const firstName2 = author2Parts.join(' ');
       
       authorsMLA = `${lastName1}, ${firstName1}, and ${firstName2} ${lastName2}`;
-    } else if (authorsRaw.length === 3) {
-      // Three authors: Last1, First1, Last2 First2, and Last3 First3
+    } else if (authorsRaw.length >= 3) {
+      // Three or more authors: Last1, First1, First2 Last2, First3 Last3, and FirstN LastN
       const author1Parts = authorsRaw[0].trim().split(' ');
       const lastName1 = author1Parts.pop() || '';
       const firstName1 = author1Parts.join(' ');
       
-      const author2Parts = authorsRaw[1].trim().split(' ');
-      const lastName2 = author2Parts.pop() || '';
-      const firstName2 = author2Parts.join(' ');
+      // Format remaining authors as "First Last"
+      const remainingAuthors = authorsRaw.slice(1).map((author: string) => {
+        const parts = author.trim().split(' ');
+        const lastName = parts.pop() || '';
+        const firstName = parts.join(' ');
+        return `${firstName} ${lastName}`;
+      });
       
-      const author3Parts = authorsRaw[2].trim().split(' ');
-      const lastName3 = author3Parts.pop() || '';
-      const firstName3 = author3Parts.join(' ');
-      
-      authorsMLA = `${lastName1}, ${firstName1}, ${firstName2} ${lastName2}, and ${firstName3} ${lastName3}`;
-    } else if (authorsRaw.length > 3) {
-      // More than 3 authors: Last1, First1, et al.
-      const firstAuthor = authorsRaw[0].trim().split(' ');
-      const lastName = firstAuthor.pop() || '';
-      const firstName = firstAuthor.join(' ');
-      authorsMLA = `${lastName}, ${firstName}, et al.`;
+      // Join with commas, and "and" before the last author
+      if (remainingAuthors.length === 1) {
+        authorsMLA = `${lastName1}, ${firstName1}, and ${remainingAuthors[0]}`;
+      } else {
+        const lastAuthor = remainingAuthors.pop();
+        authorsMLA = `${lastName1}, ${firstName1}, ${remainingAuthors.join(', ')}, and ${lastAuthor}`;
+      }
     }
 
     // Year
-    const year = this.thesis.submitted_at
-      ? new Date(this.thesis.submitted_at).getFullYear()
-      : 'n.d.';
+    // First check for direct year field, then try submitted_at, finally fallback to 'n.d.'
+    const year = this.thesis.year 
+      || (this.thesis.submitted_at ? new Date(this.thesis.submitted_at).getFullYear() : null)
+      || 'n.d.';
 
-    // Title in title case for MLA (capitalize each major word)
+    // Title in title case for MLA (capitalize each major word) with italics
+    // Normalize spaces (remove double spaces) and trim
     const title = this.thesis.title 
-      ? this.toTitleCase(this.thesis.title)
+      ? this.toTitleCase(this.thesis.title.replace(/\s+/g, ' ').trim())
       : 'Untitled';
 
     const university = 'Polytechnic University of the Philippines';
-    const thesisType = this.thesis.document_type || 'Thesis';
+    const thesisType = this.thesis.document_type || 'Capstone Project';
 
-    // MLA 8th edition format: Author. *Title in Italics.* Year, Institution, Type.
+    // MLA 9th edition format: Author. *Title*. Year. Institution, Type.
     // Remove any trailing period from authorsMLA to avoid double periods
-    const mlaCitation = `${authorsMLA.replace(/\.$/, '')}. *${title}.* ${year}, ${university}, ${thesisType}.`;
+    const mlaCitation = `${authorsMLA.replace(/\.$/, '')}. *${title}*. ${year}. ${university}, ${thesisType}.`;
 
     // Copy to clipboard with fallback
     console.log('Generated MLA citation:', mlaCitation);
@@ -1343,5 +1346,31 @@ export class SearchResult implements OnInit, AfterViewInit {
       }
       return word;
     }).join(' ');
+  }
+
+  private toSentenceCase(str: string): string {
+    // APA 7th edition: Only capitalize the first word and proper nouns
+    // Also capitalize the first word after a colon
+    if (!str) return str;
+    
+    return str.toLowerCase().split(': ').map((segment, index) => {
+      // Capitalize the first letter of each segment (after colon)
+      if (segment.length > 0) {
+        return segment.charAt(0).toUpperCase() + segment.slice(1);
+      }
+      return segment;
+    }).join(': ');
+  }
+
+  /** Format array or string with proper spacing after commas */
+  formatList(value: string | string[] | null | undefined): string {
+    if (!value) return '';
+    
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    
+    // If it's a string, ensure proper spacing after commas
+    return value.replace(/,(?!\s)/g, ', ');
   }
 }

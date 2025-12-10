@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Navbar } from '../navbar/navbar';
 import { SearchBar } from '../search-bar/search-bar';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ButtonModule } from 'primeng/button';
-import { CarouselModule } from 'primeng/carousel';
 import { Footer } from '../footer/footer';
 import { RecordsService } from '../../service/records.service';
 import { DatePipe, CommonModule } from '@angular/common';
@@ -33,7 +32,6 @@ interface UpdateItem {
     IconFieldModule,
     InputIconModule,
     ButtonModule,
-    CarouselModule,
     DatePipe,
     FormsModule,
     CommonModule,
@@ -43,31 +41,24 @@ interface UpdateItem {
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
-export class Home implements OnInit {
+export class Home implements OnInit, OnDestroy {
   homeQuery = '';           
   updates: UpdateItem[] = []; // items shown in carousel
 
- 
-  /**
-   * Responsive options for PrimeNG carousel
-   * Breakpoints work as max-width (applies when screen width <= breakpoint)
-   * 
-   * - Default (≥1024px): 3 items visible
-   * - ≤1023px: 2 items visible
-   * - ≤767px: 1 item visible
-   */
-  responsiveOptions = [
-    {
-      breakpoint: '1023px',
-      numVisible: 2,
-      numScroll: 1
-    },
-    {
-      breakpoint: '767px',
-      numVisible: 1,
-      numScroll: 1
-    }
-  ];
+  // Custom carousel properties
+  currentIndex = 0;
+  itemsPerPage = 3;
+  autoplayInterval: any;
+  touchStartX = 0;
+  touchEndX = 0;
+
+  // Calculate translateX percentage for smooth sliding
+  get translateX(): number {
+    // Each item takes (100 / itemsPerPage)% of the visible area
+    // We need to account for the gap between items
+    const itemWidth = 100 / this.itemsPerPage;
+    return -this.currentIndex * itemWidth;
+  }
 
   constructor(
     private router: Router,                 
@@ -76,8 +67,14 @@ export class Home implements OnInit {
     private authService: Auth
   ) {}
 
+  @HostListener('window:resize')
+  onResize() {
+    this.updateItemsPerPage();
+  }
+
   // carousel data
   ngOnInit() {
+    this.updateItemsPerPage();
     this.recordsService.getLatestRecords().subscribe({
       next: (data) => {
         // Backend now returns the correct structure, no mapping needed
@@ -96,9 +93,114 @@ export class Home implements OnInit {
             console.warn('⚠️ Year is missing or undefined');
           }
         }
+        
+        // Start autoplay after data loads
+        this.startAutoplay();
       },
       error: (err) => console.error('Error fetching latest records:', err) 
     });
+  }
+
+  ngOnDestroy() {
+    this.stopAutoplay();
+  }
+
+  // Update items per page based on screen width
+  updateItemsPerPage() {
+    const width = window.innerWidth;
+    if (width <= 767) {
+      this.itemsPerPage = 1;
+    } else if (width <= 1023) {
+      this.itemsPerPage = 2;
+    } else {
+      this.itemsPerPage = 3;
+    }
+    // Ensure currentIndex is valid after resize
+    const maxIndex = Math.max(0, this.updates.length - this.itemsPerPage);
+    if (this.currentIndex > maxIndex) {
+      this.currentIndex = maxIndex;
+    }
+  }
+
+  // Get visible items for current page
+  get visibleItems(): UpdateItem[] {
+    return this.updates.slice(this.currentIndex, this.currentIndex + this.itemsPerPage);
+  }
+
+  // Get total number of pages/dots
+  get totalPages(): number {
+    return Math.max(1, this.updates.length - this.itemsPerPage + 1);
+  }
+
+  // Navigate to previous items
+  prevSlide() {
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
+    } else {
+      // Loop to end
+      this.currentIndex = Math.max(0, this.updates.length - this.itemsPerPage);
+    }
+  }
+
+  // Navigate to next items
+  nextSlide() {
+    if (this.currentIndex < this.updates.length - this.itemsPerPage) {
+      this.currentIndex++;
+    } else {
+      // Loop to beginning
+      this.currentIndex = 0;
+    }
+  }
+
+  // Go to specific page
+  goToPage(index: number) {
+    this.currentIndex = index;
+  }
+
+  // Start autoplay
+  startAutoplay() {
+    this.stopAutoplay();
+    this.autoplayInterval = setInterval(() => {
+      this.nextSlide();
+    }, 3000);
+  }
+
+  // Stop autoplay
+  stopAutoplay() {
+    if (this.autoplayInterval) {
+      clearInterval(this.autoplayInterval);
+    }
+  }
+
+  // Pause autoplay on hover
+  onCarouselMouseEnter() {
+    this.stopAutoplay();
+  }
+
+  // Resume autoplay on mouse leave
+  onCarouselMouseLeave() {
+    this.startAutoplay();
+  }
+
+  // Touch events for mobile swipe
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.touches[0].clientX;
+  }
+
+  onTouchEnd(event: TouchEvent) {
+    this.touchEndX = event.changedTouches[0].clientX;
+    this.handleSwipe();
+  }
+
+  handleSwipe() {
+    const diff = this.touchStartX - this.touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        this.nextSlide();
+      } else {
+        this.prevSlide();
+      }
+    }
   }
 
   // Check if user is a PUPian (student or group leader) AND logged in
