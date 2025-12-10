@@ -315,13 +315,78 @@ router.post("/submission/update-file", async (req, res) => {
   }
 });
 
+/**
+ * Clean file key by removing any signed URL tokens that might be appended
+ * @param {string} fileKey - Potentially corrupted file key
+ * @returns {string} Clean S3 key
+ */
+function cleanFileKey(fileKey) {
+  if (!fileKey || typeof fileKey !== 'string') {
+    return fileKey;
+  }
+  
+  // Remove query parameters if present
+  const queryParamIndex = fileKey.indexOf('?');
+  if (queryParamIndex !== -1) {
+    fileKey = fileKey.substring(0, queryParamIndex);
+  }
+  
+  // Pattern to match valid S3 key: repository-files/DOCUMENT_ID/filename.ext
+  // Valid S3 keys should not have very long strings after file extensions
+  const validKeyPattern = /^(repository-files|submission)\/[^\/]+\/[^\/]+\.(pdf|doc|docx|txt|rtf|xlsx|xls|pptx|ppt)([A-Za-z0-9\/\+\=\-]{0,20})?$/;
+  
+  // If the key matches the pattern and is reasonable length, return as-is
+  if (validKeyPattern.test(fileKey) && fileKey.length < 200) {
+    return fileKey;
+  }
+  
+  // If key is too long or doesn't match pattern, extract the clean part
+  // Look for the file extension and truncate after it (with small buffer for normal chars)
+  const extensions = ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.xlsx', '.xls', '.pptx', '.ppt'];
+  
+  for (const ext of extensions) {
+    const extIndex = fileKey.indexOf(ext);
+    if (extIndex !== -1) {
+      const endIndex = extIndex + ext.length;
+      // If there's a lot of content after the extension, it's likely a token
+      if (fileKey.length > endIndex + 30) {
+        const cleaned = fileKey.substring(0, endIndex);
+        console.log(`🧹 [S3] Cleaned file key: removed ${fileKey.length - cleaned.length} chars of token`);
+        return cleaned;
+      }
+    }
+  }
+  
+  // Fallback: if key is suspiciously long, try to find a reasonable cutoff
+  if (fileKey.length > 200) {
+    // Look for pattern: path/filename.ext and take everything up to and including the extension
+    const match = fileKey.match(/^((?:repository-files|submission)\/[^\/]+\/[^\/]+\.(?:pdf|doc|docx|txt|rtf|xlsx|xls|pptx|ppt))/);
+    if (match && match[1]) {
+      console.log(`🧹 [S3] Cleaned file key: extracted clean path (${match[1].length} chars)`);
+      return match[1];
+    }
+  }
+  
+  return fileKey;
+}
+
 // Generate signed URL for viewing repository file (approved documents)
 router.post("/view-repository-file", async (req, res) => {
   try {
-    const { file_key } = req.body;
+    let { file_key } = req.body;
     
     if (!file_key) {
       return res.status(400).json({ error: "Missing file_key" });
+    }
+
+    // Clean the file key to remove any signed URL tokens
+    const originalFileKey = file_key;
+    file_key = cleanFileKey(file_key);
+    
+    if (file_key !== originalFileKey) {
+      console.log(`🧹 [S3] Cleaned file key:`);
+      console.log(`   Original: ${originalFileKey.substring(0, 100)}...`);
+      console.log(`   Cleaned:  ${file_key}`);
     }
 
     // Smart bucket selection based on key prefix
@@ -353,7 +418,7 @@ router.post("/view-repository-file", async (req, res) => {
     });
   } catch (err) {
     console.error("❌ [S3] View file error:", err);
-    console.error("❌ [S3] File key:", file_key);
+    console.error("❌ [S3] File key:", req.body?.file_key);
     res.status(500).json({ error: "Failed to generate signed URL for viewing" });
   }
 });
