@@ -3,8 +3,9 @@
  * 
  * This service provides a unified interface for sending emails with automatic failover
  * across multiple email providers:
- * 1. Gmail SMTP (Primary) - 500 emails/day
- * (Brevo and Resend commented out - getting filtered by organization)
+ * 1. Resend (Primary) - 100 emails/day, 3000/month
+ * 2. Gmail SMTP (Fallback) - 500 emails/day
+ * (Brevo commented out - getting filtered by organization)
  * 
  * Usage:
  * ```javascript
@@ -20,7 +21,7 @@
  */
 
 import nodemailer from 'nodemailer';
-// import { Resend } from 'resend';
+import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,14 +30,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize Resend client
-// let resendClient = null;
-// try {
-//   if (process.env.RESEND_API_KEY) {
-//     resendClient = new Resend(process.env.RESEND_API_KEY);
-//   }
-// } catch (error) {
-//   console.error('⚠️ Failed to initialize Resend client:', error.message);
-// }
+let resendClient = null;
+try {
+  if (process.env.RESEND_API_KEY) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+} catch (error) {
+  console.error('⚠️ Failed to initialize Resend client:', error.message);
+}
 
 // Email provider configurations
 const providers = {
@@ -47,17 +48,17 @@ const providers = {
   //   enabled: !!(process.env.BREVO_SMTP_HOST && process.env.BREVO_SMTP_USER && process.env.BREVO_SMTP_PASS),
   //   transporter: null
   // },
-  // resend: {
-  //   name: 'Resend',
-  //   priority: 2,
-  //   dailyLimit: 100,
-  //   monthlyLimit: 3000,
-  //   enabled: !!process.env.RESEND_API_KEY,
-  //   client: resendClient
-  // },
+  resend: {
+    name: 'Resend',
+    priority: 1,
+    dailyLimit: 100,
+    monthlyLimit: 3000,
+    enabled: !!process.env.RESEND_API_KEY,
+    client: resendClient
+  },
   gmail: {
     name: 'Gmail SMTP',
-    priority: 1,
+    priority: 2,
     dailyLimit: 500,
     enabled: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
     transporter: null
@@ -275,22 +276,22 @@ function generateFallbackTemplate(data) {
 /**
  * Send email using Resend API
  */
-// async function sendWithResend(to, subject, html, from) {
-//   if (!providers.resend.enabled || !providers.resend.client) {
-//     throw new Error('Resend is not configured');
-//   }
+async function sendWithResend(to, subject, html, from) {
+  if (!providers.resend.enabled || !providers.resend.client) {
+    throw new Error('Resend is not configured');
+  }
 
-//   console.log('📧 Attempting to send email via Resend...');
-//   const result = await providers.resend.client.emails.send({
-//     from: from || process.env.RESEND_MAIL_FROM || process.env.MAIL_FROM,
-//     to: to,
-//     subject: subject,
-//     html: html
-//   });
+  console.log('📧 Attempting to send email via Resend...');
+  const result = await providers.resend.client.emails.send({
+    from: from || process.env.RESEND_MAIL_FROM || process.env.MAIL_FROM,
+    to: to,
+    subject: subject,
+    html: html
+  });
 
-//   console.log('✅ Email sent successfully via Resend');
-//   return { provider: 'resend', messageId: result.data?.id || result.id };
-// }
+  console.log('✅ Email sent successfully via Resend');
+  return { provider: 'resend', messageId: result.data?.id || result.id };
+}
 
 /**
  * Send email using Gmail SMTP
@@ -365,7 +366,7 @@ export async function sendEmail(options) {
     html = rawHtml;
   }
 
-  // Try providers in order: Gmail (Brevo and Resend commented out)
+  // Try providers in order: Resend (Primary), then Gmail (Fallback)
   const errors = [];
   
   // Try Brevo first (Primary) - COMMENTED OUT (getting filtered by organization)
@@ -378,17 +379,17 @@ export async function sendEmail(options) {
   //   }
   // }
 
-  // Try Resend second (Secondary) - COMMENTED OUT (getting filtered by organization)
-  // if (providers.resend.enabled) {
-  //   try {
-  //     return await sendWithResend(to, subject, html, from);
-  //   } catch (error) {
-  //     console.warn('⚠️ Resend failed:', error.message);
-  //     errors.push({ provider: 'resend', error: error.message });
-  //   }
-  // }
+  // Try Resend first (Primary)
+  if (providers.resend.enabled) {
+    try {
+      return await sendWithResend(to, subject, html, from);
+    } catch (error) {
+      console.warn('⚠️ Resend failed:', error.message);
+      errors.push({ provider: 'resend', error: error.message });
+    }
+  }
 
-  // Try Gmail SMTP (Primary)
+  // Try Gmail SMTP (Fallback)
   if (providers.gmail.enabled) {
     try {
       return await sendWithGmail(to, subject, html, from);
@@ -414,13 +415,13 @@ export function getProvidersStatus() {
     //   priority: providers.brevo.priority,
     //   dailyLimit: providers.brevo.dailyLimit
     // },
-    // resend: {
-    //   name: providers.resend.name,
-    //   enabled: providers.resend.enabled,
-    //   priority: providers.resend.priority,
-    //   dailyLimit: providers.resend.dailyLimit,
-    //   monthlyLimit: providers.resend.monthlyLimit
-    // },
+    resend: {
+      name: providers.resend.name,
+      enabled: providers.resend.enabled,
+      priority: providers.resend.priority,
+      dailyLimit: providers.resend.dailyLimit,
+      monthlyLimit: providers.resend.monthlyLimit
+    },
     gmail: {
       name: providers.gmail.name,
       enabled: providers.gmail.enabled,
