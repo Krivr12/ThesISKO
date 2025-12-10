@@ -20,6 +20,7 @@ interface Thesis {
   authors: string[];
   tags: string[];
   file_key?: string;  // S3 key for deletion
+  document_status?: 'active' | 'old';  // Document status: active or old (5+ years)
 }
 
 @Component({
@@ -141,7 +142,8 @@ export class AdminDocuments implements OnInit {
         documents: documents,
         authors: record.authors || [],
         tags: record.tags || [],
-        file_key: record.file_key  // S3 key for deletion
+        file_key: record.file_key,  // S3 key for deletion
+        document_status: record.document_status || 'active'  // Map document_status from record
       };
     });
   }

@@ -30,6 +30,7 @@ export interface RecordItem {
   created_at: string;
   updated_at: string;
   abstract_embedding?: number[];
+  document_status?: 'active' | 'old';  // Document status: active or old (5+ years)
 }
 
 @Injectable({

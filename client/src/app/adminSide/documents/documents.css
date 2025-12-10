@@ -44,7 +44,7 @@
 
 .table-header, .table-row {
     display: grid;
-    grid-template-columns: 3fr 2fr 2fr 1fr;
+    grid-template-columns: 3fr 2fr 2fr 1.5fr 1fr;
     align-items: center;
     padding: 1rem;
     gap: 1.5rem;
@@ -546,6 +546,27 @@
     color: #800000;
 }
 
+/* Status Badge Styles */
+.status-badge {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 80px;
+}
+
+.status-badge.status-active {
+    background-color: #d4edda; /* Light green */
+    color: #155724;
+}
+
+.status-badge.status-archived {
+    background-color: #d1ecf1; /* Light blue */
+    color: #0c5460;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .main-content {
@@ -554,7 +575,7 @@
     }
     
     .table-header, .table-row {
-        grid-template-columns: 2fr 1.5fr 1.5fr 1fr;
+        grid-template-columns: 2fr 1.5fr 1.5fr 1.2fr 1fr;
         font-size: 0.875rem;
     }
     

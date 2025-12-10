@@ -15,6 +15,12 @@ import submissions from "./routes/submissions.js";
 import rateLimiter from "./middlewares/rateLimiter.js";
 import { validateRequest } from "./middlewares/requestValidator.js";
 import { errorLoggerMiddleware } from "./middlewares/errorLogger.js";
+import cron from "node-cron";
+import { 
+  checkAndUpdateDocumentStatus,
+  checkAndTransitionOldDocuments, 
+  restoreActiveDocuments 
+} from "./services/glacierService.js";
 
 dotenv.config({ path: "config.env" });
 
@@ -63,5 +69,30 @@ app.use("/requests", validateRequest, requests);
 
 // 🪵 Error logger middleware (must be last)
 app.use(errorLoggerMiddleware);
+
+// 🧊 Glacier transition cron job - Run weekly on Sunday at 2 AM
+cron.schedule("0 2 * * 0", async () => {
+  console.log("\n⏰ Weekly Glacier transition check triggered");
+  try {
+    // Step 1: First, update document_status for documents that have become 5 years old
+    await checkAndUpdateDocumentStatus();
+    
+    // Step 2: Then, check and transition old documents to Glacier
+    await checkAndTransitionOldDocuments();
+    
+    // Step 3: Check and restore active documents from Glacier
+    await restoreActiveDocuments();
+    
+    console.log("✅ Weekly Glacier transition check completed");
+  } catch (error) {
+    console.error("❌ Weekly Glacier transition check failed:", error);
+  }
+});
+
+// Log that cron job is set up
+console.log("🧊 Glacier transition cron job scheduled: Weekly on Sunday at 2:00 AM");
+console.log("   - Step 1: Update document_status for aged documents");
+console.log("   - Step 2: Transition old documents to Glacier");
+console.log("   - Step 3: Restore active documents from Glacier");
 
 export default app;
