@@ -294,6 +294,7 @@ function generateFallbackTemplate(data) {
 
 /**
  * Send email using Gmail SMTP
+ * Wrapped in explicit Promise to ensure Vercel serverless waits for completion
  */
 async function sendWithGmail(to, subject, html, from) {
   if (!providers.gmail.enabled || !providers.gmail.transporter) {
@@ -308,8 +309,20 @@ async function sendWithGmail(to, subject, html, from) {
   };
 
   console.log('📧 Attempting to send email via Gmail SMTP...');
-  const result = await providers.gmail.transporter.sendMail(mailOptions);
-  console.log('✅ Email sent successfully via Gmail SMTP');
+  
+  // Explicitly wrap in Promise to ensure Vercel serverless waits for completion
+  const result = await new Promise((resolve, reject) => {
+    providers.gmail.transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('❌ Gmail SMTP sendMail error:', error);
+        reject(error);
+      } else {
+        console.log('✅ Email sent successfully via Gmail SMTP');
+        resolve(info);
+      }
+    });
+  });
+  
   return { provider: 'gmail', messageId: result.messageId };
 }
 
