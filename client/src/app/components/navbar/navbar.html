@@ -4,7 +4,7 @@
       <h2 class="logo">ThesISKO</h2>
 
       <!-- Hamburger menu (visible only on mobile) -->
-      <button class="menu-toggle" (click)="toggleMenu()">
+      <button class="menu-toggle" (click)="toggleMenu()" (touchend)="toggleMenu(); $event.preventDefault()">
         &#9776;
       </button>
 
@@ -26,7 +26,7 @@
   <ng-template #end>
     <!-- If user is authenticated (regardless of guest mode), show user chip; else show Login -->
     <ng-container *ngIf="(user$ | async) as user; else loginTpl">
-      <div class="user-profile-card" (click)="profileMenu.toggle($event)">
+      <div class="user-profile-card" (click)="profileMenu.toggle($event)" (touchend)="profileMenu.toggle($event); $event.preventDefault()">
         <p-avatar
           [image]="avatarFor(user)"
           size="normal"

@@ -193,6 +193,10 @@ h2 {
     position: relative;
     overflow: visible;
     z-index: 1001;
+    /* iOS Safari fixes */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
   }
   
   /* Ensure the profile card container allows dropdown to position correctly */
@@ -231,6 +235,12 @@ h2 {
     display: none; /* hidden by default */
     z-index: 1001;
     position: relative;
+    /* iOS Safari fixes */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Remove PrimeNG button default box shadow and border if applied */
@@ -374,6 +384,7 @@ h2 {
 /* Profile menu styling - works with appendTo="body" */
 :host ::ng-deep .p-menu-overlay .p-menu {
   background: rgba(255, 255, 255, 0.95) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
   backdrop-filter: blur(10px) !important;
   border: 2px solid rgba(255, 255, 255, 0.3) !important;
   border-radius: 12px !important;
@@ -516,6 +527,8 @@ h2 {
     border-bottom: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 999;
+    /* iOS Safari fixes */
+    -webkit-overflow-scrolling: touch;
   }
 
   .nav-links.open {
@@ -525,6 +538,10 @@ h2 {
   .nav-links p-button {
     width: 100%;
     justify-content: center;
+    /* iOS Safari fixes */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   .nav-left img {
@@ -588,6 +605,7 @@ h2 {
   /* Profile menu on mobile - use same styling as desktop */
   :host ::ng-deep .p-menu-overlay .p-menu {
     background: rgba(255, 255, 255, 0.95) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     backdrop-filter: blur(10px) !important;
     border: 2px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 12px !important;
