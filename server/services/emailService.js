@@ -3,9 +3,9 @@
  * 
  * This service provides a unified interface for sending emails with automatic failover
  * across multiple email providers:
- * 1. Brevo (Primary) - 300 emails/day
- * 2. Resend (Secondary) - 100 emails/day, 3000/month
- * 3. Gmail SMTP (Fallback) - 500 emails/day
+ * 1. Resend (Primary) - 100 emails/day, 3000/month
+ * 2. Gmail SMTP (Fallback) - 500 emails/day
+ * (Brevo commented out - getting filtered by organization)
  * 
  * Usage:
  * ```javascript
@@ -41,16 +41,16 @@ try {
 
 // Email provider configurations
 const providers = {
-  brevo: {
-    name: 'Brevo',
-    priority: 1,
-    dailyLimit: 300,
-    enabled: !!(process.env.BREVO_SMTP_HOST && process.env.BREVO_SMTP_USER && process.env.BREVO_SMTP_PASS),
-    transporter: null
-  },
+  // brevo: {
+  //   name: 'Brevo',
+  //   priority: 1,
+  //   dailyLimit: 300,
+  //   enabled: !!(process.env.BREVO_SMTP_HOST && process.env.BREVO_SMTP_USER && process.env.BREVO_SMTP_PASS),
+  //   transporter: null
+  // },
   resend: {
     name: 'Resend',
-    priority: 2,
+    priority: 1,
     dailyLimit: 100,
     monthlyLimit: 3000,
     enabled: !!process.env.RESEND_API_KEY,
@@ -58,7 +58,7 @@ const providers = {
   },
   gmail: {
     name: 'Gmail SMTP',
-    priority: 3,
+    priority: 2,
     dailyLimit: 500,
     enabled: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
     transporter: null
@@ -66,20 +66,20 @@ const providers = {
 };
 
 // Initialize Nodemailer transporters
-if (providers.brevo.enabled) {
-  providers.brevo.transporter = nodemailer.createTransport({
-    host: process.env.BREVO_SMTP_HOST,
-    port: parseInt(process.env.BREVO_SMTP_PORT) || 587,
-    secure: false,
-    auth: {
-      user: process.env.BREVO_SMTP_USER,
-      pass: process.env.BREVO_SMTP_PASS,
-    },
-    tls: {
-      rejectUnauthorized: false
-    }
-  });
-}
+// if (providers.brevo.enabled) {
+//   providers.brevo.transporter = nodemailer.createTransport({
+//     host: process.env.BREVO_SMTP_HOST,
+//     port: parseInt(process.env.BREVO_SMTP_PORT) || 587,
+//     secure: false,
+//     auth: {
+//       user: process.env.BREVO_SMTP_USER,
+//       pass: process.env.BREVO_SMTP_PASS,
+//     },
+//     tls: {
+//       rejectUnauthorized: false
+//     }
+//   });
+// }
 
 if (providers.gmail.enabled) {
   providers.gmail.transporter = nodemailer.createTransport({
@@ -256,35 +256,35 @@ function generateFallbackTemplate(data) {
  * Send email using Brevo SMTP
  * Wrapped in explicit Promise to ensure Vercel serverless waits for completion
  */
-async function sendWithBrevo(to, subject, html, from) {
-  if (!providers.brevo.enabled || !providers.brevo.transporter) {
-    throw new Error('Brevo is not configured');
-  }
+// async function sendWithBrevo(to, subject, html, from) {
+//   if (!providers.brevo.enabled || !providers.brevo.transporter) {
+//     throw new Error('Brevo is not configured');
+//   }
 
-  const mailOptions = {
-    from: from || process.env.BREVO_MAIL_FROM || process.env.MAIL_FROM,
-    to: to,
-    subject: subject,
-    html: html
-  };
+//   const mailOptions = {
+//     from: from || process.env.BREVO_MAIL_FROM || process.env.MAIL_FROM,
+//     to: to,
+//     subject: subject,
+//     html: html
+//   };
 
-  console.log('📧 Attempting to send email via Brevo...');
+//   console.log('📧 Attempting to send email via Brevo...');
   
-  // Explicitly wrap in Promise to ensure Vercel serverless waits for completion
-  const result = await new Promise((resolve, reject) => {
-    providers.brevo.transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('❌ Brevo sendMail error:', error);
-        reject(error);
-      } else {
-        console.log('✅ Email sent successfully via Brevo');
-        resolve(info);
-      }
-    });
-  });
+//   // Explicitly wrap in Promise to ensure Vercel serverless waits for completion
+//   const result = await new Promise((resolve, reject) => {
+//     providers.brevo.transporter.sendMail(mailOptions, (error, info) => {
+//       if (error) {
+//         console.error('❌ Brevo sendMail error:', error);
+//         reject(error);
+//       } else {
+//         console.log('✅ Email sent successfully via Brevo');
+//         resolve(info);
+//       }
+//     });
+//   });
   
-  return { provider: 'brevo', messageId: result.messageId };
-}
+//   return { provider: 'brevo', messageId: result.messageId };
+// }
 
 /**
  * Send email using Resend API
@@ -379,20 +379,20 @@ export async function sendEmail(options) {
     html = rawHtml;
   }
 
-  // Try providers in order: Brevo (Primary), Resend (Secondary), Gmail (Fallback)
+  // Try providers in order: Resend (Primary), Gmail (Fallback)
   const errors = [];
   
-  // Try Brevo first (Primary)
-  if (providers.brevo.enabled) {
-    try {
-      return await sendWithBrevo(to, subject, html, from);
-    } catch (error) {
-      console.warn('⚠️ Brevo failed:', error.message);
-      errors.push({ provider: 'brevo', error: error.message });
-    }
-  }
+  // Try Brevo first (Primary) - COMMENTED OUT (getting filtered by organization)
+  // if (providers.brevo.enabled) {
+  //   try {
+  //     return await sendWithBrevo(to, subject, html, from);
+  //   } catch (error) {
+  //     console.warn('⚠️ Brevo failed:', error.message);
+  //     errors.push({ provider: 'brevo', error: error.message });
+  //   }
+  // }
 
-  // Try Resend second (Secondary)
+  // Try Resend first (Primary)
   if (providers.resend.enabled) {
     try {
       return await sendWithResend(to, subject, html, from);
@@ -422,12 +422,12 @@ export async function sendEmail(options) {
  */
 export function getProvidersStatus() {
   return {
-    brevo: {
-      name: providers.brevo.name,
-      enabled: providers.brevo.enabled,
-      priority: providers.brevo.priority,
-      dailyLimit: providers.brevo.dailyLimit
-    },
+    // brevo: {
+    //   name: providers.brevo.name,
+    //   enabled: providers.brevo.enabled,
+    //   priority: providers.brevo.priority,
+    //   dailyLimit: providers.brevo.dailyLimit
+    // },
     resend: {
       name: providers.resend.name,
       enabled: providers.resend.enabled,
