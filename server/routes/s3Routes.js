@@ -342,16 +342,20 @@ function cleanFileKey(fileKey) {
   
   // If key is too long or doesn't match pattern, extract the clean part
   // Look for the file extension and truncate after it (with small buffer for normal chars)
+  // Use lastIndexOf to find the LAST occurrence (in case filename contains the extension string)
   const extensions = ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.xlsx', '.xls', '.pptx', '.ppt'];
   
   for (const ext of extensions) {
-    const extIndex = fileKey.indexOf(ext);
+    const extIndex = fileKey.lastIndexOf(ext); // Use lastIndexOf to find the actual file extension
     if (extIndex !== -1) {
       const endIndex = extIndex + ext.length;
       // If there's a lot of content after the extension, it's likely a token
-      if (fileKey.length > endIndex + 30) {
+      // Check if what comes after looks like a token (long alphanumeric string)
+      const afterExtension = fileKey.substring(endIndex);
+      if (afterExtension.length > 30 && /^[A-Za-z0-9\/\+\=\-]{30,}$/.test(afterExtension)) {
         const cleaned = fileKey.substring(0, endIndex);
         console.log(`🧹 [S3] Cleaned file key: removed ${fileKey.length - cleaned.length} chars of token`);
+        console.log(`   Original length: ${fileKey.length}, Cleaned length: ${cleaned.length}`);
         return cleaned;
       }
     }

@@ -44,6 +44,7 @@ import { AdminSideDashboard } from './adminSide/dashboard/dashboard';
 import { Approvals } from './adminSide/approvals/approvals';
 import { ApprovalDetails } from './adminSide/approvals/approval-details';
 import { AdminDocuments } from './adminSide/documents/documents';
+import { DocumentEdit } from './adminSide/documents/document-edit';
 import { AdminPrograms } from './adminSide/programs/programs';
 import { AdminFaculties as AdminSideFaculties } from './adminSide/faculties/faculties';
 import { AdminRequests } from './adminSide/requests/requests';
@@ -108,6 +109,7 @@ export const routes: Routes = [
     {path: 'adminSide/approvals', component: Approvals, canActivate: [adminSideGuard]},
     {path: 'adminSide/approvals/:id', component: ApprovalDetails, canActivate: [adminSideGuard]},
     {path: 'adminSide/documents', component: AdminDocuments, canActivate: [adminSideGuard]},
+    {path: 'adminSide/documents/edit/:id', component: DocumentEdit, canActivate: [adminSideGuard]},
     {path: 'adminSide/programs', component: AdminPrograms, canActivate: [deanOnlyGuard]},
     {path: 'adminSide/faculties', component: AdminSideFaculties, canActivate: [deanOnlyGuard]},
     {path: 'adminSide/requests', component: AdminRequests, canActivate: [adminSideGuard]},
