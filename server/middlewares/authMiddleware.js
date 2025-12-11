@@ -102,7 +102,7 @@ export const requireAuth = async (req, res, next) => {
     // Log successful authentication (only in dev or with debug flag)
     if (process.env.NODE_ENV !== 'production' || process.env.DEBUG_AUTH === 'true') {
       console.log(`[authMiddleware] ✅ Authenticated user: ${user.email || user.Email} (ID: ${userId}) for ${req.method} ${req.originalUrl}`);
-      console.log(`[authMiddleware] 🔍 Full user object:`, JSON.stringify(user, null, 2));
+      
     }
     
     // Continue to next middleware/route handler

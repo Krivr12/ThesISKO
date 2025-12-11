@@ -69,12 +69,8 @@ export class SearchResult implements OnInit, AfterViewInit {
     private http: HttpClient,
     private authService: AuthService
   ) {
-    console.log('🔍 [SEARCH-RESULT] Constructor called');
     const nav = this.router.getCurrentNavigation();
-    console.log('🔍 [SEARCH-RESULT] Navigation object:', nav);
-    console.log('🔍 [SEARCH-RESULT] Navigation extras:', nav?.extras);
-    console.log('🔍 [SEARCH-RESULT] Navigation state:', nav?.extras?.state);
-    console.log('🔍 [SEARCH-RESULT] Document ID from state:', nav?.extras?.state?.['document_id']);
+
     
     // Try to get document_id from navigation state first
     let documentId = nav?.extras?.state?.['document_id'];
@@ -85,17 +81,14 @@ export class SearchResult implements OnInit, AfterViewInit {
     // If not in navigation state, try to get from browser history state (for page refreshes)
     if (!documentId && window.history.state && window.history.state['document_id']) {
       documentId = window.history.state['document_id'];
-      console.log('🔍 [SEARCH-RESULT] Found document_id from history state:', documentId);
     }
     
     // Also try to get search query from history state
     if (!this.searchQuery && window.history.state && window.history.state['searchQuery']) {
       this.searchQuery = window.history.state['searchQuery'];
-      console.log('🔍 [SEARCH-RESULT] Found searchQuery from history state:', this.searchQuery);
     }
     
     if (documentId) {
-      console.log('✅ [SEARCH-RESULT] Found document_id, calling loadThesisDetails:', documentId);
       this.loadThesisDetails(documentId);
     } else {
       console.log('❌ [SEARCH-RESULT] No document_id found, redirecting to search-thesis');
@@ -113,23 +106,15 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // Verify ViewChild references are available
-    console.log('🔍 [VIEW-INIT] Checking ViewChild references...');
-    console.log('🔍 [VIEW-INIT] dlgStudent:', this.dlgStudent ? 'Available' : 'Undefined');
-    console.log('🔍 [VIEW-INIT] dlgGuest:', this.dlgGuest ? 'Available' : 'Undefined');
-    console.log('🔍 [VIEW-INIT] dlgLoginRequired:', this.dlgLoginRequired ? 'Available' : 'Undefined');
-    console.log('🔍 [VIEW-INIT] dlgTerms:', this.dlgTerms ? 'Available' : 'Undefined');
+
   }
 
   loadThesisDetails(document_id: string): void {
     this.isLoading = true; // Show spinner
-    console.log('🔍 [LOAD-THESIS] Starting to fetch details for document_id:', document_id);
-    console.log('🔍 [LOAD-THESIS] API URL:', `${environment.recordsApiUrl}/${document_id}`);
-    
+
     this.http.get<any>(`${environment.recordsApiUrl}/${document_id}`).subscribe({
       next: (data) => {
-        console.log('✅ [LOAD-THESIS] API call successful, received data:', data);
-        this.thesis = data;
-        console.log('✅ [LOAD-THESIS] Thesis object set:', this.thesis);
+        this.thesis = data
         this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
@@ -147,24 +132,13 @@ export class SearchResult implements OnInit, AfterViewInit {
     
     // Debug: Show what user data we actually have
     const currentUser = this.authService.currentUser;
-    console.log('DEBUG - Full user object:', currentUser);
-    console.log('DEBUG - Available properties:', currentUser ? Object.keys(currentUser) : 'No user');
-    console.log('DEBUG - Course property:', currentUser?.Course);
-    console.log('DEBUG - Department property:', currentUser?.Department);
     
     // Auto-select course and department for students based on their account data
     if (this.userRole === 'student') {
       this.studentProgram = this.getCurrentUserCourse();
       this.studentDepartment = this.getCurrentUserDepartment();
       
-    }
-    
-    console.log('User role initialized:', { 
-      email: this.currentUserEmail, 
-      role: this.userRole,
-      preselectedCourse: this.studentProgram,
-      preselectedDepartment: this.studentDepartment
-    });
+    };
   }
 
   // ===== Auth / identity =====
@@ -947,13 +921,7 @@ export class SearchResult implements OnInit, AfterViewInit {
     const currentUser = this.authService.currentUser;
     const department = currentUser?.Department || '';
     
-    console.log('🔍 Course Debug (now returning college names):', {
-      hasCurrentUser: !!currentUser,
-      department: department,
-      departmentType: typeof department,
-      allUserKeys: currentUser ? Object.keys(currentUser) : 'no user',
-      fullUser: currentUser
-    });
+
     
     // Map department codes to full college names for Program dropdown
     const departmentMapping: { [key: string]: string } = {
@@ -972,22 +940,13 @@ export class SearchResult implements OnInit, AfterViewInit {
     };
     
     const result = departmentMapping[department] || department || '';
-    console.log('🔍 Course Result (college name):', { input: department, mapped: result });
     return result;
   }
 
   private getCurrentUserDepartment(): string {
     const currentUser = this.authService.currentUser;
     const course = currentUser?.Course || '';
-    
-    console.log('🔍 Department Debug (now returning full course names):', {
-      hasCurrentUser: !!currentUser,
-      course: course,
-      courseType: typeof course,
-      allUserKeys: currentUser ? Object.keys(currentUser) : 'no user',
-      fullUser: currentUser
-    });
-    
+
     // Map course codes to full course names
     const courseMapping: { [key: string]: string } = {
       // OUS - Open University System
@@ -1074,7 +1033,6 @@ export class SearchResult implements OnInit, AfterViewInit {
     };
     
     const result = courseMapping[course] || course || '';
-    console.log('🔍 Department Result (full course name):', { input: course, mapped: result });
     return result;
   }
 

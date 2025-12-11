@@ -68,7 +68,6 @@ export class AuthService {
         if (user && (user.id || user.user_id || user.StudentID) && (user.email || user.Email)) {
           // Set user immediately so guards can access it
           this.userSubject.next(user);
-          console.log('✅ Navbar AuthService: User restored synchronously from sessionStorage');
         }
       }
     } catch (e) {
@@ -123,7 +122,6 @@ export class AuthService {
             const user = JSON.parse(userData);
             if (user && (user.id || user.user_id || user.StudentID)) {
               this.userSubject.next(user);
-              console.log('✅ Navbar AuthService: Using sessionStorage fallback after 401');
             }
           }
         } catch (e) {
@@ -139,7 +137,6 @@ export class AuthService {
             const user = JSON.parse(userData);
             if (user && (user.id || user.user_id || user.StudentID)) {
               this.userSubject.next(user);
-              console.log('✅ Navbar AuthService: Using sessionStorage fallback after network error');
             }
           }
         } catch (e) {

@@ -290,9 +290,6 @@ export class SearchThesis implements OnInit {
   }
 
   viewThesis(thesis: Thesis): void {
-    console.log('🔍 [SEARCH-THESIS] Navigating to search-result with _id:', thesis._id);
-    console.log('🔍 [SEARCH-THESIS] Document ID for display:', thesis.document_id);
-    console.log('🔍 [SEARCH-THESIS] Full thesis object:', thesis);
     this.router.navigate(['/search-result'], { 
       state: { 
         document_id: thesis._id,
