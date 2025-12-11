@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminSideNav } from '../admin-side-nav/admin-side-nav';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -88,7 +89,8 @@ export class AdminDocuments implements OnInit {
   constructor(
     private sanitizer: DomSanitizer,
     private recordsService: RecordsService,
-    private s3Service: S3Service
+    private s3Service: S3Service,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -434,15 +436,10 @@ export class AdminDocuments implements OnInit {
     this.pages = pages;
   }
 
-  // Update Modal methods
+  // Navigate to edit page instead of opening modal
   openUpdateModal(doc: Thesis): void {
-    this.selectedDocument = doc;
-    this.updateForm.title = doc.title;
-    this.updateForm.abstract = doc.abstract;
-    this.updateForm.authorsString = doc.authors.join(', ');
-    this.updateForm.manuscriptFile = null;
-    this.updateForm.manuscriptFileName = '';
-    this.isUpdateModalVisible = true;
+    // Navigate to the edit page using document_id (e.g., "2025-BSIT-0004")
+    this.router.navigate(['/adminSide/documents/edit', doc.id]);
   }
 
   closeUpdateModal(): void {
