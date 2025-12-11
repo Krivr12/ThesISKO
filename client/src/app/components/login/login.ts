@@ -81,6 +81,15 @@ ngOnInit(): void {
 
 onLogin() {
   const {email, password} = this.login;
+  
+  // Show loading state
+  this.messageService.add({
+    severity: 'info',
+    summary: 'Logging in...',
+    detail: 'Please wait',
+    life: 2000
+  });
+  
   this.authService.loginUser(email, password).subscribe({
     next: (response: {message: string, user: any, account_type?: string, redirect_to?: string}) => {
       if (response.user) {
@@ -154,6 +163,14 @@ onLogin() {
         // Wait for AuthService observable to be updated
         this.authService.currentUser$.pipe(take(1)).subscribe((authUser: any) => {
           log.debug('User authenticated, navigating...');
+          
+          // Show success message
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Login Successful',
+            detail: 'Redirecting...',
+            life: 2000
+          });
           
           // Navigate based on user status (only student and guest)
           if (user.Status === 'Pending') {
