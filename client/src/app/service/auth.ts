@@ -27,7 +27,6 @@ export class Auth {
         if (user && (user.id || user.user_id || user.StudentID) && (user.email || user.Email)) {
           // Set user immediately so guards can access it
           this.currentUserSubject.next(user);
-          console.log('✅ User restored synchronously from sessionStorage in constructor');
         }
       }
     } catch (e) {
@@ -185,7 +184,6 @@ export class Auth {
           // Set user immediately so UI doesn't show logged out state
           // This is especially important for guests (role_id = 1) to prevent redirects
           this.currentUserSubject.next(user);
-          console.log('✅ User restored from sessionStorage:', { id: user.id, role_id: user.role_id, email: user.email || user.Email });
         } else {
           console.warn('Invalid user data in sessionStorage, will verify with server');
         }

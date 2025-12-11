@@ -122,16 +122,6 @@ export const authGuard: CanActivateFn = (route, state) => {
       const userRole = currentUser.role_id;
       const userStatus = currentUser.Status?.toLowerCase();
 
-      // Debug logging (only in development)
-      log.debug('Auth check:', { 
-        role_id: userRole, 
-        status: userStatus, 
-        path: currentPath,
-        hasUser: !!currentUser,
-        userFromObservable: !!user,
-        userFromSession: !!sessionUser
-      });
-
       // Define allowed paths for each role
       const allowedPaths: Record<string, string[]> = {
         student: ['/home', '/search-thesis', '/search-result', '/submission', '/thank-you', '/about-us', '/student-profile'],
@@ -172,11 +162,6 @@ export const authGuard: CanActivateFn = (route, state) => {
       // Check if current path is allowed for this user
       const isPathAllowed = allowedPaths[userRoleCategory]?.some((path: string) => currentPath.startsWith(path));
       
-      log.debug('Path authorization:', { 
-        roleCategory: userRoleCategory, 
-        path: currentPath, 
-        allowed: isPathAllowed 
-      });
 
       if (!isPathAllowed) {
         // Show logout confirmation dialog

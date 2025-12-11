@@ -9,7 +9,6 @@ import { environment } from './environments/environment';
   recordsApiUrl: environment.recordsApiUrl
 };
 
-console.log('✅ Using environment config:', environment);
 
 // Bootstrap Angular
 bootstrapApplication(App, appConfig)

@@ -82,9 +82,6 @@ export class Home implements OnInit, OnDestroy {
         
         // Debug: Log first item to check year field and full structure
         if (this.updates.length > 0) {
-          console.log('📊 First carousel item (full object):', this.updates[0]);
-          console.log('📅 Year value:', this.updates[0].year);
-          console.log('📅 Year type:', typeof this.updates[0].year);
           
           // Check if year is accessible
           if (this.updates[0].year) {
