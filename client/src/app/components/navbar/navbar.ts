@@ -303,7 +303,8 @@ export class Navbar implements OnInit {
   }
 
   private checkRouteAndToggleNavbar(): void {
-    const currentUrl = this.router.url;
+    // Get pathname without query parameters or hash
+    const currentUrl = this.router.url.split('?')[0].split('#')[0];
     
     // Routes where navbar SHOULD be shown (whitelist approach)
     const allowedRoutes = [

@@ -75,7 +75,7 @@ router.get("/latest", async (req, res) => {
   try {
     const results = await collection
       .find({})
-      .sort({ submitted_at: -1 })
+      .sort({ created_at: -1 })
       .limit(6)
       .toArray();
     
