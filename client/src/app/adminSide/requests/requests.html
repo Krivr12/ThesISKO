@@ -233,6 +233,24 @@
                         </div>
                     </div>
 
+                    <div class="details-section">
+                        <h3 class="section-title">Year</h3>
+                        <div class="section-content">
+                            <p>{{ document.year || 'N/A' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h3 class="section-title">Document Status</h3>
+                        <div class="section-content">
+                            <span class="status-badge" 
+                                  [class.status-active]="document.document_status === 'active'"
+                                  [class.status-archived]="document.document_status === 'old'">
+                                {{ document.document_status === 'old' ? 'Archived' : 'Active' }}
+                            </span>
+                        </div>
+                    </div>
+
                     <div class="details-section" *ngIf="hasValue(document.file_key)">
                         <h3 class="section-title">Original Manuscript</h3>
                         <div class="section-content">

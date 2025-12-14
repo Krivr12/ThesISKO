@@ -136,6 +136,8 @@ router.get("/:request_id/details", async (req, res) => {
         files: documentDetails.files || [],
         program_name: documentDetails.program_name,
         department: documentDetails.department,
+        year: documentDetails.year,
+        document_status: documentDetails.document_status,
         submitted_at: documentDetails.submitted_at,
         created_at: documentDetails.created_at
       } : null
