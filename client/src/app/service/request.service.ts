@@ -64,6 +64,8 @@ export interface RequestDetails {
     }[];
     program_name: string;
     department: string;
+    year?: number | string;
+    document_status?: string;
     submitted_at?: string;
     created_at: string;
   } | null;
