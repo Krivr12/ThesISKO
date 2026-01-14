@@ -93,13 +93,8 @@ export class AdminChairpersonDetails implements OnInit {
     this.http.get<any>(`${environment.authApiUrl}/groups/${groupId}`, { withCredentials: true })
       .subscribe({
         next: (response) => {
-          console.log('📦 [Chairperson Details] Raw response:', response);
           
           if (response.success && response.data) {
-            console.log('✅ [Chairperson Details] Group data:', response.data);
-            console.log('📋 [Chairperson Details] Milestones:', response.data.milestones);
-            console.log('📋 [Chairperson Details] Milestones type:', typeof response.data.milestones);
-            console.log('📋 [Chairperson Details] Is array?', Array.isArray(response.data.milestones));
             
             this.group.set(response.data);
             this.extractDocuments(response.data);
@@ -119,23 +114,18 @@ export class AdminChairpersonDetails implements OnInit {
   extractDocuments(group: any): void {
     const docs: DocumentForView[] = [];
     
-    console.log('🔍 [extractDocuments] Starting extraction...');
-    console.log('🔍 [extractDocuments] Milestones:', group.milestones);
     
     // Handle both array and object formats for milestones
     let milestonesArray: any[] = [];
     
     if (Array.isArray(group.milestones)) {
       milestonesArray = group.milestones;
-      console.log('✅ [extractDocuments] Milestones is array, length:', milestonesArray.length);
     } else if (group.milestones && typeof group.milestones === 'object') {
       // Convert object to array
       milestonesArray = Object.values(group.milestones);
-      console.log('🔄 [extractDocuments] Converted milestones object to array, length:', milestonesArray.length);
     }
     
     milestonesArray.forEach((milestone, index) => {
-      console.log(`📄 [extractDocuments] Processing milestone ${index}:`, milestone);
       
       if (milestone && milestone.s3_key) {
         const s3Keys = Array.isArray(milestone.s3_key) ? milestone.s3_key : [milestone.s3_key];
@@ -148,15 +138,12 @@ export class AdminChairpersonDetails implements OnInit {
               s3_key: key,
               milestone_type: this.getMilestoneDisplayName(milestone.type)
             };
-            console.log('✅ [extractDocuments] Adding document:', doc);
             docs.push(doc);
           }
         });
       }
     });
     
-    console.log('📊 [extractDocuments] Total documents extracted:', docs.length);
-    console.log('📊 [extractDocuments] Documents:', docs);
     
     this.documents.set(docs);
   }

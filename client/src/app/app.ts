@@ -35,11 +35,9 @@ export class App implements OnInit {
       this.http.post(`${environment.authApiUrl}/auth/logout`, { reason: 'session_mismatch' }, { withCredentials: true })
         .subscribe({
           next: () => {
-            console.log('✅ Cleared stale authentication cookie');
           },
           error: (err) => {
             // Ignore errors - cookie might not exist
-            console.log('ℹ️ No stale cookie to clear or already cleared');
           }
         });
     }

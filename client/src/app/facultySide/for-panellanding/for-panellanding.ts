@@ -121,7 +121,6 @@ export class ForPanellanding implements OnInit, AfterViewInit {
   }
 
   viewGroup(element: Group) {
-    console.log('Viewing group:', element);
     // this.router.navigate(['/history', element.group_id]);
   }
 

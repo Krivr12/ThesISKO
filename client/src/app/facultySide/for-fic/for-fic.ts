@@ -135,14 +135,12 @@ export class ForFIC implements OnInit, AfterViewInit {
       return;
     }
 
-    console.log('📚 Fetching groups for block:', this.block_id);
 
     // Fetch groups for this specific block
     const apiUrl = `${environment.authApiUrl}/groups?block_id=${encodeURIComponent(this.block_id)}`;
 
     this.http.get<any[]>(apiUrl).subscribe({
       next: (response) => {
-        console.log('✅ Groups response:', response);
 
         if (!Array.isArray(response)) {
           console.error('Invalid response format');
@@ -346,11 +344,9 @@ export class ForFIC implements OnInit, AfterViewInit {
       }))
     };
 
-    console.log('🔨 Creating group with payload:', payload);
 
     this.http.post(`${environment.authApiUrl}/groups`, payload).subscribe({
       next: (response: any) => {
-        console.log('✅ Group created successfully:', response);
         alert(`Group created successfully! 
         
 Group ID: ${response.group.group_id}

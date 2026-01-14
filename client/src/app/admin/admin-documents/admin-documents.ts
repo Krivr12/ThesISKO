@@ -315,7 +315,6 @@ export class AdminDocuments implements OnInit {
 
     this.recordsService.deleteRecord(documentId).subscribe({
       next: (response) => {
-        console.log('✅ Document deleted successfully:', response);
         
         // Remove from local documents array
         this.documents = this.documents.filter(d => d._id !== documentId);
@@ -512,7 +511,6 @@ export class AdminDocuments implements OnInit {
         this.updateForm.manuscriptFile
       ).subscribe({
         next: (response) => {
-          console.log('✅ Document updated successfully:', response);
           
           // Update local document
           const doc = this.documents.find(d => d._id === this.selectedDocument!._id);
@@ -543,7 +541,6 @@ export class AdminDocuments implements OnInit {
       // Update without file
       this.recordsService.updateRecord(this.selectedDocument._id, updateData).subscribe({
         next: (response) => {
-          console.log('✅ Document updated successfully:', response);
           
           // Update local document
           const doc = this.documents.find(d => d._id === this.selectedDocument!._id);

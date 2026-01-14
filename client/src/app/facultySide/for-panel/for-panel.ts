@@ -118,14 +118,12 @@ export class ForPanel implements OnInit, AfterViewInit {
       return;
     }
 
-    console.log('👥 Fetching groups for block:', this.block_id);
 
     // Fetch groups for this specific block
     const apiUrl = `${environment.authApiUrl}/groups?block_id=${encodeURIComponent(this.block_id)}`;
 
     this.http.get<any[]>(apiUrl).subscribe({
       next: (response) => {
-        console.log('✅ Panelist groups response:', response);
 
         if (!Array.isArray(response)) {
           console.error('Invalid response format');

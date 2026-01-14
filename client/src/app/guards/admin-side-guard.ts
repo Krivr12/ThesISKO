@@ -49,7 +49,6 @@ export const adminSideGuard: CanActivateFn = (route, state) => {
           // Check if user has admin role (chairperson or dean)
           // role_id 4 = chairperson, role_id 5 = dean
           if (user.role_id === 4 || user.role_id === 5) {
-            console.log(`✅ adminSideGuard: Access granted for ${user.role_id === 4 ? 'Chairperson' : 'Dean'}`);
             return true;
           }
 

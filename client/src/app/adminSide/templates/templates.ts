@@ -66,7 +66,6 @@ export class AdminTemplates implements OnInit, AfterViewInit {
 
   openUpdateTemplateDialog(row: TemplateRow): void {
     // TODO: open dialog to update selected template
-    console.log('Update clicked for', row);
     alert(`Update Template: ${row.name} - To be implemented`);
   }
 

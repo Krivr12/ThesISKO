@@ -59,28 +59,22 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
   ) {}
 
   ngOnInit(): void {
-    console.log('🔍 [Chairperson Approval] ngOnInit started');
     
     // Subscribe to current user from Auth service
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
-      console.log('👤 [Chairperson Approval] User from Auth service:', user);
       
       if (user) {
         this.currentUser = user;
         // Try both lowercase and uppercase email
         this.currentUserEmail = user.email || (user as any).Email || '';
-        console.log('✅ [Chairperson Approval] User identified');
-        console.log('📧 [Chairperson Approval] Email:', this.currentUserEmail);
         
         // Load groups once we have user data
         if (this.currentUserEmail) {
-          console.log('✅ [Chairperson Approval] Email is valid, calling loadGroups()...');
           this.loadGroups();
         } else {
           console.error('❌ [Chairperson Approval] Email is empty!');
         }
       } else {
-        console.log('⚠️ [Chairperson Approval] No user from Auth service (user logged out or not authenticated)');
         // Don't show alert or navigate - let auth guard handle it
       }
     });
@@ -99,19 +93,12 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
   }
 
   loadGroups(): void {
-    console.log(`📋 [loadGroups] Starting...`);
-    console.log(`📧 [loadGroups] Email: "${this.currentUserEmail}"`);
-    console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-chairperson`);
     
     this.http.get<any>(`${environment.authApiUrl}/groups/by-chairperson`, { withCredentials: true })
       .subscribe({
         next: (response) => {
-          console.log('✅ [loadGroups] API Response:', response);
-          console.log('✅ [loadGroups] Response success:', response?.success);
-          console.log('✅ [loadGroups] Response data length:', response?.data?.length);
           
           if (response.success && response.data) {
-            console.log(`📊 [loadGroups] Mapping ${response.data.length} groups...`);
             
             // Map groups to table rows
             const groups: GroupRow[] = response.data.map((g: any) => ({
@@ -123,15 +110,12 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
               forApproval: g.forApproval || 0
             }));
 
-            console.log('📊 [loadGroups] Mapped groups:', groups);
             this.dataSource.data = groups;
-            console.log('✅ [loadGroups] DataSource updated');
           } else {
             console.warn('⚠️ [loadGroups] Response format unexpected:', response);
           }
 
           this.loading = false;
-          console.log('✅ [loadGroups] Loading complete');
         },
         error: (error) => {
           console.error('❌ [loadGroups] API Error:', error);
@@ -158,7 +142,6 @@ The group will then be forwarded to the Dean for final approval.`;
       return;
     }
 
-    console.log(`🔄 Approving group: ${group.group_id}`);
 
     const userName = this.getUserName();
 
@@ -169,7 +152,6 @@ The group will then be forwarded to the Dean for final approval.`;
       { withCredentials: true }
     ).subscribe({
       next: (response) => {
-        console.log('✅ Group approved successfully:', response);
         alert(`✅ Group ${group.group_id} approved successfully! Forwarded to Dean for final approval.`);
         this.loadGroups(); // Reload to update the list
       },
@@ -197,7 +179,6 @@ The group will then be forwarded to the Dean for final approval.`;
       return;
     }
 
-    console.log(`🔄 Rejecting group: ${group.group_id}, milestone: ${milestone}`);
 
     const userName = this.getUserName();
 
@@ -207,7 +188,6 @@ The group will then be forwarded to the Dean for final approval.`;
       { withCredentials: true }
     ).subscribe({
       next: (response) => {
-        console.log('✅ Group rejected successfully:', response);
         alert(`✅ Group ${group.group_id} rejected. Student will be notified to fix ${milestone}.`);
         this.loadGroups(); // Reload to update the list
       },
@@ -220,11 +200,9 @@ The group will then be forwarded to the Dean for final approval.`;
   }
 
   private getUserName(): string {
-    console.log('🔍 [getUserName] Getting user name from currentUser...');
     
     if (this.currentUser) {
       const fullName = `${this.currentUser.Firstname || this.currentUser.firstname || ''} ${this.currentUser.Lastname || this.currentUser.lastname || ''}`.trim();
-      console.log('✅ [getUserName] Full name:', fullName);
       return fullName;
     }
     

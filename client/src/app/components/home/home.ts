@@ -85,7 +85,6 @@ export class Home implements OnInit, OnDestroy {
           
           // Check if year is accessible
           if (this.updates[0].year) {
-            console.log('✅ Year is available:', this.updates[0].year);
           } else {
             console.warn('⚠️ Year is missing or undefined');
           }
@@ -218,8 +217,6 @@ export class Home implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('Carousel item clicked - navigating to search-result with document_id:', item._id);
-    console.log('Current user:', this.authService.currentUser);
     
     // Pass document_id in state (same pattern as search-thesis -> search-result)
     // Use navigateByUrl with state for more reliable navigation
@@ -227,7 +224,6 @@ export class Home implements OnInit, OnDestroy {
       state: { document_id: item._id } 
     }).then(success => {
       if (success) {
-        console.log('Navigation to /search-result successful');
       } else {
         console.error('Navigation to /search-result failed - guard may have blocked it');
         // If navigation fails, try again after a short delay (in case user is still loading)

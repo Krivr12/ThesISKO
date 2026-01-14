@@ -66,7 +66,6 @@ export class Templates implements OnInit, AfterViewInit {
   openUpdateTemplateDialog(row: TemplateRow): void {
     // TODO: open dialog to update selected template
     // e.g., this.dialog.open(UpdateTemplateDialog, { data: row });
-    console.log('Update clicked for', row);
   }
 
 }
