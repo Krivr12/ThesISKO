@@ -136,7 +136,6 @@ export class AdminFaculties implements OnInit, AfterViewInit {
       faculty_id: this.newFaculty.faculty_id
     }).subscribe({
       next: (response: any) => {
-        console.log('Faculty created successfully:', response);
         this.loadFaculties();
         alert(`Faculty account created successfully! Email sent to ${this.newFaculty.email}`);
         this.closeAddDialog();
@@ -162,7 +161,6 @@ export class AdminFaculties implements OnInit, AfterViewInit {
       faculty_id: this.editFaculty.faculty_id
     }).subscribe({
       next: (response: any) => {
-        console.log('User updated successfully:', response);
         this.loadFaculties();
         alert('User updated successfully!');
         this.closeEditDialog();
@@ -222,6 +220,5 @@ export class AdminFaculties implements OnInit, AfterViewInit {
   goBack(): void {
     // This method is referenced in the template but not implemented
     // You can add navigation logic here if needed
-    console.log('Go back clicked');
   }
 }

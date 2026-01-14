@@ -98,10 +98,8 @@ export class DeanDetails implements OnInit {
     this.http.get<any>(`${environment.authApiUrl}/groups/${groupId}`, { withCredentials: true })
       .subscribe({
         next: (response) => {
-          console.log('📦 [Dean Details] Raw response:', response);
           
           if (response.success && response.data) {
-            console.log('✅ [Dean Details] Group data:', response.data);
             this.group.set(response.data);
             this.extractDocuments(response.data);
           } else {
@@ -120,23 +118,18 @@ export class DeanDetails implements OnInit {
   extractDocuments(group: any): void {
     const docs: DocumentForView[] = [];
     
-    console.log('🔍 [Dean extractDocuments] Starting extraction...');
-    console.log('🔍 [Dean extractDocuments] Milestones:', group.milestones);
     
     // Handle both array and object formats for milestones
     let milestonesArray: any[] = [];
     
     if (Array.isArray(group.milestones)) {
       milestonesArray = group.milestones;
-      console.log('✅ [Dean extractDocuments] Milestones is array, length:', milestonesArray.length);
     } else if (group.milestones && typeof group.milestones === 'object') {
       // Convert object to array
       milestonesArray = Object.values(group.milestones);
-      console.log('🔄 [Dean extractDocuments] Converted milestones object to array, length:', milestonesArray.length);
     }
     
     milestonesArray.forEach((milestone, index) => {
-      console.log(`📄 [Dean extractDocuments] Processing milestone ${index}:`, milestone);
       
       if (milestone && milestone.s3_key) {
         const s3Keys = Array.isArray(milestone.s3_key) ? milestone.s3_key : [milestone.s3_key];
@@ -149,15 +142,12 @@ export class DeanDetails implements OnInit {
               s3_key: key,
               milestone_type: this.getMilestoneDisplayName(milestone.type)
             };
-            console.log('✅ [Dean extractDocuments] Adding document:', doc);
             docs.push(doc);
           }
         });
       }
     });
     
-    console.log('📊 [Dean extractDocuments] Total documents extracted:', docs.length);
-    console.log('📊 [Dean extractDocuments] Documents:', docs);
     
     this.documents.set(docs);
   }

@@ -83,7 +83,6 @@ export class FICHistoryPage implements OnInit {
       return;
     }
 
-    console.log('📚 Fetching group data for:', gid);
 
     // Fetch group from MongoDB API
     this.http.get<any>(`${environment.authApiUrl}/groups/${gid}`).pipe(
@@ -98,7 +97,6 @@ export class FICHistoryPage implements OnInit {
         return;
       }
 
-      console.log('✅ Group response:', response);
 
       // Map MongoDB group structure to GroupMeta
       const leaderName = response.leader 
@@ -147,17 +145,11 @@ export class FICHistoryPage implements OnInit {
             
             // Get the actual required panelist count from the block (flexible)
             const requiredPanelistCount = this.panelists.length;
-            console.log('📊 Frontend - Required panelist count:', requiredPanelistCount);
-            console.log('📊 Frontend - Panelists:', this.panelists);
-            console.log('📊 Frontend - Approved by:', approvedBy);
             
             // Check if all panelists have approved
             const allPanelistsApproved = this.panelists.every(p => p.status === 'Approved');
             const hasManuscript = this.manuscriptFiles.length > 0;
             
-            console.log('✅ Frontend - All panelists approved?', allPanelistsApproved);
-            console.log('📄 Frontend - Has manuscript?', hasManuscript);
-            console.log('🎯 Frontend - Can approve?', allPanelistsApproved && hasManuscript && !this.facultyApproved);
             
             // FIC can approve only if:
             // 1. All panelists have approved (based on block's panelist count)
@@ -215,7 +207,6 @@ export class FICHistoryPage implements OnInit {
       return;
     }
 
-    console.log('🔄 Approving manuscript for group:', this.group?.group_id);
 
     const payload = {
       name: this.currentUserName
@@ -226,7 +217,6 @@ export class FICHistoryPage implements OnInit {
       payload
     ).subscribe({
       next: (response: any) => {
-        console.log('✅ Approval successful:', response);
         alert('✅ Manuscript approved successfully!');
         
         // Update local state
@@ -263,7 +253,6 @@ export class FICHistoryPage implements OnInit {
       return;
     }
 
-    console.log('🔄 Rejecting manuscript for group:', this.group?.group_id);
 
     const payload = {
       name: this.currentUserName,
@@ -275,7 +264,6 @@ export class FICHistoryPage implements OnInit {
       payload
     ).subscribe({
       next: (response: any) => {
-        console.log('✅ Rejection successful:', response);
         alert(`✅ Manuscript rejected successfully!\n\nThe group can now resubmit their work. Panelist approvals have been preserved.`);
         this.bootstrapData();
       },

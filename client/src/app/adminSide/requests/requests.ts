@@ -237,7 +237,6 @@ export class AdminRequests implements OnInit {
 
     this.requestService.approveRequest(this.selectedRequest.request_id, this.uploadedPdfFile).subscribe({
       next: (response) => {
-        console.log('✅ Request approved successfully:', response);
         
         // Update local requests array
         const request = this.requests.find(r => r.request_id === this.selectedRequest!.request_id);
@@ -272,7 +271,6 @@ export class AdminRequests implements OnInit {
 
     this.requestService.rejectRequest(this.selectedRequest.request_id, this.rejectionReason).subscribe({
       next: (response) => {
-        console.log('✅ Request rejected successfully:', response);
         
         // Update local requests array
         const request = this.requests.find(r => r.request_id === this.selectedRequest!.request_id);

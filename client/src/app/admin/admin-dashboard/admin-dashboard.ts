@@ -100,7 +100,6 @@ export class AdminDashboard implements AfterViewInit, OnInit {
     this.isLoading = true;
     this.analyticsService.getDashboardAnalytics(this.selectedPeriod).subscribe({
       next: (data) => {
-        console.log('📊 Dashboard analytics loaded:', data);
         
         // Update stats with formatting
         this.stats = {

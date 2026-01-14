@@ -301,7 +301,6 @@ export class AdminBlock implements OnInit, AfterViewInit {
 
     this.http.post(`${environment.authApiUrl}/blocks`, payload).subscribe({
       next: (response: any) => {
-        console.log('Block created successfully:', response);
         alert('Block created successfully!');
         this.loadBlocks(); // Reload the table
         dialogRef.close();
@@ -362,7 +361,6 @@ export class AdminBlock implements OnInit, AfterViewInit {
 
     this.http.put(`${environment.authApiUrl}/blocks/${this.editRow.block_id}`, payload).subscribe({
       next: (response: any) => {
-        console.log('Block updated successfully:', response);
         alert('Block updated successfully!');
         this.loadBlocks(); // Reload the table
         dialogRef.close();
@@ -383,7 +381,6 @@ export class AdminBlock implements OnInit, AfterViewInit {
 
     this.http.delete(`${environment.authApiUrl}/blocks/${block_id}`).subscribe({
       next: (response: any) => {
-        console.log('Block deleted successfully:', response);
         alert('Block deleted successfully!');
         this.loadBlocks(); // Reload the table
       },

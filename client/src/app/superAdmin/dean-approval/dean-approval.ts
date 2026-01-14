@@ -61,27 +61,21 @@ export class DeanApproval implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('🔍 [Dean Approval] ngOnInit started');
     
     // Subscribe to current user from Auth service
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
-      console.log('👤 [Dean Approval] User from Auth service:', user);
       
       if (user) {
         this.currentUser = user;
         this.currentUserEmail = user.email || user.Email || '';
-        console.log('✅ [Dean Approval] User identified');
-        console.log('📧 [Dean Approval] Email:', this.currentUserEmail);
         
         // Load groups once we have user data
         if (this.currentUserEmail) {
-          console.log('✅ [Dean Approval] Email is valid, calling loadGroups()...');
           this.loadGroups();
         } else {
           console.error('❌ [Dean Approval] Email is empty!');
         }
       } else {
-        console.log('⚠️ [Dean Approval] No user from Auth service (user logged out or not authenticated)');
         // Don't show alert or navigate - let auth guard handle it
       }
     });
@@ -100,19 +94,12 @@ export class DeanApproval implements OnInit, OnDestroy, AfterViewInit {
   }
 
   loadGroups(): void {
-    console.log(`📋 [loadGroups] Starting...`);
-    console.log(`📧 [loadGroups] Email: "${this.currentUserEmail}"`);
-    console.log(`🔗 [loadGroups] API URL: ${environment.authApiUrl}/groups/by-dean`);
     
     this.http.get<any>(`${environment.authApiUrl}/groups/by-dean`, { withCredentials: true })
       .subscribe({
         next: (response) => {
-          console.log('✅ [loadGroups] API Response:', response);
-          console.log('✅ [loadGroups] Response success:', response?.success);
-          console.log('✅ [loadGroups] Response data length:', response?.data?.length);
           
           if (response.success && response.data) {
-            console.log(`📊 [loadGroups] Mapping ${response.data.length} groups...`);
             
             // Map groups to table rows
             const groups: GroupRow[] = response.data.map((g: any) => ({
@@ -126,15 +113,12 @@ export class DeanApproval implements OnInit, OnDestroy, AfterViewInit {
               forApproval: g.forApproval || 0
             }));
 
-            console.log('📊 [loadGroups] Mapped groups:', groups);
             this.dataSource.data = groups;
-            console.log('✅ [loadGroups] DataSource updated');
           } else {
             console.warn('⚠️ [loadGroups] Response format unexpected:', response);
           }
 
           this.loading = false;
-          console.log('✅ [loadGroups] Loading complete');
         },
         error: (error) => {
           console.error('❌ [loadGroups] API Error:', error);
@@ -165,7 +149,6 @@ This action cannot be undone.`;
       return;
     }
 
-    console.log(`🔄 Approving and archiving group: ${group.group_id}`);
 
     const userName = this.getUserName();
 
@@ -176,7 +159,6 @@ This action cannot be undone.`;
       { withCredentials: true }
     ).subscribe({
       next: (response: any) => {
-        console.log('✅ Dean approval and archiving successful:', response);
         
         if (response.archived && response.document_id) {
           alert(`✅ Dean approval recorded and thesis archived successfully!
@@ -220,7 +202,6 @@ Please check the system logs or contact the administrator.`);
       return;
     }
 
-    console.log(`🔄 Dean rejecting group: ${group.group_id}, milestone: ${milestone}`);
 
     const userName = this.getUserName();
 
@@ -230,7 +211,6 @@ Please check the system logs or contact the administrator.`);
       { withCredentials: true }
     ).subscribe({
       next: (response) => {
-        console.log('✅ Group rejected successfully:', response);
         alert(`✅ Group ${group.group_id} rejected. 
 
 The submission will be sent back to the Chairperson and student to fix ${milestone}.`);
