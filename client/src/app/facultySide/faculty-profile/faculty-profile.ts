@@ -116,7 +116,7 @@ export class FacultyProfile implements OnInit {
           },
           error: (error: any) => {
             this.isLoading = false;
-            console.error('Password change error:', error);
+            
             
             let errorMessage = 'An error occurred while changing password.';
             if (error.error?.message) {

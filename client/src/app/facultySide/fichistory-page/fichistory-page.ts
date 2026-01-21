@@ -78,7 +78,7 @@ export class FICHistoryPage implements OnInit {
     const gid = this.groupId;
 
     if (!gid) {
-      console.error('No group ID provided');
+      
       this.loading = false;
       return;
     }
@@ -87,12 +87,12 @@ export class FICHistoryPage implements OnInit {
     // Fetch group from MongoDB API
     this.http.get<any>(`${environment.authApiUrl}/groups/${gid}`).pipe(
       catchError((err) => {
-        console.error('❌ Error fetching group:', err);
+        
         return of(null);
       })
     ).subscribe((response: any) => {
       if (!response) {
-        console.error('Group not found');
+        
         this.loading = false;
         return;
       }
@@ -228,7 +228,7 @@ export class FICHistoryPage implements OnInit {
         this.bootstrapData();
       },
       error: (error) => {
-        console.error('❌ Approval failed:', error);
+        
         const errorMsg = error.error?.error || 'Failed to approve manuscript';
         alert(`❌ ${errorMsg}`);
       }
@@ -268,7 +268,7 @@ export class FICHistoryPage implements OnInit {
         this.bootstrapData();
       },
       error: (error) => {
-        console.error('❌ Rejection failed:', error);
+        
         alert(`❌ Failed to reject manuscript: ${error.error?.error || error.message || 'Unknown error'}`);
       }
     });

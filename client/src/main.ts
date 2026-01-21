@@ -12,4 +12,6 @@ import { environment } from './environments/environment';
 
 // Bootstrap Angular
 bootstrapApplication(App, appConfig)
-  .catch((err) => console.error('❌ Failed to bootstrap Angular:', err));
+  .catch((err) => {
+    // Failed to bootstrap Angular
+  });

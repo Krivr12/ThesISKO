@@ -203,8 +203,8 @@ export class NewSubmission implements OnInit {
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading requirements:', error);
-        console.error('Error details:', error);
+        
+        
         alert('Failed to load document types: ' + error.message);
         this.loading.set(false);
       }
@@ -217,7 +217,7 @@ export class NewSubmission implements OnInit {
     const requirement = this.requirements().find(req => req.document_type === documentType);
     if (requirement) {
     } else {
-      console.warn('No requirements found for document type:', documentType);
+      
     }
   }
 
@@ -254,7 +254,7 @@ export class NewSubmission implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error checking duplicates:', error);
+        
       }
     });
   }
@@ -302,7 +302,7 @@ export class NewSubmission implements OnInit {
         throw new Error('Failed to generate submission ID');
       }
     } catch (error) {
-      console.error('Error generating submission ID from backend:', error);
+      
       // Fallback to local generation
       const now = new Date();
       const year = now.getFullYear();
@@ -365,13 +365,13 @@ export class NewSubmission implements OnInit {
                   resolve({ fileId, s3Key });
                 },
                 error: (error) => {
-                  console.error('S3 upload error:', error);
+                  
                   reject(error);
                 }
               });
             },
             error: (error) => {
-              console.error('Error getting signed URL:', error);
+              
               reject(error);
             }
           });
@@ -400,13 +400,13 @@ export class NewSubmission implements OnInit {
           this.router.navigate(['/thank-you']);
         },
         error: (error) => {
-          console.error('Error creating submission:', error);
+          
           alert(error.error?.error || 'Failed to create submission');
           this.submitting.set(false);
         }
       });
     } catch (error) {
-      console.error('Error uploading files:', error);
+      
       alert('Failed to upload files. Please try again.');
       this.submitting.set(false);
     }

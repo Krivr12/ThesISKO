@@ -72,7 +72,7 @@ export class AboutUs {
         this.isSubmitting = false;
         const errorMsg = error.error?.error || error.error?.message || 'Failed to send message. Please try again later.';
         this.showMessage(errorMsg, 'error');
-        console.error('Contact form submission error:', error);
+        
       }
     });
   }

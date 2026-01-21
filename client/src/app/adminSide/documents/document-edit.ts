@@ -134,7 +134,7 @@ export class DocumentEdit implements OnInit {
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading document:', error);
+        
         alert('Failed to load document');
         this.router.navigate(['/adminSide/documents']);
         this.loading.set(false);
@@ -186,7 +186,7 @@ export class DocumentEdit implements OnInit {
           });
           
         } else {
-          console.warn(`  ⚠️ File entry ${fileId} missing file_key/s3_key:`, fileData);
+          
         }
       });
     } else {
@@ -366,7 +366,7 @@ export class DocumentEdit implements OnInit {
           this.router.navigate(['/adminSide/documents']);
         },
         error: (error) => {
-          console.error('❌ Error updating document:', error);
+          
           alert('Failed to update document. Please try again.');
           this.saving.set(false);
         }
@@ -379,7 +379,7 @@ export class DocumentEdit implements OnInit {
           this.router.navigate(['/adminSide/documents']);
         },
         error: (error) => {
-          console.error('❌ Error updating document:', error);
+          
           alert('Failed to update document. Please try again.');
           this.saving.set(false);
         }
@@ -414,7 +414,7 @@ export class DocumentEdit implements OnInit {
           this.pdfLoading.set(false);
         },
         error: (error) => {
-          console.error('Error getting signed URL:', error);
+          
           this.pdfError.set('Failed to load document. The file may be unavailable or access has expired.');
           this.pdfLoading.set(false);
         }
@@ -460,7 +460,7 @@ export class DocumentEdit implements OnInit {
           document.body.removeChild(link);
         },
         error: (error) => {
-          console.error('Error downloading document:', error);
+          
           alert('Failed to download document. Please try again.');
         }
       });

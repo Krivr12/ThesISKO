@@ -99,12 +99,12 @@ export class AdminChairpersonDetails implements OnInit {
             this.group.set(response.data);
             this.extractDocuments(response.data);
           } else {
-            console.warn('⚠️ [Chairperson Details] Response format unexpected:', response);
+            
           }
           this.loading.set(false);
         },
         error: (error) => {
-          console.error('❌ [Chairperson Details] Failed to load group details:', error);
+          
           alert('Failed to load group details.');
           this.loading.set(false);
         }
@@ -174,7 +174,7 @@ export class AdminChairpersonDetails implements OnInit {
         this.pdfLoading.set(false);
       },
       error: (error) => {
-        console.error('Error getting signed URL:', error);
+        
         this.pdfError.set('Failed to load document. The file may be unavailable.');
         this.pdfLoading.set(false);
       }
@@ -196,7 +196,7 @@ export class AdminChairpersonDetails implements OnInit {
         document.body.removeChild(link);
       },
       error: (error) => {
-        console.error('Error downloading document:', error);
+        
         alert('Failed to download document.');
       }
     });
@@ -229,7 +229,7 @@ export class AdminChairpersonDetails implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Approval error:', error);
+        
         const errorMsg = error.error?.message || 'Failed to approve group.';
         alert(`❌ Error: ${errorMsg}`);
       }
@@ -269,7 +269,7 @@ export class AdminChairpersonDetails implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Rejection error:', error);
+        
         const errorMsg = error.error?.message || 'Failed to reject group.';
         alert(`❌ Error: ${errorMsg}`);
       }

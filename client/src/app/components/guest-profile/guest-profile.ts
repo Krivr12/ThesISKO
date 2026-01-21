@@ -82,7 +82,7 @@ export class GuestProfile implements OnInit {
           });
         },
         error: (error) => {
-          console.error('Error loading user data:', error);
+          
           // Fallback to user data from auth service
           this.profileForm.patchValue({
             firstName: this.currentUser?.Firstname,
@@ -132,7 +132,7 @@ export class GuestProfile implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Error updating profile:', error);
+          
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

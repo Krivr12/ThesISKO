@@ -89,7 +89,6 @@ export class LoginAdmin {
               }
             } else {
               // Cookie verification failed - cookie may not have been set
-              console.error('❌ Cookie verification failed after login');
               this.messageService.add({
                 severity: 'error',
                 summary: 'Authentication Error',
@@ -101,7 +100,6 @@ export class LoginAdmin {
             }
           } catch (error) {
             // Error during cookie verification
-            console.error('❌ Error verifying cookie after login:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Verification Error',
@@ -122,8 +120,6 @@ export class LoginAdmin {
       },
       error: (error: any) => {
         // Login request failed
-        console.error('❌ Login error:', error);
-        
         let errorMessage = 'Something went wrong';
         if (error.status === 401) {
           errorMessage = 'Invalid email or password';

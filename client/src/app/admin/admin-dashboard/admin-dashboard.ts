@@ -137,7 +137,7 @@ export class AdminDashboard implements AfterViewInit, OnInit {
         }, 100);
       },
       error: (error) => {
-        console.error('❌ Error loading dashboard analytics:', error);
+        
         this.isLoading = false;
       }
     });

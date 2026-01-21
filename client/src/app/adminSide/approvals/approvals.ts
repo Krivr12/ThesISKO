@@ -186,6 +186,19 @@ export class Approvals implements OnInit {
       return;
     }
 
+    // Faculty users (role_id === 3) don't have access to pending approvals endpoints
+    // This is a defensive check (guard should already block them from this page)
+    if (user.role_id === 3) {
+      this.submissions.set([]);
+      return;
+    }
+
+    // Only make API call if user is dean or chairperson
+    if (!this.isDean() && !this.isChairperson()) {
+      this.submissions.set([]);
+      return;
+    }
+
     // Use the role-specific API endpoints (email removed from URL - comes from auth cookie)
     const endpoint = this.isDean() 
       ? `${this.apiUrl}/pending-dean`

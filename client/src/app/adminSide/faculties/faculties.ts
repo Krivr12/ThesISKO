@@ -101,7 +101,7 @@ export class AdminFaculties implements OnInit, AfterViewInit {
           this.dataSource.data = response.data || [];
         },
         error: (error) => {
-          console.error('Error loading faculties:', error);
+          // Error loading faculties
         }
       });
   }
@@ -143,7 +143,6 @@ export class AdminFaculties implements OnInit, AfterViewInit {
         this.closeAddDialog();
       },
       error: (error) => {
-        console.error('Error creating faculty:', error);
         const errorMessage = error.error?.error || 'Failed to create faculty account';
         alert(`Error: ${errorMessage}`);
       }
@@ -168,7 +167,6 @@ export class AdminFaculties implements OnInit, AfterViewInit {
         this.closeEditDialog();
       },
       error: (error) => {
-        console.error('Error updating user:', error);
         const errorMessage = error.error?.error || 'Failed to update user';
         alert(`Error: ${errorMessage}`);
       }
@@ -250,7 +248,6 @@ export class AdminFaculties implements OnInit, AfterViewInit {
           this.closeDeleteDialog();
         },
         error: (error) => {
-          console.error('Error deleting user:', error);
           const errorMessage = error.error?.error || 'Failed to delete user';
           alert(`Error: ${errorMessage}`);
         }
