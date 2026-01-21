@@ -117,7 +117,6 @@ export class SearchResult implements OnInit, AfterViewInit {
         this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
-        console.error('❌ [LOAD-THESIS] Error loading thesis details:', error);
         this.isLoading = false; // Hide spinner even on error
         this.router.navigate(['/search-thesis']);
       }
@@ -374,7 +373,7 @@ export class SearchResult implements OnInit, AfterViewInit {
     
     // If no departments found and we have a program, try to find a close match
     if (result.length === 0 && this.studentProgram) {
-      console.warn('⚠️ No departments found for program:', this.studentProgram);
+      // No departments found for program
     }
     
     return result;
@@ -395,9 +394,9 @@ export class SearchResult implements OnInit, AfterViewInit {
       this.studentDepartment = '';
     }
     
-    // If no departments are available, log a warning
+    // If no departments are available
     if (validDepartments.length === 0) {
-      console.warn('⚠️ No departments available for program:', this.studentProgram);
+      // No departments available for program
     }
   }
 
@@ -431,8 +430,6 @@ export class SearchResult implements OnInit, AfterViewInit {
       // Show login required dialog
       if (this.dlgLoginRequired) {
         this.dialog.open(this.dlgLoginRequired, { width: '500px', autoFocus: false });
-      } else {
-        console.error('❌ [REQUEST-DIALOG] Login required dialog template not available');
       }
       return;
     }
@@ -448,14 +445,12 @@ export class SearchResult implements OnInit, AfterViewInit {
       if (isPUPMember) {
         // Old PUPian form - Step 1
         if (!this.dlgOldPupianStep1) {
-          console.error('❌ [REQUEST-DIALOG] Old PUPian Step 1 dialog template not available');
           return;
         }
         this.dialog.open(this.dlgOldPupianStep1, { width: '600px', disableClose: true });
       } else {
         // Old Guest form - Step 1
         if (!this.dlgOldGuestStep1) {
-          console.error('❌ [REQUEST-DIALOG] Old Guest Step 1 dialog template not available');
           return;
         }
         // Pre-fill email from logged-in user
@@ -467,14 +462,12 @@ export class SearchResult implements OnInit, AfterViewInit {
       if (isPUPMember) {
         // PUPian form - single dialog
         if (!this.dlgStudent) {
-          console.error('❌ [REQUEST-DIALOG] Student dialog template not available');
           return;
         }
         this.dialog.open(this.dlgStudent, { width: '600px', disableClose: true });
       } else {
         // Guest form - multi-step, start with Step 1
         if (!this.dlgGuest) {
-          console.error('❌ [REQUEST-DIALOG] Guest dialog template not available');
           return;
         }
         // Pre-fill email from logged-in user
@@ -540,7 +533,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   openGuestStep2(prevDialogRef: any): void {
     prevDialogRef.close();
     if (!this.dlgGuestStep2) {
-      console.error('❌ Guest Step 2 dialog template not available');
       return;
     }
     this.dialog.open(this.dlgGuestStep2, { width: '600px', disableClose: true });
@@ -549,7 +541,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   openGuestStep3(prevDialogRef: any): void {
     prevDialogRef.close();
     if (!this.dlgGuestStep3) {
-      console.error('❌ Guest Step 3 dialog template not available');
       return;
     }
     this.dialog.open(this.dlgGuestStep3, { width: '600px', disableClose: true });
@@ -558,7 +549,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   openGuestStep4(prevDialogRef: any): void {
     prevDialogRef.close();
     if (!this.dlgGuestStep4) {
-      console.error('❌ Guest Step 4 dialog template not available');
       return;
     }
     this.dialog.open(this.dlgGuestStep4, { width: '720px', autoFocus: false, restoreFocus: false });
@@ -568,7 +558,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   openOldPupianStep2(prevDialogRef: any): void {
     prevDialogRef.close();
     if (!this.dlgOldPupianStep2) {
-      console.error('❌ Old PUPian Step 2 dialog template not available');
       return;
     }
     this.dialog.open(this.dlgOldPupianStep2, { width: '600px', disableClose: true });
@@ -576,8 +565,7 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   openOldPupianStep3(prevDialogRef: any): void {
     prevDialogRef.close();
-    if (!this.dlgOldPupianStep3) {
-      console.error('❌ Old PUPian Step 3 dialog template not available');
+    if (!this.dlgOldPupianStep2) {
       return;
     }
     this.dialog.open(this.dlgOldPupianStep3, { width: '720px', autoFocus: false, restoreFocus: false });
@@ -586,7 +574,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   openOldGuestStep2(prevDialogRef: any): void {
     prevDialogRef.close();
     if (!this.dlgOldGuestStep2) {
-      console.error('❌ Old Guest Step 2 dialog template not available');
       return;
     }
     this.dialog.open(this.dlgOldGuestStep2, { width: '600px', disableClose: true });
@@ -595,7 +582,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   openOldGuestStep3(prevDialogRef: any): void {
     prevDialogRef.close();
     if (!this.dlgOldGuestStep3) {
-      console.error('❌ Old Guest Step 3 dialog template not available');
       return;
     }
     this.dialog.open(this.dlgOldGuestStep3, { width: '600px', disableClose: true });
@@ -604,7 +590,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   openOldGuestStep4(prevDialogRef: any): void {
     prevDialogRef.close();
     if (!this.dlgOldGuestStep4) {
-      console.error('❌ Old Guest Step 4 dialog template not available');
       return;
     }
     this.dialog.open(this.dlgOldGuestStep4, { width: '720px', autoFocus: false, restoreFocus: false });
@@ -692,7 +677,6 @@ export class SearchResult implements OnInit, AfterViewInit {
     this.termsAccepted = false; // reset each time
     
     if (!this.dlgTerms) {
-      console.error('❌ [TERMS] Terms dialog template not available');
       alert('Error: Terms dialog not available. Please try again.');
       return;
     }
@@ -737,7 +721,6 @@ export class SearchResult implements OnInit, AfterViewInit {
     
     // Validate that we have the required data
     if (!this.thesis?._id) {
-      console.error('❌ [FINALIZE] No thesis ID available');
       alert('Error: Document information not available. Please try again.');
       return;
     }
@@ -806,23 +789,6 @@ export class SearchResult implements OnInit, AfterViewInit {
       ...structuredData
     };
 
-    // Debug: Log all required fields to help identify missing ones
-    console.log('[FINALIZE] Request payload:', {
-      document_id: requestPayload.document_id,
-      user_type: requestPayload.user_type,
-      email: requestPayload.email,
-      purpose: requestPayload.purpose,
-      purposeLength: requestPayload.purpose?.length || 0,
-      chaptersRequested: requestPayload.chaptersRequested,
-      chaptersLength: requestPayload.chaptersRequested?.length || 0,
-      hasAllRequired: !!(
-        requestPayload.document_id &&
-        requestPayload.user_type &&
-        requestPayload.email &&
-        requestPayload.purpose &&
-        Array.isArray(requestPayload.chaptersRequested)
-      )
-    });
 
 
     // Call backend API
@@ -837,7 +803,6 @@ export class SearchResult implements OnInit, AfterViewInit {
         this.resetRequestDialog();
       },
       error: (error) => {
-        console.error('❌ [FINALIZE] Error response:', error);
         this.isSubmittingRequest = false;
         
         // Handle different types of errors
@@ -1086,7 +1051,6 @@ export class SearchResult implements OnInit, AfterViewInit {
           this.copiedFormat = '';
         }, 2000);
       }).catch(err => {
-        console.error('❌ Clipboard API failed:', err);
         this.fallbackCopyTextToClipboard(apaCitation);
       });
     } else {
@@ -1179,7 +1143,6 @@ export class SearchResult implements OnInit, AfterViewInit {
           this.copiedFormat = '';
         }, 2000);
       }).catch(err => {
-        console.error('❌ Clipboard API failed:', err);
         this.fallbackCopyTextToClipboard(mlaCitation);
       });
     } else {
@@ -1211,11 +1174,9 @@ export class SearchResult implements OnInit, AfterViewInit {
           this.copiedFormat = '';
         }, 2000);
       } else {
-        console.error('❌ Fallback copy failed');
         alert(`Citation (copy manually):\n\n${text}`);
       }
     } catch (err) {
-      console.error('❌ Fallback copy error:', err);
       alert(`Citation (copy manually):\n\n${text}`);
     }
     

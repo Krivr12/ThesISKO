@@ -105,7 +105,9 @@ export class ForPanellanding implements OnInit, AfterViewInit {
 
         this.recalcStats(); // initial stats
       },
-      error: (err) => console.error('Could not load assets/groups.json', err),
+      error: (err) => {
+        // Could not load assets/groups.json
+      },
     });
   }
 

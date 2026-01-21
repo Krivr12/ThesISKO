@@ -125,7 +125,7 @@ export class PanelistApprovalPage implements OnInit {
           }
         },
         error: (err) => {
-          console.error('❌ Error fetching group:', err);
+          
           // swallow; empty state will show
         }
       });
@@ -307,7 +307,7 @@ export class PanelistApprovalPage implements OnInit {
           this.router.navigate(['/faculty-home']); // Navigate back to faculty home
         },
         error: (error) => {
-          console.error('❌ Error recording approval:', error);
+          
           alert('Failed to record approval. Please try again.');
         }
       });
@@ -362,7 +362,7 @@ export class PanelistApprovalPage implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error getting signed URL:', error);
+        
         this.pdfError = 'Failed to load document. Please try again.';
         this.pdfLoading = false;
       }

@@ -72,7 +72,7 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
         if (this.currentUserEmail) {
           this.loadGroups();
         } else {
-          console.error('❌ [Chairperson Approval] Email is empty!');
+          
         }
       } else {
         // Don't show alert or navigate - let auth guard handle it
@@ -112,15 +112,15 @@ export class AdminChairpersonApproval implements OnInit, OnDestroy, AfterViewIni
 
             this.dataSource.data = groups;
           } else {
-            console.warn('⚠️ [loadGroups] Response format unexpected:', response);
+            
           }
 
           this.loading = false;
         },
         error: (error) => {
-          console.error('❌ [loadGroups] API Error:', error);
-          console.error('❌ [loadGroups] Error status:', error?.status);
-          console.error('❌ [loadGroups] Error message:', error?.message);
+          
+          
+          
           alert('Failed to load groups. Please try again.');
           this.loading = false;
         }
@@ -156,7 +156,7 @@ The group will then be forwarded to the Dean for final approval.`;
         this.loadGroups(); // Reload to update the list
       },
       error: (error) => {
-        console.error('❌ Error approving group:', error);
+        
         const errorMsg = error.error?.error || 'Failed to approve group. Please try again.';
         alert(`❌ Error: ${errorMsg}`);
       }
@@ -192,7 +192,7 @@ The group will then be forwarded to the Dean for final approval.`;
         this.loadGroups(); // Reload to update the list
       },
       error: (error) => {
-        console.error('❌ Error rejecting group:', error);
+        
         const errorMsg = error.error?.error || 'Failed to reject group. Please try again.';
         alert(`❌ Error: ${errorMsg}`);
       }
@@ -206,7 +206,7 @@ The group will then be forwarded to the Dean for final approval.`;
       return fullName;
     }
     
-    console.error('❌ [getUserName] No currentUser available');
+    
     return 'Unknown User';
   }
 

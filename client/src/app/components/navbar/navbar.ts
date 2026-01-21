@@ -128,7 +128,7 @@ export class AuthService {
         }
       } else {
         // Other errors might be network issues or server problems
-        console.warn('Auth check failed:', error?.message || error);
+        
         // On network error, keep sessionStorage data
         try {
           const userData = sessionStorage.getItem('currentUser');
@@ -160,7 +160,7 @@ export class AuthService {
         withCredentials: true
       }).toPromise();
     } catch (error) {
-      console.error('Logout error:', error);
+      
     } finally {
       // Always clear local state
       this.userSubject.next(null);
@@ -229,7 +229,7 @@ export class AuthService {
       sessionStorage.clear();
       
     } catch (error) {
-      console.error('Error during browser close logout:', error);
+      
     }
   }
 
@@ -382,7 +382,7 @@ export class Navbar implements OnInit {
     const currentUser = this.auth.currentUser;
     
     if (!currentUser) {
-      console.error('No current user found, redirecting to login');
+      
       this.router.navigate(['/login']);
       return;
     }
@@ -409,7 +409,7 @@ export class Navbar implements OnInit {
       this.router.navigate(['/student-profile']);
     } else {
       // Fallback: try student profile for any other user type
-      console.warn('Unknown user role, defaulting to student profile:', { userStatus, userRoleId });
+      
       this.router.navigate(['/student-profile']);
     }
   }
@@ -557,16 +557,16 @@ export class Navbar implements OnInit {
     this.router.navigateByUrl('/about-us').then(success => {
       if (success) {
       } else {
-        console.error('Navigation to /about-us failed - guard may have blocked it');
+        
         // If navigation fails, try again after a short delay (in case user is still loading)
         setTimeout(() => {
           this.router.navigateByUrl('/about-us').catch(err => {
-            console.error('Retry navigation failed:', err);
+            
           });
         }, 100);
       }
     }).catch(error => {
-      console.error('Navigation error:', error);
+      
     });
   }
 
@@ -580,10 +580,10 @@ export class Navbar implements OnInit {
     this.router.navigate(['/login'], { queryParams: { type: loginType } }).then(success => {
       if (success) {
       } else {
-        console.error('Navigation to /login failed');
+        
       }
     }).catch(error => {
-      console.error('Navigation error:', error);
+      
     });
   }
 
@@ -595,16 +595,16 @@ export class Navbar implements OnInit {
     this.router.navigateByUrl('/search-thesis').then(success => {
       if (success) {
       } else {
-        console.error('Navigation to /search-thesis failed - guard may have blocked it');
+        
         // If navigation fails, try again after a short delay (in case user is still loading)
         setTimeout(() => {
           this.router.navigateByUrl('/search-thesis').catch(err => {
-            console.error('Retry navigation failed:', err);
+            
           });
         }, 100);
       }
     }).catch(error => {
-      console.error('Navigation error:', error);
+      
     });
   }
 
@@ -614,10 +614,10 @@ export class Navbar implements OnInit {
     this.router.navigate(['/home']).then(success => {
       if (success) {
       } else {
-        console.error('Navigation to /home failed');
+        
       }
     }).catch(error => {
-      console.error('Navigation error:', error);
+      
     });
   }
 

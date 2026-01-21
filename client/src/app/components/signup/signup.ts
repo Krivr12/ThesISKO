@@ -197,7 +197,7 @@ export class Signup {
         this.showVerificationModal = true;
         },
         error: (err) => {
-          console.error(err);
+          
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

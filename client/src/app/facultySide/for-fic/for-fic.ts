@@ -118,7 +118,7 @@ export class ForFIC implements OnInit, AfterViewInit {
         const user = JSON.parse(userStr);
         this.currentUserEmail = user.email || user.Email || '';
       } catch (e) {
-        console.error('Error parsing user data:', e);
+        
       }
     }
 
@@ -126,12 +126,12 @@ export class ForFIC implements OnInit, AfterViewInit {
     this.block_id = this.route.snapshot.queryParamMap.get('block') || '';
 
     if (!this.currentUserEmail) {
-      console.error('No user email found in session');
+      
       return;
     }
 
     if (!this.block_id) {
-      console.error('No block_id provided in query params');
+      
       return;
     }
 
@@ -143,7 +143,7 @@ export class ForFIC implements OnInit, AfterViewInit {
       next: (response) => {
 
         if (!Array.isArray(response)) {
-          console.error('Invalid response format');
+          
           return;
         }
 
@@ -243,7 +243,7 @@ export class ForFIC implements OnInit, AfterViewInit {
         };
       },
       error: (err) => {
-        console.error('❌ Error fetching FIC groups:', err);
+        
       }
     });
   }
@@ -362,7 +362,7 @@ Group ID: ${response.group.group_id}
         ref.close();
       },
       error: (err) => {
-        console.error('❌ Error creating group:', err);
+        
         const errorMessage = err.error?.error || 'Failed to create group';
         alert(`Error: ${errorMessage}`);
       }

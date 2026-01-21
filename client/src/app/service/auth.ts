@@ -184,12 +184,9 @@ export class Auth {
           // Set user immediately so UI doesn't show logged out state
           // This is especially important for guests (role_id = 1) to prevent redirects
           this.currentUserSubject.next(user);
-        } else {
-          console.warn('Invalid user data in sessionStorage, will verify with server');
         }
       } catch (parseError) {
         // Invalid sessionStorage data, will be cleared below
-        console.warn('Invalid sessionStorage data, will verify with server');
       }
     }
 
@@ -231,7 +228,6 @@ export class Auth {
       // Network error or other unexpected error during verification
       // Don't clear sessionStorage on network errors - keep existing user data
       // This prevents users from being logged out due to temporary network issues
-      console.warn('Cookie verification failed (network error), keeping existing session:', error.message);
       
       // If we have sessionStorage data, keep it
       if (userData) {

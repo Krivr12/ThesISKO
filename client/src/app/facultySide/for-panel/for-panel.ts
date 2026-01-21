@@ -101,7 +101,7 @@ export class ForPanel implements OnInit, AfterViewInit {
         const user = JSON.parse(userStr);
         this.currentUserEmail = user.email || user.Email || '';
       } catch (e) {
-        console.error('Error parsing user data:', e);
+        
       }
     }
 
@@ -109,12 +109,12 @@ export class ForPanel implements OnInit, AfterViewInit {
     this.block_id = this.route.snapshot.queryParamMap.get('block') || '';
 
     if (!this.currentUserEmail) {
-      console.error('No user email found in session');
+      
       return;
     }
 
     if (!this.block_id) {
-      console.error('No block_id provided in query params');
+      
       return;
     }
 
@@ -126,7 +126,7 @@ export class ForPanel implements OnInit, AfterViewInit {
       next: (response) => {
 
         if (!Array.isArray(response)) {
-          console.error('Invalid response format');
+          
           return;
         }
 
@@ -226,7 +226,7 @@ export class ForPanel implements OnInit, AfterViewInit {
         };
       },
       error: (err) => {
-        console.error('❌ Error fetching panelist groups:', err);
+        
       }
     });
   }

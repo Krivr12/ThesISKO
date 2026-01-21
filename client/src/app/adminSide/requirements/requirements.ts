@@ -117,7 +117,7 @@ export class Requirements implements OnInit {
           this.loading.set(false);
         },
         error: (error) => {
-          console.error('Error loading requirements:', error);
+          
           alert('Failed to load requirements');
           this.loading.set(false);
         }
@@ -307,7 +307,7 @@ export class Requirements implements OnInit {
           this.loadRequirements();
         },
         error: (error) => {
-          console.error('Error updating requirements:', error);
+          
           alert(error.error?.message || 'Failed to update requirements');
           this.loading.set(false);
         }
@@ -328,7 +328,7 @@ export class Requirements implements OnInit {
           this.loadRequirements();
         },
         error: (error) => {
-          console.error('Error creating requirements:', error);
+          
           alert(error.error?.message || 'Failed to create requirements');
           this.loading.set(false);
         }
@@ -349,7 +349,7 @@ export class Requirements implements OnInit {
           this.loadRequirements();
         },
         error: (error) => {
-          console.error('Error deleting requirements:', error);
+          
           alert(error.error?.message || 'Failed to delete requirements');
           this.loading.set(false);
         }

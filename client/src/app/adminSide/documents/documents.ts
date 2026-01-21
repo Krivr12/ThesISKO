@@ -105,7 +105,7 @@ export class AdminDocuments implements OnInit {
         this.filterAndSortDocuments();
       },
       error: (error) => {
-        console.error('Error loading records:', error);
+        
         // Fallback to placeholder data if API fails
         this.documents = this.getPlaceholderData();
         this.filterAndSortDocuments();
@@ -189,7 +189,7 @@ export class AdminDocuments implements OnInit {
           this.pdfLoading = false;
         },
         error: (error) => {
-          console.error('Error getting signed URL:', error);
+          
           this.pdfError = 'Failed to load document. The file may be unavailable or access has expired.';
           this.pdfLoading = false;
         }
@@ -230,7 +230,7 @@ export class AdminDocuments implements OnInit {
           document.body.removeChild(link);
         },
         error: (error) => {
-          console.error('Error downloading document:', error);
+          
           alert('Failed to download document. Please try again.');
         }
       });
@@ -322,7 +322,7 @@ export class AdminDocuments implements OnInit {
         this.filterAndSortDocuments();
       },
       error: (error) => {
-        console.error('❌ Error deleting document:', error);
+        
         alert('Failed to delete document. Please try again.');
         this.closeDeleteModal();
       }
@@ -522,7 +522,7 @@ export class AdminDocuments implements OnInit {
           alert('Document updated successfully!');
         },
         error: (error) => {
-          console.error('❌ Error updating document:', error);
+          
           alert('Failed to update document. Please try again.');
           this.closeConfirmUpdateModal();
         }
@@ -548,7 +548,7 @@ export class AdminDocuments implements OnInit {
           alert('Document updated successfully!');
         },
         error: (error) => {
-          console.error('❌ Error updating document:', error);
+          
           alert('Failed to update document. Please try again.');
           this.closeConfirmUpdateModal();
         }
