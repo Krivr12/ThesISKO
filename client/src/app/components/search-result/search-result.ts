@@ -266,12 +266,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   // PUPian: email (pre-filled), program, department, role, chapters, purpose (min 24 chars)
   get studentFormValid(): boolean {
     const valid = this.chaptersValid && this.purposeValid24 && !!this.studentProgram && !!this.studentDepartment && !!this.pupianRole;
-      chaptersValid: this.chaptersValid,
-      purposeValid24: this.purposeValid24,
-      studentProgram: this.studentProgram,
-      studentDepartment: this.studentDepartment,
-      pupianRole: this.pupianRole
-    });
     return valid;
   }
 
@@ -376,12 +370,6 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   // Get filtered department options based on selected program (method instead of getter)
   getFilteredDepartmentOptions(): {value: string, label: string}[] {
-      studentProgram: this.studentProgram,
-      hasMapping: !!this.programToDepartments[this.studentProgram],
-      availablePrograms: Object.keys(this.programToDepartments),
-      resultLength: (this.programToDepartments[this.studentProgram] || []).length
-    });
-    
     const result = this.programToDepartments[this.studentProgram] || [];
     
     // If no departments found and we have a program, try to find a close match
@@ -423,14 +411,6 @@ export class SearchResult implements OnInit, AfterViewInit {
     const valid = this.chaptersValid && this.purposeValid &&
            this.isGmail(this.requestEmail) &&
            !!this.guestCountry && !!this.guestCity && !!this.guestSchool;
-      chaptersValid: this.chaptersValid,
-      purposeValid: this.purposeValid,
-      isGmail: this.isGmail(this.requestEmail),
-      requestEmail: this.requestEmail,
-      guestCountry: this.guestCountry,
-      guestCity: this.guestCity,
-      guestSchool: this.guestSchool
-    });
     return valid;
   }
   private get purposeValid(): boolean {
@@ -827,6 +807,7 @@ export class SearchResult implements OnInit, AfterViewInit {
     };
 
     // Debug: Log all required fields to help identify missing ones
+    console.log('[FINALIZE] Request payload:', {
       document_id: requestPayload.document_id,
       user_type: requestPayload.user_type,
       email: requestPayload.email,

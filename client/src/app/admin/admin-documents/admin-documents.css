@@ -342,26 +342,40 @@
     margin: 0;
 }
 
+/* --- UPDATED ACTION BUTTON STYLES --- */
 .modal-actions {
     display: flex;
-    justify-content: center;
-    gap: 1rem;
+    justify-content: center; /* Horizontally centers the buttons */
+    align-items: center;
+    gap: 1.5rem;             /* Space between buttons */
     padding: 0 2rem 2rem 2rem;
 }
 
 .modal-btn {
-    padding: 0.75rem 2.5rem;
+    /* Fixed dimensions to ensure equal size */
+    width: 140px;
+    height: 48px;
+    
+    /* Center text inside the button */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     border-radius: 0.5rem;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    border: none;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    
+    /* Set a transparent border base to prevent layout shifts */
+    border: 2px solid transparent; 
 }
 
 .modal-btn.confirm-btn {
-    background-color: #800000;
-    color: white;
+    background-color: #ffffff;
+    color: #800000;
+    border: 2px solid #800000;
+    padding: calc(0.75rem - 2px) calc(2.5rem - 2px);
 }
 
 .modal-btn.confirm-btn:hover {
@@ -371,13 +385,13 @@
 .modal-btn.cancel-btn {
     background-color: white;
     color: #800000;
-    border: 2px solid #800000;
-    padding: calc(0.75rem - 2px) calc(2.5rem - 2px);
+    border-color: #800000; /* Visible border for cancel */
 }
 
 .modal-btn.cancel-btn:hover {
     background-color: #fef2f2;
 }
+/* ------------------------------------ */
 
 /* Reject Modal Specific Styles */
 .reject-modal .modal-body {
@@ -413,6 +427,7 @@
     resize: vertical;
     font-family: inherit;
     font-size: 1rem;
+    box-sizing: border-box; /* Ensures padding doesn't break width */
 }
 
 .reject-modal .rejection-form textarea:focus {

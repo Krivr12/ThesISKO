@@ -264,7 +264,7 @@ router.put('/faculty/all-roles/:id', async (req, res) => {
   }
 });
 
-// DELETE /admin/faculty/:id - Delete faculty member
+// DELETE /admin/faculty/:id - Delete faculty member (role_id = 3 only)
 router.delete('/faculty/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -286,6 +286,31 @@ router.delete('/faculty/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting faculty member:', error);
     res.status(500).json({ error: 'Failed to delete faculty member' });
+  }
+});
+
+// DELETE /admin/faculty/all-roles/:id - Delete user with any role (3, 4, 5)
+router.delete('/faculty/all-roles/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM users_info WHERE user_id = $1 AND role_id IN (3, 4, 5)',
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found or cannot be deleted' });
+    }
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
   }
 });
 

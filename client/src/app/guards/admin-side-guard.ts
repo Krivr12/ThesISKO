@@ -6,11 +6,11 @@ import { from } from 'rxjs';
 import { ConfirmationService } from 'primeng/api';
 
 /**
- * Guard for adminSide routes (accessible by both chairperson and dean)
+ * Guard for adminSide routes (accessible by faculty, chairperson, and dean)
  * 
  * Authorization Requirements:
  * - User must be logged in (valid authentication cookie)
- * - User must have role_id = 4 (Chairperson) OR role_id = 5 (Dean)
+ * - User must have role_id = 3 (Faculty) OR role_id = 4 (Chairperson) OR role_id = 5 (Dean)
  * 
  * Security Flow:
  * 1. First verifies authentication cookie with server via /auth/me
@@ -46,9 +46,19 @@ export const adminSideGuard: CanActivateFn = (route, state) => {
             return false;
           }
 
-          // Check if user has admin role (chairperson or dean)
-          // role_id 4 = chairperson, role_id 5 = dean
-          if (user.role_id === 4 || user.role_id === 5) {
+          // Check if user has admin role (faculty, chairperson, or dean)
+          // role_id 3 = faculty, role_id 4 = chairperson, role_id 5 = dean
+          if (user.role_id === 3 || user.role_id === 4 || user.role_id === 5) {
+            // Faculty (role_id = 3) can only access Dashboard, Documents, and Requests
+            if (user.role_id === 3) {
+              const allowedRoutes = ['/adminSide/dashboard', '/adminSide/documents', '/adminSide/requests'];
+              const isAllowed = allowedRoutes.some(route => state.url === route || state.url.startsWith(route + '/'));
+              if (!isAllowed) {
+                console.warn(`🔒 adminSideGuard: Faculty attempted to access restricted route: ${state.url}`);
+                router.navigate(['/adminSide/dashboard']);
+                return false;
+              }
+            }
             return true;
           }
 

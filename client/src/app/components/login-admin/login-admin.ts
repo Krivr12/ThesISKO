@@ -80,8 +80,8 @@ export class LoginAdmin {
               });
               
               // Redirect based on role - NEW UNIFIED ADMINSIDE
-              if (response.user.role_id === 4 || response.user.role_id === 5) {
-                // Chairperson (4) or Dean (5) → Unified AdminSide Dashboard
+              if (response.user.role_id === 3 || response.user.role_id === 4 || response.user.role_id === 5) {
+                // Faculty (3), Chairperson (4) or Dean (5) → Unified AdminSide Dashboard
                 this.router.navigate(['/adminSide/dashboard']);
               } else {
                 // Other roles - redirect to home

@@ -89,6 +89,25 @@
         </div>
       </div>
   
+      <!-- ================== Delete Confirmation Dialog ================== -->
+      <div class="modal-overlay" *ngIf="isDeleteDialogOpen">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Delete User</h3>
+            <button type="button" class="modal-close-btn" (click)="closeDeleteDialog()" aria-label="Close">×</button>
+          </div>
+
+          <div class="modal-body">
+            <p>Are you sure you want to delete <strong>{{ facultyToDelete?.firstname }} {{ facultyToDelete?.lastname }}</strong>?</p>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="modal-btn cancel-btn" (click)="closeDeleteDialog()">Cancel</button>
+            <button type="button" class="modal-btn confirm-btn" (click)="deleteFaculty()">Yes</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ================== Edit Faculty Dialog ================== -->
       <div class="modal-overlay" *ngIf="isEditDialogOpen">
         <div class="modal-content">
@@ -193,6 +212,9 @@
                                 <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
                             </svg>
                             Edit
+                        </button>
+                        <button class="delete-btn" (click)="openDeleteDialog(row)" aria-label="Delete">
+                            <mat-icon>delete</mat-icon>
                         </button>
                     </div>
                 </div>

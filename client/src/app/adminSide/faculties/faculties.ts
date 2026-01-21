@@ -54,6 +54,8 @@ export class AdminFaculties implements OnInit, AfterViewInit {
   // Dialog state
   isAddDialogOpen = false;
   isEditDialogOpen = false;
+  isDeleteDialogOpen = false;
+  facultyToDelete: Faculty | null = null;
   
   // Form data
   newFaculty: Faculty = {
@@ -220,5 +222,38 @@ export class AdminFaculties implements OnInit, AfterViewInit {
   goBack(): void {
     // This method is referenced in the template but not implemented
     // You can add navigation logic here if needed
+  }
+
+  openDeleteDialog(row: Faculty): void {
+    this.facultyToDelete = row;
+    this.isDeleteDialogOpen = true;
+  }
+
+  closeDeleteDialog(): void {
+    this.isDeleteDialogOpen = false;
+    this.facultyToDelete = null;
+  }
+
+  deleteFaculty(): void {
+    if (!this.facultyToDelete) {
+      return;
+    }
+
+    const facultyId = this.facultyToDelete.user_id;
+    const facultyName = `${this.facultyToDelete.firstname} ${this.facultyToDelete.lastname}`;
+
+    this.http.delete(`${environment.authApiUrl}/admin/faculty/all-roles/${facultyId}`)
+      .subscribe({
+        next: (response: any) => {
+          this.loadFaculties();
+          alert(`${facultyName} deleted successfully!`);
+          this.closeDeleteDialog();
+        },
+        error: (error) => {
+          console.error('Error deleting user:', error);
+          const errorMessage = error.error?.error || 'Failed to delete user';
+          alert(`Error: ${errorMessage}`);
+        }
+      });
   }
 }

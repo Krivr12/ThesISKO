@@ -991,7 +991,7 @@ const adminCreateFaculty = async (req, res) => {
     // Insert faculty into users_info with role_id = 3 (Faculty)
     const result = await pool.query(
       'INSERT INTO users_info (email, password_hash, role_id, firstname, lastname, faculty_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id, firstname, lastname, email, faculty_id',
-      [normalizedEmail, hashedPassword, 4, firstname.trim(), lastname.trim(), faculty_id]
+      [normalizedEmail, hashedPassword, 3, firstname.trim(), lastname.trim(), faculty_id]
     );
 
     const newFaculty = result.rows[0];

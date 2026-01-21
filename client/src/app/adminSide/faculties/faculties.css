@@ -150,7 +150,134 @@
   flex-shrink: 0;
 }
 
-/* Modal Styles */
+/* Delete Button */
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  min-width: 36px;
+  height: 36px;
+}
+
+.delete-btn:hover {
+  background-color: #dc3545;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+.delete-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Delete Dialog Styles - Updated to match Confirm Sign Out design */
+.modal-header {
+  background-color: #800000; /* Maroon background from image */
+  color: white;
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.modal-close-btn:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  color: #374151;
+  padding: 2.5rem 2rem; /* Increased vertical padding for better spacing */
+  text-align: center;
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.modal-body p {
+  margin: 0;
+  padding: 0;
+}
+
+.modal-body strong {
+  font-weight: 600;
+  color: #374151;
+}
+
+/* --- UPDATED ACTION BUTTON STYLES (Matches Image) --- */
+.modal-actions {
+  display: flex;
+  justify-content: center; /* Centers buttons horizontally */
+  align-items: center;
+  gap: 1.5rem;             /* Creates the gap between buttons */
+  padding: 0 2rem 2.5rem 2rem; /* Bottom padding to lift buttons off edge */
+}
+
+.modal-btn {
+  /* Fixed width/height ensures they look identical like the reference */
+  width: 140px; 
+  height: 45px;
+  
+  /* Center text inside the button */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700; /* Bold text like the image */
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* YES / CONFIRM Button Style */
+.modal-btn.confirm-btn {
+  background-color: #800000;
+  color: white;
+  border: 2px solid #800000; /* Solid border to match size of cancel */
+}
+
+.modal-btn.confirm-btn:hover {
+  background-color: #910101;
+  border-color: #910101;
+}
+
+/* CANCEL Button Style */
+.modal-btn.cancel-btn {
+  background-color: white;
+  color: #800000;
+  border: 2px solid #800000; /* Visible maroon border */
+}
+
+.modal-btn.cancel-btn:hover {
+  background-color: #fef2f2;
+}
+
+/* Modal Styles - Updated to match Confirm Sign Out design */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -170,8 +297,9 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   max-width: 500px;
   width: calc(100% - 2rem);
-  max-height: 90vh;
-  overflow-y: auto;
+  transform: scale(1);
+  transition: all 0.3s;
+  overflow: hidden; /* Ensures child elements don't overflow rounded corners */
 }
 
 .ag-header {
