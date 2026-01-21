@@ -92,7 +92,7 @@ export class Programs implements OnInit {
           this.isLoading = false;
         },
         error: (err) => {
-          console.error('Error loading programs:', err);
+          
           this.errorMessage = 'Failed to load programs';
           this.isLoading = false;
         }
@@ -106,7 +106,7 @@ export class Programs implements OnInit {
           this.availableFaculty = response.data || [];
         },
         error: (err) => {
-          console.error('Error loading faculty:', err);
+          
           this.errorMessage = 'Failed to load available faculty';
         }
       });
@@ -253,7 +253,7 @@ export class Programs implements OnInit {
           this.isLoading = false;
         },
         error: (err) => {
-          console.error('❌ Error creating program:', err);
+          
           const errorMsg = err.error?.message || 'Failed to create program';
           alert(`Error: ${errorMsg}`);
           this.isLoading = false;
@@ -324,7 +324,7 @@ export class Programs implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('❌ Error updating program:', err);
+        
         const errorMsg = err.error?.message || 'Failed to update program';
         alert(`Error: ${errorMsg}`);
         this.isLoading = false;
@@ -366,7 +366,7 @@ export class Programs implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('❌ Error deleting program:', err);
+        
         const errorMsg = err.error?.message || 'Failed to delete program';
         alert(`Error: ${errorMsg}`);
         this.isLoading = false;

@@ -48,42 +48,34 @@ export class Logger {
 
   /**
    * Debug logs - detailed information for debugging
-   * Only shown in development
+   * Disabled to prevent connection leaks
    */
   debug(...args: any[]): void {
-    if (shouldLog(LogLevel.DEBUG)) {
-      console.log(`[DEBUG] [${this.context}]`, ...args);
-    }
+    // No-op: Console logging disabled to prevent connection leaks
   }
 
   /**
    * Info logs - general information
-   * Shown in development, hidden in production
+   * Disabled to prevent connection leaks
    */
   info(...args: any[]): void {
-    if (shouldLog(LogLevel.INFO)) {
-      console.info(`[INFO] [${this.context}]`, ...args);
-    }
+    // No-op: Console logging disabled to prevent connection leaks
   }
 
   /**
    * Warning logs - potential issues
-   * Shown in both development and production
+   * Disabled to prevent connection leaks
    */
   warn(...args: any[]): void {
-    if (shouldLog(LogLevel.WARN)) {
-      console.warn(`[WARN] [${this.context}]`, ...args);
-    }
+    // No-op: Console logging disabled to prevent connection leaks
   }
 
   /**
    * Error logs - errors that need attention
-   * Always shown (even in production)
+   * Disabled to prevent connection leaks
    */
   error(...args: any[]): void {
-    if (shouldLog(LogLevel.ERROR)) {
-      console.error(`[ERROR] [${this.context}]`, ...args);
-    }
+    // No-op: Console logging disabled to prevent connection leaks
   }
 
   /**

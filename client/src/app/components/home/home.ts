@@ -86,14 +86,16 @@ export class Home implements OnInit, OnDestroy {
           // Check if year is accessible
           if (this.updates[0].year) {
           } else {
-            console.warn('⚠️ Year is missing or undefined');
+            
           }
         }
         
         // Start autoplay after data loads
         this.startAutoplay();
       },
-      error: (err) => console.error('Error fetching latest records:', err) 
+      error: (err) => {
+        // Error fetching latest records
+      } 
     });
   }
 
@@ -213,7 +215,7 @@ export class Home implements OnInit, OnDestroy {
   // click sa carousel item -> punta sa Search Result 
   navigateToRecord(item: UpdateItem) {
     if (!item || !item._id) {
-      console.error('Invalid carousel item - missing _id');
+      
       return;
     }
     
@@ -225,18 +227,18 @@ export class Home implements OnInit, OnDestroy {
     }).then(success => {
       if (success) {
       } else {
-        console.error('Navigation to /search-result failed - guard may have blocked it');
+        
         // If navigation fails, try again after a short delay (in case user is still loading)
         setTimeout(() => {
           this.router.navigateByUrl('/search-result', { 
             state: { document_id: item._id } 
           }).catch(err => {
-            console.error('Retry navigation failed:', err);
+            
           });
         }, 100);
       }
     }).catch(error => {
-      console.error('Navigation error:', error);
+      
     });
   }
 

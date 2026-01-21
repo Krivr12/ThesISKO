@@ -101,7 +101,7 @@ export class FacultyHome implements OnInit, AfterViewInit {
         const user = JSON.parse(userStr);
         this.currentUserEmail = user.email || user.Email || '';
       } catch (e) {
-        console.error('Error parsing user data:', e);
+        
       }
     }
 
@@ -109,7 +109,7 @@ export class FacultyHome implements OnInit, AfterViewInit {
     if (this.currentUserEmail) {
       this.loadFacultyBlocks();
     } else {
-      console.warn('No user email found in session');
+      
       this.isLoadingBlocks = false;
     }
 
@@ -145,7 +145,9 @@ export class FacultyHome implements OnInit, AfterViewInit {
 
         this.recalcStats(); // initial stats
       },
-      error: (err) => console.error('Could not load assets/groups.json', err),
+      error: (err) => {
+        // Could not load assets/groups.json
+      },
     });
   }
 
@@ -162,7 +164,7 @@ export class FacultyHome implements OnInit, AfterViewInit {
         this.isLoadingBlocks = false;
       },
       error: (err) => {
-        console.error('❌ Error loading faculty blocks:', err);
+        
         this.ficPrograms = [];
         this.panelistPrograms = [];
         this.isLoadingBlocks = false;

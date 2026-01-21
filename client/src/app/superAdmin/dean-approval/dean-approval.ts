@@ -73,7 +73,7 @@ export class DeanApproval implements OnInit, OnDestroy, AfterViewInit {
         if (this.currentUserEmail) {
           this.loadGroups();
         } else {
-          console.error('❌ [Dean Approval] Email is empty!');
+          
         }
       } else {
         // Don't show alert or navigate - let auth guard handle it
@@ -115,15 +115,15 @@ export class DeanApproval implements OnInit, OnDestroy, AfterViewInit {
 
             this.dataSource.data = groups;
           } else {
-            console.warn('⚠️ [loadGroups] Response format unexpected:', response);
+            
           }
 
           this.loading = false;
         },
         error: (error) => {
-          console.error('❌ [loadGroups] API Error:', error);
-          console.error('❌ [loadGroups] Error status:', error?.status);
-          console.error('❌ [loadGroups] Error message:', error?.message);
+          
+          
+          
           alert('Failed to load groups. Please try again.');
           this.loading = false;
         }
@@ -179,7 +179,7 @@ Please check the system logs or contact the administrator.`);
         this.loadGroups();
       },
       error: (error) => {
-        console.error('❌ Error in dean approval:', error);
+        
         const errorMsg = error.error?.error || 'Failed to approve and archive thesis';
         alert(`❌ Error: ${errorMsg}`);
       }
@@ -217,7 +217,7 @@ The submission will be sent back to the Chairperson and student to fix ${milesto
         this.loadGroups(); // Reload to update the list
       },
       error: (error) => {
-        console.error('❌ Error rejecting group:', error);
+        
         const errorMsg = error.error?.error || 'Failed to reject group. Please try again.';
         alert(`❌ Error: ${errorMsg}`);
       }

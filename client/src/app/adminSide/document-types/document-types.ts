@@ -71,7 +71,7 @@ export class DocumentTypes implements OnInit {
           this.loading.set(false);
         },
         error: (error) => {
-          console.error('Error loading document types:', error);
+          
           alert('Failed to load document types');
           this.loading.set(false);
         }
@@ -194,7 +194,7 @@ export class DocumentTypes implements OnInit {
           this.loadDocumentTypes();
         },
         error: (error) => {
-          console.error('Error updating document type:', error);
+          
           alert(error.error?.error || 'Failed to update document type');
           this.loading.set(false);
         }
@@ -213,7 +213,7 @@ export class DocumentTypes implements OnInit {
           this.loadDocumentTypes();
         },
         error: (error) => {
-          console.error('Error creating document type:', error);
+          
           alert(error.error?.error || 'Failed to create document type');
           this.loading.set(false);
         }
@@ -234,7 +234,7 @@ export class DocumentTypes implements OnInit {
         this.loadDocumentTypes();
       },
       error: (error) => {
-        console.error('Error toggling document type:', error);
+        
         alert('Failed to update document type');
       }
     });
@@ -251,7 +251,7 @@ export class DocumentTypes implements OnInit {
         this.loadDocumentTypes();
       },
       error: (error) => {
-        console.error('Error deleting document type:', error);
+        
         alert('Failed to delete document type');
       }
     });

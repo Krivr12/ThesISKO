@@ -30,7 +30,6 @@ export const adminSideGuard: CanActivateFn = (route, state) => {
     switchMap((cookieValid) => {
       if (!cookieValid) {
         // Cookie verification failed - user is not authenticated
-        console.warn('🔒 adminSideGuard: Cookie verification failed - redirecting to login');
         router.navigate(['/login-admin']);
         return from([false]); // Return false to block access
       }
@@ -41,7 +40,6 @@ export const adminSideGuard: CanActivateFn = (route, state) => {
         map(user => {
           if (!user) {
             // User not logged in (shouldn't happen if cookie is valid, but safety check)
-            console.warn('🔒 adminSideGuard: No user found after cookie verification');
             router.navigate(['/login-admin']);
             return false;
           }
@@ -54,7 +52,6 @@ export const adminSideGuard: CanActivateFn = (route, state) => {
               const allowedRoutes = ['/adminSide/dashboard', '/adminSide/documents', '/adminSide/requests'];
               const isAllowed = allowedRoutes.some(route => state.url === route || state.url.startsWith(route + '/'));
               if (!isAllowed) {
-                console.warn(`🔒 adminSideGuard: Faculty attempted to access restricted route: ${state.url}`);
                 router.navigate(['/adminSide/dashboard']);
                 return false;
               }
@@ -63,7 +60,6 @@ export const adminSideGuard: CanActivateFn = (route, state) => {
           }
 
           // User doesn't have admin privileges - show logout confirmation
-          console.warn(`🔒 adminSideGuard: User with role_id ${user.role_id} attempted to access admin route`);
           confirmationService.confirm({
             message: 'You are not authorized to access admin pages. Would you like to logout and return to the appropriate login page?',
             header: 'Unauthorized Access',

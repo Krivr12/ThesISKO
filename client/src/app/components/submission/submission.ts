@@ -70,29 +70,20 @@ export class Submission implements OnInit {
   ngOnInit() {
     // Role guard: Only group leaders (role_id = 6) can access this page
     const currentUser = this.authService.currentUser;
-    
-    console.log('[SUBMISSION] Initializing:', {
-      user: currentUser?.email,
-      role_id: currentUser?.role_id,
-      group_id: currentUser?.group_id
-    });
 
     if (!currentUser) {
-      console.warn('❌ No user logged in. Redirecting to login.');
       alert('Please log in to access the submission page.');
       this.router.navigate(['/login']);
       return;
     }
 
     if (currentUser.role_id !== 6) {
-      console.warn(`❌ Access denied. User has role_id ${currentUser.role_id}, but needs role_id 6 (Group Leader).`);
       alert('Only group leaders can submit thesis manuscripts.');
       this.router.navigate(['/home']);
       return;
     }
 
     if (!currentUser.group_id) {
-      console.warn('❌ User is group leader but has no group_id.');
       alert('You are not assigned to a group. Please contact your Faculty-in-Charge.');
       this.router.navigate(['/home']);
       return;
@@ -267,7 +258,7 @@ export class Submission implements OnInit {
         
       },
       error: (error) => {
-        console.error('❌ Error loading initial group status:', error);
+        // Error loading initial group status
       }
     });
   }
@@ -839,7 +830,6 @@ confirmStep5(isConfirmed: boolean) {
           this.statusHistory.set([{ text: 'Work description saved successfully', type: 'success' }]);
         },
         error: (error) => {
-          console.error('Error updating milestone status:', error);
           // Still proceed even if milestone update fails
           this.viewState.set('step5_submitted');
           this.statusHistory.set([{ text: 'Metadata saved (milestone update pending)', type: 'warning' }]);
@@ -847,7 +837,6 @@ confirmStep5(isConfirmed: boolean) {
       });
     },
     error: (error) => {
-      console.error('Error updating group metadata:', error);
       alert('Failed to save work description. Please try again.');
       this.viewState.set('step5_initial');
     }
@@ -975,7 +964,6 @@ resetToHome() {
                 this.loadGroupStatus(groupId);
               },
               error: (error) => {
-                console.error('Error updating milestone:', error);
                 this.isUploading.set(false);
                 this.uploadError.set('Failed to update milestone');
                 this.statusHistory.update(history => [...history, { 
@@ -986,7 +974,6 @@ resetToHome() {
             });
           },
           error: (error) => {
-            console.error('Error uploading to S3:', error);
             this.isUploading.set(false);
             this.uploadError.set('Failed to upload file');
             this.statusHistory.update(history => [...history, { 
@@ -997,7 +984,6 @@ resetToHome() {
         });
       },
       error: (error) => {
-        console.error('Error getting signed URL:', error);
         this.isUploading.set(false);
         this.uploadError.set('Failed to get upload URL');
         this.statusHistory.update(history => [...history, { 
@@ -1060,7 +1046,6 @@ resetToHome() {
                 this.loadGroupStatus(groupId);
               },
               error: (error) => {
-                console.error('Error updating milestone:', error);
                 this.isUploading.set(false);
                 this.uploadError.set('Failed to update milestone');
                 this.statusHistory.update(history => [...history, { 
@@ -1071,7 +1056,6 @@ resetToHome() {
             });
           },
           error: (error) => {
-            console.error('Error uploading files to S3:', error);
             this.isUploading.set(false);
             this.uploadError.set('Failed to upload one or more files');
             this.statusHistory.update(history => [...history, { 
@@ -1082,7 +1066,6 @@ resetToHome() {
         });
       },
       error: (error) => {
-        console.error('Error getting signed URLs:', error);
         this.isUploading.set(false);
         this.uploadError.set('Failed to get upload URLs');
         this.statusHistory.update(history => [...history, { 
@@ -1160,7 +1143,7 @@ resetToHome() {
         }
       },
       error: (error) => {
-        console.error('Error loading group status:', error);
+        // Error loading group status
       }
     });
   }

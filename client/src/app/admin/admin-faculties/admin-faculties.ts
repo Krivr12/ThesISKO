@@ -75,7 +75,7 @@ export class AdminFaculties implements OnInit, AfterViewInit {
         this.dataSource.data = faculties ?? [];
       },
       error: (err) => {
-        console.error('Failed to load faculties from database:', err);
+        
         this.dataSource.data = []; // fallback
       }
     });
@@ -149,7 +149,7 @@ export class AdminFaculties implements OnInit, AfterViewInit {
         alert(`Faculty account created successfully! Email sent to ${faculty.email}`);
       },
       error: (error) => {
-        console.error('Error creating faculty:', error);
+        
         // Show error message
         const errorMessage = error.error?.error || 'Failed to create faculty account';
         alert(`Error: ${errorMessage}`);

@@ -128,8 +128,22 @@ export class AdminSideDashboard implements AfterViewInit, OnInit {
       return;
     }
 
+    // Faculty users (role_id === 3) don't have access to pending approvals endpoints
+    if (user.role_id === 3) {
+      this.stats.pendingApprovals = '0';
+      return;
+    }
+
     // Determine endpoint based on user role (email removed from URL - comes from auth cookie)
     const isDean = user.role_id === 5;
+    const isChairperson = user.role_id === 4;
+    
+    // Only make API call if user is dean or chairperson
+    if (!isDean && !isChairperson) {
+      this.stats.pendingApprovals = '0';
+      return;
+    }
+
     const endpoint = isDean 
       ? `${environment.apiUrl}/submissions/pending-dean`
       : `${environment.apiUrl}/submissions/pending-chairperson`;

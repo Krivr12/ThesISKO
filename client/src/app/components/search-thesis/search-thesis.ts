@@ -79,7 +79,7 @@ export class SearchThesis implements OnInit {
         this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
-        console.error('Error loading theses:', error);
+        
         // Fallback to empty array if API fails
         this.allTheses = [];
         this.updateAvailableYears();
@@ -127,7 +127,7 @@ export class SearchThesis implements OnInit {
         this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
-        console.error('Error performing semantic search:', error);
+        
         // Fallback to regular search on error
         this.loadTheses();
       }
