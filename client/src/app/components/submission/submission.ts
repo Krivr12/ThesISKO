@@ -71,6 +71,7 @@ export class Submission implements OnInit {
     // Role guard: Only group leaders (role_id = 6) can access this page
     const currentUser = this.authService.currentUser;
     
+    console.log('[SUBMISSION] Initializing:', {
       user: currentUser?.email,
       role_id: currentUser?.role_id,
       group_id: currentUser?.group_id

@@ -26,9 +26,10 @@ export class AdminSideNav {
 
   currentUser = computed(() => this.authService.currentUser);
   isDean = computed(() => this.currentUser()?.role_id === 5);
+  isFaculty = computed(() => this.currentUser()?.role_id === 3);
   userRole = computed(() => {
     const roleId = this.currentUser()?.role_id;
-    return roleId === 5 ? 'Dean' : roleId === 4 ? 'Chairperson' : 'Admin';
+    return roleId === 5 ? 'Dean' : roleId === 4 ? 'Chairperson' : roleId === 3 ? 'Faculty' : 'Admin';
   });
 
   // Menu items configuration
@@ -45,7 +46,15 @@ export class AdminSideNav {
   // Filtered menu items based on user role
   menuItems = computed(() => {
     const isDean = this.isDean();
+    const isFaculty = this.isFaculty();
+    
     return this.allMenuItems.filter(item => {
+      // Faculty can only see Dashboard, Documents, and Requests
+      if (isFaculty) {
+        return item.route === '/adminSide/dashboard' || 
+               item.route === '/adminSide/documents' || 
+               item.route === '/adminSide/requests';
+      }
       // Show all items to dean
       if (isDean) return true;
       // Hide dean-only items for chairperson
