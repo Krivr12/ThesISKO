@@ -158,7 +158,6 @@ export class FacultyHome implements OnInit, AfterViewInit {
         if (response.success) {
           this.ficPrograms = response.data.ficBlocks || [];
           this.panelistPrograms = response.data.panelistBlocks || [];
-          console.log('✅ Faculty blocks loaded:', response.data);
         }
         this.isLoadingBlocks = false;
       },
@@ -183,7 +182,6 @@ export class FacultyHome implements OnInit, AfterViewInit {
   }
 
   viewGroup(element: Group) {
-    console.log('Viewing group:', element);
     // this.router.navigate(['/history', element.group_id]);
   }
 

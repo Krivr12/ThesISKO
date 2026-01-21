@@ -121,8 +121,6 @@ export class SearchThesis implements OnInit {
           };
         });
         
-        console.log('🔍 Semantic search results transformed:', this.allTheses.length, 'documents');
-        console.log('🔍 First result:', this.allTheses[0]);
         
         this.updateAvailableYears();
         this.applyFilters();

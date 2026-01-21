@@ -114,7 +114,6 @@ export class AuthService {
       // Handle different types of errors
       if (error?.status === 401) {
         // 401 is expected when no user is logged in - don't log as error
-        console.log('No authenticated user session found');
         // On 401, check sessionStorage as fallback
         try {
           const userData = sessionStorage.getItem('currentUser');
@@ -169,9 +168,6 @@ export class AuthService {
       this.mainAuthService.logout();
       // Clear any remaining session/local storage for guest mode
       if (typeof window !== 'undefined') {
-        console.log('🧹 Clearing storage...');
-        console.log('Before clear - localStorage keys:', Object.keys(localStorage));
-        console.log('Before clear - sessionStorage keys:', Object.keys(sessionStorage));
         
         // Clear sessionStorage
         sessionStorage.removeItem('guestMode');
@@ -182,9 +178,6 @@ export class AuthService {
         sessionStorage.removeItem('currentUser');
         sessionStorage.removeItem('email');
         
-        console.log('After clear - localStorage keys:', Object.keys(localStorage));
-        console.log('After clear - sessionStorage keys:', Object.keys(sessionStorage));
-        console.log('After clear - sessionStorage currentUser:', sessionStorage.getItem('currentUser'));
       }
     }
   }
@@ -235,7 +228,6 @@ export class AuthService {
       this.userSubject.next(null);
       sessionStorage.clear();
       
-      console.log('Browser close logout initiated');
     } catch (error) {
       console.error('Error during browser close logout:', error);
     }
@@ -251,7 +243,6 @@ export class AuthService {
       
       // If page was hidden for more than 30 minutes, logout
       if (timeDiff > 30 * 60 * 1000) { // 30 minutes
-        console.log('Session expired due to inactivity');
         this.logout();
       }
       
@@ -560,15 +551,11 @@ export class Navbar implements OnInit {
 
   /** Navigate to About Us page */
   navigateToAbout(): void {
-    console.log('About button clicked - navigating to /about-us');
     const currentUser = this.auth.currentUser;
-    console.log('Current user:', currentUser);
-    console.log('User role:', currentUser?.Status);
     
     // Use navigateByUrl for more reliable navigation
     this.router.navigateByUrl('/about-us').then(success => {
       if (success) {
-        console.log('Navigation to /about-us successful');
       } else {
         console.error('Navigation to /about-us failed - guard may have blocked it');
         // If navigation fails, try again after a short delay (in case user is still loading)
@@ -592,7 +579,6 @@ export class Navbar implements OnInit {
     
     this.router.navigate(['/login'], { queryParams: { type: loginType } }).then(success => {
       if (success) {
-        console.log('Navigation to /login successful with type:', loginType);
       } else {
         console.error('Navigation to /login failed');
       }
@@ -603,15 +589,11 @@ export class Navbar implements OnInit {
 
   /** Navigate to Search page */
   navigateToSearch(): void {
-    console.log('Search button clicked - navigating to /search-thesis');
     const currentUser = this.auth.currentUser;
-    console.log('Current user:', currentUser);
-    console.log('User role:', currentUser?.Status);
     
     // Use navigateByUrl for more reliable navigation
     this.router.navigateByUrl('/search-thesis').then(success => {
       if (success) {
-        console.log('Navigation to /search-thesis successful');
       } else {
         console.error('Navigation to /search-thesis failed - guard may have blocked it');
         // If navigation fails, try again after a short delay (in case user is still loading)
@@ -628,13 +610,9 @@ export class Navbar implements OnInit {
 
   /** Navigate to Home page */
   navigateToHome(): void {
-    console.log('Home button clicked - navigating to /home');
-    console.log('Current user:', this.auth.currentUser);
-    console.log('User role:', this.auth.currentUser?.Status);
     
     this.router.navigate(['/home']).then(success => {
       if (success) {
-        console.log('Navigation to /home successful');
       } else {
         console.error('Navigation to /home failed');
       }

@@ -246,7 +246,6 @@ export class Programs implements OnInit {
     this.http.post<{ success: boolean; message: string; data: any }>(this.apiUrl, this.newProgram)
       .subscribe({
         next: (response) => {
-          console.log('✅ Program created:', response);
           alert('Program created successfully!');
           this.loadPrograms(); // Reload programs
           this.loadAvailableFaculty(); // Reload faculty (to update dropdown)
@@ -318,7 +317,6 @@ export class Programs implements OnInit {
       updateData
     ).subscribe({
       next: (response) => {
-        console.log('✅ Program updated:', response);
         alert('Program updated successfully!');
         this.loadPrograms(); // Reload programs
         this.loadAvailableFaculty(); // Reload faculty (to update dropdown)
@@ -362,7 +360,6 @@ export class Programs implements OnInit {
       `${this.apiUrl}/${program.program_id}`
     ).subscribe({
       next: (response) => {
-        console.log('✅ Program deleted:', response);
         alert(`Program "${program.program_name}" deleted successfully!`);
         this.loadPrograms(); // Reload programs
         this.loadAvailableFaculty(); // Reload faculty (chairperson is now available again)

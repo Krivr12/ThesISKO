@@ -55,7 +55,6 @@ export class LoginAdmin {
       next: async (response: any) => {
         if (response.user) {
           // Login successful - now verify cookie was set
-          console.log('✅ Login response received, verifying cookie...');
           
           try {
             // Verify cookie was set by calling /auth/me
@@ -63,7 +62,6 @@ export class LoginAdmin {
             
             if (cookieValid) {
               // Cookie is valid - proceed with navigation
-              console.log('✅ Cookie verified after login');
               
               // Update both auth services with user data
               this.authService.setUser(response.user);
@@ -82,8 +80,8 @@ export class LoginAdmin {
               });
               
               // Redirect based on role - NEW UNIFIED ADMINSIDE
-              if (response.user.role_id === 4 || response.user.role_id === 5) {
-                // Chairperson (4) or Dean (5) → Unified AdminSide Dashboard
+              if (response.user.role_id === 3 || response.user.role_id === 4 || response.user.role_id === 5) {
+                // Faculty (3), Chairperson (4) or Dean (5) → Unified AdminSide Dashboard
                 this.router.navigate(['/adminSide/dashboard']);
               } else {
                 // Other roles - redirect to home

@@ -179,22 +179,17 @@ export class NewSubmission implements OnInit {
     effect(() => {
       const newDocType = this.documentType();
       if (newDocType) {
-        console.log('Document type changed to:', newDocType);
         this.loadRequirementsForDocumentType(newDocType);
       }
     });
   }
 
   loadDocumentTypes() {
-    console.log('Loading document types from requirements:', `${this.apiUrl}/requirements`);
     this.loading.set(true);
     this.http.get<{ success: boolean; data: Requirement[] }>(
       `${this.apiUrl}/requirements`
     ).subscribe({
       next: (response) => {
-        console.log('Requirements loaded:', response);
-        console.log('Requirements data:', response.data);
-        console.log('Requirements count:', response.data.length);
         
         // Convert requirements to document types format
         const documentTypes: DocumentType[] = response.data.map(req => ({
@@ -205,7 +200,6 @@ export class NewSubmission implements OnInit {
         
         this.documentTypes.set(documentTypes);
         this.requirements.set(response.data);
-        console.log('Document types converted:', documentTypes);
         this.loading.set(false);
       },
       error: (error) => {
@@ -219,12 +213,9 @@ export class NewSubmission implements OnInit {
 
 
   loadRequirementsForDocumentType(documentType: string) {
-    console.log('Loading requirements for document type:', documentType);
     // Requirements are already loaded in loadDocumentTypes(), no need to fetch again
     const requirement = this.requirements().find(req => req.document_type === documentType);
     if (requirement) {
-      console.log('Requirements for document type found:', requirement);
-      console.log('Required files for', documentType, ':', requirement.required_files);
     } else {
       console.warn('No requirements found for document type:', documentType);
     }
@@ -306,7 +297,6 @@ export class NewSubmission implements OnInit {
       ).toPromise();
       
       if (response?.success && response.submission_id) {
-        console.log('Generated submission ID from backend:', response.submission_id);
         return response.submission_id;
       } else {
         throw new Error('Failed to generate submission ID');
@@ -323,22 +313,18 @@ export class NewSubmission implements OnInit {
 
   async submitAll() {
     const requirements = this.selectedRequirements();
-    console.log('Selected requirements:', requirements);
-    console.log('Uploaded files:', Array.from(this.uploadedFiles().keys()));
     
     if (!requirements) {
       alert('Requirements not loaded. Please refresh the page and try again.');
       return;
     }
 
-    console.log('Required files from requirements:', requirements.required_files);
     
     // Validate all required files are uploaded
     const missingFiles = requirements.required_files
       .filter(f => f.required)
       .filter(f => !this.uploadedFiles().has(f.id));
 
-    console.log('Missing files:', missingFiles);
 
     if (missingFiles.length > 0) {
       alert(`Please upload all required files: ${missingFiles.map(f => f.label).join(', ')}`);
@@ -354,7 +340,6 @@ export class NewSubmission implements OnInit {
     try {
       // Generate submission ID ONCE at the beginning
       const submissionId = await this.generateSubmissionId();
-      console.log('Generated submission ID:', submissionId);
       
       // Upload all files to S3 using the same submission ID
       const fileUploads: Promise<{ fileId: string; s3Key: string }>[] = [];
@@ -363,7 +348,6 @@ export class NewSubmission implements OnInit {
         const uploadPromise = new Promise<{ fileId: string; s3Key: string }>((resolve, reject) => {
           // Use the same submission ID for all files
           const s3Key = `submission/${submissionId}/${file.name}`;
-          console.log(`Uploading ${file.name} to: ${s3Key}`);
           
           // Get signed URL for upload
           this.s3Service.getSignedUrl(submissionId, file.name, file.type || 'application/pdf').subscribe({

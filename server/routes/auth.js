@@ -110,7 +110,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Admin login endpoint - only allows admin and superadmin roles
+// Admin login endpoint - allows faculty, admin, and superadmin roles (3, 4, 5, 7, 8)
 router.post('/admin-login', async (req, res) => {
   try {
     const rawEmail = req.body.email ?? req.body.Email
@@ -126,7 +126,7 @@ router.post('/admin-login', async (req, res) => {
       const pool = (await import('../data/database.js')).default;
       const bcrypt = (await import('bcrypt')).default;
       
-      // Find user with admin or superadmin role (4, 5, 7, 8)
+      // Find user with admin, superadmin, or faculty role (3, 4, 5, 7, 8)
       const userResult = await pool.query(`
         SELECT 
           ui.user_id,
@@ -145,7 +145,7 @@ router.post('/admin-login', async (req, res) => {
         FROM users_info ui
         LEFT JOIN roles r ON ui.role_id = r.role_id
         WHERE LOWER(ui.email) = $1 
-        AND ui.role_id IN (4, 5, 7, 8) -- admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
+        AND ui.role_id IN (3, 4, 5, 7, 8) -- faculty (3), admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
         LIMIT 1
       `, [email])
       
@@ -153,7 +153,7 @@ router.post('/admin-login', async (req, res) => {
       
       if (users.length === 0) {
         return res.status(401).json({ 
-          error: 'Access denied. Only administrators and super administrators can access this login.' 
+          error: 'Access denied. Only faculty, administrators and super administrators can access this login.' 
         })
       }
       

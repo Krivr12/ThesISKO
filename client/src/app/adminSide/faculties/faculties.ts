@@ -54,6 +54,8 @@ export class AdminFaculties implements OnInit, AfterViewInit {
   // Dialog state
   isAddDialogOpen = false;
   isEditDialogOpen = false;
+  isDeleteDialogOpen = false;
+  facultyToDelete: Faculty | null = null;
   
   // Form data
   newFaculty: Faculty = {
@@ -136,7 +138,6 @@ export class AdminFaculties implements OnInit, AfterViewInit {
       faculty_id: this.newFaculty.faculty_id
     }).subscribe({
       next: (response: any) => {
-        console.log('Faculty created successfully:', response);
         this.loadFaculties();
         alert(`Faculty account created successfully! Email sent to ${this.newFaculty.email}`);
         this.closeAddDialog();
@@ -162,7 +163,6 @@ export class AdminFaculties implements OnInit, AfterViewInit {
       faculty_id: this.editFaculty.faculty_id
     }).subscribe({
       next: (response: any) => {
-        console.log('User updated successfully:', response);
         this.loadFaculties();
         alert('User updated successfully!');
         this.closeEditDialog();
@@ -222,6 +222,38 @@ export class AdminFaculties implements OnInit, AfterViewInit {
   goBack(): void {
     // This method is referenced in the template but not implemented
     // You can add navigation logic here if needed
-    console.log('Go back clicked');
+  }
+
+  openDeleteDialog(row: Faculty): void {
+    this.facultyToDelete = row;
+    this.isDeleteDialogOpen = true;
+  }
+
+  closeDeleteDialog(): void {
+    this.isDeleteDialogOpen = false;
+    this.facultyToDelete = null;
+  }
+
+  deleteFaculty(): void {
+    if (!this.facultyToDelete) {
+      return;
+    }
+
+    const facultyId = this.facultyToDelete.user_id;
+    const facultyName = `${this.facultyToDelete.firstname} ${this.facultyToDelete.lastname}`;
+
+    this.http.delete(`${environment.authApiUrl}/admin/faculty/all-roles/${facultyId}`)
+      .subscribe({
+        next: (response: any) => {
+          this.loadFaculties();
+          alert(`${facultyName} deleted successfully!`);
+          this.closeDeleteDialog();
+        },
+        error: (error) => {
+          console.error('Error deleting user:', error);
+          const errorMessage = error.error?.error || 'Failed to delete user';
+          alert(`Error: ${errorMessage}`);
+        }
+      });
   }
 }

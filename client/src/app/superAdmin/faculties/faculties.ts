@@ -73,7 +73,6 @@ export class Faculties implements OnInit, AfterViewInit {
     this.http.get<Faculty[]>(`${environment.authApiUrl}/admin/faculty`).subscribe({
       next: (faculties) => {
         this.dataSource.data = faculties ?? [];
-        console.log('Loaded faculties from database:', faculties);
       },
       error: (err) => {
         console.error('Failed to load faculties from database:', err);
@@ -144,7 +143,6 @@ export class Faculties implements OnInit, AfterViewInit {
       faculty_id: faculty.faculty_id
     }).subscribe({
       next: (response: any) => {
-        console.log('Faculty created successfully:', response);
         // Reload the faculty list to show the new faculty
         this.loadFaculties();
         // Show success message (you can add a snackbar or toast here)

@@ -154,7 +154,6 @@ export class DocumentEdit implements OnInit {
     // Check if record has a files object (from records collection)
     // The 'files' key contains all file details for the document
     if (record.files && typeof record.files === 'object') {
-      console.log('📁 Found files object in record:', Object.keys(record.files));
       
       // Process files object - iterate through each file entry
       Object.entries(record.files).forEach(([fileId, fileData]: [string, any]) => {
@@ -186,13 +185,11 @@ export class DocumentEdit implements OnInit {
             uploadedAt: fileData.uploaded_at
           });
           
-          console.log(`  ✓ Extracted file: ${actualFileId} -> ${fileName} (key: ${cleanFileKey.substring(0, 60)}...)`);
         } else {
           console.warn(`  ⚠️ File entry ${fileId} missing file_key/s3_key:`, fileData);
         }
       });
     } else {
-      console.log('📁 No files object found in record, checking file_key fallback');
     }
     
     // Fallback: Also add the main manuscript from file_key if it exists and not already in files
@@ -218,11 +215,9 @@ export class DocumentEdit implements OnInit {
           fileName: fileName,
           fileKey: fileKey
         });
-        console.log(`  ✓ Added manuscript from file_key: ${fileName}`);
       }
     }
 
-    console.log(`📄 Total files extracted: ${files.length}`);
     return files;
   }
 
@@ -362,7 +357,6 @@ export class DocumentEdit implements OnInit {
         fileToUpload
       ).subscribe({
         next: (response) => {
-          console.log('✅ Document updated successfully:', response);
           // If there are other files to replace, show a note
           if (this.fileReplacements.size > 1) {
             alert('Document updated successfully! Note: Only the manuscript file was replaced. Other file replacements require API support for multiple files.');
@@ -381,7 +375,6 @@ export class DocumentEdit implements OnInit {
       // Update without file
       this.recordsService.updateRecord(this.document()!._id, updateData).subscribe({
         next: (response) => {
-          console.log('✅ Document updated successfully:', response);
           alert('Document updated successfully!');
           this.router.navigate(['/adminSide/documents']);
         },

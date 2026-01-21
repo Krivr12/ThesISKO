@@ -71,7 +71,7 @@ export class Submission implements OnInit {
     // Role guard: Only group leaders (role_id = 6) can access this page
     const currentUser = this.authService.currentUser;
     
-    console.log('🔒 Submission Page Access Check:', {
+    console.log('[SUBMISSION] Initializing:', {
       user: currentUser?.email,
       role_id: currentUser?.role_id,
       group_id: currentUser?.group_id
@@ -98,7 +98,6 @@ export class Submission implements OnInit {
       return;
     }
 
-    console.log('✅ Access granted. User is a group leader with group_id:', currentUser.group_id);
     
     // Load current group status on page load
     this.loadInitialGroupStatus(currentUser.group_id);
@@ -111,7 +110,6 @@ export class Submission implements OnInit {
   private loadInitialGroupStatus(groupId: string) {
     this.submissionService.getGroupStatus(groupId).subscribe({
       next: (group) => {
-        console.log('📊 Initial group status loaded:', group);
         
         // Check for group-level rejections first (Chairperson or Dean)
         if (group.chairperson_approval?.rejected) {
@@ -243,7 +241,6 @@ export class Submission implements OnInit {
           const rejectedStep = this.getMilestoneStep(this.rejectedMilestone()!);
           if (rejectedStep) {
             nextIncompleteStep = rejectedStep;
-            console.log(`📍 Navigating to rejected milestone: ${this.rejectedMilestone()} (Step ${rejectedStep})`);
           }
         }
         
@@ -268,8 +265,6 @@ export class Submission implements OnInit {
           }
         }
         
-        console.log('📍 Current step set to:', this.currentStep());
-        console.log('📍 View state set to:', this.viewState());
       },
       error: (error) => {
         console.error('❌ Error loading initial group status:', error);
@@ -836,12 +831,10 @@ confirmStep5(isConfirmed: boolean) {
   // Update group metadata
   this.submissionService.updateGroupMetadata(groupId, metadata).subscribe({
     next: (result) => {
-      console.log('✅ Group metadata updated:', result);
       
       // Also update the describe_work milestone status to true
       this.submissionService.updateMilestoneStatus(groupId, 'describe_work', true).subscribe({
         next: () => {
-          console.log('✅ describe_work milestone status updated');
           this.viewState.set('step5_submitted');
           this.statusHistory.set([{ text: 'Work description saved successfully', type: 'success' }]);
         },
@@ -1106,7 +1099,6 @@ resetToHome() {
   private loadGroupStatus(groupId: string) {
     this.submissionService.getGroupStatus(groupId).subscribe({
       next: (group) => {
-        console.log('✅ Group status loaded:', group);
         
         // Update status history based on milestone approvals
         const currentMilestoneType = this.getMilestoneTypeForStep(this.currentStep());

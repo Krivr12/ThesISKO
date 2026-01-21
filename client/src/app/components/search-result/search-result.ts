@@ -91,7 +91,6 @@ export class SearchResult implements OnInit, AfterViewInit {
     if (documentId) {
       this.loadThesisDetails(documentId);
     } else {
-      console.log('❌ [SEARCH-RESULT] No document_id found, redirecting to search-thesis');
       this.router.navigate(['/search-thesis']);
     }
 
@@ -119,7 +118,6 @@ export class SearchResult implements OnInit, AfterViewInit {
       },
       error: (error) => {
         console.error('❌ [LOAD-THESIS] Error loading thesis details:', error);
-        console.log('❌ [LOAD-THESIS] Redirecting back to search-thesis due to error');
         this.isLoading = false; // Hide spinner even on error
         this.router.navigate(['/search-thesis']);
       }
@@ -268,13 +266,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   // PUPian: email (pre-filled), program, department, role, chapters, purpose (min 24 chars)
   get studentFormValid(): boolean {
     const valid = this.chaptersValid && this.purposeValid24 && !!this.studentProgram && !!this.studentDepartment && !!this.pupianRole;
-    console.log('🔍 [VALIDATION] PUPian form valid:', valid, {
-      chaptersValid: this.chaptersValid,
-      purposeValid24: this.purposeValid24,
-      studentProgram: this.studentProgram,
-      studentDepartment: this.studentDepartment,
-      pupianRole: this.pupianRole
-    });
     return valid;
   }
 
@@ -379,19 +370,11 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   // Get filtered department options based on selected program (method instead of getter)
   getFilteredDepartmentOptions(): {value: string, label: string}[] {
-    console.log('🔍 getFilteredDepartmentOptions called:', {
-      studentProgram: this.studentProgram,
-      hasMapping: !!this.programToDepartments[this.studentProgram],
-      availablePrograms: Object.keys(this.programToDepartments),
-      resultLength: (this.programToDepartments[this.studentProgram] || []).length
-    });
-    
     const result = this.programToDepartments[this.studentProgram] || [];
     
     // If no departments found and we have a program, try to find a close match
     if (result.length === 0 && this.studentProgram) {
       console.warn('⚠️ No departments found for program:', this.studentProgram);
-      console.log('Available program keys:', Object.keys(this.programToDepartments));
     }
     
     return result;
@@ -404,14 +387,11 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   // Handle program selection change
   onProgramChange(): void {
-    console.log('🔄 Program changed to:', this.studentProgram);
     
     // Clear department selection if the current selection is not valid for the new program
     const validDepartments = this.getFilteredDepartmentOptions().map(d => d.value);
-    console.log('🔍 Valid departments for new program:', validDepartments);
     
     if (this.studentDepartment && !validDepartments.includes(this.studentDepartment)) {
-      console.log('🔄 Clearing invalid department:', this.studentDepartment);
       this.studentDepartment = '';
     }
     
@@ -431,15 +411,6 @@ export class SearchResult implements OnInit, AfterViewInit {
     const valid = this.chaptersValid && this.purposeValid &&
            this.isGmail(this.requestEmail) &&
            !!this.guestCountry && !!this.guestCity && !!this.guestSchool;
-    console.log('🔍 [VALIDATION] Guest form valid:', valid, {
-      chaptersValid: this.chaptersValid,
-      purposeValid: this.purposeValid,
-      isGmail: this.isGmail(this.requestEmail),
-      requestEmail: this.requestEmail,
-      guestCountry: this.guestCountry,
-      guestCity: this.guestCity,
-      guestSchool: this.guestSchool
-    });
     return valid;
   }
   private get purposeValid(): boolean {
@@ -454,14 +425,9 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   // ===== UI actions =====
   openRequestDialog(): void {
-    console.log('🔍 [REQUEST-DIALOG] Opening request dialog...');
-    console.log('🔍 [REQUEST-DIALOG] User role:', this.userRole);
-    console.log('🔍 [REQUEST-DIALOG] User email:', this.currentUserEmail);
-    console.log('🔍 [REQUEST-DIALOG] Document status:', this.thesis?.document_status);
     
     // Check if user is logged in
     if (!this.currentUserEmail) {
-      console.log('🔍 [REQUEST-DIALOG] No user email, showing login required dialog');
       // Show login required dialog
       if (this.dlgLoginRequired) {
         this.dialog.open(this.dlgLoginRequired, { width: '500px', autoFocus: false });
@@ -485,7 +451,6 @@ export class SearchResult implements OnInit, AfterViewInit {
           console.error('❌ [REQUEST-DIALOG] Old PUPian Step 1 dialog template not available');
           return;
         }
-        console.log('✅ [REQUEST-DIALOG] Opening Old PUPian Step 1');
         this.dialog.open(this.dlgOldPupianStep1, { width: '600px', disableClose: true });
       } else {
         // Old Guest form - Step 1
@@ -495,7 +460,6 @@ export class SearchResult implements OnInit, AfterViewInit {
         }
         // Pre-fill email from logged-in user
         this.guestEmail = this.currentUserEmail;
-        console.log('✅ [REQUEST-DIALOG] Opening Old Guest Step 1');
         this.dialog.open(this.dlgOldGuestStep1, { width: '600px', disableClose: true });
       }
     } else {
@@ -506,7 +470,6 @@ export class SearchResult implements OnInit, AfterViewInit {
           console.error('❌ [REQUEST-DIALOG] Student dialog template not available');
           return;
         }
-        console.log('✅ [REQUEST-DIALOG] Opening PUPian form');
         this.dialog.open(this.dlgStudent, { width: '600px', disableClose: true });
       } else {
         // Guest form - multi-step, start with Step 1
@@ -516,7 +479,6 @@ export class SearchResult implements OnInit, AfterViewInit {
         }
         // Pre-fill email from logged-in user
         this.guestEmail = this.currentUserEmail;
-        console.log('✅ [REQUEST-DIALOG] Opening Guest Step 1');
         this.dialog.open(this.dlgGuest, { width: '600px', disableClose: true });
       }
     }
@@ -723,8 +685,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   openTermsAndSubmit(prevDialogRef?: any): void {
-    console.log('🔍 [TERMS] Opening terms dialog...');
-    console.log('🔍 [TERMS] dlgTerms template:', this.dlgTerms ? 'Available' : 'Undefined');
     
     // Optional: keep the original dialog open but block accidental outside close
     if (prevDialogRef) prevDialogRef.disableClose = true;
@@ -774,11 +734,6 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   // Your actual submit logic (API call, snackbar, etc.)
   finalizeRequestSubmission(formType: 'pupian' | 'guest' = 'pupian', docStatus: 'active' | 'old' = 'active'): void {
-    console.log('🔍 [FINALIZE] Starting final request submission...');
-    console.log('🔍 [FINALIZE] Form type:', formType);
-    console.log('🔍 [FINALIZE] Document status:', docStatus);
-    console.log('🔍 [FINALIZE] User role:', this.userRole);
-    console.log('🔍 [FINALIZE] Thesis ID:', this.thesis?._id);
     
     // Validate that we have the required data
     if (!this.thesis?._id) {
@@ -852,7 +807,7 @@ export class SearchResult implements OnInit, AfterViewInit {
     };
 
     // Debug: Log all required fields to help identify missing ones
-    console.log('📤 [FINALIZE] Payload validation check:', {
+    console.log('[FINALIZE] Request payload:', {
       document_id: requestPayload.document_id,
       user_type: requestPayload.user_type,
       email: requestPayload.email,
@@ -869,12 +824,10 @@ export class SearchResult implements OnInit, AfterViewInit {
       )
     });
 
-    console.log('📤 [FINALIZE] Full payload:', requestPayload);
 
     // Call backend API
     this.http.post(`${environment.authApiUrl}/requests/`, requestPayload).subscribe({
       next: (response: any) => {
-        console.log('✅ [FINALIZE] Success response:', response);
         this.isSubmittingRequest = false;
         
         // Show success message
@@ -1059,11 +1012,8 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   generateCitation(format: 'apa' | 'mla'): void {
-    console.log(`🔥 ${format.toUpperCase()} CITATION CLICKED!`);
-    console.log('generateCitation called', { thesis: this.thesis, citationCopied: this.citationCopied, format });
     
     if (!this.thesis || this.citationCopied) {
-      console.log('❌ Returning early:', { hasThesis: !!this.thesis, citationCopied: this.citationCopied });
       return;
     }
 
@@ -1079,7 +1029,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   private generateAPACitation(): void {
 
     // Convert authors to APA format: "Last, F. M., Last, F. M., & Last, F. M."
-    console.log('Authors data:', this.thesis.authors, typeof this.thesis.authors);
     
     let authorsRaw: string[];
     if (typeof this.thesis.authors === 'string') {
@@ -1126,18 +1075,15 @@ export class SearchResult implements OnInit, AfterViewInit {
     const apaCitation = `${authorsAPA} (${year}). *${title}* [${thesisType}, ${university}].`;
 
     // Copy to clipboard with fallback
-    console.log('Generated APA citation:', apaCitation);
     
     // Check if clipboard API is available
     if (navigator.clipboard && window.isSecureContext) {
       // Modern clipboard API
       navigator.clipboard.writeText(apaCitation).then(() => {
-        console.log('✅ Successfully copied to clipboard');
         this.citationCopied = true;
         setTimeout(() => {
           this.citationCopied = false;
           this.copiedFormat = '';
-          console.log('Reset citationCopied to false');
         }, 2000);
       }).catch(err => {
         console.error('❌ Clipboard API failed:', err);
@@ -1145,13 +1091,11 @@ export class SearchResult implements OnInit, AfterViewInit {
       });
     } else {
       // Fallback for older browsers or non-secure contexts
-      console.log('📋 Using fallback copy method');
       this.fallbackCopyTextToClipboard(apaCitation);
     }
   }
 
   private generateMLACitation(): void {
-    console.log('Authors data:', this.thesis.authors, typeof this.thesis.authors);
     
     let authorsRaw: string[];
     if (typeof this.thesis.authors === 'string') {
@@ -1224,18 +1168,15 @@ export class SearchResult implements OnInit, AfterViewInit {
     const mlaCitation = `${authorsMLA.replace(/\.$/, '')}. *${title}*. ${year}. ${university}, ${thesisType}.`;
 
     // Copy to clipboard with fallback
-    console.log('Generated MLA citation:', mlaCitation);
     
     // Check if clipboard API is available
     if (navigator.clipboard && window.isSecureContext) {
       // Modern clipboard API
       navigator.clipboard.writeText(mlaCitation).then(() => {
-        console.log('✅ Successfully copied to clipboard');
         this.citationCopied = true;
         setTimeout(() => {
           this.citationCopied = false;
           this.copiedFormat = '';
-          console.log('Reset citationCopied to false');
         }, 2000);
       }).catch(err => {
         console.error('❌ Clipboard API failed:', err);
@@ -1243,7 +1184,6 @@ export class SearchResult implements OnInit, AfterViewInit {
       });
     } else {
       // Fallback for older browsers or non-secure contexts
-      console.log('📋 Using fallback copy method');
       this.fallbackCopyTextToClipboard(mlaCitation);
     }
   }
@@ -1265,12 +1205,10 @@ export class SearchResult implements OnInit, AfterViewInit {
     try {
       const successful = document.execCommand('copy');
       if (successful) {
-        console.log('✅ Fallback copy successful');
         this.citationCopied = true;
         setTimeout(() => {
           this.citationCopied = false;
           this.copiedFormat = '';
-          console.log('Reset citationCopied to false');
         }, 2000);
       } else {
         console.error('❌ Fallback copy failed');
