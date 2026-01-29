@@ -309,7 +309,6 @@ const getAllUsers = async (req, res) => {
         ui.student_id,
         ui.faculty_id,
         ui.admin_id,
-        ui.block_id,
         ui.program_id,
         ui.admin_program,
         ui.admin_type,
@@ -498,8 +497,6 @@ const loginUser = async (req, res) => {
           ui.student_id,
           ui.faculty_id,
           ui.admin_id,
-          ui.block_id,
-          ui.group_id,
           ui.program_id,
           ui.admin_program,
           ui.admin_type,
@@ -535,7 +532,6 @@ const loginUser = async (req, res) => {
       student_id: users[0].student_id,
       faculty_id: users[0].faculty_id,
       admin_id: users[0].admin_id,
-      group_id: users[0].group_id,
       AvatarUrl: users[0].avatar_url
     }
 
@@ -554,14 +550,11 @@ const loginUser = async (req, res) => {
         Status: userWithoutPassword.Status,
         Firstname: userWithoutPassword.Firstname,
         Lastname: userWithoutPassword.Lastname,
-        role_id: userWithoutPassword.role_id,
-        group_id: userWithoutPassword.group_id
+        role_id: userWithoutPassword.role_id
       };
       
-      // Set HttpOnly cookie with user data using centralized security configuration
-      const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
-      
-      res.cookie(AUTH_COOKIE_NAME, JSON.stringify({
+      const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
+      const cookiePayload = {
         id: userWithoutPassword.StudentID,
         email: userWithoutPassword.Email,
         Status: userWithoutPassword.Status,
@@ -571,9 +564,9 @@ const loginUser = async (req, res) => {
         Department: userWithoutPassword.Department,
         AvatarUrl: userWithoutPassword.AvatarUrl,
         role_id: userWithoutPassword.role_id,
-        group_id: userWithoutPassword.group_id,
         account_type: 'user'
-      }), getAuthCookieConfig());
+      };
+      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(cookiePayload), getAuthCookieConfig());
       
       res.json({
         message: 'Login successful',
@@ -701,21 +694,16 @@ const logoutUser = async (req, res) => {
 // Get current user from cookie
 const getCurrentUser = async (req, res) => {
   try {
-    const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+    const { AUTH_COOKIE_NAME, verifyAuthPayload } = await import('../utils/cookieConfig.js');
     const authCookie = req.cookies[AUTH_COOKIE_NAME];
-    
     if (!authCookie) {
       return res.status(401).json({ authenticated: false, error: 'No authentication cookie found' });
     }
-    
-    try {
-      const user = JSON.parse(authCookie);
-      // Return format expected by frontend: { authenticated: true, user }
-      res.json({ authenticated: true, user });
-    } catch (parseError) {
-      console.error('Error parsing auth cookie:', parseError);
-      res.status(401).json({ authenticated: false, error: 'Invalid authentication cookie' });
+    const user = verifyAuthPayload(authCookie);
+    if (!user) {
+      return res.status(401).json({ authenticated: false, error: 'Invalid or tampered authentication cookie' });
     }
+    res.json({ authenticated: true, user });
   } catch (error) {
     console.error('Get current user error:', error);
     res.status(500).json({ authenticated: false, error: 'Error getting current user' });
@@ -814,8 +802,6 @@ const getUserById = async (req, res) => {
         ui.student_id,
         ui.faculty_id,
         ui.admin_id,
-        ui.group_id,
-        ui.block_id,
         ui.program_id,
         ui.admin_program,
         ui.admin_type,

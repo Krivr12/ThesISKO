@@ -309,8 +309,8 @@ export const requireSubmissionOwnership = async (req, res, next) => {
     
     // Check if user is the submitter
     if (submission.submitter_email?.toLowerCase() !== userEmail.toLowerCase()) {
-      // Allow if user is admin, dean, or chairperson (they can view all submissions)
-      if (![4, 5, 7, 8].includes(req.user.role_id)) {
+      // Allow if user is admin (Faculty 3, Chairperson 4, Superadmin 5)
+      if (![3, 4, 5].includes(req.user.role_id)) {
         return res.status(403).json({ 
           error: 'Forbidden',
           message: 'Cannot access submission: not the submitter'

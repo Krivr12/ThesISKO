@@ -5,8 +5,12 @@ import { ObjectId } from "mongodb";
 import s3 from "../databaseConnections/AWS/s3_connection.js";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import multer from "multer";
+import { requireAuth } from "../middlewares/authMiddleware.js";
+import { requireRole } from "../middlewares/authorizationMiddleware.js";
 
 const router = express.Router();
+
+const adminOnly = [requireAuth, requireRole(3, 4, 5)];
 const VECTOR_INDEX = "AbstractSemanticSearch"; // replace with your Atlas vector index
 const collection = RepoMongodb ? RepoMongodb.collection("records") : null;
 
@@ -24,8 +28,8 @@ const checkMongoDB = (res) => {
 
 // -------------------- Routes --------------------
 
-// GET all records (full data for admin, or minimal for search based on query param)
-router.get("/", async (req, res) => {
+// GET all records (full data for admin, or minimal for search based on query param) - role 3,4,5 only
+router.get("/", adminOnly, async (req, res) => {
   if (!checkMongoDB(res)) return;
   try {
     const results = await collection.find({}).toArray();
@@ -70,7 +74,7 @@ router.get("/", async (req, res) => {
 });
 
 // GET latest 6 records
-router.get("/latest", async (req, res) => {
+router.get("/latest", adminOnly, async (req, res) => {
   if (!checkMongoDB(res)) return;
   try {
     const results = await collection
@@ -194,7 +198,7 @@ router.get("/latest", async (req, res) => {
 });
 
 // GET single record by _id (full data for detail page)
-router.get("/:_id", async (req, res) => {
+router.get("/:_id", adminOnly, async (req, res) => {
   try {
     const result = await collection.findOne({ _id: new ObjectId(req.params._id) });
 
@@ -213,7 +217,7 @@ router.get("/:_id", async (req, res) => {
 });
 
 // POST new record (FOR TESTING ONLY NOT UPDATED ANYMORE)
-router.post("/", async (req, res) => {
+router.post("/", adminOnly, async (req, res) => {
   try {
     const year = new Date().getFullYear();
     const countForYear = await collection.countDocuments({
@@ -251,7 +255,7 @@ router.post("/", async (req, res) => {
 });
 
 // POST bulk insert (FOR TESTING ONLY NOT UPDATED ANYMORE)
-router.post("/bulk", async (req, res) => {
+router.post("/bulk", adminOnly, async (req, res) => {
   try {
     if (!Array.isArray(req.body)) {
       return res
@@ -299,7 +303,7 @@ router.post("/bulk", async (req, res) => {
 });
 
 // POST semantic search
-router.post("/search", async (req, res) => {
+router.post("/search", adminOnly, async (req, res) => {
   try {
     const { query, topK = 5, numCandidates = null } = req.body;
 
@@ -326,7 +330,7 @@ router.post("/search", async (req, res) => {
 
 
 // POST get single document
-router.post("/theses/by-ids", async (req, res) => {
+router.post("/theses/by-ids", adminOnly, async (req, res) => {
   try {
     const { ids } = req.body;
     
@@ -349,7 +353,7 @@ router.post("/theses/by-ids", async (req, res) => {
 });
 
 // DELETE a record by _id (also deletes associated S3 file)
-router.delete("/:_id", async (req, res) => {
+router.delete("/:_id", adminOnly, async (req, res) => {
   try {
     const { _id } = req.params;
 
@@ -399,7 +403,7 @@ router.delete("/:_id", async (req, res) => {
 });
 
 // PUT update record by _id (without file)
-router.put("/:_id", async (req, res) => {
+router.put("/:_id", adminOnly, async (req, res) => {
   try {
     const { _id } = req.params;
 
@@ -452,7 +456,7 @@ router.put("/:_id", async (req, res) => {
 });
 
 // PUT update record by _id (with file upload)
-router.put("/:_id/with-file", upload.single("manuscript"), async (req, res) => {
+router.put("/:_id/with-file", adminOnly, upload.single("manuscript"), async (req, res) => {
   try {
     const { _id } = req.params;
 
@@ -567,7 +571,7 @@ router.put("/:_id/with-file", upload.single("manuscript"), async (req, res) => {
 });
 
 // PUT update record by doc_id (DEPRECATED - keeping for backwards compatibility)
-router.put("/:doc_id", async (req, res) => {
+router.put("/:doc_id", adminOnly, async (req, res) => {
   try {
     const { doc_id } = req.params;
 

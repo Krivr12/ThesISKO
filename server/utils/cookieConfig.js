@@ -1,7 +1,53 @@
+import crypto from 'crypto';
+
 /**
  * Centralized cookie configuration for authentication cookies
  * Ensures consistent security settings across all authentication endpoints
  */
+
+const AUTH_COOKIE_SECRET = process.env.AUTH_COOKIE_SECRET || process.env.SESSION_SECRET || '';
+
+/**
+ * Sign auth payload for cookie (HMAC-SHA256).
+ * Use when setting the auth cookie so it cannot be forged.
+ * @param {Object} payload - User object to store in cookie
+ * @returns {string} JSON string of { payload, signature } to set as cookie value
+ */
+export function signAuthPayload(payload) {
+  if (!AUTH_COOKIE_SECRET) {
+    console.warn('⚠️ AUTH_COOKIE_SECRET (or SESSION_SECRET) not set; cookie will be unsigned');
+  }
+  const str = JSON.stringify(payload);
+  const signature = AUTH_COOKIE_SECRET
+    ? crypto.createHmac('sha256', AUTH_COOKIE_SECRET).update(str).digest('hex')
+    : '';
+  return JSON.stringify({ payload, signature });
+}
+
+/**
+ * Verify and parse auth cookie value. Returns payload only if signature is valid.
+ * @param {string} cookieValue - Raw cookie string
+ * @returns {Object|null} Parsed user payload or null if invalid/missing signature
+ */
+export function verifyAuthPayload(cookieValue) {
+  if (!cookieValue) return null;
+  try {
+    const parsed = JSON.parse(cookieValue);
+    if (!parsed.payload) return null;
+    if (!AUTH_COOKIE_SECRET) {
+      return parsed.signature === '' ? parsed.payload : null;
+    }
+    if (!parsed.signature) return null;
+    const str = JSON.stringify(parsed.payload);
+    const expected = crypto.createHmac('sha256', AUTH_COOKIE_SECRET).update(str).digest('hex');
+    if (crypto.timingSafeEqual(Buffer.from(parsed.signature, 'hex'), Buffer.from(expected, 'hex'))) {
+      return parsed.payload;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Get the cookie domain for cross-subdomain cookie sharing
@@ -107,8 +153,6 @@ export const getAuthCookieConfig = (options = {}) => {
   return config;
 };
 
-/**
- * Cookie name constant to prevent typos and ensure consistency
- */
+/** Cookie name constant */
 export const AUTH_COOKIE_NAME = 'auth_user';
 

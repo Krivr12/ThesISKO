@@ -1,8 +1,12 @@
 import express from "express";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 import pool from '../data/database.js';
+import { requireAuth } from '../middlewares/authMiddleware.js';
+import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
+
+const adminOnly = [requireAuth, requireRole(3, 4, 5)];
 const collection = RepoMongodb.collection("programs"); // collection name
 
 // -------------------- Routes --------------------
@@ -61,7 +65,7 @@ router.get("/:program_id", async (req, res) => {
 });
 
 // POST new program
-router.post("/", async (req, res) => {
+router.post("/", adminOnly, async (req, res) => {
   try {
     const { program_id, department_id, department_name, program_name, chairperson_email } = req.body;
 
@@ -164,7 +168,7 @@ router.post("/", async (req, res) => {
 });
 
 // PUT update program by program_id (including chairperson reassignment)
-router.put("/:program_id", async (req, res) => {
+router.put("/:program_id", adminOnly, async (req, res) => {
   try {
     const { program_id } = req.params;
     const { department_id, department_name, program_name, chairperson_email } = req.body;
@@ -272,7 +276,7 @@ router.put("/:program_id", async (req, res) => {
 });
 
 // DELETE a program by program_id (also unassigns chairperson)
-router.delete("/:program_id", async (req, res) => {
+router.delete("/:program_id", adminOnly, async (req, res) => {
   try {
     const { program_id } = req.params;
 

@@ -9,7 +9,8 @@ import "./config/passport.js"; // Import passport configuration
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
-// Import routes
+// Import routes (webhook handler for raw body route)
+import { handleResendInbound } from "./routes/webhooks.js";
 import records from "./routes/records.js";
 import group_progress from "./routes/group_progress.js";
 import s3Routes from "./routes/s3Routes.js";
@@ -45,6 +46,12 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("❌ Unhandled Rejection at:", promise, "reason:", reason);
   console.log("🔄 Server continuing despite unhandled rejection...");
 });
+
+// Require SESSION_SECRET in production (no fallback)
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  console.error('❌ SESSION_SECRET must be set in production. Exiting.');
+  process.exit(1);
+}
 
 // Security middleware
 app.use(helmet());
@@ -87,7 +94,8 @@ app.use(
   })
 );
 
-// Body parsing middleware
+// Body parsing middleware (webhook must receive raw body - mount before json)
+app.post("/webhooks/resend/inbound", express.raw({ type: "application/json" }), handleResendInbound);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -99,7 +107,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
@@ -151,7 +159,6 @@ app.get("/health", async (req, res) => {
       status: "OK",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      sessionID: req.sessionID,
       database: "Connected",
     });
   } catch (error) {
@@ -159,7 +166,6 @@ app.get("/health", async (req, res) => {
       status: "ERROR",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      sessionID: req.sessionID,
       database: "Disconnected",
       error: error.message,
     });

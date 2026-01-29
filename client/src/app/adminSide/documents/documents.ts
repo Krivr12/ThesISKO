@@ -82,6 +82,9 @@ export class AdminDocuments implements OnInit {
   // Filter
   currentFilter: 'For Approval' | 'With Issues' | 'Approved' = 'For Approval';
 
+  // Search (keyword by title)
+  searchKeyword = '';
+
   // Sorting
   sortColumn: keyof Thesis | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
@@ -356,7 +359,15 @@ export class AdminDocuments implements OnInit {
     // 1. Filtering - Only show approved documents
     this.filteredDocuments = this.documents.filter(doc => doc.status === 'Approved');
 
-    // 2. Sorting
+    // 2. Keyword search by title
+    const keyword = this.searchKeyword.trim().toLowerCase();
+    if (keyword) {
+      this.filteredDocuments = this.filteredDocuments.filter(doc =>
+        (doc.title || '').toLowerCase().includes(keyword)
+      );
+    }
+
+    // 3. Sorting
     if (this.sortColumn) {
         this.filteredDocuments.sort((a, b) => {
             const aValue = a[this.sortColumn!];
@@ -373,9 +384,14 @@ export class AdminDocuments implements OnInit {
         });
     }
 
-    // 3. Paginator
+    // 4. Paginator
     this.totalPages = Math.ceil(this.filteredDocuments.length / this.itemsPerPage);
     this.updatePages();
+  }
+
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.filterAndSortDocuments();
   }
 
   onSort(column: keyof Thesis): void {
