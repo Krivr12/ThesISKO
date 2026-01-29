@@ -19,8 +19,9 @@
 /* Header */
 .page-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
     margin-bottom: 2rem;
 }
 
@@ -28,6 +29,26 @@
     font-size: 2rem;
     font-weight: 700;
     color: #800000;
+}
+
+.search-bar {
+    max-width: 400px;
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #333;
+    background-color: #fff;
+}
+
+.search-bar::placeholder {
+    color: #888;
+}
+
+.search-bar:focus {
+    outline: none;
+    border-color: #800000;
+    box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.15);
 }
 
 /* Documents Table */

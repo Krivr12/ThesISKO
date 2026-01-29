@@ -137,7 +137,7 @@
             class="form-control"
             [required]="isFieldRequired(field.name)" />
           
-          <!-- Number Input -->
+          <!-- Number Input (year: max = current year) -->
           <input 
             *ngIf="getFieldType(field.name) === 'number'"
             [id]="'field-' + field.name"
@@ -145,8 +145,13 @@
             [value]="getDynamicFieldValue(field.name)"
             (input)="onDynamicFieldChange(field.name, $event)"
             [placeholder]="getFieldPlaceholder(field.name)"
+            [max]="field.name === 'year' ? currentYear : null"
+            [attr.min]="field.name === 'year' ? 1900 : null"
             class="form-control"
             [required]="isFieldRequired(field.name)" />
+          <small *ngIf="field.name === 'year'" class="help-text">
+            Must be {{ currentYear }} or earlier (no future years).
+          </small>
           
           <!-- Date Input -->
           <input 

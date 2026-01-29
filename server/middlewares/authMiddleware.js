@@ -30,10 +30,7 @@ export const requireAuth = async (req, res, next) => {
       console.log(`[authMiddleware] 🔍 Auth cookie exists:`, !!req.cookies[AUTH_COOKIE_NAME]);
     }
     
-    // Get auth cookie from request
     const authCookie = req.cookies[AUTH_COOKIE_NAME];
-    
-    // Check if cookie exists
     if (!authCookie) {
       if (process.env.DEBUG_AUTH === 'true') {
         console.log(`[authMiddleware] ❌ No authentication cookie found for ${req.method} ${req.originalUrl}`);
@@ -44,19 +41,17 @@ export const requireAuth = async (req, res, next) => {
         message: 'No authentication cookie found'
       });
     }
-    
-    // Parse cookie JSON safely
-    let user;
-    try {
-      user = JSON.parse(authCookie);
-    } catch (parseError) {
+
+    const { verifyAuthPayload } = await import('../utils/cookieConfig.js');
+    const user = verifyAuthPayload(authCookie);
+    if (!user) {
       if (process.env.DEBUG_AUTH === 'true') {
-        console.error(`[authMiddleware] ❌ Invalid JSON in auth cookie for ${req.method} ${req.originalUrl}:`, parseError.message);
+        console.error(`[authMiddleware] ❌ Invalid or tampered auth cookie for ${req.method} ${req.originalUrl}`);
       }
       return res.status(401).json({ 
         authenticated: false, 
         error: 'Invalid authentication token',
-        message: 'Authentication cookie is malformed'
+        message: 'Authentication cookie is invalid or tampered'
       });
     }
     

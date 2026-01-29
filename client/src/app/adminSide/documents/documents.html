@@ -5,6 +5,13 @@
         <div *ngIf="view === 'list'" class="list-view-container">
             <header class="page-header">
                 <h1 class="page-title">Documents</h1>
+                <input
+                  type="text"
+                  class="search-bar"
+                  placeholder="Search by title..."
+                  [(ngModel)]="searchKeyword"
+                  (ngModelChange)="onSearchChange()"
+                  aria-label="Search documents by title" />
             </header>
 
             <div class="documents-table">

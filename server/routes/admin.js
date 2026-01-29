@@ -2,12 +2,16 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import pool from '../data/database.js';
 import { adminCreateFaculty } from '../controller/userController.js';
+import { requireAuth } from '../middlewares/authMiddleware.js';
+import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
+// Admin routes: require auth + role 3 (Faculty), 4 (Chairperson), or 5 (Superadmin)
+const adminOnly = [requireAuth, requireRole(3, 4, 5)];
 
 // GET /admin/faculty - Get all faculty members (role 3 only)
-router.get('/faculty', async (req, res) => {
+router.get('/faculty', adminOnly, async (req, res) => {
   try {
     let result;
     
@@ -41,8 +45,8 @@ router.get('/faculty', async (req, res) => {
   }
 });
 
-// GET /admin/faculty/all-roles - Get all users with roles 3, 4, 5 (Faculty, Chairperson, Dean)
-router.get('/faculty/all-roles', async (req, res) => {
+// GET /admin/faculty/all-roles - Get all users with roles 3, 4, 5
+router.get('/faculty/all-roles', adminOnly, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -82,10 +86,9 @@ router.get('/faculty/all-roles', async (req, res) => {
 });
 
 
-// GET /admin/faculty/blocks - Get all faculty for block assignment (includes faculty, chairperson, admin+faculty, superadmin+faculty)
-router.get('/faculty/blocks', async (req, res) => {
+// GET /admin/faculty/blocks - Get all faculty for block assignment (roles 3, 4, 5 with faculty_id)
+router.get('/faculty/blocks', adminOnly, async (req, res) => {
   try {
-    // Get faculty with role_id 3 (Faculty), 4 (Chairperson), 7 (admin_faculty), or 8 (superadmin_faculty)
     const result = await pool.query(`
       SELECT 
         user_id,
@@ -96,7 +99,7 @@ router.get('/faculty/blocks', async (req, res) => {
         role_id,
         created_at
       FROM users_info 
-      WHERE role_id IN (3, 4, 7, 8) AND faculty_id IS NOT NULL
+      WHERE role_id IN (3, 4, 5) AND faculty_id IS NOT NULL
       ORDER BY lastname ASC, firstname ASC
     `);
     
@@ -113,14 +116,14 @@ router.get('/faculty/blocks', async (req, res) => {
   }
 });
 
-// POST /admin/faculty - Create new faculty member (with auto-generated password and email)
-router.post('/faculty', adminCreateFaculty);
+// POST /admin/faculty - Create new faculty member
+router.post('/faculty', adminOnly, adminCreateFaculty);
 
 
 
 
 // PUT /admin/faculty/:id - Update faculty member
-router.put('/faculty/:id', async (req, res) => {
+router.put('/faculty/:id', adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
     const { firstname, lastname, email, faculty_id } = req.body;
@@ -173,7 +176,7 @@ router.put('/faculty/:id', async (req, res) => {
 });
 
 // PUT /admin/faculty/all-roles/:id - Update user details (for roles 3, 4, 5)
-router.put('/faculty/all-roles/:id', async (req, res) => {
+router.put('/faculty/all-roles/:id', adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
     const { firstname, lastname, email, faculty_id } = req.body;
@@ -265,7 +268,7 @@ router.put('/faculty/all-roles/:id', async (req, res) => {
 });
 
 // DELETE /admin/faculty/:id - Delete faculty member (role_id = 3 only)
-router.delete('/faculty/:id', async (req, res) => {
+router.delete('/faculty/:id', adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -290,7 +293,7 @@ router.delete('/faculty/:id', async (req, res) => {
 });
 
 // DELETE /admin/faculty/all-roles/:id - Delete user with any role (3, 4, 5)
-router.delete('/faculty/all-roles/:id', async (req, res) => {
+router.delete('/faculty/all-roles/:id', adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -315,7 +318,7 @@ router.delete('/faculty/all-roles/:id', async (req, res) => {
 });
 
 // POST /admin/faculty/:id/reset-password - Reset faculty password
-router.post('/faculty/:id/reset-password', async (req, res) => {
+router.post('/faculty/:id/reset-password', adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
     const { newPassword } = req.body;

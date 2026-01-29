@@ -33,7 +33,7 @@ const googleAuthSuccess = async (req, res) => {
       // Also check if email already exists (regardless of role) - JOIN with roles to get role_name
       const existingEmailUsers = await pool.query(
         `SELECT ui.user_id, ui.email, ui.firstname, ui.lastname, ui.role_id, ui.student_id, 
-                ui.course, ui.department, ui.group_id, ui.block_id, ui.avatar_url, 
+                ui.course, ui.department, ui.avatar_url, 
                 r.role_name 
          FROM users_info ui
          LEFT JOIN roles r ON ui.role_id = r.role_id
@@ -92,8 +92,7 @@ const googleAuthSuccess = async (req, res) => {
             role_id: existingUser.role_id, // Preserve original role_id
             StudentID: existingUser.student_id, // Include student_id if exists
             Department: existingUser.department,
-            Course: existingUser.course,
-            group_id: existingUser.group_id // Get group_id directly from users_info table
+            Course: existingUser.course
           };
         } else {
           // For true guests (role_id = 1 or null), update their info
@@ -180,9 +179,8 @@ const googleAuthSuccess = async (req, res) => {
       // Set auth cookie for the user
       // Extract domain from FRONTEND_URL to set cookie domain correctly
       // Set HttpOnly cookie with user data using centralized security configuration
-      const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
-      
-      res.cookie(AUTH_COOKIE_NAME, JSON.stringify(guestUser), getAuthCookieConfig());
+      const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
+      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(guestUser), getAuthCookieConfig());
       
       // Encode user data and redirect to Google callback component
       const userData = { user: guestUser };

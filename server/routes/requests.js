@@ -3,17 +3,18 @@ import { ObjectId } from "mongodb";
 import multer from "multer";
 import db from "../databaseConnections/MongoDB/mongodb_connection.js";
 import s3 from "../databaseConnections/AWS/s3_connection.js";
-// AWS SES service removed - now using unified email service
 import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { uploadRequestersData, updateRequestStatus } from "../services/analyticsService.js";
 import { validateRequest } from "../middlewares/requestValidator.js";
 import rateLimiter from "../middlewares/rateLimiter.js";
 import supabase from "../databaseConnections/Supabase/supabase_connection.js";
-
-
+import { requireAuth } from "../middlewares/authMiddleware.js";
+import { requireRole } from "../middlewares/authorizationMiddleware.js";
 
 const router = express.Router();
+
+const adminOnly = [requireAuth, requireRole(3, 4, 5)];
 const collection = db.collection("requests");
 const recordsCollection = db.collection("records");
 
@@ -21,7 +22,7 @@ const recordsCollection = db.collection("records");
 const upload = multer({ storage: multer.memoryStorage() });
 
 /* -------------------- Get All Requests from Supabase -------------------- */
-router.get("/analytics", async (req, res) => {
+router.get("/analytics", adminOnly, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("requesters_analytics")
@@ -38,7 +39,7 @@ router.get("/analytics", async (req, res) => {
 });
 
 /* -------------------- Get Request Details (MongoDB + Records) -------------------- */
-router.get("/:request_id/details", async (req, res) => {
+router.get("/:request_id/details", adminOnly, async (req, res) => {
   try {
     const { request_id } = req.params;
 
