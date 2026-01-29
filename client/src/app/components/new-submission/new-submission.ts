@@ -221,6 +221,20 @@ export class NewSubmission implements OnInit {
     }
   }
 
+  /** Current year for year field validation (max allowed) */
+  get currentYear(): number {
+    return new Date().getFullYear();
+  }
+
+  /** Validate year is not in the future (must be <= current year). */
+  isYearValid(): boolean {
+    const y = this.year().trim();
+    if (!y) return true; // empty is ok; required check is separate
+    const num = parseInt(y, 10);
+    if (Number.isNaN(num)) return false;
+    return num <= this.currentYear;
+  }
+
   nextStep() {
     if (this.currentStep() === 1) {
       if (!this.department() || !this.program() || !this.documentType()) {
@@ -230,6 +244,10 @@ export class NewSubmission implements OnInit {
     } else if (this.currentStep() === 2) {
       if (!this.title() || !this.abstract() || !this.authors()) {
         alert('Please fill in all required fields');
+        return;
+      }
+      if (!this.isYearValid()) {
+        alert(`Year must be ${this.currentYear} or earlier. Future years (e.g. 9999) are not allowed.`);
         return;
       }
       // Check for duplicates
@@ -328,6 +346,11 @@ export class NewSubmission implements OnInit {
 
     if (missingFiles.length > 0) {
       alert(`Please upload all required files: ${missingFiles.map(f => f.label).join(', ')}`);
+      return;
+    }
+
+    if (!this.isYearValid()) {
+      alert(`Year must be ${this.currentYear} or earlier. Future years (e.g. 9999) are not allowed.`);
       return;
     }
 
@@ -527,6 +550,7 @@ export class NewSubmission implements OnInit {
       'program': 'e.g., BSIT, BSCS'
     };
     
+    if (fieldName === 'year') return String(this.currentYear);
     return placeholders[fieldName] || `Enter ${this.getFieldDisplayName(fieldName).toLowerCase()}`;
   }
 

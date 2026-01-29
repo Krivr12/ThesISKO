@@ -6,11 +6,47 @@ import {
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { requireAuth } from "../middlewares/authMiddleware.js";
+import { getDb } from "../databaseConnections/MongoDB/mongodb_connection.js";
 
 const router = express.Router();
 
+const ADMIN_ROLES = [3, 4, 5]; // Faculty, Chairperson, Superadmin
+
+/**
+ * Group-based access check removed: group_id is no longer stored in users_info.
+ * Request body still uses group_id as the S3 path segment (submission folder id).
+ * Access control for submission files is handled by checkSubmissionAccess where applicable.
+ */
+function checkGroupAccess(req, res, next) {
+  next();
+}
+
+/**
+ * S3 authorization rule (submission_id):
+ * User may access submission_id only if: (a) they are the submitter (submitter_email matches user email),
+ * or (b) they have admin role (3, 4, 5).
+ */
+async function checkSubmissionAccess(req, res, next) {
+  const submission_id = req.body?.submission_id;
+  if (!submission_id) return next();
+  const userEmail = req.user?.email ?? req.user?.Email;
+  if (!userEmail) return res.status(401).json({ error: "Authentication required" });
+  if (ADMIN_ROLES.includes(req.user?.role_id)) return next();
+  try {
+    const db = getDb();
+    const submission = await db.collection("submissions").findOne({ submission_id });
+    if (!submission) return res.status(404).json({ error: "Submission not found" });
+    if ((submission.submitter_email || "").toLowerCase() === userEmail.toLowerCase()) return next();
+    return res.status(403).json({ error: "Forbidden", message: "You can only access your own submission files." });
+  } catch (err) {
+    console.error("checkSubmissionAccess error:", err);
+    return res.status(500).json({ error: "Failed to verify submission access" });
+  }
+}
+
 // Generate signed URL for uploading a single file (for groups)
-router.post("/signed-url", async (req, res) => {
+router.post("/signed-url", requireAuth, checkGroupAccess, async (req, res) => {
   try {
     const { group_id, filename, contentType } = req.body;
     if (!group_id || !filename || !contentType) {
@@ -36,7 +72,7 @@ router.post("/signed-url", async (req, res) => {
 });
 
 // Generate signed URL for uploading a single file (for individual submissions)
-router.post("/submission/signed-url", async (req, res) => {
+router.post("/submission/signed-url", requireAuth, checkSubmissionAccess, async (req, res) => {
   try {
     const { submission_id, filename, contentType } = req.body;
     if (!submission_id || !filename || !contentType) {
@@ -62,7 +98,7 @@ router.post("/submission/signed-url", async (req, res) => {
 });
 
 // Generate signed URLs for uploading multiple files (for groups)
-router.post("/signed-urls", async (req, res) => {
+router.post("/signed-urls", requireAuth, checkGroupAccess, async (req, res) => {
   try {
     const { group_id, files } = req.body; // expected: { group_id, files: [{ filename, contentType }] }
     if (!group_id || !Array.isArray(files) || files.length === 0) {
@@ -90,7 +126,7 @@ router.post("/signed-urls", async (req, res) => {
 });
 
 // Generate signed URLs for uploading multiple files (for individual submissions)
-router.post("/submission/signed-urls", async (req, res) => {
+router.post("/submission/signed-urls", requireAuth, checkSubmissionAccess, async (req, res) => {
   try {
     const { submission_id, files } = req.body; // expected: { submission_id, files: [{ filename, contentType }] }
     if (!submission_id || !Array.isArray(files) || files.length === 0) {
@@ -118,7 +154,7 @@ router.post("/submission/signed-urls", async (req, res) => {
 });
 
 // Fetch signed URLs for viewing or downloading existing files (for groups)
-router.post("/view-urls", async (req, res) => {
+router.post("/view-urls", requireAuth, checkGroupAccess, async (req, res) => {
   try {
     const { group_id, filenames } = req.body; // expected: { group_id, filenames: ["file1.pdf", "file2.pdf"] }
     if (!group_id || !Array.isArray(filenames) || filenames.length === 0) {
@@ -147,7 +183,7 @@ router.post("/view-urls", async (req, res) => {
 });
 
 // Fetch signed URLs for viewing or downloading existing files (for individual submissions)
-router.post("/submission/view-urls", async (req, res) => {
+router.post("/submission/view-urls", requireAuth, checkSubmissionAccess, async (req, res) => {
   try {
     const { submission_id, filenames } = req.body; // expected: { submission_id, filenames: ["file1.pdf", "file2.pdf"] }
     if (!submission_id || !Array.isArray(filenames) || filenames.length === 0) {
@@ -176,7 +212,7 @@ router.post("/submission/view-urls", async (req, res) => {
 });
 
 // Delete a file from S3 (for groups)
-router.delete("/file", async (req, res) => {
+router.delete("/file", requireAuth, checkGroupAccess, async (req, res) => {
   try {
     const { group_id, filename } = req.body;
     if (!group_id || !filename)
@@ -207,7 +243,7 @@ router.delete("/file", async (req, res) => {
 });
 
 // Delete a file from S3 (for individual submissions)
-router.delete("/submission/file", async (req, res) => {
+router.delete("/submission/file", requireAuth, checkSubmissionAccess, async (req, res) => {
   try {
     const { submission_id, filename } = req.body;
     if (!submission_id || !filename)
@@ -238,7 +274,7 @@ router.delete("/submission/file", async (req, res) => {
 });
 
 // Update file by removing old and returning signed URL for new upload (for groups)
-router.post("/update-file", async (req, res) => {
+router.post("/update-file", requireAuth, checkGroupAccess, async (req, res) => {
   try {
     const { group_id, oldFilename, newFilename, contentType } = req.body;
     if (!group_id || !oldFilename || !newFilename || !contentType) {
@@ -277,7 +313,7 @@ router.post("/update-file", async (req, res) => {
 });
 
 // Update file by removing old and returning signed URL for new upload (for individual submissions)
-router.post("/submission/update-file", async (req, res) => {
+router.post("/submission/update-file", requireAuth, checkSubmissionAccess, async (req, res) => {
   try {
     const { submission_id, oldFilename, newFilename, contentType } = req.body;
     if (!submission_id || !oldFilename || !newFilename || !contentType) {
@@ -374,8 +410,8 @@ function cleanFileKey(fileKey) {
   return fileKey;
 }
 
-// Generate signed URL for viewing repository file (approved documents)
-router.post("/view-repository-file", async (req, res) => {
+// Generate signed URL for viewing repository file (approved documents) - auth required
+router.post("/view-repository-file", requireAuth, async (req, res) => {
   try {
     let { file_key } = req.body;
     

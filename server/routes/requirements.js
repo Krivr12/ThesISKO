@@ -1,8 +1,12 @@
 import express from 'express';
 import { ObjectId } from 'mongodb';
 import { getDb } from '../databaseConnections/MongoDB/mongodb_connection.js';
+import { requireAuth } from '../middlewares/authMiddleware.js';
+import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
+
+const adminOnly = [requireAuth, requireRole(3, 4, 5)];
 
 // Helper to get collection
 const getRequirementsCollection = () => {
@@ -116,7 +120,7 @@ router.get('/:document_type/files', async (req, res) => {
 //   { id: 'copyright', label: 'Copyright Form', required: true, accept: '.pdf', to_be_archived: false }
 // ]
 // Note: to_be_archived=true files will be moved to repository when dean approves
-router.post('/', async (req, res) => {
+router.post('/', adminOnly, async (req, res) => {
   try {
     const {
       document_type,
@@ -175,7 +179,7 @@ router.post('/', async (req, res) => {
 });
 
 // PATCH update requirement
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -210,7 +214,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // PUT update requirement (for frontend compatibility)
-router.put('/:document_type', async (req, res) => {
+router.put('/:document_type', adminOnly, async (req, res) => {
   try {
     const { document_type } = req.params;
     const updateData = req.body;
@@ -245,7 +249,7 @@ router.put('/:document_type', async (req, res) => {
 });
 
 // DELETE requirement by document_type (soft delete)
-router.delete('/:document_type', async (req, res) => {
+router.delete('/:document_type', adminOnly, async (req, res) => {
   try {
     const { document_type } = req.params;
 
@@ -277,7 +281,7 @@ router.delete('/:document_type', async (req, res) => {
 });
 
 // DELETE requirement by ID (soft delete) - alternative endpoint
-router.delete('/id/:id', async (req, res) => {
+router.delete('/id/:id', adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
 

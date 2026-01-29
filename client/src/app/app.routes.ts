@@ -27,8 +27,6 @@ import { AdminChairpersonDetails } from './admin/admin-chairperson-details/admin
 import { adminGuard } from './guards/admin-guard';
 import { superadminGuard } from './guards/superadmin-guard';
 import { authGuard } from './guards/auth-guard';
-import { adminSideGuard } from './guards/admin-side-guard';
-import { deanOnlyGuard } from './guards/dean-only-guard';
 import { Programs } from './superAdmin/programs/programs';
 import { Dashboard as SuperAdminDashboard } from './superAdmin/dashboard/dashboard';
 import { Documents as SuperAdminDocuments } from './superAdmin/documents/documents';
@@ -39,18 +37,6 @@ import { DeanApproval } from './superAdmin/dean-approval/dean-approval';
 import { DeanDetails } from './superAdmin/dean-details/dean-details';
 import { RoleTestComponent } from './components/role-test/role-test';
 import { LoginModal } from './components/login-modal/login-modal';
-import { DocumentTypes } from './adminSide/document-types/document-types';
-import { AdminSideDashboard } from './adminSide/dashboard/dashboard';
-import { Approvals } from './adminSide/approvals/approvals';
-import { ApprovalDetails } from './adminSide/approvals/approval-details';
-import { AdminDocuments } from './adminSide/documents/documents';
-import { DocumentEdit } from './adminSide/documents/document-edit';
-import { AdminPrograms } from './adminSide/programs/programs';
-import { AdminFaculties as AdminSideFaculties } from './adminSide/faculties/faculties';
-import { AdminRequests } from './adminSide/requests/requests';
-import { AdminTemplates } from './adminSide/templates/templates';
-import { Requirements } from './adminSide/requirements/requirements';
-
 export const routes: Routes = [
     {path: 'signup-choose', component: SignupChoose},
     {path: 'login', component: Login, canActivate: [authGuard]},
@@ -104,19 +90,12 @@ export const routes: Routes = [
     {path: 'dean-approval', component: DeanApproval, canActivate: [superadminGuard]},
     {path: 'dean-approval/:group_id', component: DeanDetails, canActivate: [superadminGuard]},
     
-    // AdminSide routes (NEW - unified for both chairperson and dean)
-    {path: 'adminSide/dashboard', component: AdminSideDashboard, canActivate: [adminSideGuard]},
-    {path: 'adminSide/approvals', component: Approvals, canActivate: [adminSideGuard]},
-    {path: 'adminSide/approvals/:id', component: ApprovalDetails, canActivate: [adminSideGuard]},
-    {path: 'adminSide/documents', component: AdminDocuments, canActivate: [adminSideGuard]},
-    {path: 'adminSide/documents/edit/:id', component: DocumentEdit, canActivate: [adminSideGuard]},
-    {path: 'adminSide/programs', component: AdminPrograms, canActivate: [deanOnlyGuard]},
-    {path: 'adminSide/faculties', component: AdminSideFaculties, canActivate: [deanOnlyGuard]},
-    {path: 'adminSide/requests', component: AdminRequests, canActivate: [adminSideGuard]},
-    {path: 'adminSide/templates', component: AdminTemplates, canActivate: [adminSideGuard]},
-    {path: 'adminSide/document-types', component: DocumentTypes, canActivate: [deanOnlyGuard]},
-    {path: 'adminSide/requirements', component: Requirements, canActivate: [deanOnlyGuard]},
-    
+    // AdminSide routes (lazy-loaded; unified for both chairperson and dean)
+    {
+      path: 'adminSide',
+      loadChildren: () => import('./adminSide/admin-side.routes').then((m) => m.routes),
+    },
+
     // Backwards compatibility redirects - OLD ROUTES → NEW adminSide routes
     {path: 'admin-dashboard', redirectTo: '/adminSide/dashboard', pathMatch: 'full'},
     {path: 'admin-documents', redirectTo: '/adminSide/documents', pathMatch: 'full'},

@@ -1,22 +1,36 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 import { 
   googleAuthSuccess, 
   googleAuthFailure
 } from '../controller/authController.js';
 import { loginUser, getCurrentUser, logoutUser } from '../controller/userController.js';
-// Lazy import mailer to ensure environment variables are loaded first
 
 const router = express.Router();
 
-// Test endpoint
-router.get('/test', (req, res) => {
-  console.log('🚀 Test endpoint accessed');
-  res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Rate limit auth endpoints (brute-force / enumeration mitigation): 10 req per 15 min per IP
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-// Test Google OAuth callback simulation
-router.get('/test-google-callback', async (req, res) => {
+// Test endpoint (disabled in production)
+if (!isProduction) {
+  router.get('/test', (req, res) => {
+    console.log('🚀 Test endpoint accessed');
+    res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
+  });
+}
+
+// Test Google OAuth callback simulation (disabled in production)
+if (!isProduction) {
+  router.get('/test-google-callback', async (req, res) => {
   console.log('🚀 Test Google OAuth callback simulation');
   try {
     // Simulate what the Google OAuth callback should do
@@ -79,7 +93,8 @@ router.get('/test-google-callback', async (req, res) => {
       stack: error.stack
     });
   }
-});
+  });
+}
 
 // Google OAuth routes
 router.get('/google', (req, res, next) => {
@@ -99,10 +114,9 @@ router.get('/google/callback',
 
 router.get('/google/failure', googleAuthFailure);
 
-// Login endpoint
-router.post('/login', async (req, res) => {
+// Login endpoint (rate limited)
+router.post('/login', authRateLimiter, async (req, res) => {
   try {
-    // Use the userController login function
     await loginUser(req, res);
   } catch (error) {
     console.error('Login error:', error);
@@ -110,8 +124,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Admin login endpoint - allows faculty, admin, and superadmin roles (3, 4, 5, 7, 8)
-router.post('/admin-login', async (req, res) => {
+// Admin login endpoint - faculty (3), chairperson (4), superadmin (5) only (rate limited)
+router.post('/admin-login', authRateLimiter, async (req, res) => {
   try {
     const rawEmail = req.body.email ?? req.body.Email
     const password = req.body.password ?? req.body.Password
@@ -126,7 +140,7 @@ router.post('/admin-login', async (req, res) => {
       const pool = (await import('../data/database.js')).default;
       const bcrypt = (await import('bcrypt')).default;
       
-      // Find user with admin, superadmin, or faculty role (3, 4, 5, 7, 8)
+      // Find user with faculty (3), chairperson (4), or superadmin (5) role only
       const userResult = await pool.query(`
         SELECT 
           ui.user_id,
@@ -145,7 +159,7 @@ router.post('/admin-login', async (req, res) => {
         FROM users_info ui
         LEFT JOIN roles r ON ui.role_id = r.role_id
         WHERE LOWER(ui.email) = $1 
-        AND ui.role_id IN (3, 4, 5, 7, 8) -- faculty (3), admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
+        AND ui.role_id IN (3, 4, 5)
         LIMIT 1
       `, [email])
       
@@ -189,10 +203,8 @@ router.post('/admin-login', async (req, res) => {
           role_id: userWithoutPassword.role_id
         };
         
-        // Set HttpOnly cookie with user data using centralized security configuration
-        const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
-        
-        res.cookie(AUTH_COOKIE_NAME, JSON.stringify({
+        const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
+        const cookiePayload = {
           id: userWithoutPassword.StudentID,
           email: userWithoutPassword.Email,
           Status: userWithoutPassword.Status,
@@ -203,7 +215,8 @@ router.post('/admin-login', async (req, res) => {
           AvatarUrl: userWithoutPassword.AvatarUrl,
           role_id: userWithoutPassword.role_id,
           account_type: 'admin'
-        }), getAuthCookieConfig());
+        };
+        res.cookie(AUTH_COOKIE_NAME, signAuthPayload(cookiePayload), getAuthCookieConfig());
         
         res.json({
           message: 'Admin login successful',
@@ -233,126 +246,95 @@ router.post('/admin-login', async (req, res) => {
 // Get current user
 router.get('/me', getCurrentUser);
 
-// Test endpoint to check cookie status (no auth required)
-router.get('/cookie-status', async (req, res) => {
-  try {
-    const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
-    const authCookie = req.cookies[AUTH_COOKIE_NAME];
-    
-    res.json({
-      hasCookie: !!authCookie,
-      cookieName: AUTH_COOKIE_NAME,
-      allCookies: Object.keys(req.cookies || {}),
-      cookieValue: authCookie ? (authCookie.length > 100 ? authCookie.substring(0, 100) + '...' : authCookie) : null,
-      parsedUser: authCookie ? (() => {
-        try {
-          const user = JSON.parse(authCookie);
-          return {
-            id: user.id || user.user_id,
-            email: user.email || user.Email,
-            status: user.Status
-          };
-        } catch (e) {
-          return { error: 'Failed to parse cookie' };
-        }
-      })() : null
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Test protected endpoint - requires authentication
-// This endpoint tests the requireAuth middleware
-router.get('/protected-test', async (req, res) => {
-  try {
-    // Import middleware dynamically
-    const { requireAuth } = await import('../middlewares/authMiddleware.js');
-    
-    // Apply middleware - it will call next() if auth succeeds, or return 401 if it fails
-    requireAuth(req, res, () => {
-      // This callback only runs if authentication succeeds
-      res.json({ 
-        success: true,
-        message: 'Protected route accessed successfully!',
-        user: {
-          id: req.user.id || req.user.user_id,
-          email: req.user.email || req.user.Email,
-          status: req.user.Status,
-          role_id: req.user.role_id,
-          firstname: req.user.Firstname || req.user.firstname,
-          lastname: req.user.Lastname || req.user.lastname
-        },
-        timestamp: new Date().toISOString(),
-        note: 'If you see this message, the authentication middleware is working correctly!'
+// Test/debug routes (disabled in production)
+if (!isProduction) {
+  router.get('/cookie-status', async (req, res) => {
+    try {
+      const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+      const authCookie = req.cookies[AUTH_COOKIE_NAME];
+      res.json({
+        hasCookie: !!authCookie,
+        cookieName: AUTH_COOKIE_NAME,
+        allCookies: Object.keys(req.cookies || {}),
+        cookieValue: authCookie ? (authCookie.length > 100 ? authCookie.substring(0, 100) + '...' : authCookie) : null,
+        parsedUser: authCookie ? (() => {
+          try {
+            const user = JSON.parse(authCookie);
+            return { id: user.id || user.user_id, email: user.email || user.Email, status: user.Status };
+          } catch (e) {
+            return { error: 'Failed to parse cookie' };
+          }
+        })() : null
       });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  router.get('/protected-test', async (req, res) => {
+    try {
+      const { requireAuth } = await import('../middlewares/authMiddleware.js');
+      requireAuth(req, res, () => {
+        res.json({
+          success: true,
+          message: 'Protected route accessed successfully!',
+          user: {
+            id: req.user.id || req.user.user_id,
+            email: req.user.email || req.user.Email,
+            status: req.user.Status,
+            role_id: req.user.role_id,
+            firstname: req.user.Firstname || req.user.firstname,
+            lastname: req.user.Lastname || req.user.lastname
+          },
+          timestamp: new Date().toISOString(),
+          note: 'If you see this message, the authentication middleware is working correctly!'
+        });
+      });
+    } catch (error) {
+      console.error('Protected test endpoint error:', error);
+      res.status(500).json({ success: false, error: 'Internal server error', details: error.message });
+    }
+  });
+  router.get('/google/debug', (req, res) => {
+    res.json({
+      googleConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+      clientId: process.env.GOOGLE_CLIENT_ID ? `${process.env.GOOGLE_CLIENT_ID.substring(0, 10)}...` : 'Missing',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Missing',
+      callbackUrl: process.env.GOOGLE_CALLBACK_URL,
+      serverPort: process.env.PORT || 5050,
+      hasSession: !!req.session,
+      sessionId: req.sessionID,
+      user: req.user || null,
+      sessionUser: req.session?.user || null
     });
-  } catch (error) {
-    console.error('Protected test endpoint error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Internal server error',
-      details: error.message 
-    });
-  }
-});
+  });
+  router.post('/test-email', async (req, res) => {
+    try {
+      const { to, subject, message } = req.body;
+      const { sendEmail } = await import('../services/emailService.js');
+      const result = await sendEmail({
+        to: to || 'test@example.com',
+        subject: subject || 'Test Email - ThesISKO',
+        template: 'general',
+        data: {
+          recipientName: 'Test User',
+          message: message || 'This is a test email from ThesISKO unified email service.',
+          mainContent: 'If you received this email, the email service is working correctly!',
+          footerNote: 'This is an automated test. Please disregard if received in error.'
+        }
+      });
+      res.json({ success: true, message: 'Email sent successfully', provider: result.provider, messageId: result.messageId });
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      res.status(500).json({ success: false, error: 'Failed to send email via all providers', details: error.message });
+    }
+  });
+}
 
 // Logout
 router.post('/logout', logoutUser);
 
-// Debug endpoint for Google OAuth configuration
-router.get('/google/debug', (req, res) => {
-  res.json({
-    googleConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-    clientId: process.env.GOOGLE_CLIENT_ID ? `${process.env.GOOGLE_CLIENT_ID.substring(0, 10)}...` : 'Missing',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Missing',
-    callbackUrl: process.env.GOOGLE_CALLBACK_URL,
-    serverPort: process.env.PORT || 5050,
-    hasSession: !!req.session,
-    sessionId: req.sessionID,
-    user: req.user || null,
-    sessionUser: req.session?.user || null
-  });
-});
-
-// Test email route
-router.post('/test-email', async (req, res) => {
-  try {
-    const { to, subject, message } = req.body;
-    
-    // Use unified email service
-    const { sendEmail } = await import('../services/emailService.js');
-    
-    const result = await sendEmail({
-      to: to || 'test@example.com',
-      subject: subject || 'Test Email - ThesISKO',
-      template: 'general',
-      data: {
-        recipientName: 'Test User',
-        message: message || 'This is a test email from ThesISKO unified email service.',
-        mainContent: 'If you received this email, the email service is working correctly!',
-        footerNote: 'This is an automated test. Please disregard if received in error.'
-      }
-    });
-    
-    res.json({ 
-      success: true, 
-      message: 'Email sent successfully',
-      provider: result.provider,
-      messageId: result.messageId 
-    });
-  } catch (error) {
-    console.error('Email sending failed:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to send email via all providers',
-      details: error.message 
-    });
-  }
-});
-
-// Resend verification email
-router.post('/resend-verification', async (req, res) => {
+// Resend verification email (rate limited)
+router.post('/resend-verification', authRateLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     

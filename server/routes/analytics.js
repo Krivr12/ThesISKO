@@ -1,8 +1,17 @@
 import express from 'express';
 import pool from '../data/database.js';
 import RepoMongodb from '../databaseConnections/MongoDB/mongodb_connection.js';
+import { cacheMiddleware } from '../middlewares/cache.js';
+import { requireAuth } from '../middlewares/authMiddleware.js';
+import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
+
+// Analytics: role 3 (Faculty), 4 (Chairperson), 5 (Superadmin) only
+const adminOnly = [requireAuth, requireRole(3, 4, 5)];
+
+// TTL in seconds: dashboard 5 min (300), other analytics 2–5 min
+const DASHBOARD_CACHE_TTL = 300;
 
 // Collections from MongoDB
 const recordsCollection = RepoMongodb ? RepoMongodb.collection("records") : null;
@@ -47,291 +56,229 @@ function calculatePercentageChange(current, previous) {
   return ((current - previous) / previous * 100).toFixed(1);
 }
 
-// GET /analytics/dashboard - Get all dashboard statistics
-router.get('/dashboard', async (req, res) => {
+// GET /analytics/dashboard - Get all dashboard statistics (parallel queries + cache)
+router.get('/dashboard', adminOnly, cacheMiddleware(DASHBOARD_CACHE_TTL), async (req, res) => {
   try {
     const period = req.query.period || 'this_month'; // 'today', 'this_month', 'this_year'
     console.log(`📊 Fetching dashboard analytics for period: ${period}...`);
 
     const { currentStart, currentEnd, previousStart, previousEnd } = getDateRanges(period);
 
-    // 1. Total Number of Thesis (from MongoDB records collection) - ALL TIME COUNT
-    const totalThesis = recordsCollection ? await recordsCollection.countDocuments() : 0;
-    
-    // Calculate period-based change for thesis
-    const currentPeriodThesis = recordsCollection ? await recordsCollection.countDocuments({
-      created_at: { $gte: currentStart, $lte: currentEnd }
-    }) : 0;
-    const previousPeriodThesis = recordsCollection ? await recordsCollection.countDocuments({
-      created_at: { $gte: previousStart, $lte: previousEnd }
-    }) : 0;
-    const thesisChange = calculatePercentageChange(currentPeriodThesis, previousPeriodThesis);
-    console.log(`✅ Total Thesis: ${totalThesis} (${thesisChange}% change)`);
+    const ps = (v) => (v && v.toISOString ? v.toISOString() : v);
+    const prevIso = [ps(previousStart), ps(previousEnd)];
+    const currIso = [ps(currentStart), ps(currentEnd)];
 
-    // 2. Total Number of Users (from PostgreSQL users_info) - ALL TIME COUNT
-    let totalUsers = 0;
-    let usersChange = 0;
-    try {
-      // Total count - all time
-      const usersResult = await pool.query('SELECT COUNT(*) as count FROM users_info');
-      totalUsers = parseInt(usersResult.rows[0].count);
-      
-      // Period-based counts for percentage change
-      const previousUsersResult = await pool.query(
-        'SELECT COUNT(*) as count FROM users_info WHERE created_at BETWEEN $1 AND $2',
-        [previousStart.toISOString(), previousEnd.toISOString()]
-      );
-      const currentPeriodUsers = await pool.query(
-        'SELECT COUNT(*) as count FROM users_info WHERE created_at BETWEEN $1 AND $2',
-        [currentStart.toISOString(), currentEnd.toISOString()]
-      );
-      
-      const previousCount = parseInt(previousUsersResult.rows[0].count);
-      const currentCount = parseInt(currentPeriodUsers.rows[0].count);
-      usersChange = calculatePercentageChange(currentCount, previousCount);
-      console.log(`✅ Total Users: ${totalUsers} (${usersChange}% change)`);
-    } catch (error) {
-      console.error('❌ Error fetching users count:', error);
-    }
-
-    // 3. Total Requests (from Supabase requesters_analytics) - ALL TIME COUNT
-    let totalRequests = 0;
-    let requestsChange = 0;
-    try {
-      // Total count - all time
-      const requestsResult = await pool.query('SELECT COUNT(*) as count FROM requesters_analytics');
-      totalRequests = parseInt(requestsResult.rows[0].count);
-      
-      // Period-based counts for percentage change
-      const previousRequestsResult = await pool.query(
-        'SELECT COUNT(*) as count FROM requesters_analytics WHERE created_at BETWEEN $1 AND $2',
-        [previousStart.toISOString(), previousEnd.toISOString()]
-      );
-      const currentPeriodRequests = await pool.query(
-        'SELECT COUNT(*) as count FROM requesters_analytics WHERE created_at BETWEEN $1 AND $2',
-        [currentStart.toISOString(), currentEnd.toISOString()]
-      );
-      
-      const previousCount = parseInt(previousRequestsResult.rows[0].count);
-      const currentCount = parseInt(currentPeriodRequests.rows[0].count);
-      requestsChange = calculatePercentageChange(currentCount, previousCount);
-      console.log(`✅ Total Requests: ${totalRequests} (${requestsChange}% change)`);
-    } catch (error) {
-      console.error('❌ Error fetching requests count:', error);
-    }
-
-    // 4. Total Downloads (approved requests from requesters_analytics) - ALL TIME COUNT
-    let totalDownloads = 0;
-    let downloadsChange = 0;
-    try {
-      // Total count - all time
-      const downloadsResult = await pool.query(
-        "SELECT COUNT(*) as count FROM requesters_analytics WHERE status = 'approved'"
-      );
-      totalDownloads = parseInt(downloadsResult.rows[0].count);
-      
-      // Period-based counts for percentage change
-      const previousDownloadsResult = await pool.query(
-        "SELECT COUNT(*) as count FROM requesters_analytics WHERE status = 'approved' AND updated_at BETWEEN $1 AND $2",
-        [previousStart.toISOString(), previousEnd.toISOString()]
-      );
-      const currentPeriodDownloads = await pool.query(
-        "SELECT COUNT(*) as count FROM requesters_analytics WHERE status = 'approved' AND updated_at BETWEEN $1 AND $2",
-        [currentStart.toISOString(), currentEnd.toISOString()]
-      );
-      
-      const previousCount = parseInt(previousDownloadsResult.rows[0].count);
-      const currentCount = parseInt(currentPeriodDownloads.rows[0].count);
-      downloadsChange = calculatePercentageChange(currentCount, previousCount);
-      console.log(`✅ Total Downloads: ${totalDownloads} (${downloadsChange}% change)`);
-    } catch (error) {
-      console.error('❌ Error fetching downloads count:', error);
-    }
-
-    // 5. Documents per Program (from MongoDB records collection)
-    let docsPerProgram = [];
-    if (recordsCollection) {
-      try {
-        // First, let's check what's actually in the collection
-        const totalDocs = await recordsCollection.countDocuments({});
-        console.log(`📊 Total documents in records collection: ${totalDocs}`);
-        
-        // Check a sample document to see its structure
-        const sampleDoc = await recordsCollection.findOne({});
-        if (sampleDoc) {
-          console.log(`📊 Sample document fields:`, Object.keys(sampleDoc));
-          console.log(`📊 Sample document program field:`, sampleDoc.program);
-          console.log(`📊 Sample document program_id field:`, sampleDoc.program_id);
-          console.log(`📊 Sample document program_name field:`, sampleDoc.program_name);
+    // Run all independent queries in parallel (each group catches its own errors)
+    const [
+      thesisCounts,
+      usersCounts,
+      requestsCounts,
+      downloadsCounts,
+      programStats,
+      commonKeywordsRaw,
+      typeResult,
+      nonPUPResult,
+      pendingResult
+    ] = await Promise.all([
+      (async () => {
+        if (!recordsCollection) return { total: 0, current: 0, previous: 0 };
+        try {
+          const [total, current, previous] = await Promise.all([
+            recordsCollection.countDocuments(),
+            recordsCollection.countDocuments({ created_at: { $gte: currentStart, $lte: currentEnd } }),
+            recordsCollection.countDocuments({ created_at: { $gte: previousStart, $lte: previousEnd } })
+          ]);
+          return { total, current, previous };
+        } catch (e) {
+          console.error('❌ Error fetching thesis count:', e);
+          return { total: 0, current: 0, previous: 0 };
         }
-        
-        const programsCollection = RepoMongodb.collection("programs");
-        
-        // Try multiple field names - program, program_id, program_name, Program
-        const programStats = await recordsCollection.aggregate([
-          {
-            $match: {
-              $or: [
-                { program: { $exists: true, $ne: null, $ne: "" } },
-                { program_id: { $exists: true, $ne: null, $ne: "" } },
-                { program_name: { $exists: true, $ne: null, $ne: "" } },
-                { Program: { $exists: true, $ne: null, $ne: "" } }
-              ]
-            }
-          },
-          {
-            $addFields: {
-              // Use the first available program field
-              programValue: {
-                $ifNull: [
-                  "$program",
-                  { $ifNull: ["$program_id", { $ifNull: ["$program_name", "$Program"] }] }
+      })(),
+      (async () => {
+        try {
+          const [total, prev, curr] = await Promise.all([
+            pool.query('SELECT COUNT(*) as count FROM users_info'),
+            pool.query('SELECT COUNT(*) as count FROM users_info WHERE created_at BETWEEN $1 AND $2', prevIso),
+            pool.query('SELECT COUNT(*) as count FROM users_info WHERE created_at BETWEEN $1 AND $2', currIso)
+          ]);
+          return {
+            total: parseInt(total.rows[0].count),
+            previous: parseInt(prev.rows[0].count),
+            current: parseInt(curr.rows[0].count)
+          };
+        } catch (e) {
+          console.error('❌ Error fetching users count:', e);
+          return { total: 0, previous: 0, current: 0 };
+        }
+      })(),
+      (async () => {
+        try {
+          const [total, prev, curr] = await Promise.all([
+            pool.query('SELECT COUNT(*) as count FROM requesters_analytics'),
+            pool.query('SELECT COUNT(*) as count FROM requesters_analytics WHERE created_at BETWEEN $1 AND $2', prevIso),
+            pool.query('SELECT COUNT(*) as count FROM requesters_analytics WHERE created_at BETWEEN $1 AND $2', currIso)
+          ]);
+          return {
+            total: parseInt(total.rows[0].count),
+            previous: parseInt(prev.rows[0].count),
+            current: parseInt(curr.rows[0].count)
+          };
+        } catch (e) {
+          console.error('❌ Error fetching requests count:', e);
+          return { total: 0, previous: 0, current: 0 };
+        }
+      })(),
+      (async () => {
+        try {
+          const [total, prev, curr] = await Promise.all([
+            pool.query("SELECT COUNT(*) as count FROM requesters_analytics WHERE status = 'approved'"),
+            pool.query("SELECT COUNT(*) as count FROM requesters_analytics WHERE status = 'approved' AND updated_at BETWEEN $1 AND $2", prevIso),
+            pool.query("SELECT COUNT(*) as count FROM requesters_analytics WHERE status = 'approved' AND updated_at BETWEEN $1 AND $2", currIso)
+          ]);
+          return {
+            total: parseInt(total.rows[0].count),
+            previous: parseInt(prev.rows[0].count),
+            current: parseInt(curr.rows[0].count)
+          };
+        } catch (e) {
+          console.error('❌ Error fetching downloads count:', e);
+          return { total: 0, previous: 0, current: 0 };
+        }
+      })(),
+      (async () => {
+        if (!recordsCollection) return [];
+        try {
+          return await recordsCollection.aggregate([
+            {
+              $match: {
+                $or: [
+                  { program: { $exists: true, $ne: null, $ne: "" } },
+                  { program_id: { $exists: true, $ne: null, $ne: "" } },
+                  { program_name: { $exists: true, $ne: null, $ne: "" } },
+                  { Program: { $exists: true, $ne: null, $ne: "" } }
                 ]
               }
-            }
-          },
-          {
-            $group: {
-              _id: "$programValue",
-              count: { $sum: 1 }
-            }
-          }
-        ]).toArray();
-
-        console.log(`📊 Found ${programStats.length} unique programs in records`);
-        console.log(`📊 Program stats:`, JSON.stringify(programStats, null, 2));
-
-        // Process each program stat to get full program names
-        for (const stat of programStats) {
-          // Clean the program ID (remove any trailing slashes, trim whitespace)
-          // Handle both string and other types
-          let rawProgramId = stat._id;
-          if (rawProgramId === null || rawProgramId === undefined) {
-            console.log('⚠️ Skipping null/undefined program ID');
-            continue;
-          }
-          
-          const programId = String(rawProgramId)
-            .replace(/\/+$/, '') // Remove trailing slashes
-            .replace(/^\/+/, '') // Remove leading slashes
-            .trim(); // Remove whitespace
-          
-          let programName = null;
-          let programIdValue = programId;
-
-          try {
-            // Look up the program in programs collection using program_id
-            const program = await programsCollection.findOne({ program_id: programId });
-            if (program) {
-              programName = program.program_name || program.name || programId;
-              programIdValue = program.program_id;
-              console.log(`✅ Found program: ${programId} -> ${programName} (${stat.count} documents)`);
-            } else {
-              // Program not found in programs collection, use the program_id as name
-              programName = programId;
-              console.log(`⚠️ Program ${programId} not found in programs collection, using ID as name (${stat.count} documents)`);
-            }
-          } catch (error) {
-            console.error(`❌ Error fetching program ${programId}:`, error);
-            programName = programId; // Fallback to using the program_id as name
-          }
-
-          // Add to results
-          docsPerProgram.push({
-            program_id: programIdValue,
-            program_name: programName,
-            count: stat.count
+            },
+            {
+              $addFields: {
+                programValue: {
+                  $ifNull: [
+                    "$program",
+                    { $ifNull: ["$program_id", { $ifNull: ["$program_name", "$Program"] }] }
+                  ]
+                }
+              }
+            },
+            { $group: { _id: "$programValue", count: { $sum: 1 } } }
+          ]).toArray();
+        } catch (e) {
+          console.error('❌ Error fetching documents per program:', e);
+          return [];
+        }
+      })(),
+      (async () => {
+        if (!recordsCollection) return [];
+        try {
+          return await recordsCollection.aggregate([
+            { $unwind: "$tags" },
+            { $group: { _id: "$tags", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 }
+          ]).toArray();
+        } catch (e) {
+          console.error('❌ Error fetching common keywords:', e);
+          return [];
+        }
+      })(),
+      (async () => {
+        try {
+          const r = await pool.query(`
+            SELECT user_type, COUNT(*) as count FROM requesters_analytics GROUP BY user_type
+          `);
+          return r;
+        } catch (e) {
+          console.error('❌ Error fetching requests by type:', e);
+          return { rows: [] };
+        }
+      })(),
+      (async () => {
+        try {
+          const r = await pool.query('SELECT COUNT(*) as count FROM users_info WHERE role_id = 1');
+          return parseInt(r.rows[0].count);
+        } catch (e) {
+          console.error('❌ Error fetching non-PUP users:', e);
+          return 0;
+        }
+      })(),
+      (async () => {
+        try {
+          const submissionsCollection = RepoMongodb ? RepoMongodb.collection("submissions") : null;
+          if (!submissionsCollection) return 0;
+          return await submissionsCollection.countDocuments({
+            status: { $in: ['pending_chairperson', 'pending_dean'] }
           });
+        } catch (e) {
+          console.error('❌ Error fetching pending approvals:', e);
+          return 0;
         }
+      })()
+    ]);
 
-        // Sort by count descending
-        docsPerProgram.sort((a, b) => b.count - a.count);
-        console.log(`✅ Documents per Program: ${docsPerProgram.length} programs with ${docsPerProgram.reduce((sum, p) => sum + p.count, 0)} total documents`);
-        console.log(`✅ Final docsPerProgram:`, JSON.stringify(docsPerProgram, null, 2));
-      } catch (error) {
-        console.error('❌ Error fetching documents per program:', error);
-        console.error('❌ Error stack:', error.stack);
-      }
-    } else {
-      console.log('⚠️ recordsCollection is not available');
-    }
+    const totalThesis = thesisCounts.total;
+    const thesisChange = calculatePercentageChange(thesisCounts.current, thesisCounts.previous);
+    const totalUsers = usersCounts.total;
+    const usersChange = calculatePercentageChange(usersCounts.current, usersCounts.previous);
+    const totalRequests = requestsCounts.total;
+    const requestsChange = calculatePercentageChange(requestsCounts.current, requestsCounts.previous);
+    const totalDownloads = downloadsCounts.total;
+    const downloadsChange = calculatePercentageChange(downloadsCounts.current, downloadsCounts.previous);
+    const registeredNonPUP = nonPUPResult;
+    const pendingApprovals = pendingResult;
 
-    // 6. Common Keywords (most frequent tags from records collection)
-    let commonKeywords = [];
-    if (recordsCollection) {
+    const commonKeywords = commonKeywordsRaw.map(k => ({ keyword: k._id, count: k.count }));
+
+    const requestsByType = { student: 0, guest: 0 };
+    (typeResult.rows || []).forEach(row => {
+      if (row.user_type === 'student') requestsByType.student = parseInt(row.count);
+      else if (row.user_type === 'guest') requestsByType.guest = parseInt(row.count);
+    });
+
+    // Batch program lookups (single query instead of N)
+    let docsPerProgram = [];
+    if (programStats.length > 0 && RepoMongodb) {
+      const programsCollection = RepoMongodb.collection("programs");
+      const programIds = programStats
+        .map(s => s._id)
+        .filter(id => id != null && id !== undefined)
+        .map(id => String(id).replace(/\/+$/, '').replace(/^\/+/, '').trim());
+      const uniqueIds = [...new Set(programIds)];
+      let programMap = {};
       try {
-        const keywordsStats = await recordsCollection.aggregate([
-          { $unwind: "$tags" },
-          {
-            $group: {
-              _id: "$tags",
-              count: { $sum: 1 }
-            }
-          },
-          { $sort: { count: -1 } },
-          { $limit: 10 }
-        ]).toArray();
-
-        commonKeywords = keywordsStats.map(k => ({
-          keyword: k._id,
-          count: k.count
-        }));
-        console.log(`✅ Common Keywords: ${commonKeywords.length} keywords`);
-      } catch (error) {
-        console.error('❌ Error fetching common keywords:', error);
-      }
-    }
-
-    // 7. Student vs Guest Requests (from requesters_analytics)
-    let requestsByType = { student: 0, guest: 0 };
-    try {
-      const typeResult = await pool.query(`
-        SELECT user_type, COUNT(*) as count 
-        FROM requesters_analytics 
-        GROUP BY user_type
-      `);
-      
-      typeResult.rows.forEach(row => {
-        if (row.user_type === 'student') {
-          requestsByType.student = parseInt(row.count);
-        } else if (row.user_type === 'guest') {
-          requestsByType.guest = parseInt(row.count);
-        }
-      });
-      console.log(`✅ Requests by Type - Student: ${requestsByType.student}, Guest: ${requestsByType.guest}`);
-    } catch (error) {
-      console.error('❌ Error fetching requests by type:', error);
-    }
-
-    // 8. Registered Non-PUP Users (users with role_id = 1 which are guests/non-PUP)
-    let registeredNonPUP = 0;
-    try {
-      const nonPUPResult = await pool.query(`
-        SELECT COUNT(*) as count 
-        FROM users_info 
-        WHERE role_id = 1
-      `);
-      registeredNonPUP = parseInt(nonPUPResult.rows[0].count);
-      console.log(`✅ Registered Non-PUP Users (role_id = 1): ${registeredNonPUP}`);
-    } catch (error) {
-      console.error('❌ Error fetching non-PUP users:', error);
-    }
-
-    // 9. Pending Approvals (submissions with status pending_chairperson or pending_dean)
-    let pendingApprovals = 0;
-    try {
-      const submissionsCollection = RepoMongodb ? RepoMongodb.collection("submissions") : null;
-      if (submissionsCollection) {
-        pendingApprovals = await submissionsCollection.countDocuments({
-          status: { $in: ['pending_chairperson', 'pending_dean'] }
+        const programs = await programsCollection.find({ program_id: { $in: uniqueIds } }).toArray();
+        programs.forEach(p => {
+          programMap[p.program_id] = { name: p.program_name || p.name || p.program_id, id: p.program_id };
         });
-        console.log(`✅ Pending Approvals: ${pendingApprovals}`);
+      } catch (e) {
+        console.error('❌ Error batch-fetching programs:', e);
       }
-    } catch (error) {
-      console.error('❌ Error fetching pending approvals:', error);
+      for (const stat of programStats) {
+        let rawProgramId = stat._id;
+        if (rawProgramId == null || rawProgramId === undefined) continue;
+        const programId = String(rawProgramId).replace(/\/+$/, '').replace(/^\/+/, '').trim();
+        const info = programMap[programId];
+        const programName = info ? info.name : programId;
+        const programIdValue = info ? info.id : programId;
+        docsPerProgram.push({ program_id: programIdValue, program_name: programName, count: stat.count });
+      }
+      docsPerProgram.sort((a, b) => b.count - a.count);
     }
 
-    // Return all analytics
+    console.log(`✅ Total Thesis: ${totalThesis} (${thesisChange}% change)`);
+    console.log(`✅ Total Users: ${totalUsers} (${usersChange}% change)`);
+    console.log(`✅ Total Requests: ${totalRequests} (${requestsChange}% change)`);
+    console.log(`✅ Total Downloads: ${totalDownloads} (${downloadsChange}% change)`);
+    console.log('✅ Dashboard analytics fetched successfully');
+
     const analytics = {
       totalThesis,
       totalUsers,
@@ -351,9 +298,7 @@ router.get('/dashboard', async (req, res) => {
       period
     };
 
-    console.log('✅ Dashboard analytics fetched successfully');
     res.status(200).json(analytics);
-
   } catch (error) {
     console.error('❌ Error fetching dashboard analytics:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard analytics' });
@@ -361,7 +306,7 @@ router.get('/dashboard', async (req, res) => {
 });
 
 // GET /analytics/requests-by-month - Get monthly requests breakdown by user type
-router.get('/requests-by-month', async (req, res) => {
+router.get('/requests-by-month', adminOnly, async (req, res) => {
   try {
     const months = parseInt(req.query.months) || 6; // Default to last 6 months
     console.log(`📊 Fetching monthly requests data for last ${months} months...`);
@@ -448,7 +393,7 @@ router.get('/requests-by-month', async (req, res) => {
 });
 
 // GET /analytics/user-growth - Get user growth data over time
-router.get('/user-growth', async (req, res) => {
+router.get('/user-growth', adminOnly, async (req, res) => {
   try {
     const months = parseInt(req.query.months) || 6; // Default to last 6 months
     console.log(`📊 Fetching user growth data for last ${months} months...`);
@@ -516,8 +461,8 @@ router.get('/user-growth', async (req, res) => {
   }
 });
 
-// GET /analytics/viewed-documents - Get most and least viewed documents overall
-router.get('/viewed-documents', async (req, res) => {
+// GET /analytics/viewed-documents - Get most and least viewed documents overall (batched: single aggregation)
+router.get('/viewed-documents', adminOnly, async (req, res) => {
   try {
     console.log('📊 Fetching most and least viewed documents...');
 
@@ -527,41 +472,39 @@ router.get('/viewed-documents', async (req, res) => {
 
     const limit = parseInt(req.query.limit) || 5; // Default to top/bottom 5
 
-    // Get all documents
+    // Single aggregation: group by document_id and count views
+    const viewCounts = await requestsCollection.aggregate([
+      { $group: { _id: '$document_id', views: { $sum: 1 } } }
+    ]).toArray();
+    const viewMap = Object.fromEntries(viewCounts.map(v => [v._id, v.views]));
+
     const allDocuments = await recordsCollection.find({}).toArray();
     console.log(`🔍 Total documents found: ${allDocuments.length}`);
 
-    // Get view count for each document
-    const documentsWithViews = await Promise.all(
-      allDocuments.map(async (doc) => {
-        const docId = doc._id.toString();
-        const viewCount = await requestsCollection.countDocuments({ document_id: docId });
-        return {
-          document_id: docId,
-          title: doc.title || 'Untitled Document',
-          authors: doc.authors || [],
-          year: doc.year || 'N/A',
-          program: doc.Program || doc.program_name || 'Unknown Program',
-          views: viewCount
-        };
-      })
-    );
+    const documentsWithViews = allDocuments.map((doc) => {
+      const docId = doc._id.toString();
+      return {
+        document_id: docId,
+        title: doc.title || 'Untitled Document',
+        authors: doc.authors || [],
+        year: doc.year || 'N/A',
+        program: doc.Program || doc.program_name || 'Unknown Program',
+        views: viewMap[docId] ?? 0
+      };
+    });
 
-    // Sort by views (descending)
     documentsWithViews.sort((a, b) => b.views - a.views);
 
-    // Get most and least viewed
     const mostViewed = documentsWithViews.slice(0, limit);
     const leastViewed = documentsWithViews.slice(-limit).reverse();
 
     console.log(`✅ Most viewed: ${mostViewed.length}, Least viewed: ${leastViewed.length}`);
-    
+
     res.status(200).json({
       mostViewed,
       leastViewed,
       totalDocuments: allDocuments.length
     });
-
   } catch (error) {
     console.error('❌ Error fetching viewed documents:', error);
     res.status(500).json({ error: 'Failed to fetch viewed documents' });
