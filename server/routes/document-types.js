@@ -6,8 +6,6 @@ import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
-const adminOnly = [requireAuth, requireRole(3, 4, 5)];
-
 // Helper to get collection
 const getDocumentTypesCollection = () => {
   const db = getDb();
@@ -49,8 +47,8 @@ router.get('/:type_id', async (req, res) => {
   }
 });
 
-// POST create new document type (admin: 3, 4, 5 only)
-router.post('/', adminOnly, async (req, res) => {
+// POST create new document type (admin only: role 3, 4, 5)
+router.post('/', requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { type_name, required_metadata, required_files, created_by } = req.body;
 
@@ -116,7 +114,7 @@ router.post('/', adminOnly, async (req, res) => {
 });
 
 // PATCH update document type (admin only)
-router.patch('/:type_id', adminOnly, async (req, res) => {
+router.patch('/:type_id', requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { type_id } = req.params;
     const { type_name, required_files, is_active } = req.body;
@@ -159,7 +157,7 @@ router.patch('/:type_id', adminOnly, async (req, res) => {
 });
 
 // DELETE soft delete document type (admin only)
-router.delete('/:type_id', adminOnly, async (req, res) => {
+router.delete('/:type_id', requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { type_id } = req.params;
     const collection = getDocumentTypesCollection();

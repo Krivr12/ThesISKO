@@ -1,24 +1,16 @@
 import express from 'express';
-import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 import { 
   googleAuthSuccess, 
   googleAuthFailure
 } from '../controller/authController.js';
 import { loginUser, getCurrentUser, logoutUser } from '../controller/userController.js';
+import authRateLimiter from '../middlewares/authRateLimiter.js';
 
 const router = express.Router();
 
+// Only register debug/test routes when not in production
 const isProduction = process.env.NODE_ENV === 'production';
-
-// Rate limit auth endpoints (brute-force / enumeration mitigation): 10 req per 15 min per IP
-const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { error: 'Too many attempts. Please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // Test endpoint (disabled in production)
 if (!isProduction) {
@@ -117,6 +109,7 @@ router.get('/google/failure', googleAuthFailure);
 // Login endpoint (rate limited)
 router.post('/login', authRateLimiter, async (req, res) => {
   try {
+    // Use the userController login function
     await loginUser(req, res);
   } catch (error) {
     console.error('Login error:', error);
@@ -124,7 +117,7 @@ router.post('/login', authRateLimiter, async (req, res) => {
   }
 });
 
-// Admin login endpoint - faculty (3), chairperson (4), superadmin (5) only (rate limited)
+// Admin login endpoint - allows faculty (3), chairperson (4), superadmin (5) only (rate limited)
 router.post('/admin-login', authRateLimiter, async (req, res) => {
   try {
     const rawEmail = req.body.email ?? req.body.Email
@@ -140,7 +133,7 @@ router.post('/admin-login', authRateLimiter, async (req, res) => {
       const pool = (await import('../data/database.js')).default;
       const bcrypt = (await import('bcrypt')).default;
       
-      // Find user with faculty (3), chairperson (4), or superadmin (5) role only
+      // Find user with admin, superadmin, or faculty role (3, 4, 5, 7, 8)
       const userResult = await pool.query(`
         SELECT 
           ui.user_id,
@@ -159,7 +152,7 @@ router.post('/admin-login', authRateLimiter, async (req, res) => {
         FROM users_info ui
         LEFT JOIN roles r ON ui.role_id = r.role_id
         WHERE LOWER(ui.email) = $1 
-        AND ui.role_id IN (3, 4, 5)
+        AND ui.role_id IN (3, 4, 5) -- faculty (3), chairperson (4), superadmin/dean (5) only
         LIMIT 1
       `, [email])
       
@@ -204,7 +197,7 @@ router.post('/admin-login', authRateLimiter, async (req, res) => {
         };
         
         const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
-        const cookiePayload = {
+        const payload = {
           id: userWithoutPassword.StudentID,
           email: userWithoutPassword.Email,
           Status: userWithoutPassword.Status,
@@ -216,7 +209,7 @@ router.post('/admin-login', authRateLimiter, async (req, res) => {
           role_id: userWithoutPassword.role_id,
           account_type: 'admin'
         };
-        res.cookie(AUTH_COOKIE_NAME, signAuthPayload(cookiePayload), getAuthCookieConfig());
+        res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(payload)), getAuthCookieConfig());
         
         res.json({
           message: 'Admin login successful',
@@ -246,12 +239,13 @@ router.post('/admin-login', authRateLimiter, async (req, res) => {
 // Get current user
 router.get('/me', getCurrentUser);
 
-// Test/debug routes (disabled in production)
+// Test endpoint to check cookie status (disabled in production)
 if (!isProduction) {
   router.get('/cookie-status', async (req, res) => {
     try {
       const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
       const authCookie = req.cookies[AUTH_COOKIE_NAME];
+      
       res.json({
         hasCookie: !!authCookie,
         cookieName: AUTH_COOKIE_NAME,
@@ -260,7 +254,11 @@ if (!isProduction) {
         parsedUser: authCookie ? (() => {
           try {
             const user = JSON.parse(authCookie);
-            return { id: user.id || user.user_id, email: user.email || user.Email, status: user.Status };
+            return {
+              id: user.id || user.user_id,
+              email: user.email || user.Email,
+              status: user.Status
+            };
           } catch (e) {
             return { error: 'Failed to parse cookie' };
           }
@@ -270,11 +268,13 @@ if (!isProduction) {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // Test protected endpoint (disabled in production)
   router.get('/protected-test', async (req, res) => {
     try {
       const { requireAuth } = await import('../middlewares/authMiddleware.js');
       requireAuth(req, res, () => {
-        res.json({
+        res.json({ 
           success: true,
           message: 'Protected route accessed successfully!',
           user: {
@@ -294,6 +294,13 @@ if (!isProduction) {
       res.status(500).json({ success: false, error: 'Internal server error', details: error.message });
     }
   });
+}
+
+// Logout
+router.post('/logout', logoutUser);
+
+// Debug endpoint for Google OAuth configuration (disabled in production)
+if (!isProduction) {
   router.get('/google/debug', (req, res) => {
     res.json({
       googleConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
@@ -307,6 +314,8 @@ if (!isProduction) {
       sessionUser: req.session?.user || null
     });
   });
+
+  // Test email route (disabled in production)
   router.post('/test-email', async (req, res) => {
     try {
       const { to, subject, message } = req.body;
@@ -329,9 +338,6 @@ if (!isProduction) {
     }
   });
 }
-
-// Logout
-router.post('/logout', logoutUser);
 
 // Resend verification email (rate limited)
 router.post('/resend-verification', authRateLimiter, async (req, res) => {

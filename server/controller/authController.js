@@ -176,11 +176,8 @@ const googleAuthSuccess = async (req, res) => {
         }
       }
       
-      // Set auth cookie for the user
-      // Extract domain from FRONTEND_URL to set cookie domain correctly
-      // Set HttpOnly cookie with user data using centralized security configuration
       const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
-      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(guestUser), getAuthCookieConfig());
+      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(guestUser)), getAuthCookieConfig());
       
       // Encode user data and redirect to Google callback component
       const userData = { user: guestUser };

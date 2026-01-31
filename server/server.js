@@ -9,8 +9,7 @@ import "./config/passport.js"; // Import passport configuration
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
-// Import routes (webhook handler for raw body route)
-import { handleResendInbound } from "./routes/webhooks.js";
+// Import routes
 import records from "./routes/records.js";
 import group_progress from "./routes/group_progress.js";
 import s3Routes from "./routes/s3Routes.js";
@@ -46,12 +45,6 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("❌ Unhandled Rejection at:", promise, "reason:", reason);
   console.log("🔄 Server continuing despite unhandled rejection...");
 });
-
-// Require SESSION_SECRET in production (no fallback)
-if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-  console.error('❌ SESSION_SECRET must be set in production. Exiting.');
-  process.exit(1);
-}
 
 // Security middleware
 app.use(helmet());
@@ -94,16 +87,26 @@ app.use(
   })
 );
 
-// Body parsing middleware (webhook must receive raw body - mount before json)
-app.post("/webhooks/resend/inbound", express.raw({ type: "application/json" }), handleResendInbound);
-app.use(express.json());
+// Body parsing middleware (preserve raw body for webhook signature verification)
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    if (buf && buf.length) req.rawBody = buf;
+  },
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Require SESSION_SECRET in production (no fallback)
+const sessionSecret = process.env.SESSION_SECRET;
+if (process.env.NODE_ENV === 'production' && !sessionSecret) {
+  console.error('❌ SESSION_SECRET must be set in production. Exiting.');
+  process.exit(1);
+}
 
 // Session configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "fallback-secret-key",
+    secret: sessionSecret || "fallback-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
