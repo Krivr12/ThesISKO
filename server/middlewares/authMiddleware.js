@@ -30,7 +30,10 @@ export const requireAuth = async (req, res, next) => {
       console.log(`[authMiddleware] 🔍 Auth cookie exists:`, !!req.cookies[AUTH_COOKIE_NAME]);
     }
     
+    // Get auth cookie from request
     const authCookie = req.cookies[AUTH_COOKIE_NAME];
+    
+    // Check if cookie exists
     if (!authCookie) {
       if (process.env.DEBUG_AUTH === 'true') {
         console.log(`[authMiddleware] ❌ No authentication cookie found for ${req.method} ${req.originalUrl}`);
@@ -41,12 +44,13 @@ export const requireAuth = async (req, res, next) => {
         message: 'No authentication cookie found'
       });
     }
-
+    
+    // Verify signature and parse cookie (signed payload prevents privilege escalation)
     const { verifyAuthPayload } = await import('../utils/cookieConfig.js');
-    const user = verifyAuthPayload(authCookie);
-    if (!user) {
+    const { valid, payload: user, error: verifyError } = verifyAuthPayload(authCookie);
+    if (!valid || !user) {
       if (process.env.DEBUG_AUTH === 'true') {
-        console.error(`[authMiddleware] ❌ Invalid or tampered auth cookie for ${req.method} ${req.originalUrl}`);
+        console.error(`[authMiddleware] ❌ Invalid or tampered auth cookie for ${req.method} ${req.originalUrl}:`, verifyError);
       }
       return res.status(401).json({ 
         authenticated: false, 
@@ -127,22 +131,15 @@ export const requireAuth = async (req, res, next) => {
  */
 export const optionalAuth = async (req, res, next) => {
   try {
-    const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+    const { AUTH_COOKIE_NAME, verifyAuthPayload } = await import('../utils/cookieConfig.js');
     const authCookie = req.cookies[AUTH_COOKIE_NAME];
     
     if (authCookie) {
-      try {
-        const user = JSON.parse(authCookie);
-        if (user && (user.id || user.user_id) && (user.email || user.Email)) {
-          req.user = user;
+      const { valid, payload: user } = verifyAuthPayload(authCookie);
+      if (valid && user && (user.id || user.user_id) && (user.email || user.Email)) {
+        req.user = user;
           if (process.env.NODE_ENV !== 'production' || process.env.DEBUG_AUTH === 'true') {
-            console.log(`[authMiddleware] ✅ Optional auth: User attached for ${req.method} ${req.originalUrl}`);
-          }
-        }
-      } catch (parseError) {
-        // Silently ignore parse errors for optional auth
-        if (process.env.NODE_ENV !== 'production' || process.env.DEBUG_AUTH === 'true') {
-          console.log(`[authMiddleware] ⚠️ Optional auth: Invalid cookie, continuing without user`);
+          console.log(`[authMiddleware] ✅ Optional auth: User attached for ${req.method} ${req.originalUrl}`);
         }
       }
     }

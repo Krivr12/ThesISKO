@@ -1,5 +1,4 @@
 import express from 'express';
-import { Webhook } from 'svix';
 import { Resend } from 'resend';
 
 const router = express.Router();
@@ -15,43 +14,49 @@ try {
 }
 
 /**
- * Resend inbound webhook handler (raw body required).
- * Mount in server.js with express.raw({ type: 'application/json' }) so req.body is Buffer.
- * Verifies signature using RESEND_WEBHOOK_SECRET (Svix-style headers: svix-id, svix-timestamp, svix-signature).
+ * Verify Resend webhook signature using signing secret (Svix).
+ * Requires raw request body and svix-id, svix-timestamp, svix-signature headers.
  */
-export async function handleResendInbound(req, res) {
+function verifyResendWebhook(req) {
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!secret) {
+    throw new Error('RESEND_WEBHOOK_SECRET is not set');
+  }
+  const payload = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body);
+  const id = req.headers['svix-id'];
+  const timestamp = req.headers['svix-timestamp'];
+  const signature = req.headers['svix-signature'];
+  if (!id || !timestamp || !signature) {
+    throw new Error('Missing Svix headers');
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
+  return resend.webhooks.verify({
+    payload,
+    headers: { id, timestamp, signature },
+    webhookSecret: secret,
+  });
+}
+
+/**
+ * POST /webhooks/resend/inbound
+ * 
+ * Webhook endpoint for Resend inbound email events.
+ * Verifies webhook signature before processing.
+ * Event type: email.received
+ */
+router.post('/resend/inbound', async (req, res) => {
   try {
-    const secret = process.env.RESEND_WEBHOOK_SECRET;
-    if (!secret) {
-      console.error('❌ RESEND_WEBHOOK_SECRET is not set');
-      return res.status(500).json({ error: 'Webhook not configured' });
-    }
-
-    const rawBody = req.body instanceof Buffer
-      ? req.body.toString('utf8')
-      : (typeof req.body === 'string' ? req.body : '');
-    if (!rawBody) {
-      return res.status(400).json({ error: 'Missing body' });
-    }
-
-    const headers = {
-      'svix-id': req.headers['svix-id'],
-      'svix-timestamp': req.headers['svix-timestamp'],
-      'svix-signature': req.headers['svix-signature'],
-    };
-    if (!headers['svix-id'] || !headers['svix-timestamp'] || !headers['svix-signature']) {
-      return res.status(401).json({ error: 'Invalid webhook signature', message: 'Missing Svix headers' });
-    }
-
-    const wh = new Webhook(secret);
+    // Verify signature (prevents forged webhooks)
+    let event;
     try {
-      wh.verify(rawBody, headers);
-    } catch (verifyError) {
-      console.error('❌ Resend webhook signature verification failed:', verifyError.message);
+      event = verifyResendWebhook(req);
+    } catch (verifyErr) {
+      console.error('❌ Resend webhook signature verification failed:', verifyErr.message);
       return res.status(401).json({ error: 'Invalid webhook signature' });
     }
-
-    const event = JSON.parse(rawBody);
+    if (!event) {
+      event = req.body;
+    }
     
     console.log('📧 Resend Inbound Email Webhook Received:');
     console.log('Event Type:', event.type);
@@ -133,19 +138,15 @@ export async function handleResendInbound(req, res) {
 
   } catch (error) {
     console.error('❌ Error processing Resend inbound webhook:', error);
-    if (!res.headersSent) {
-      res.status(200).json({
-        received: true,
-        error: 'Processing failed but webhook acknowledged'
-      });
-    }
+    
+    // Still return 200 to prevent Resend from retrying
+    // (unless you want retries for transient errors)
+    res.status(200).json({
+      received: true,
+      error: 'Processing failed but webhook acknowledged'
+    });
   }
-}
-
-/**
- * POST /webhooks/resend/inbound is mounted in server.js with raw body + handleResendInbound.
- * Router below is for any other webhook routes.
- */
+});
 
 /**
  * Process inbound email asynchronously

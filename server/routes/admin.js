@@ -7,11 +7,11 @@ import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
-// Admin routes: require auth + role 3 (Faculty), 4 (Chairperson), or 5 (Superadmin)
-const adminOnly = [requireAuth, requireRole(3, 4, 5)];
+// All admin routes require auth and role 3 (Faculty), 4 (Chairperson), or 5 (Superadmin/Dean)
+router.use(requireAuth, requireRole(3, 4, 5));
 
 // GET /admin/faculty - Get all faculty members (role 3 only)
-router.get('/faculty', adminOnly, async (req, res) => {
+router.get('/faculty', async (req, res) => {
   try {
     let result;
     
@@ -45,8 +45,8 @@ router.get('/faculty', adminOnly, async (req, res) => {
   }
 });
 
-// GET /admin/faculty/all-roles - Get all users with roles 3, 4, 5
-router.get('/faculty/all-roles', adminOnly, async (req, res) => {
+// GET /admin/faculty/all-roles - Get all users with roles 3, 4, 5 (Faculty, Chairperson, Dean)
+router.get('/faculty/all-roles', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -86,8 +86,8 @@ router.get('/faculty/all-roles', adminOnly, async (req, res) => {
 });
 
 
-// GET /admin/faculty/blocks - Get all faculty for block assignment (roles 3, 4, 5 with faculty_id)
-router.get('/faculty/blocks', adminOnly, async (req, res) => {
+// GET /admin/faculty/blocks - Get all faculty for block assignment (role 3 Faculty, 4 Chairperson, 5 Dean only)
+router.get('/faculty/blocks', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -116,14 +116,14 @@ router.get('/faculty/blocks', adminOnly, async (req, res) => {
   }
 });
 
-// POST /admin/faculty - Create new faculty member
-router.post('/faculty', adminOnly, adminCreateFaculty);
+// POST /admin/faculty - Create new faculty member (with auto-generated password and email)
+router.post('/faculty', adminCreateFaculty);
 
 
 
 
 // PUT /admin/faculty/:id - Update faculty member
-router.put('/faculty/:id', adminOnly, async (req, res) => {
+router.put('/faculty/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { firstname, lastname, email, faculty_id } = req.body;
@@ -176,7 +176,7 @@ router.put('/faculty/:id', adminOnly, async (req, res) => {
 });
 
 // PUT /admin/faculty/all-roles/:id - Update user details (for roles 3, 4, 5)
-router.put('/faculty/all-roles/:id', adminOnly, async (req, res) => {
+router.put('/faculty/all-roles/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { firstname, lastname, email, faculty_id } = req.body;
@@ -268,7 +268,7 @@ router.put('/faculty/all-roles/:id', adminOnly, async (req, res) => {
 });
 
 // DELETE /admin/faculty/:id - Delete faculty member (role_id = 3 only)
-router.delete('/faculty/:id', adminOnly, async (req, res) => {
+router.delete('/faculty/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -293,7 +293,7 @@ router.delete('/faculty/:id', adminOnly, async (req, res) => {
 });
 
 // DELETE /admin/faculty/all-roles/:id - Delete user with any role (3, 4, 5)
-router.delete('/faculty/all-roles/:id', adminOnly, async (req, res) => {
+router.delete('/faculty/all-roles/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -318,7 +318,7 @@ router.delete('/faculty/all-roles/:id', adminOnly, async (req, res) => {
 });
 
 // POST /admin/faculty/:id/reset-password - Reset faculty password
-router.post('/faculty/:id/reset-password', adminOnly, async (req, res) => {
+router.post('/faculty/:id/reset-password', async (req, res) => {
   try {
     const { id } = req.params;
     const { newPassword } = req.body;

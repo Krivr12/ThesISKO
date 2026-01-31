@@ -13,16 +13,14 @@ import { requireAuth } from "../middlewares/authMiddleware.js";
 import { requireRole } from "../middlewares/authorizationMiddleware.js";
 
 const router = express.Router();
-
-const adminOnly = [requireAuth, requireRole(3, 4, 5)];
 const collection = db.collection("requests");
 const recordsCollection = db.collection("records");
 
 // Multer setup (for Admin/SuperAdmin PDF upload)
 const upload = multer({ storage: multer.memoryStorage() });
 
-/* -------------------- Get All Requests from Supabase -------------------- */
-router.get("/analytics", adminOnly, async (req, res) => {
+/* -------------------- Get All Requests from Supabase (admin only: role 3, 4, 5) -------------------- */
+router.get("/analytics", requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("requesters_analytics")
@@ -38,8 +36,8 @@ router.get("/analytics", adminOnly, async (req, res) => {
   }
 });
 
-/* -------------------- Get Request Details (MongoDB + Records) -------------------- */
-router.get("/:request_id/details", adminOnly, async (req, res) => {
+/* -------------------- Get Request Details (admin only: role 3, 4, 5) -------------------- */
+router.get("/:request_id/details", requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { request_id } = req.params;
 
@@ -149,8 +147,8 @@ router.get("/:request_id/details", adminOnly, async (req, res) => {
   }
 });
 
-/* -------------------- Create Request (Student/Guest) -------------------- */
-router.post("/", rateLimiter, validateRequest, async (req, res) => {
+/* -------------------- Create Request (authenticated users only; roles 1, 2, 6 can request) -------------------- */
+router.post("/", requireAuth, rateLimiter, validateRequest, async (req, res) => {
   try {
     // Extract MongoDB-only fields (long texts and arrays)
     const { 
@@ -210,8 +208,8 @@ router.post("/", rateLimiter, validateRequest, async (req, res) => {
   }
 });
 
-/* -------------------- Dean Respond (Approve/Reject) -------------------- */
-router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
+/* -------------------- Dean Respond (Approve/Reject) - admin only -------------------- */
+router.post("/:id/respond", requireAuth, requireRole(3, 4, 5), upload.single("pdf"), async (req, res) => {
   try {
     const { id } = req.params;
     const { status, deanRemarks, approvedChapters } = req.body;
@@ -329,8 +327,8 @@ router.post("/:id/respond", upload.single("pdf"), async (req, res) => {
   }
 });
 
-/* -------------------- Reject Request -------------------- */
-router.post("/:id/reject", async (req, res) => {
+/* -------------------- Reject Request (admin only) -------------------- */
+router.post("/:id/reject", requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;

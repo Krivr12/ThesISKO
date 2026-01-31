@@ -122,10 +122,10 @@ export const authGuard: CanActivateFn = (route, state) => {
       const userRole = currentUser.role_id;
       const userStatus = currentUser.Status?.toLowerCase();
 
-      // Define allowed paths for each role
+      // Define allowed paths for each role (guest and pupian/student share submission access)
       const allowedPaths: Record<string, string[]> = {
         student: ['/home', '/search-thesis', '/search-result', '/submission', '/thank-you', '/about-us', '/student-profile'],
-        guest: ['/home', '/search-thesis', '/search-result', '/about-us', '/guest-profile'],
+        guest: ['/home', '/search-thesis', '/search-result', '/submission', '/thank-you', '/about-us', '/guest-profile'],
         faculty: ['/home', '/faculty-home', '/for-fic', '/for-ficlanding', '/for-panel', '/for-panellanding', '/panelist-approval-page', '/fichistory-page', '/faculty-change-password'],
         admin: ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template'],
         superadmin: ['/superadmin-dashboard', '/superadmin-documents', '/superadmin-programs', '/superadmin-faculties', '/superadmin-request', '/superadmin-templates', '/admin-dashboard', '/admin-documents', '/admin-faculties', '/admin-programs', '/admin-request', '/admin-template'],
