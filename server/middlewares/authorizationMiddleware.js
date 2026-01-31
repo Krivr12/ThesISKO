@@ -38,6 +38,28 @@ export const requireRole = (...allowedRoles) => {
   };
 };
 
+/** Admin role set: Faculty (3), Chairperson (4), Superadmin/Dean (5) */
+export const ADMIN_ROLES = [3, 4, 5];
+
+/**
+ * Allow access only if user is accessing their own resource (req.params.id matches user) or is admin (role 3, 4, 5).
+ * Use after requireAuth. Expects route param :id to be user_id.
+ */
+export const requireSelfOrAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized', message: 'Authentication required' });
+  }
+  const requestedId = req.params.id;
+  const userId = String(req.user.id ?? req.user.user_id ?? '');
+  if (userId === String(requestedId)) {
+    return next();
+  }
+  if (ADMIN_ROLES.includes(req.user.role_id)) {
+    return next();
+  }
+  return res.status(403).json({ error: 'Forbidden', message: 'You can only access your own data' });
+};
+
 /**
  * Verify user can only access their own data (email must match)
  * Use this for routes where users should only access their own resources
@@ -309,7 +331,7 @@ export const requireSubmissionOwnership = async (req, res, next) => {
     
     // Check if user is the submitter
     if (submission.submitter_email?.toLowerCase() !== userEmail.toLowerCase()) {
-      // Allow if user is admin (Faculty 3, Chairperson 4, Superadmin 5)
+      // Allow if user is faculty, chairperson, or superadmin (role 3, 4, 5)
       if (![3, 4, 5].includes(req.user.role_id)) {
         return res.status(403).json({ 
           error: 'Forbidden',

@@ -554,7 +554,7 @@ const loginUser = async (req, res) => {
       };
       
       const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
-      const cookiePayload = {
+      const payload = {
         id: userWithoutPassword.StudentID,
         email: userWithoutPassword.Email,
         Status: userWithoutPassword.Status,
@@ -566,7 +566,7 @@ const loginUser = async (req, res) => {
         role_id: userWithoutPassword.role_id,
         account_type: 'user'
       };
-      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(cookiePayload), getAuthCookieConfig());
+      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(payload)), getAuthCookieConfig());
       
       res.json({
         message: 'Login successful',
@@ -696,11 +696,14 @@ const getCurrentUser = async (req, res) => {
   try {
     const { AUTH_COOKIE_NAME, verifyAuthPayload } = await import('../utils/cookieConfig.js');
     const authCookie = req.cookies[AUTH_COOKIE_NAME];
+    
     if (!authCookie) {
       return res.status(401).json({ authenticated: false, error: 'No authentication cookie found' });
     }
-    const user = verifyAuthPayload(authCookie);
-    if (!user) {
+    
+    const { valid, payload: user, error } = verifyAuthPayload(authCookie);
+    if (!valid || !user) {
+      console.error('Invalid auth cookie:', error);
       return res.status(401).json({ authenticated: false, error: 'Invalid or tampered authentication cookie' });
     }
     res.json({ authenticated: true, user });

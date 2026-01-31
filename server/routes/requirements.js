@@ -6,8 +6,6 @@ import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
-const adminOnly = [requireAuth, requireRole(3, 4, 5)];
-
 // Helper to get collection
 const getRequirementsCollection = () => {
   const db = getDb();
@@ -119,8 +117,8 @@ router.get('/:document_type/files', async (req, res) => {
 //   { id: 'turnitin', label: 'Turnitin Checker Output', required: true, accept: '.pdf', to_be_archived: false },
 //   { id: 'copyright', label: 'Copyright Form', required: true, accept: '.pdf', to_be_archived: false }
 // ]
-// Note: to_be_archived=true files will be moved to repository when dean approves
-router.post('/', adminOnly, async (req, res) => {
+// Note: to_be_archived=true files will be moved to repository when dean approves (admin only)
+router.post('/', requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const {
       document_type,
@@ -179,7 +177,7 @@ router.post('/', adminOnly, async (req, res) => {
 });
 
 // PATCH update requirement
-router.patch('/:id', adminOnly, async (req, res) => {
+router.patch('/:id', requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -214,7 +212,7 @@ router.patch('/:id', adminOnly, async (req, res) => {
 });
 
 // PUT update requirement (for frontend compatibility)
-router.put('/:document_type', adminOnly, async (req, res) => {
+router.put('/:document_type', requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { document_type } = req.params;
     const updateData = req.body;
@@ -248,8 +246,8 @@ router.put('/:document_type', adminOnly, async (req, res) => {
   }
 });
 
-// DELETE requirement by document_type (soft delete)
-router.delete('/:document_type', adminOnly, async (req, res) => {
+// DELETE requirement by document_type (soft delete) (admin only)
+router.delete('/:document_type', requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { document_type } = req.params;
 
@@ -280,8 +278,8 @@ router.delete('/:document_type', adminOnly, async (req, res) => {
   }
 });
 
-// DELETE requirement by ID (soft delete) - alternative endpoint
-router.delete('/id/:id', adminOnly, async (req, res) => {
+// DELETE requirement by ID (soft delete) - alternative endpoint (admin only)
+router.delete('/id/:id', requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { id } = req.params;
 

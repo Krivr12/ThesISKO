@@ -164,6 +164,14 @@ export class NewSubmission implements OnInit {
 
   private apiUrl = `${environment.apiUrl}`;
 
+  // effect() must run in injection context (field initializer), not in ngOnInit
+  private docTypeEffect = effect(() => {
+    const newDocType = this.documentType();
+    if (newDocType) {
+      this.loadRequirementsForDocumentType(newDocType);
+    }
+  });
+
   ngOnInit() {
     // Check if user is student (role 2)
     const user = this.authService.currentUser;
@@ -174,38 +182,33 @@ export class NewSubmission implements OnInit {
     }
 
     this.loadDocumentTypes();
-    
-    // Watch for document type changes and load specific requirements
-    effect(() => {
-      const newDocType = this.documentType();
-      if (newDocType) {
-        this.loadRequirementsForDocumentType(newDocType);
-      }
-    });
   }
 
   loadDocumentTypes() {
     this.loading.set(true);
     this.http.get<{ success: boolean; data: Requirement[] }>(
-      `${this.apiUrl}/requirements`
+      `${this.apiUrl}/requirements`,
+      { responseType: 'json' }
     ).subscribe({
       next: (response) => {
-        
+        if (!response?.data) {
+          this.loading.set(false);
+          alert('Invalid response from server: missing data');
+          return;
+        }
         // Convert requirements to document types format
         const documentTypes: DocumentType[] = response.data.map(req => ({
           type_id: req.document_type,
           type_name: req.document_type,
           required_files: req.required_files || []
         }));
-        
         this.documentTypes.set(documentTypes);
         this.requirements.set(response.data);
         this.loading.set(false);
       },
       error: (error) => {
-        
-        
-        alert('Failed to load document types: ' + error.message);
+        const msg = error.error?.error ?? error.error?.message ?? error.message ?? (error.status ? `HTTP ${error.status}` : 'Unknown error');
+        alert('Failed to load document types: ' + msg);
         this.loading.set(false);
       }
     });

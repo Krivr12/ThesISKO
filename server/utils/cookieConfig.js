@@ -1,53 +1,64 @@
-import crypto from 'crypto';
-
 /**
  * Centralized cookie configuration for authentication cookies
- * Ensures consistent security settings across all authentication endpoints
+ * Ensures consistent security settings across all authentication endpoints.
+ * Auth cookie payload is signed (HMAC-SHA256) so it cannot be forged.
  */
 
-const AUTH_COOKIE_SECRET = process.env.AUTH_COOKIE_SECRET || process.env.SESSION_SECRET || '';
+import crypto from 'crypto';
+
+const SIGNATURE_ALGORITHM = 'sha256';
+const SIGNATURE_SEPARATOR = '.';
 
 /**
- * Sign auth payload for cookie (HMAC-SHA256).
- * Use when setting the auth cookie so it cannot be forged.
- * @param {Object} payload - User object to store in cookie
- * @returns {string} JSON string of { payload, signature } to set as cookie value
+ * Get the secret used for signing auth cookie (must match SESSION_SECRET in production).
+ * @returns {string}
  */
-export function signAuthPayload(payload) {
-  if (!AUTH_COOKIE_SECRET) {
-    console.warn('⚠️ AUTH_COOKIE_SECRET (or SESSION_SECRET) not set; cookie will be unsigned');
+export const getCookieSigningSecret = () => {
+  const secret = process.env.COOKIE_SIGNING_SECRET || process.env.SESSION_SECRET;
+  if (process.env.NODE_ENV === 'production' && !secret) {
+    throw new Error('COOKIE_SIGNING_SECRET or SESSION_SECRET must be set in production');
   }
-  const str = JSON.stringify(payload);
-  const signature = AUTH_COOKIE_SECRET
-    ? crypto.createHmac('sha256', AUTH_COOKIE_SECRET).update(str).digest('hex')
-    : '';
-  return JSON.stringify({ payload, signature });
-}
+  return secret || 'fallback-signing-secret';
+};
 
 /**
- * Verify and parse auth cookie value. Returns payload only if signature is valid.
- * @param {string} cookieValue - Raw cookie string
- * @returns {Object|null} Parsed user payload or null if invalid/missing signature
+ * Sign a payload (JSON string) with HMAC-SHA256.
+ * @param {string} payload - Raw string to sign (e.g. JSON.stringify(user))
+ * @returns {string} payload + '.' + hex signature
  */
-export function verifyAuthPayload(cookieValue) {
-  if (!cookieValue) return null;
+export const signAuthPayload = (payload) => {
+  const secret = getCookieSigningSecret();
+  const signature = crypto.createHmac(SIGNATURE_ALGORITHM, secret).update(payload).digest('hex');
+  return payload + SIGNATURE_SEPARATOR + signature;
+};
+
+/**
+ * Verify and parse a signed auth cookie value.
+ * @param {string} signedValue - Value from cookie (payload + '.' + signature)
+ * @returns {{ valid: boolean, payload?: object, error?: string }}
+ */
+export const verifyAuthPayload = (signedValue) => {
+  if (!signedValue || typeof signedValue !== 'string') {
+    return { valid: false, error: 'Missing or invalid cookie value' };
+  }
+  const lastSep = signedValue.lastIndexOf(SIGNATURE_SEPARATOR);
+  if (lastSep === -1) {
+    return { valid: false, error: 'No signature in cookie' };
+  }
+  const payloadStr = signedValue.slice(0, lastSep);
+  const receivedSig = signedValue.slice(lastSep + 1);
+  const secret = getCookieSigningSecret();
+  const expectedSig = crypto.createHmac(SIGNATURE_ALGORITHM, secret).update(payloadStr).digest('hex');
+  if (crypto.timingSafeEqual(Buffer.from(receivedSig, 'hex'), Buffer.from(expectedSig, 'hex')) === false) {
+    return { valid: false, error: 'Invalid signature' };
+  }
   try {
-    const parsed = JSON.parse(cookieValue);
-    if (!parsed.payload) return null;
-    if (!AUTH_COOKIE_SECRET) {
-      return parsed.signature === '' ? parsed.payload : null;
-    }
-    if (!parsed.signature) return null;
-    const str = JSON.stringify(parsed.payload);
-    const expected = crypto.createHmac('sha256', AUTH_COOKIE_SECRET).update(str).digest('hex');
-    if (crypto.timingSafeEqual(Buffer.from(parsed.signature, 'hex'), Buffer.from(expected, 'hex'))) {
-      return parsed.payload;
-    }
-    return null;
-  } catch {
-    return null;
+    const payload = JSON.parse(payloadStr);
+    return { valid: true, payload };
+  } catch (e) {
+    return { valid: false, error: 'Invalid JSON in payload' };
   }
-}
+};
 
 /**
  * Get the cookie domain for cross-subdomain cookie sharing
@@ -153,6 +164,8 @@ export const getAuthCookieConfig = (options = {}) => {
   return config;
 };
 
-/** Cookie name constant */
+/**
+ * Cookie name constant to prevent typos and ensure consistency
+ */
 export const AUTH_COOKIE_NAME = 'auth_user';
 

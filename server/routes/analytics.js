@@ -7,8 +7,8 @@ import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
-// Analytics: role 3 (Faculty), 4 (Chairperson), 5 (Superadmin) only
-const adminOnly = [requireAuth, requireRole(3, 4, 5)];
+// All analytics routes require auth and role 3, 4, or 5 (Faculty, Chairperson, Superadmin)
+router.use(requireAuth, requireRole(3, 4, 5));
 
 // TTL in seconds: dashboard 5 min (300), other analytics 2–5 min
 const DASHBOARD_CACHE_TTL = 300;
@@ -57,7 +57,7 @@ function calculatePercentageChange(current, previous) {
 }
 
 // GET /analytics/dashboard - Get all dashboard statistics (parallel queries + cache)
-router.get('/dashboard', adminOnly, cacheMiddleware(DASHBOARD_CACHE_TTL), async (req, res) => {
+router.get('/dashboard', cacheMiddleware(DASHBOARD_CACHE_TTL), async (req, res) => {
   try {
     const period = req.query.period || 'this_month'; // 'today', 'this_month', 'this_year'
     console.log(`📊 Fetching dashboard analytics for period: ${period}...`);
@@ -306,7 +306,7 @@ router.get('/dashboard', adminOnly, cacheMiddleware(DASHBOARD_CACHE_TTL), async 
 });
 
 // GET /analytics/requests-by-month - Get monthly requests breakdown by user type
-router.get('/requests-by-month', adminOnly, async (req, res) => {
+router.get('/requests-by-month', async (req, res) => {
   try {
     const months = parseInt(req.query.months) || 6; // Default to last 6 months
     console.log(`📊 Fetching monthly requests data for last ${months} months...`);
@@ -393,7 +393,7 @@ router.get('/requests-by-month', adminOnly, async (req, res) => {
 });
 
 // GET /analytics/user-growth - Get user growth data over time
-router.get('/user-growth', adminOnly, async (req, res) => {
+router.get('/user-growth', async (req, res) => {
   try {
     const months = parseInt(req.query.months) || 6; // Default to last 6 months
     console.log(`📊 Fetching user growth data for last ${months} months...`);
@@ -462,7 +462,7 @@ router.get('/user-growth', adminOnly, async (req, res) => {
 });
 
 // GET /analytics/viewed-documents - Get most and least viewed documents overall (batched: single aggregation)
-router.get('/viewed-documents', adminOnly, async (req, res) => {
+router.get('/viewed-documents', async (req, res) => {
   try {
     console.log('📊 Fetching most and least viewed documents...');
 
