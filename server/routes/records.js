@@ -61,7 +61,8 @@ router.get("/", optionalAuth, async (req, res) => {
         _id: doc._id || doc.id, // Handle both _id and id fields
         document_id: doc.document_id || doc.doc_id || (doc._id || doc.id)?.toString(), // Handle doc_id field
         title: doc.title || "Untitled",
-        author: firstAuthor, // Transform to single author string for search-thesis
+        author: firstAuthor, // Single author string for display
+        authors: doc.authors || [], // Full array for filtering by any author
         year: year, // Use year field directly
         keywords: doc.tags || [] // Transform tags to keywords for search-thesis
       };

@@ -131,11 +131,10 @@ const shouldUseSecureCookies = () => {
  * 
  * Security settings:
  * - httpOnly: true - Prevents JavaScript access (XSS protection)
- * - secure: true in production/HTTPS - Only sent over HTTPS
- * - sameSite: 'lax' - Allows cross-subdomain requests while preventing most CSRF
- *   Note: Using 'lax' instead of 'strict' to support subdomain sharing
- *   (thesisko.online <-> server.thesisko.online). Modern browsers treat
- *   subdomains as same-site, but 'lax' ensures compatibility.
+ * - secure: true in production/HTTPS - Only sent over HTTPS (required when sameSite is 'none')
+ * - sameSite: 'none' in production - Required so the cookie is sent on cross-origin requests
+ *   (thesisko.online -> server.thesisko.online). Browsers do not send SameSite=Lax cookies
+ *   on cross-origin subresource requests (XHR/fetch). SameSite=Lax is used in development.
  * - path: '/' - Cookie available for entire domain
  * - maxAge: 24 hours - Session expiration
  * 
@@ -145,12 +144,16 @@ const shouldUseSecureCookies = () => {
 export const getAuthCookieConfig = (options = {}) => {
   const isSecure = shouldUseSecureCookies();
   const domain = getCookieDomain();
-  
+  // Production (cross-origin: thesisko.online vs server.thesisko.online) requires SameSite=None
+  // so the browser sends the cookie on fetch/XHR. SameSite=Lax would not be sent on cross-origin requests.
+  const sameSite = domain ? 'none' : 'lax'; // 'none' for production (has domain), 'lax' for localhost
+  if (sameSite === 'none' && !isSecure) {
+    throw new Error('SameSite=None requires Secure=true');
+  }
   const config = {
     httpOnly: true, // Prevent JavaScript access (XSS protection)
     secure: isSecure, // Only send over HTTPS in production/HTTPS environments
-    sameSite: 'lax', // Allow cross-subdomain (thesisko.online <-> server.thesisko.online)
-                     // Prevents most CSRF while maintaining subdomain compatibility
+    sameSite, // 'none' for cross-origin in prod, 'lax' for localhost
     path: '/', // Available for entire domain
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     ...options // Allow overrides for specific cases

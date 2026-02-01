@@ -14,6 +14,7 @@ interface Thesis {
   document_id: string;
   title: string;
   author: string;
+  authors?: string[]; // Full array from API for filtering by any author
   year: number | string; // Can be number or "N/A"
   keywords: string[];
 }
@@ -116,6 +117,7 @@ export class SearchThesis implements OnInit {
             document_id: doc._id?.toString(),
             title: doc.title || "Untitled",
             author: firstAuthor,
+            authors: doc.authors || [],
             year: year,
             keywords: doc.tags || []
           };
@@ -229,9 +231,10 @@ export class SearchThesis implements OnInit {
         (thesis.year !== "N/A" && thesis.year !== null && thesis.year !== undefined &&
          thesis.year.toString() === this.selectedYear.toString());
       
-      // Author filter
-      const matchesAuthor = this.authorName === '' || 
-        thesis.author.toLowerCase().includes(this.authorName.toLowerCase());
+      // Author filter: match if any author in the array (or single author) contains the search string
+      const authorList = (thesis.authors && thesis.authors.length > 0) ? thesis.authors : [thesis.author];
+      const matchesAuthor = this.authorName === '' ||
+        authorList.some(a => (a || '').toLowerCase().includes(this.authorName.toLowerCase()));
       
       return matchesSearch && matchesTags && matchesYear && matchesAuthor;
     });
