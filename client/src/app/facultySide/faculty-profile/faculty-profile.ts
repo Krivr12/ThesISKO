@@ -94,13 +94,11 @@ export class FacultyProfile implements OnInit {
       const formData = this.profileForm.value;
       
       // Prepare the password change data
-      console.log('🔍 Current user data:', this.currentUser);
       const passwordData = {
         currentPassword: formData.currentPassword,
         newPassword: formData.password,
         userId: this.currentUser?.id || this.currentUser?.user_id || this.currentUser?.StudentID
       };
-      console.log('🔍 Password change data being sent:', passwordData);
 
       // Call the actual API endpoint
       this.http.put(`${environment.authApiUrl}/api/faculty/change-password`, passwordData)
@@ -118,7 +116,7 @@ export class FacultyProfile implements OnInit {
           },
           error: (error: any) => {
             this.isLoading = false;
-            console.error('Password change error:', error);
+            
             
             let errorMessage = 'An error occurred while changing password.';
             if (error.error?.message) {

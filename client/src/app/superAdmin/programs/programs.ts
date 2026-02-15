@@ -92,7 +92,7 @@ export class Programs implements OnInit {
           this.isLoading = false;
         },
         error: (err) => {
-          console.error('Error loading programs:', err);
+          
           this.errorMessage = 'Failed to load programs';
           this.isLoading = false;
         }
@@ -106,7 +106,7 @@ export class Programs implements OnInit {
           this.availableFaculty = response.data || [];
         },
         error: (err) => {
-          console.error('Error loading faculty:', err);
+          
           this.errorMessage = 'Failed to load available faculty';
         }
       });
@@ -246,7 +246,6 @@ export class Programs implements OnInit {
     this.http.post<{ success: boolean; message: string; data: any }>(this.apiUrl, this.newProgram)
       .subscribe({
         next: (response) => {
-          console.log('✅ Program created:', response);
           alert('Program created successfully!');
           this.loadPrograms(); // Reload programs
           this.loadAvailableFaculty(); // Reload faculty (to update dropdown)
@@ -254,7 +253,7 @@ export class Programs implements OnInit {
           this.isLoading = false;
         },
         error: (err) => {
-          console.error('❌ Error creating program:', err);
+          
           const errorMsg = err.error?.message || 'Failed to create program';
           alert(`Error: ${errorMsg}`);
           this.isLoading = false;
@@ -318,7 +317,6 @@ export class Programs implements OnInit {
       updateData
     ).subscribe({
       next: (response) => {
-        console.log('✅ Program updated:', response);
         alert('Program updated successfully!');
         this.loadPrograms(); // Reload programs
         this.loadAvailableFaculty(); // Reload faculty (to update dropdown)
@@ -326,7 +324,7 @@ export class Programs implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('❌ Error updating program:', err);
+        
         const errorMsg = err.error?.message || 'Failed to update program';
         alert(`Error: ${errorMsg}`);
         this.isLoading = false;
@@ -362,14 +360,13 @@ export class Programs implements OnInit {
       `${this.apiUrl}/${program.program_id}`
     ).subscribe({
       next: (response) => {
-        console.log('✅ Program deleted:', response);
         alert(`Program "${program.program_name}" deleted successfully!`);
         this.loadPrograms(); // Reload programs
         this.loadAvailableFaculty(); // Reload faculty (chairperson is now available again)
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('❌ Error deleting program:', err);
+        
         const errorMsg = err.error?.message || 'Failed to delete program';
         alert(`Error: ${errorMsg}`);
         this.isLoading = false;

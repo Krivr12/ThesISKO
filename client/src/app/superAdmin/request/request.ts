@@ -75,7 +75,7 @@ export class Request implements OnInit {
         this.filterAndSortRequests();
       },
       error: (error) => {
-        console.error('Error loading requests:', error);
+        
         this.requests = [];
         this.filterAndSortRequests();
       }
@@ -108,7 +108,7 @@ export class Request implements OnInit {
         this.selectedRequestDetails = details;
       },
       error: (error) => {
-        console.error('Error loading request details:', error);
+        
         alert('Failed to load request details.');
       }
     });
@@ -150,7 +150,7 @@ export class Request implements OnInit {
         this.pdfLoading = false;
       },
       error: (error) => {
-        console.error('Error getting signed URL:', error);
+        
         this.pdfError = 'Failed to load document. The file may be unavailable or access has expired.';
         this.pdfLoading = false;
       }
@@ -207,7 +207,6 @@ export class Request implements OnInit {
 
     this.requestService.approveRequest(this.selectedRequest.request_id, this.uploadedPdfFile).subscribe({
       next: (response) => {
-        console.log('✅ Request approved successfully:', response);
         
         // Update local requests array
         const request = this.requests.find(r => r.request_id === this.selectedRequest!.request_id);
@@ -222,7 +221,7 @@ export class Request implements OnInit {
         alert('Request approved successfully. Email sent to requester.');
       },
       error: (error) => {
-        console.error('❌ Error approving request:', error);
+        
         alert('Failed to approve request. Please try again.');
         this.closeApproveModal();
       }
@@ -242,7 +241,6 @@ export class Request implements OnInit {
 
     this.requestService.rejectRequest(this.selectedRequest.request_id, this.rejectionReason).subscribe({
       next: (response) => {
-        console.log('✅ Request rejected successfully:', response);
         
         // Update local requests array
         const request = this.requests.find(r => r.request_id === this.selectedRequest!.request_id);
@@ -257,7 +255,7 @@ export class Request implements OnInit {
         alert('Request rejected successfully. Email sent to requester.');
       },
       error: (error) => {
-        console.error('❌ Error rejecting request:', error);
+        
         alert('Failed to reject request. Please try again.');
         this.closeRejectModal();
       }

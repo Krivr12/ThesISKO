@@ -235,18 +235,238 @@
   flex: 1;
 }
 
-/* Responsive design */
+/* Responsive design - Tablet */
+@media (max-width: 992px) {
+  .leftside {
+    display: none;
+  }
+  
+  .rightside {
+    flex: 1;
+    width: 100%;
+    padding: 1rem;
+  }
+  
+  .form-container {
+    max-width: 500px;
+  }
+}
+
+/* Responsive design - Mobile */
 @media (max-width: 768px) {
+  .background {
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .leftside {
+    display: none;
+  }
+  
+  .rightside {
+    width: 100%;
+    padding: 2.5rem 2rem;
+    align-items: center;
+  }
+  
+  .form-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 0;
+  }
+  
+  .signupForm {
+    padding: 2rem;
+    max-width: 100%;
+  }
+  
   .form-row {
     flex-direction: column;
-    gap: 0;
+    gap: 0.75rem;
+  }
+  
+  .field {
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .field label {
+    margin-bottom: 0.6rem;
+    margin-top: 0.6rem;
+  }
+  
+  .form-row .department-field,
+  .form-row .course-field {
+    flex: 1;
+    width: 100%;
   }
   
   .login-header {
-    font-size: 36px;
+    font-size: 38px;
+    margin-bottom: 1.5rem;
   }
   
   :host ::ng-deep .p-button {
     width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 2rem !important;
   }
+  
+  .p-inputtext,
+  :host ::ng-deep .p-password input {
+    height: 52px;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+    height: 52px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Responsive design - Small Mobile */
+@media (max-width: 480px) {
+  .rightside {
+    padding: 2rem 1.5rem;
+  }
+  
+  .signupForm {
+    padding: 1.5rem;
+  }
+  
+  .login-header {
+    font-size: 34px;
+    margin-bottom: 1.25rem;
+  }
+  
+  .field {
+    margin-bottom: 0.85rem;
+  }
+  
+  .field label {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .format-hint {
+    font-size: 0.85rem;
+  }
+  
+  :host ::ng-deep .p-button {
+    height: 54px !important;
+    font-size: 1rem !important;
+    margin-top: 1.75rem !important;
+  }
+  
+  .modal-container {
+    padding: 40px 35px;
+    margin: 0 20px;
+  }
+  
+  .modal-title {
+    font-size: 26px;
+  }
+  
+  .modal-message {
+    font-size: 15px;
+    margin-bottom: 28px;
+  }
+  
+  .modal-button {
+    padding: 14px 50px;
+    font-size: 15px;
+  }
+}
+
+/* Email Verification Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  background: white;
+  border-radius: 20px;
+  padding: 40px 50px;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(128, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #800000, #a00000);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 8px 24px rgba(128, 0, 0, 0.3);
+}
+
+.modal-icon svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+  background: transparent;
+}
+
+.modal-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #800000;
+  margin: 0 0 16px;
+  background: transparent;
+}
+
+.modal-message {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 32px;
+  background: transparent;
+}
+
+.modal-button {
+  background: linear-gradient(135deg, #800000, #a00000);
+  color: white;
+  border: none;
+  padding: 14px 60px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(128, 0, 0, 0.3);
+}
+
+.modal-button:hover {
+  background: linear-gradient(135deg, #a00000, #c00000);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(128, 0, 0, 0.4);
 }

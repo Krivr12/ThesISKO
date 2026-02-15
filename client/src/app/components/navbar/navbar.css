@@ -1,3 +1,19 @@
+:host {
+  display: block;
+  background-color: #800000 !important;
+  border-radius: 0 !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 80px;
+  min-height: 80px;
+  max-height: 80px;
+  overflow: visible;
+}
+
 *{
     background-color: #800000;
 }
@@ -10,12 +26,25 @@ h2 {
   }
   
   .navbar {
-    background-color: #800000;
+    background-color: #800000 !important;
     color: white;
     padding: 0 2rem;
     height: 80px; 
+    min-height: 80px;
+    max-height: 80px;
     font-size: 16px; 
     border: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    width: 100%;
+    display: flex;
+    align-items: center;
   }
   
   .nav-left {
@@ -27,40 +56,126 @@ h2 {
   .logo {
     margin: 0;
     font-weight: bold;
+    color: white !important;
   }
   
   .login-button {
     font-weight: bold;
   }
-  
 
-    :host ::ng-deep .nav-left .p-button:hover {
+  /* Style for Login button - white background with no border */
+  :host ::ng-deep .dark .p-button {
+    background-color: white !important;
+    border: none !important;
+    outline: none !important;
+    width: 105px;
+    height: 44px;
+    color: black !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  :host ::ng-deep .dark .p-button:focus {
+    outline: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  :host ::ng-deep .dark .p-button .p-button-label {
+    color: black !important;
+  }
+
+  :host ::ng-deep .dark .p-button:hover {
+    background-color: #6b7280 !important;
+    border: none !important;
+    outline: none !important;
+    width: 105px;
+    height: 44px;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  :host ::ng-deep .dark .p-button:hover .p-button-label {
+    color: white !important;
+  }
+  /* Explicit white color for all navbar text elements */
+  h2 {
+    color: white !important;
+  }
+
+  /* PrimeNG navigation buttons (Home, Search, About, Submit) - explicit white text */
+  :host ::ng-deep .nav-left .p-button,
+  :host ::ng-deep .nav-left .p-button-text,
+  :host ::ng-deep .nav-left .p-button-plain {
+    color: white !important;
+  }
+
+  :host ::ng-deep .nav-left .p-button .p-button-label {
+    color: white !important;
+  }
+
+  :host ::ng-deep .nav-left .p-button:hover {
     background-color: #a00000 !important;
+  }
+
+  :host ::ng-deep .nav-left .p-button:hover .p-button-label {
+    color: white !important;
+  }
+
+  /* Mobile nav links - ensure white text */
+  :host ::ng-deep .nav-links .p-button,
+  :host ::ng-deep .nav-links .p-button-text,
+  :host ::ng-deep .nav-links .p-button-plain {
+    color: white !important;
+  }
+
+  :host ::ng-deep .nav-links .p-button .p-button-label {
+    color: white !important;
   }
   
 :host ::ng-deep .p-toolbar {
-    height: 80px;          
-    font-size: 16px;         
+    height: 80px !important;
+    min-height: 80px !important;
+    max-height: 80px !important;
+    font-size: 16px;
+    color: white !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-radius: 0 !important;
+    background-color: #800000 !important;
+    width: 100%;
+    overflow: visible !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  :host ::ng-deep .p-toolbar .p-toolbar-group-right {
+    overflow: visible !important;
+    position: relative;
+    z-index: 1001;
+  }
+  
+  /* Ensure the container for user profile card allows dropdown positioning */
+  :host ::ng-deep .p-toolbar .p-toolbar-group-right > * {
+    position: relative;
   }
   
   :host ::ng-deep .p-toolbar .p-toolbar-group-left,
   :host ::ng-deep .p-toolbar .p-toolbar-group-right {
     display: flex;
     align-items: center;
-  }
-  
-  :host ::ng-deep .dark .p-button {
-    background-color: #fbea31 !important;
-    border: none;
-    width: 105px;
-    height: 44px;
+    color: white !important;
   }
 
-  :host ::ng-deep .dark .p-button:hover {
-    background-color: #fff477 !important;
-    border: none;
-    width: 105px;
-    height: 44px;
+  /* Ensure all text elements in toolbar are white */
+  :host ::ng-deep .p-toolbar,
+  :host ::ng-deep .p-toolbar span,
+  :host ::ng-deep .p-toolbar p,
+  :host ::ng-deep .p-toolbar div,
+  :host ::ng-deep .p-toolbar label {
+    color: white !important;
   }
 
   /* User Profile Card Styles */
@@ -73,14 +188,26 @@ h2 {
     border-radius: 40px;
     padding: 6px 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
     min-width: 220px;
+    position: relative;
+    overflow: visible;
+    z-index: 1001;
+    /* iOS Safari fixes */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+  }
+  
+  /* Ensure the profile card container allows dropdown to position correctly */
+  :host ::ng-deep .p-toolbar-group-right {
+    position: relative;
+    overflow: visible !important;
   }
 
   .user-profile-card:hover {
     background-color: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
   }
 
   .user-info {
@@ -95,6 +222,43 @@ h2 {
   .user-info * {
     background: transparent !important;
     background-color: transparent !important;
+  }
+
+  /* Make hamburger clean, no border or background */
+  .menu-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    display: none; /* hidden by default */
+    z-index: 1001;
+    position: relative;
+    /* iOS Safari fixes */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Remove PrimeNG button default box shadow and border if applied */
+  .menu-toggle:focus,
+  .menu-toggle:active {
+    outline: none;
+    box-shadow: none;
+    background: none;
+    border: none;
+  }
+
+  /* Adjust position and spacing for better layout */
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1001;
   }
 
   .user-name {
@@ -197,6 +361,286 @@ h2 {
     margin-right: 0.5rem !important;
   }
 
+/* MODIFIED CSS - vincent */
+/* dropdown menu of profile card - positioned below the card */
+:host ::ng-deep .p-menu-overlay {
+  pointer-events: auto !important;
+  z-index: 1001 !important;
+}
 
+/* Specific targeting for profile menu - ensure it appears below the user card */
+/* When appendTo="body", the overlay is appended to body, so we target it directly */
+:host ::ng-deep body > .p-menu-overlay {
+  z-index: 1001 !important;
+  pointer-events: auto !important;
+}
+
+/* Also target menu overlays in general */
+:host ::ng-deep .p-menu-overlay {
+  z-index: 1001 !important;
+  pointer-events: auto !important;
+}
+
+/* Profile menu styling - works with appendTo="body" */
+:host ::ng-deep .p-menu-overlay .p-menu {
+  background: rgba(255, 255, 255, 0.95) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  padding: 8px !important;
+  min-width: 200px !important;
+}
+
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem {
+  margin: 2px 0 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link {
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  color: #800000 !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+}
+
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link:hover {
+  background-color: rgba(128, 0, 0, 0.1) !important;
+  color: #800000 !important;
+  transform: translateY(-1px) !important;
+}
+
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link:active {
+  background-color: rgba(128, 0, 0, 0.15) !important;
+  transform: translateY(0) !important;
+}
+
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-icon {
+  color: #800000 !important;
+  font-size: 14px !important;
+  margin-right: 12px !important;
+}
+
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-text {
+  color: #800000 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+/* making sign out stand out */
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link {
+  border-top: 1px solid rgba(128, 0, 0, 0.1) !important;
+  margin-top: 4px !important;
+  padding-top: 14px !important;
+}
+
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-link:hover {
+  background-color: rgba(220, 53, 69, 0.1) !important;
+  color: #dc3545 !important;
+}
+
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-icon,
+:host ::ng-deep .p-menu-overlay .p-menu .p-menuitem:last-child .p-menuitem-text {
+  color: #dc3545 !important;
+}
+
+/* removes default setting */
+:host ::ng-deep .p-menu-overlay .p-menu .p-submenu-header {
+  background: transparent !important;
+  border: none !important;
+  color: #800000 !important;
+}
+
+/* dropdown animation */
+:host ::ng-deep .p-menu-overlay {
+  animation: slideDown 0.2s ease-out !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@media (max-width: 1200px) {
+  :host ::ng-deep .logo {
+    display: none !important;
+  }
+
+  :host ::ng-deep .p-toolbar {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  :host ::ng-deep .p-toolbar .p-toolbar-group-left,
+  :host ::ng-deep .p-toolbar .p-toolbar-group-right {
+    gap: 0.75rem !important;
+  }
+
+  /* Apply icon-only styling for medium screens (same as mobile) */
+  .user-info {
+    display: none !important; /* hides name/email container */
+  }
+  
+  .user-profile-card {
+    min-width: auto !important;
+    padding: 6px !important;
+    border-radius: 50% !important; /* makes it round */
+    background-color: transparent !important;
+    border: none !important;
+  }
+  
+  .user-avatar .p-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
+
+/* ====== MOBILE STYLES ====== */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block !important;
+    z-index: 1001 !important;
+    position: relative !important;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    background-color: #800000;
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    /* iOS Safari fixes */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links p-button {
+    width: 100%;
+    justify-content: center;
+    /* iOS Safari fixes */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .nav-left img {
+    margin-left: 200px;
+  }
+  
+  /* Ensure hamburger button is always on top and clickable */
+  .nav-left .menu-toggle {
+    position: relative;
+    z-index: 1002;
+    pointer-events: auto;
+  }
+
+  .user-info {
+    display: none !important;
+  }
+  
+  .user-profile-card {
+    min-width: auto !important;
+    padding: 6px !important;
+    border-radius: 50% !important;
+    background-color: transparent !important;
+    border: none !important;
+    z-index: 1001 !important;
+    position: relative !important;
+  }
+  
+  .user-avatar .p-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  /* Smaller login button on mobile */
+  :host ::ng-deep .dark .p-button {
+    width: 80px !important;
+    height: 36px !important;
+    font-size: 0.85rem !important;
+    border: none !important;
+    outline: none !important;
+  }
+
+  :host ::ng-deep .dark .p-button:hover {
+    width: 80px !important;
+    height: 36px !important;
+    border: none !important;
+    outline: none !important;
+  }
+
+  /* Profile dropdown menu on mobile - ensure it's visible and clickable */
+  /* When appendTo="body", menu overlay is in body, so target it directly */
+  :host ::ng-deep body > .p-menu-overlay {
+    z-index: 1002 !important;
+    pointer-events: auto !important;
+  }
+  
+  :host ::ng-deep .p-menu-overlay {
+    z-index: 1002 !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Profile menu on mobile - use same styling as desktop */
+  :host ::ng-deep .p-menu-overlay .p-menu {
+    background: rgba(255, 255, 255, 0.95) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+    padding: 8px !important;
+    min-width: 200px !important;
+  }
+  
+  :host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link {
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    color: #800000 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+  }
+  
+  :host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-link:hover {
+    background-color: rgba(128, 0, 0, 0.1) !important;
+    color: #800000 !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  :host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-icon {
+    color: #800000 !important;
+    font-size: 14px !important;
+    margin-right: 12px !important;
+  }
+  
+  :host ::ng-deep .p-menu-overlay .p-menu .p-menuitem-text {
+    color: #800000 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
+}
 
 

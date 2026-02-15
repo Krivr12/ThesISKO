@@ -1,0 +1,204 @@
+<div class="dashboard-layout">
+  <app-admin-side-nav></app-admin-side-nav>
+
+  <main class="main-content">
+    <!-- Loading -->
+    <div *ngIf="loading()" class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading submission details...</p>
+    </div>
+
+    <!-- Submission Details -->
+    <div *ngIf="!loading() && submission()" class="details-container">
+      <!-- Header -->
+      <div class="details-header">
+        <button class="btn-back" (click)="goBack()">
+          ← Back to Approvals
+        </button>
+        <h1 class="submission-title">{{ submission()!.submission_id }}</h1>
+      </div>
+
+      <!-- Duplicate Warning -->
+      <div *ngIf="duplicateSubmissions().length > 0" class="warning-box">
+        <h3>⚠️ Potential Duplicate Submissions Found</h3>
+        <ul>
+          <li *ngFor="let dup of duplicateSubmissions()">
+            <strong>{{ dup.title }}</strong> by {{ dup.submitter_email }}
+            <span class="duplicate-date">({{ formatDate(dup.submitted_at) }})</span>
+          </li>
+        </ul>
+        <p class="warning-note">Please verify this is not a duplicate before approving.</p>
+      </div>
+
+      <!-- System Information -->
+      <div class="section-card">
+        <h2 class="section-title">System Information</h2>
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Submitter</label>
+            <p>{{ submission()!.submitter_email }}</p>
+            <div class="nested-details">
+              <div class="detail-item">
+                <label>Submitted Date</label>
+                <p>{{ formatDate(getSubmissionDate()) }}</p>
+              </div>
+              <div class="detail-item">
+                <label>Document Type</label>
+                <p>{{ submission()!.document_type | titlecase }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metadata Fields -->
+      <div class="section-card" *ngIf="metadataFields().length > 0">
+        <h2 class="section-title">Metadata</h2>
+        <div class="metadata-grid">
+          <div class="metadata-item" *ngFor="let field of metadataFields()">
+            <label>{{ field.displayName }}</label>
+            <p>{{ formatFieldValue(field) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Fields - Individual Cards -->
+      <div class="content-section" *ngIf="contentFields().length > 0">
+        <h2 class="section-title">Content</h2>
+        <div class="field-cards">
+          <div class="field-card" *ngFor="let field of contentFields()">
+            <h3 class="field-header">{{ field.displayName }}</h3>
+            <div class="field-content">
+              <!-- Array fields (tags, authors, panelists) -->
+              <div *ngIf="field.type === 'array'" class="tags-container">
+                <span *ngFor="let item of field.value" class="tag">{{ item }}</span>
+              </div>
+              
+              <!-- Long text fields (abstract) -->
+              <div *ngIf="field.type === 'longtext'" class="long-text">
+                {{ field.value }}
+              </div>
+              
+              <!-- Regular text fields -->
+              <div *ngIf="field.type === 'text'" class="text-content">
+                {{ field.value }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Files Section -->
+      <div class="section-card">
+        <h2 class="section-title">Uploaded Files</h2>
+        <div class="files-list">
+          <div *ngFor="let file of selectedFiles(); let i = index" class="file-item">
+            <div class="file-info">
+              <span class="file-icon">📄</span>
+              <div class="file-details">
+                <strong>{{ file.label }}</strong>
+                <small>Uploaded: {{ formatDate(file.uploaded_at!) }}</small>
+              </div>
+            </div>
+            <button 
+              class="btn-download" 
+              (click)="viewFile(file.id, file.s3_key!)">
+              View File
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions-section">
+        <button class="btn-reject" (click)="openRejectModal()">
+          ✗ Request Resubmission
+        </button>
+        <button class="btn-approve" (click)="approveSubmission()">
+          ✓ Approve Submission
+        </button>
+      </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div *ngIf="showRejectModal()" class="modal-overlay" (click)="closeRejectModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Request Resubmission</h2>
+          <button class="btn-close" (click)="closeRejectModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-instruction">
+            Select the files that need to be resubmitted and provide a reason:
+          </p>
+
+          <!-- File Selection -->
+          <div class="file-selection">
+            <div *ngFor="let file of selectedFiles(); let i = index" class="file-checkbox">
+              <label>
+                <input 
+                  type="checkbox" 
+                  [checked]="file.needsResubmit"
+                  (change)="toggleFileForResubmission(i)" />
+                <span>{{ file.label }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Rejection Reason -->
+          <div class="form-group">
+            <label for="rejectionReason">Reason for Rejection <span class="required">*</span></label>
+            <textarea 
+              id="rejectionReason"
+              [(ngModel)]="rejectionReason"
+              rows="5"
+              placeholder="Explain what needs to be corrected..."
+              class="textarea-input"
+              required></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeRejectModal()">Cancel</button>
+          <button 
+            class="btn-confirm-reject" 
+            (click)="confirmReject()"
+            [disabled]="!rejectionReason().trim()">
+            Confirm Rejection
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div class="modal-overlay" *ngIf="isPdfViewerVisible()">
+      <div class="modal-content pdf-viewer-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ currentPdfDocument()?.name }}</h3>
+          <button class="modal-close-btn" (click)="closePdfViewer()">×</button>
+        </div>
+        <div class="modal-body pdf-viewer-body">
+          <div *ngIf="pdfLoading()" class="pdf-loading">
+            <p>Loading document...</p>
+          </div>
+          <div *ngIf="pdfError()" class="pdf-error">
+            <p>Error loading document: {{ pdfError() }}</p>
+          </div>
+          <iframe 
+            *ngIf="currentPdfUrl() && !pdfLoading() && !pdfError()"
+            [src]="currentPdfUrl()"
+            class="pdf-iframe"
+            frameborder="0"
+            (load)="onPdfLoad()"
+            (error)="onPdfError()">
+          </iframe>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel-btn" (click)="closePdfViewer()">Close</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+

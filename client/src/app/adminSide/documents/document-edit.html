@@ -1,0 +1,248 @@
+<div class="dashboard-layout">
+  <app-admin-side-nav></app-admin-side-nav>
+
+  <main class="main-content">
+    <!-- Loading -->
+    <div *ngIf="loading()" class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading document details...</p>
+    </div>
+
+    <!-- Edit Form -->
+    <div *ngIf="!loading() && document()" class="details-container">
+      <!-- Header -->
+      <div class="details-header">
+        <button class="btn-back" (click)="goBack()">
+          ← Back to Documents
+        </button>
+        <h1 class="submission-title">Edit Document: {{ document()!.id }}</h1>
+      </div>
+
+      <!-- Edit Form -->
+      <form class="edit-form" (ngSubmit)="openSaveConfirmation()">
+        <!-- Title -->
+        <div class="section-card">
+          <h2 class="section-title">Title</h2>
+          <div class="form-group">
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="formData.title" 
+              name="title"
+              placeholder="Enter document title"
+              required>
+          </div>
+        </div>
+
+        <!-- Abstract -->
+        <div class="section-card">
+          <h2 class="section-title">Abstract</h2>
+          <div class="form-group">
+            <textarea 
+              class="form-textarea" 
+              [(ngModel)]="formData.abstract" 
+              name="abstract"
+              placeholder="Enter document abstract" 
+              rows="6"
+              required></textarea>
+          </div>
+        </div>
+
+        <!-- Access Level -->
+        <div class="section-card">
+          <h2 class="section-title">Access Level</h2>
+          <div class="form-group">
+            <select 
+              class="form-select" 
+              [(ngModel)]="formData.access_level" 
+              name="access_level">
+              <option *ngFor="let level of accessLevelOptions" [value]="level">
+                {{ level }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Authors -->
+        <div class="section-card">
+          <h2 class="section-title">Authors</h2>
+          <div class="form-group">
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="formData.authorsString" 
+              name="authorsString"
+              placeholder="e.g., John Doe, Jane Smith (comma-separated)"
+              required>
+            <small class="form-hint">Enter authors separated by commas</small>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="section-card">
+          <h2 class="section-title">Tags</h2>
+          <div class="form-group">
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="formData.tagsString" 
+              name="tagsString"
+              placeholder="e.g., Research, Technology, AI (comma-separated)">
+            <small class="form-hint">Enter tags separated by commas</small>
+          </div>
+        </div>
+
+        <!-- Uploaded Files -->
+        <div class="section-card">
+          <h2 class="section-title">Uploaded Files</h2>
+          
+          <!-- Dynamic File Management Table -->
+          <div class="files-management-table" *ngIf="document()!.files.length > 0">
+            <div class="table-header">
+              <div class="header-cell file-type-col">File Type</div>
+              <div class="header-cell file-name-col">Current File Name</div>
+              <div class="header-cell file-date-col">Last Upload</div>
+              <div class="header-cell file-action-col">Action</div>
+            </div>
+            
+            <div class="table-body">
+              <div *ngFor="let file of document()!.files" class="table-row">
+                <!-- File Type -->
+                <div class="table-cell file-type-col">
+                  <span class="file-type-label">{{ file.fileType }}</span>
+                </div>
+                
+                <!-- Current File Name -->
+                <div class="table-cell file-name-col">
+                  <div class="current-file-info">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">{{ file.fileName }}</span>
+                  </div>
+                </div>
+                
+                <!-- Last Upload Date -->
+                <div class="table-cell file-date-col">
+                  <span class="upload-date">{{ formatDate(file.uploadedAt) }}</span>
+                </div>
+                
+                <!-- Actions -->
+                <div class="table-cell file-action-col">
+                  <div class="action-buttons">
+                    <button 
+                      type="button"
+                      class="btn-view-small" 
+                      (click)="viewDocument(file)"
+                      title="View File">
+                      👁️ View
+                    </button>
+                    <label class="btn-change-file">
+                      <input 
+                        type="file" 
+                        accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        (change)="onFileSelected(file.id, $event)"
+                        style="display: none;">
+                      📝 Change File
+                    </label>
+                    <button 
+                      type="button"
+                      *ngIf="hasStagedReplacement(file.id)"
+                      class="btn-clear-file"
+                      (click)="clearStagedReplacement(file.id)"
+                      title="Clear staged replacement">
+                      ✕ Clear
+                    </button>
+                    <div *ngIf="hasStagedReplacement(file.id)" class="staged-file-hint">
+                      📎 {{ getStagedFileName(file.id) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Empty State -->
+          <div *ngIf="document()!.files.length === 0" class="empty-files-message">
+            <p>No files are currently associated with this document.</p>
+          </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="actions-section">
+          <button 
+            type="button"
+            class="btn-cancel" 
+            (click)="goBack()">
+            Cancel
+          </button>
+          <button 
+            type="submit"
+            class="btn-save" 
+            [disabled]="!isFormValid() || saving()">
+            {{ saving() ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" *ngIf="showConfirmModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Confirm Update</h2>
+          <button class="btn-close" (click)="closeConfirmModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-instruction">
+            Are you sure you want to save these changes?
+          </p>
+          <div *ngIf="fileReplacements.size > 0" class="staged-files-summary">
+            <p><strong>Files to be replaced:</strong></p>
+            <ul>
+              <li *ngFor="let fileId of getStagedFileIds()">
+                {{ getFileTypeById(fileId) }}: 
+                <strong>{{ getStagedFileName(fileId) }}</strong>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeConfirmModal()">Cancel</button>
+          <button class="btn-confirm" (click)="saveDocument()">
+            Yes, Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div class="modal-overlay" *ngIf="isPdfViewerVisible()">
+      <div class="modal-content pdf-viewer-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ currentPdfDocument()?.name }}</h3>
+          <button class="modal-close-btn" (click)="closePdfViewer()">×</button>
+        </div>
+        <div class="modal-body pdf-viewer-body">
+          <div *ngIf="pdfLoading()" class="pdf-loading">
+            <p>Loading document...</p>
+          </div>
+          <div *ngIf="pdfError()" class="pdf-error">
+            <p>Error loading document: {{ pdfError() }}</p>
+          </div>
+          <iframe 
+            *ngIf="currentPdfUrl() && !pdfLoading() && !pdfError()"
+            [src]="currentPdfUrl()"
+            class="pdf-iframe"
+            frameborder="0"
+            (load)="onPdfLoad()"
+            (error)="onPdfError()">
+          </iframe>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn confirm-btn" (click)="downloadDocument()">Download</button>
+          <button class="modal-btn cancel-btn" (click)="closePdfViewer()">Close</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+

@@ -304,20 +304,17 @@ const getAllUsers = async (req, res) => {
         ui.lastname AS Lastname,
         ui.email AS Email,
         r.role_name AS Status,
-        c.course_code AS Course,
-        d.department_name AS Department,
+        ui.course AS Course,
+        ui.department AS Department,
         ui.student_id,
         ui.faculty_id,
         ui.admin_id,
-        ui.block_id,
         ui.program_id,
         ui.admin_program,
         ui.admin_type,
         ui.avatar_url AS AvatarUrl
       FROM users_info ui
       LEFT JOIN roles r ON ui.role_id = r.role_id
-      LEFT JOIN courses c ON ui.course_id = c.course_id
-      LEFT JOIN departments d ON ui.department_id = d.department_id
     `)
     res.json(rows)
   } catch (error) {
@@ -424,61 +421,35 @@ const signupUser = async (req, res) => {
 
     const verifyUrl = `${req.protocol}://${req.get('host')}/verify-student?token=${token}&email=${encodeURIComponent(email)}`
     
-    // Sending verification email
-    
+    // Use unified email service
     try {
-      // Lazy import transporter to ensure environment variables are loaded
-      const { transporter } = await import('../config/mailer.js');
+      const { sendEmail } = await import('../services/emailService.js');
       
-      // Transporter loaded, sending email
-      
-      const emailOptions = {
-        from: process.env.MAIL_FROM || process.env.SMTP_USER,
+      await sendEmail({
         to: email,
         subject: 'Verify your email - ThesISKO',
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #800000;">Welcome to ThesISKO!</h2>
-              <p>Hello ${firstname},</p>
-              <p>Thank you for registering as a student. Please verify your email by clicking the button below:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${verifyUrl}"
-                  style="display:inline-block;background:#4CAF50;color:white;
-                         padding:15px 30px;text-decoration:none;border-radius:5px;
-                         font-weight:bold;font-size:16px;">
-                  Verify Email Address
-                </a>
-              </div>
-              <p>This link will expire in 24 hours.</p>
-              <p>If you didn't create this account, please ignore this email.</p>
-              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-              <p style="color: #666; font-size: 12px;">
-                This email was sent from ThesISKO System. Please do not reply to this email.
-              </p>
-            </div>
-        `
-      };
-      
-      const result = await transporter.sendMail(emailOptions);
-      // Email sent successfully
+        template: 'verification',
+        data: {
+          headerIcon: '🎓',
+          headerTitle: 'Welcome to ThesISKO!',
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          verifyUrl: verifyUrl,
+          status: status,
+          department: department,
+          course: course
+        }
+      });
       
     } catch (e) {
       console.error('❌ Failed to send verification email:', e);
       console.error('❌ Error details:', {
-        message: e.message,
-        code: e.code,
-        command: e.command,
-        response: e.response,
-        responseCode: e.responseCode,
-        stack: e.stack
+        message: e.message
       });
-      console.warn('📧 Email not sent. Manual verification link:', verifyUrl);
-      console.log('🔗 COPY THIS LINK TO VERIFY:', verifyUrl);
     }
     return res.status(202).json({ 
-      message: 'Verification email sent. Please verify to complete signup.',
-      // Include verification link in response for testing (remove in production)
-      verificationLink: process.env.NODE_ENV === 'development' ? verifyUrl : undefined
+      message: 'Verification email sent. Please verify to complete signup.'
     })
 
   } catch (error) {
@@ -490,7 +461,7 @@ const signupUser = async (req, res) => {
   }
 }
 
-// Login user (both regular users and group accounts)
+// Login user
 const loginUser = async (req, res) => {
   try {
     // Processing login attempt
@@ -521,109 +492,29 @@ const loginUser = async (req, res) => {
           ui.password_hash,
           ui.role_id,
           r.role_name,
-          c.course_code,
-          d.department_name,
+          ui.course AS course_code,
+          ui.department AS department_name,
           ui.student_id,
           ui.faculty_id,
           ui.admin_id,
-          ui.block_id,
-          ui.group_id,
           ui.program_id,
           ui.admin_program,
           ui.admin_type,
           ui.avatar_url
         FROM users_info ui
         LEFT JOIN roles r ON ui.role_id = r.role_id
-        LEFT JOIN courses c ON ui.course_id = c.course_id
-        LEFT JOIN departments d ON ui.department_id = d.department_id
         WHERE LOWER(ui.email) = $1 
         LIMIT 1
       `, [email])
       const users = userResult.rows
       console.log('🔍 Database query result:', { userCount: users.length, email: email });
     
-    // If no regular user found, check if it's a group account (username instead of email)
+    // Check if user exists
     if (users.length === 0) {
-      // No regular user found, checking for group accounts
-      
-      const groupResult = await pool.query(`
-        SELECT 
-          sg.group_id,
-          sg.username,
-          sg.password,
-          sg.leader_id,
-          sg.created_at,
-          ui.firstname as leader_firstname,
-          ui.lastname as leader_lastname,
-          ui.email as leader_email
-        FROM student_groups sg
-        LEFT JOIN users_info ui ON sg.leader_id = ui.student_id
-        WHERE LOWER(sg.username) = LOWER($1) 
-        LIMIT 1
-      `, [email])
-      const groups = groupResult.rows
-      
-      if (groups.length === 0) {
-        // No user found in database
-        return res.status(401).json({ 
-          error: 'Invalid credentials. User not found in database.' 
-        })
-      }
-      
-      const group = groups[0];
-      const isValidPassword = await bcrypt.compare(password, group.password)
-      
-      if (isValidPassword) {
-        // Group account authenticated
-        
-        // Get group members for additional info
-        const membersResult = await pool.query(`
-          SELECT gm.name, gm.label, ui.email
-          FROM group_members gm
-          LEFT JOIN users_info ui ON gm.user_id = ui.user_id
-          WHERE gm.group_id = $1
-        `, [group.group_id])
-        const members = membersResult.rows
-        
-        // Create group session data
-        const groupData = {
-          id: group.group_id,
-          group_id: group.group_id,
-          username: group.username,
-          Status: 'group',
-          account_type: 'group',
-          leader_name: `${group.leader_firstname} ${group.leader_lastname}`,
-          leader_email: group.leader_email,
-          members: members,
-          created_at: group.created_at
-        };
-        
-        // Store group data in server session
-        req.session.user = {
-          id: group.group_id,
-          group_id: group.group_id,
-          Status: 'group',
-          account_type: 'group',
-          username: group.username
-        };
-        
-        // Set HttpOnly cookie with group data
-        res.cookie('auth_user', JSON.stringify(groupData), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
-        
-        return res.json({
-          message: 'Group login successful',
-          user: groupData,
-          account_type: 'group',
-          redirect_to: '/submission'
-        })
-      } else {
-        return res.status(401).json({ error: 'Invalid password' })
-      }
+      // No user found in database
+      return res.status(401).json({ 
+        error: 'Invalid credentials. User not found in database.' 
+      })
     }
 
     // Regular user login flow
@@ -641,7 +532,6 @@ const loginUser = async (req, res) => {
       student_id: users[0].student_id,
       faculty_id: users[0].faculty_id,
       admin_id: users[0].admin_id,
-      group_id: users[0].group_id,
       AvatarUrl: users[0].avatar_url
     }
 
@@ -660,12 +550,11 @@ const loginUser = async (req, res) => {
         Status: userWithoutPassword.Status,
         Firstname: userWithoutPassword.Firstname,
         Lastname: userWithoutPassword.Lastname,
-        role_id: userWithoutPassword.role_id,
-        group_id: userWithoutPassword.group_id
+        role_id: userWithoutPassword.role_id
       };
       
-      // Set HttpOnly cookie with user data
-      res.cookie('auth_user', JSON.stringify({
+      const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
+      const payload = {
         id: userWithoutPassword.StudentID,
         email: userWithoutPassword.Email,
         Status: userWithoutPassword.Status,
@@ -675,14 +564,9 @@ const loginUser = async (req, res) => {
         Department: userWithoutPassword.Department,
         AvatarUrl: userWithoutPassword.AvatarUrl,
         role_id: userWithoutPassword.role_id,
-        group_id: userWithoutPassword.group_id,
         account_type: 'user'
-      }), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-        sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-      });
+      };
+      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(payload)), getAuthCookieConfig());
       
       res.json({
         message: 'Login successful',
@@ -718,31 +602,91 @@ const logoutUser = async (req, res) => {
   try {
     // Log the logout reason if provided
     const logoutReason = req.body?.reason || 'manual_logout';
-    // User logout initiated
+    console.log('🚪 User logout initiated:', logoutReason);
     
-    // Clear the HttpOnly cookie
-    res.clearCookie('auth_user', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
-    });
+    // Clear the HttpOnly cookie using centralized configuration
+    const { getAuthCookieConfig, AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+    const cookieConfig = getAuthCookieConfig();
+    
+    // Method 1: Clear cookie with same settings used to set it (standard method)
+    const clearCookieOptions1 = {
+      httpOnly: cookieConfig.httpOnly,
+      secure: cookieConfig.secure,
+      sameSite: cookieConfig.sameSite,
+      path: cookieConfig.path || '/'
+    };
+    
+    // Only set domain if it was defined in the original config
+    if (cookieConfig.domain !== undefined) {
+      clearCookieOptions1.domain = cookieConfig.domain;
+    }
+    
+    res.clearCookie(AUTH_COOKIE_NAME, clearCookieOptions1);
+    
+    // Method 2: Also set cookie with expiration in the past (ensures removal)
+    // This is a more aggressive approach that guarantees cookie removal
+    const clearCookieOptions = {
+      httpOnly: cookieConfig.httpOnly,
+      secure: cookieConfig.secure,
+      sameSite: cookieConfig.sameSite,
+      path: cookieConfig.path || '/',
+      expires: new Date(0) // Set expiration to epoch (Jan 1, 1970) - effectively deletes cookie
+    };
+    
+    // Only set domain if it was defined in the original config
+    if (cookieConfig.domain !== undefined) {
+      clearCookieOptions.domain = cookieConfig.domain;
+    }
+    
+    // Set empty cookie with past expiration to force removal
+    res.cookie(AUTH_COOKIE_NAME, '', clearCookieOptions);
+    
+    console.log('✅ Authentication cookie cleared');
     
     // Destroy session
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Session destruction error:', err);
-        return res.status(500).json({ error: 'Error during logout' });
-      }
-      
-      // For sendBeacon requests (browser close), send minimal response
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('❌ Session destruction error:', err);
+          // Still send success response even if session destruction fails
+          // The cookie is already cleared, which is the main security concern
+        } else {
+          console.log('✅ Session destroyed');
+        }
+        
+        // For sendBeacon requests (browser close), send minimal response
+        if (logoutReason === 'browser_close') {
+          res.status(204).send(); // No content response for sendBeacon
+        } else {
+          res.json({ 
+            success: true,
+            message: 'Logout successful',
+            authenticated: false
+          });
+        }
+      });
+    } else {
+      // No session to destroy, just send response
       if (logoutReason === 'browser_close') {
-        res.status(204).send(); // No content response for sendBeacon
+        res.status(204).send();
       } else {
-        res.json({ message: 'Logout successful' });
+        res.json({ 
+          success: true,
+          message: 'Logout successful',
+          authenticated: false
+        });
       }
-    });
+    }
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('❌ Logout error:', error);
+    // Even if there's an error, try to clear the cookie
+    try {
+      const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+      res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+      res.cookie(AUTH_COOKIE_NAME, '', { expires: new Date(0), path: '/' });
+    } catch (clearError) {
+      console.error('❌ Failed to clear cookie during error handling:', clearError);
+    }
     res.status(500).json({ error: 'Error during logout' });
   }
 };
@@ -750,22 +694,22 @@ const logoutUser = async (req, res) => {
 // Get current user from cookie
 const getCurrentUser = async (req, res) => {
   try {
-    const authCookie = req.cookies.auth_user;
+    const { AUTH_COOKIE_NAME, verifyAuthPayload } = await import('../utils/cookieConfig.js');
+    const authCookie = req.cookies[AUTH_COOKIE_NAME];
     
     if (!authCookie) {
-      return res.status(401).json({ error: 'No authentication cookie found' });
+      return res.status(401).json({ authenticated: false, error: 'No authentication cookie found' });
     }
     
-    try {
-      const user = JSON.parse(authCookie);
-      res.json({ user });
-    } catch (parseError) {
-      console.error('Error parsing auth cookie:', parseError);
-      res.status(401).json({ error: 'Invalid authentication cookie' });
+    const { valid, payload: user, error } = verifyAuthPayload(authCookie);
+    if (!valid || !user) {
+      console.error('Invalid auth cookie:', error);
+      return res.status(401).json({ authenticated: false, error: 'Invalid or tampered authentication cookie' });
     }
+    res.json({ authenticated: true, user });
   } catch (error) {
     console.error('Get current user error:', error);
-    res.status(500).json({ error: 'Error getting current user' });
+    res.status(500).json({ authenticated: false, error: 'Error getting current user' });
   }
 };
 
@@ -793,10 +737,8 @@ const verifyStudentEmail = async (req, res) => {
     const existsResult = await pool.query('SELECT user_id FROM users_info WHERE LOWER(email) = $1 LIMIT 1', [String(email).toLowerCase()])
     const exists = existsResult.rows
     if (exists.length === 0) {
-      // Get IDs for the user's selected role, department, and course
+      // Get role ID
       const roleId = await getRoleId(pending.status)
-      const departmentId = await getDepartmentId(pending.department)
-      const courseId = await getCourseId(pending.course)
       
       // Generate appropriate ID based on status
       let generatedId = null
@@ -808,17 +750,17 @@ const verifyStudentEmail = async (req, res) => {
         generatedId = `ADM${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`
       }
       
-      // Insert into users_info table (single table)
+      // Insert into users_info table with department and course as text
       await pool.query(
-        'INSERT INTO users_info (email, password_hash, role_id, firstname, lastname, course_id, department_id, student_id, faculty_id, admin_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+        'INSERT INTO users_info (email, password_hash, role_id, firstname, lastname, department, course, student_id, faculty_id, admin_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
         [
           pending.email.toLowerCase(), 
           pending.hashpass, 
           roleId, 
           pending.firstname, 
           pending.lastname, 
-          courseId, 
-          departmentId,
+          pending.department, // Save department as text
+          pending.course,      // Save course as text
           pending.status === 'Student' ? generatedId : null,
           pending.status === 'Faculty' ? generatedId : null,
           pending.status === 'Admin' ? generatedId : null
@@ -858,21 +800,17 @@ const getUserById = async (req, res) => {
         ui.email AS Email,
         ui.role_id,
         r.role_name AS Status,
-        c.course_code AS Course,
-        d.department_name AS Department,
+        ui.course AS Course,
+        ui.department AS Department,
         ui.student_id,
         ui.faculty_id,
         ui.admin_id,
-        ui.group_id,
-        ui.block_id,
         ui.program_id,
         ui.admin_program,
         ui.admin_type,
         ui.avatar_url AS AvatarUrl
       FROM users_info ui
       LEFT JOIN roles r ON ui.role_id = r.role_id
-      LEFT JOIN courses c ON ui.course_id = c.course_id
-      LEFT JOIN departments d ON ui.department_id = d.department_id
       WHERE ui.user_id = $1 LIMIT 1
     `, [userId]);
 
@@ -911,16 +849,16 @@ const updateUser = async (req, res) => {
     let hashedNewPassword = null;
     if (newPassword && currentPassword) {
       // Get user's current password hash
-      const [userResult] = await pool.query(
-        'SELECT password_hash FROM users_info WHERE user_id = ? LIMIT 1',
+      const userResult = await pool.query(
+        'SELECT password_hash FROM users_info WHERE user_id = $1 LIMIT 1',
         [userId]
       );
 
-      if (userResult.length === 0) {
+      if (userResult.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const user = userResult[0];
+      const user = userResult.rows[0];
       
       // Verify current password
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
@@ -941,33 +879,32 @@ const updateUser = async (req, res) => {
       hashedNewPassword = await bcrypt.hash(newPassword, 10);
     }
 
-    // Update user information
-    let updateQuery = `
-      UPDATE users_info 
-      SET 
-        firstname = ?,
-        lastname = ?
-    `;
-    
+    // Build update query with PostgreSQL syntax
+    let paramIndex = 1;
+    let setClauses = [`firstname = $${paramIndex++}`, `lastname = $${paramIndex++}`];
     let updateParams = [firstname, lastname];
     
     // Only update student_id if it's provided (for student users)
     if (student_id !== undefined && student_id !== null) {
-      updateQuery += `, student_id = ?`;
+      setClauses.push(`student_id = $${paramIndex++}`);
       updateParams.push(student_id);
     }
     
     if (hashedNewPassword) {
-      updateQuery += `, password_hash = ?`;
+      setClauses.push(`password_hash = $${paramIndex++}`);
       updateParams.push(hashedNewPassword);
     }
     
-    updateQuery += ` WHERE user_id = ?`;
     updateParams.push(userId);
+    const updateQuery = `
+      UPDATE users_info 
+      SET ${setClauses.join(', ')}
+      WHERE user_id = $${paramIndex}
+    `;
 
-    const [result] = await pool.query(updateQuery, updateParams);
+    const result = await pool.query(updateQuery, updateParams);
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
@@ -987,199 +924,113 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Admin faculty signup (creates faculty account with generated password)
+// Admin create faculty - Create faculty member directly (no email verification needed)
 const adminCreateFaculty = async (req, res) => {
   try {
     const { firstname, lastname, email, faculty_id } = req.body;
 
     // Validate required fields
     if (!firstname || !lastname || !email || !faculty_id) {
-      return res.status(400).json({
-        error: 'First name, last name, email, and faculty ID are required'
+      return res.status(400).json({ 
+        error: 'All fields are required: firstname, lastname, email, and faculty_id' 
       });
     }
 
     // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        error: 'Please enter a valid email address'
+      return res.status(400).json({ 
+        error: 'Please enter a valid email address' 
       });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Check if email already exists
-    const existingUsersResult = await pool.query(
-      'SELECT user_id FROM users_info WHERE LOWER(email) = $1 LIMIT 1',
-      [email.toLowerCase()]
+    const emailCheck = await pool.query(
+      'SELECT user_id FROM users_info WHERE LOWER(email) = $1',
+      [normalizedEmail]
     );
 
-    if (existingUsersResult.rows.length > 0) {
+    if (emailCheck.rows.length > 0) {
       return res.status(400).json({ 
         error: 'Email already exists. Please use a different email.' 
       });
     }
 
     // Check if faculty_id already exists
-    const existingFacultyResult = await pool.query(
-      'SELECT user_id FROM users_info WHERE faculty_id = $1 LIMIT 1',
+    const facultyIdCheck = await pool.query(
+      'SELECT user_id FROM users_info WHERE faculty_id = $1',
       [faculty_id]
     );
 
-    if (existingFacultyResult.rows.length > 0) {
+    if (facultyIdCheck.rows.length > 0) {
       return res.status(400).json({ 
         error: 'Faculty ID already exists. Please use a different ID.' 
       });
     }
 
     // Generate password
-    const generatedPassword = generatePassword(8);
-
+    const generatedPassword = generatePassword();
+    
     // Hash password
-    const salt = await bcrypt.genSalt();
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(generatedPassword, salt);
 
-    // Get role_id for Faculty (assuming role_id 3 is Faculty)
-    const roleId = await getRoleId('Faculty');
-
-    // Insert faculty into users_info table
+    // Insert faculty into users_info with role_id = 3 (Faculty)
     const result = await pool.query(
-      'INSERT INTO users_info (firstname, lastname, email, password_hash, role_id, faculty_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id',
-      [firstname, lastname, email.toLowerCase(), hashedPassword, roleId, faculty_id]
+      'INSERT INTO users_info (email, password_hash, role_id, firstname, lastname, faculty_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id, firstname, lastname, email, faculty_id',
+      [normalizedEmail, hashedPassword, 3, firstname.trim(), lastname.trim(), faculty_id]
     );
 
-    // Send email with credentials
-    try {
-      // Lazy import transporter to ensure environment variables are loaded
-      const { transporter } = await import('../config/mailer.js');
-      
-      await transporter.sendMail({
-        from: process.env.MAIL_FROM || process.env.SMTP_USER,
-        to: email,
-        subject: 'Faculty Account Created - ThesISKO',
-        html: `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Welcome to ThesISKO</title>
-          </head>
-          <body style="margin: 0; padding: 20px; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-              
-              <!-- Header -->
-              <div style="background: linear-gradient(135deg, #800000 0%, #a52a2a 100%); padding: 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                  🎓 Welcome to ThesISKO!
-                </h1>
-                <p style="color: #f8f8f8; margin: 10px 0 0 0; font-size: 16px;">
-                  Polytechnic University of the Philippines
-                </p>
-              </div>
-              
-              <!-- Main Content -->
-              <div style="padding: 40px 30px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                  <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">
-                    Hello ${firstname} ${lastname}! 👋
-                  </h2>
-                  <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
-                    Your faculty account has been created successfully. You're now part of the ThesISKO system!
-                  </p>
-                </div>
-                
-                <!-- Credentials Card -->
-                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #800000; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative;">
-                  <div style="position: absolute; top: -12px; left: 20px; background: #800000; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold;">
-                    🔐 Login Credentials
-                  </div>
-                  
-                  <div style="margin-top: 15px;">
-                    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #800000;">
-                      <strong style="color: #495057; display: block; margin-bottom: 5px;">📧 Email:</strong>
-                      <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">${email}</span>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #28a745;">
-                      <strong style="color: #495057; display: block; margin-bottom: 5px;">🔑 Password:</strong>
-                      <span style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 8px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; display: inline-block;">${generatedPassword}</span>
-                    </div>
-                    
-                    <div style="padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #007bff;">
-                      <strong style="color: #495057; display: block; margin-bottom: 5px;">🆔 Faculty ID:</strong>
-                      <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">${faculty_id}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Security Note -->
-                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                  <p style="margin: 0; color: #856404; font-size: 14px;">
-                    <strong>🔒 Security Note:</strong> Please change your password after your first login for enhanced security.
-                  </p>
-                </div>
-              </div>
-              
-              <!-- Footer -->
-              <div style="background: #2c3e50; padding: 20px; text-align: center;">
-                <p style="color: #bdc3c7; margin: 0; font-size: 13px;">
-                  This is an automated message from the ThesISKO System<br>
-                  Polytechnic University of the Philippines | Manila, Philippines
-                </p>
-                <p style="color: #95a5a6; margin: 10px 0 0 0; font-size: 12px;">
-                  © ${new Date().getFullYear()} ThesISKO. All rights reserved.
-                </p>
-              </div>
-              
-              <!-- Legal Notice -->
-              <div style="background: #fff3cd; border-top: 3px solid #ffc107; padding: 20px; text-align: left;">
-                <p style="margin: 0 0 10px 0; color: #856404; font-size: 13px; font-weight: bold;">
-                  ⚠️ CONFIDENTIALITY NOTICE & LEGAL DISCLAIMER
-                </p>
-                <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
-                  This email and any attachments are confidential and intended solely for the person(s) named above. 
-                  This communication may contain privileged or confidential information.
-                </p>
-                <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
-                  <strong>If you are NOT the intended recipient:</strong><br>
-                  • Please DO NOT read, copy, forward, or use this email<br>
-                  • Delete this email immediately<br>
-                  • Notify us at: <a href="mailto:thesiskopup@gmail.com" style="color: #800000;">thesiskopup@gmail.com</a>
-                </p>
-                <p style="margin: 0; color: #856404; font-size: 11px; line-height: 1.6;">
-                  Unauthorized use, disclosure, or distribution of this communication is strictly prohibited and may be unlawful.
-                </p>
-              </div>
-            </div>
-          </body>
-          </html>
-        `
-      });
+    const newFaculty = result.rows[0];
 
-      // Faculty account created and email sent
+    // Send credentials email
+    try {
+      const { sendEmail } = await import('../services/emailService.js');
+      const frontendUrl = process.env.FRONTEND_URL || 'https://thesisko.online';
+      
+      await sendEmail({
+        to: normalizedEmail,
+        subject: 'Your ThesISKO Faculty Account Credentials',
+        template: 'credentials',
+        data: {
+          headerIcon: '🎓',
+          headerTitle: 'Welcome to ThesISKO!',
+          firstname: firstname.trim(),
+          lastname: lastname.trim(),
+          email: normalizedEmail,
+          password: generatedPassword,
+          accountType: 'Faculty',
+          identifier: faculty_id,
+          identifierLabel: 'Faculty ID',
+          loginUrl: `${frontendUrl}/login`
+        }
+      });
+      
+      console.log(`✅ Faculty account created and credentials email sent to ${normalizedEmail}`);
     } catch (emailError) {
-      console.error('Failed to send faculty credentials email:', emailError);
-      // Don't fail the entire operation if email fails
+      console.error('❌ Failed to send credentials email:', emailError);
+      // Don't fail the request if email fails - account is still created
     }
 
     res.status(201).json({
       success: true,
       message: 'Faculty account created successfully',
       data: {
-        user_id: result.rows[0].user_id,
-        firstname,
-        lastname,
-        email,
-        faculty_id: faculty_id,
-        generated_password: generatedPassword // Include for admin reference
+        user_id: newFaculty.user_id,
+        firstname: newFaculty.firstname,
+        lastname: newFaculty.lastname,
+        email: newFaculty.email,
+        faculty_id: newFaculty.faculty_id
       }
     });
 
   } catch (error) {
-    console.error('Error creating faculty account:', error);
-    res.status(500).json({
+    console.error('Error creating faculty:', error);
+    res.status(500).json({ 
       error: 'Failed to create faculty account',
-      details: error.message
+      details: error.message 
     });
   }
 };
@@ -1195,3 +1046,108 @@ export {
   updateUser,
   adminCreateFaculty
 }
+
+/* 
+  OLD HTML TEMPLATE - KEPT FOR REFERENCE ONLY
+  This template has been replaced by the unified email service templates
+  Located in: server/templates/email/credentials.html
+  
+  html: `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to ThesISKO</title>
+    </head>
+    <body style="margin: 0; padding: 20px; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #800000 0%, #a52a2a 100%); padding: 30px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+            🎓 Welcome to ThesISKO!
+          </h1>
+          <p style="color: #f8f8f8; margin: 10px 0 0 0; font-size: 16px;">
+            Polytechnic University of the Philippines
+          </p>
+        </div>
+        
+        <!-- Main Content -->
+        <div style="padding: 40px 30px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">
+              Hello ${firstname} ${lastname}! 👋
+            </h2>
+            <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+              Your faculty account has been created successfully. You're now part of the ThesISKO system!
+            </p>
+          </div>
+          
+          <!-- Credentials Card -->
+          <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #800000; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative;">
+            <div style="position: absolute; top: -12px; left: 20px; background: #800000; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold;">
+              🔐 Login Credentials
+            </div>
+            
+            <div style="margin-top: 15px;">
+              <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #800000;">
+                <strong style="color: #495057; display: block; margin-bottom: 5px;">📧 Email:</strong>
+                <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">${email}</span>
+              </div>
+              
+              <div style="margin-bottom: 15px; padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #28a745;">
+                <strong style="color: #495057; display: block; margin-bottom: 5px;">🔑 Password:</strong>
+                <span style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 8px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; display: inline-block;">${generatedPassword}</span>
+              </div>
+              
+              <div style="padding: 12px; background: #ffffff; border-radius: 8px; border-left: 4px solid #007bff;">
+                <strong style="color: #495057; display: block; margin-bottom: 5px;">🆔 Faculty ID:</strong>
+                <span style="color: #2c3e50; font-size: 16px; font-family: 'Courier New', monospace;">${faculty_id}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Security Note -->
+          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; color: #856404; font-size: 14px;">
+              <strong>🔒 Security Note:</strong> Please change your password after your first login for enhanced security.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: #2c3e50; padding: 20px; text-align: center;">
+          <p style="color: #bdc3c7; margin: 0; font-size: 13px;">
+            This is an automated message from the ThesISKO System<br>
+            Polytechnic University of the Philippines | Manila, Philippines
+          </p>
+          <p style="color: #95a5a6; margin: 10px 0 0 0; font-size: 12px;">
+            © ${new Date().getFullYear()} ThesISKO. All rights reserved.
+          </p>
+        </div>
+        
+        <!-- Legal Notice -->
+        <div style="background: #fff3cd; border-top: 3px solid #ffc107; padding: 20px; text-align: left;">
+          <p style="margin: 0 0 10px 0; color: #856404; font-size: 13px; font-weight: bold;">
+            ⚠️ CONFIDENTIALITY NOTICE & LEGAL DISCLAIMER
+          </p>
+          <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
+            This email and any attachments are confidential and intended solely for the person(s) named above. 
+            This communication may contain privileged or confidential information.
+          </p>
+          <p style="margin: 0 0 10px 0; color: #856404; font-size: 12px; line-height: 1.6;">
+            <strong>If you are NOT the intended recipient:</strong><br>
+            • Please DO NOT read, copy, forward, or use this email<br>
+            • Delete this email immediately<br>
+            • Notify us at: <a href="mailto:thesiskopup@gmail.com" style="color: #800000;">thesiskopup@gmail.com</a>
+          </p>
+          <p style="margin: 0; color: #856404; font-size: 11px; line-height: 1.6;">
+            Unauthorized use, disclosure, or distribution of this communication is strictly prohibited and may be unlawful.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+*/

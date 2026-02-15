@@ -101,7 +101,7 @@ export class FacultyHome implements OnInit, AfterViewInit {
         const user = JSON.parse(userStr);
         this.currentUserEmail = user.email || user.Email || '';
       } catch (e) {
-        console.error('Error parsing user data:', e);
+        
       }
     }
 
@@ -109,7 +109,7 @@ export class FacultyHome implements OnInit, AfterViewInit {
     if (this.currentUserEmail) {
       this.loadFacultyBlocks();
     } else {
-      console.warn('No user email found in session');
+      
       this.isLoadingBlocks = false;
     }
 
@@ -145,25 +145,26 @@ export class FacultyHome implements OnInit, AfterViewInit {
 
         this.recalcStats(); // initial stats
       },
-      error: (err) => console.error('Could not load assets/groups.json', err),
+      error: (err) => {
+        // Could not load assets/groups.json
+      },
     });
   }
 
   loadFacultyBlocks(): void {
     this.isLoadingBlocks = true;
     this.http.get<{ success: boolean; data: { ficBlocks: ProgramBlocks[], panelistBlocks: ProgramBlocks[] } }>(
-      `${environment.authApiUrl}/blocks/faculty/${encodeURIComponent(this.currentUserEmail)}`
+      `${environment.authApiUrl}/blocks/faculty`
     ).subscribe({
       next: (response) => {
         if (response.success) {
           this.ficPrograms = response.data.ficBlocks || [];
           this.panelistPrograms = response.data.panelistBlocks || [];
-          console.log('✅ Faculty blocks loaded:', response.data);
         }
         this.isLoadingBlocks = false;
       },
       error: (err) => {
-        console.error('❌ Error loading faculty blocks:', err);
+        
         this.ficPrograms = [];
         this.panelistPrograms = [];
         this.isLoadingBlocks = false;
@@ -183,7 +184,6 @@ export class FacultyHome implements OnInit, AfterViewInit {
   }
 
   viewGroup(element: Group) {
-    console.log('Viewing group:', element);
     // this.router.navigate(['/history', element.group_id]);
   }
 

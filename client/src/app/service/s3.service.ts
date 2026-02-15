@@ -41,6 +41,18 @@ export class S3Service {
   }
 
   /**
+   * Get signed URL for viewing submission file (in-progress submissions)
+   * @param fileKey - Full S3 key (e.g., "submission/2425-BSIT-5_1/manuscript.pdf")
+   * @returns Observable with signedUrl and expiresIn
+   */
+  getSubmissionFileSignedUrl(fileKey: string): Observable<{ signedUrl: string; expiresIn: number }> {
+    return this.http.post<{ signedUrl: string; expiresIn: number }>(
+      `${this.apiUrl}/s3/view-repository-file`,
+      { file_key: fileKey }
+    );
+  }
+
+  /**
    * Get signed URL for uploading a single file
    * @param groupId - Group ID (e.g., "2425-BSIT-5_1")
    * @param filename - File name (e.g., "manuscript.pdf")

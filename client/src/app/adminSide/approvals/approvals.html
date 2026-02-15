@@ -1,0 +1,95 @@
+<div class="dashboard-layout">
+  <app-admin-side-nav></app-admin-side-nav>
+
+  <main class="main-content">
+    <!-- Header -->
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Pending Approvals</h1>
+        <p class="page-subtitle">Reviewing as: <strong>{{ userRole() }}</strong></p>
+      </div>
+      <button class="btn-refresh" (click)="loadSubmissions()">
+        🔄 Refresh
+      </button>
+    </header>
+
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="filter-group">
+        <label for="search">Search</label>
+        <input 
+          id="search"
+          type="text" 
+          [(ngModel)]="searchTerm"
+          placeholder="Search by title, author, or ID..."
+          class="filter-input" />
+      </div>
+
+
+      <div class="filter-group">
+        <label for="docType">Document Type</label>
+        <select id="docType" [(ngModel)]="filterDocumentType" class="filter-select" [disabled]="loadingDocumentTypes()">
+          <option value="">All Types</option>
+          <option *ngFor="let docType of documentTypes()" [value]="docType">
+            {{ docType | titlecase }}
+          </option>
+        </select>
+        <small *ngIf="loadingDocumentTypes()" class="form-hint">Loading document types...</small>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading submissions...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading() && filteredSubmissions().length === 0" class="empty-state">
+      <h3>No Pending Approvals</h3>
+      <p>There are no submissions waiting for your review at this time.</p>
+    </div>
+
+    <!-- Submissions Table -->
+    <div *ngIf="!loading() && filteredSubmissions().length > 0" class="table-container">
+      <table class="submissions-table">
+        <thead>
+          <tr>
+            <th>Submission ID</th>
+            <th>Title</th>
+            <th>Document Type</th>
+            <th>Program</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let submission of filteredSubmissions()">
+            <td class="id-cell">{{ submission.submission_id }}</td>
+            <td class="title-cell">{{ submission.title }}</td>
+            <td>{{ submission.document_type | titlecase }}</td>
+            <td>{{ submission.program }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusBadgeClass(submission.status)">
+                {{ getStatusLabel(submission.status) }}
+              </span>
+            </td>
+            <td>
+              <button 
+                class="btn-review" 
+                (click)="viewDetails(submission.submission_id)">
+                Review
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Summary Stats -->
+    <div *ngIf="!loading() && submissions().length > 0" class="stats-footer">
+      <p>Showing {{ filteredSubmissions().length }} of {{ submissions().length }} submissions</p>
+    </div>
+  </main>
+</div>
+

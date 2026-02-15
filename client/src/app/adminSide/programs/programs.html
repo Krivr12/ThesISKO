@@ -1,0 +1,222 @@
+<div class="page-layout admin-page">
+    <app-admin-side-nav></app-admin-side-nav>
+    <main class="main-content">
+        <!-- Main View -->
+        <div class="list-view-container">
+            <header class="page-header">
+                <h1 class="page-title">Programs</h1>
+                <div class="header-actions">
+                    <button class="add-program-btn" (click)="openAddProgramModal()">Add Program</button>
+                </div>
+            </header>
+
+            <!-- Department Filter -->
+            <div class="filter-section">
+                <div class="department-filter">
+                    
+                    <div class="filter-buttons">
+                        <button [class.active]="currentDepartment === 'CCIS'" (click)="setDepartmentFilter('CCIS')">CCIS</button>
+                        <!-- Commented out other departments for future use -->
+                        <!-- <button [class.active]="currentDepartment === 'COC'" (click)="setDepartmentFilter('COC')">COC</button> -->
+                        <!-- <button [class.active]="currentDepartment === 'CE'" (click)="setDepartmentFilter('CE')">CE</button> -->
+                        <button [class.active]="currentDepartment === 'all'" (click)="setDepartmentFilter('all')">All Departments</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Programs Table -->
+            <div class="programs-table">
+                <div class="table-header">
+                    <div class="header-item sortable" (click)="onSort('program_id')">
+                        Program ID
+                        <span class="sort-arrow" *ngIf="sortColumn === 'program_id'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('program_name')">
+                        Program Name
+                        <span class="sort-arrow" *ngIf="sortColumn === 'program_name'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('department_name')">
+                        Department
+                        <span class="sort-arrow" *ngIf="sortColumn === 'department_name'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item sortable" (click)="onSort('chairperson_email')">
+                        Chairperson
+                        <span class="sort-arrow" *ngIf="sortColumn === 'chairperson_email'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                    </div>
+                    <div class="header-item">Actions</div>
+                </div>
+                
+                <div class="table-row" *ngFor="let prog of paginatedPrograms">
+                    <div class="row-item">{{ prog.program_id }}</div>
+                    <div class="row-item">{{ prog.program_name }}</div>
+                    <div class="row-item">{{ prog.department_name }}</div>
+                    <div class="row-item">{{ prog.chairperson_email }}</div>
+                    <div class="row-item action-buttons">
+                        <button class="edit-btn" (click)="openEditProgramModal(prog)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                            </svg>
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paginator -->
+            <div class="paginator">
+                <mat-paginator
+                  [length]="filteredPrograms.length"
+                  [pageIndex]="currentPage - 1"
+                  [pageSize]="itemsPerPage"
+                  [pageSizeOptions]="[5, 10, 20]"
+                  (page)="onPage($event)"
+                  showFirstLastButtons>
+                </mat-paginator>
+            </div>
+        </div>
+
+        <!-- Add Program Modal -->
+        <div class="modal-overlay" *ngIf="isAddProgramModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Add Program</h3>
+                    <button class="modal-close-btn" (click)="closeAddProgramModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <form class="program-form">
+                        <div class="form-group">
+                            <label class="form-label">Program ID <span style="color: red;">*</span></label>
+                            <input type="text" class="form-input" 
+                                   placeholder="BSIT"
+                                   [(ngModel)]="newProgram.program_id" 
+                                   name="program_id"
+                                   required>
+                            <small class="form-hint">e.g., BSIT, BSCS</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Program Name <span style="color: red;">*</span></label>
+                            <input type="text" class="form-input" 
+                                   placeholder="Bachelor of Science in Information Technology"
+                                   [(ngModel)]="newProgram.program_name" 
+                                   name="program_name"
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Department ID <span style="color: red;">*</span></label>
+                            <input type="text" class="form-input" 
+                                   placeholder="CCIS"
+                                   [(ngModel)]="newProgram.department_id" 
+                                   name="department_id"
+                                   required>
+                            <small class="form-hint">e.g., CCIS, COE, COC</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Department Name <span style="color: red;">*</span></label>
+                            <input type="text" class="form-input" 
+                                   placeholder="College of Computer and Information Sciences"
+                                   [(ngModel)]="newProgram.department_name" 
+                                   name="department_name"
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Chairperson <span style="color: red;">*</span></label>
+                            <select class="form-select" 
+                                    [(ngModel)]="newProgram.chairperson_email" 
+                                    name="chairperson_email"
+                                    required>
+                                <option value="">Select a faculty member</option>
+                                <option *ngFor="let faculty of availableFaculty" [value]="faculty.email">
+                                    {{ getFacultyDisplayName(faculty) }}
+                                </option>
+                            </select>
+                            <small class="form-hint">Only unassigned faculty with faculty_id are shown</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" 
+                            (click)="addProgram()"
+                            [disabled]="!isFormValid()">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Program Modal -->
+        <div class="modal-overlay" *ngIf="isEditProgramModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Program</h3>
+                    <button class="modal-close-btn" (click)="closeEditProgramModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <form class="program-form">
+                        <div class="form-group">
+                            <label class="form-label">Program ID <span style="color: red;">*</span></label>
+                            <input type="text" class="form-input" 
+                                   [(ngModel)]="editingProgram.program_id" 
+                                   name="edit_program_id"
+                                   disabled>
+                            <small class="form-hint">Program ID cannot be changed</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Program Name <span style="color: red;">*</span></label>
+                            <input type="text" class="form-input" 
+                                   placeholder="Bachelor of Science in Information Technology"
+                                   [(ngModel)]="editingProgram.program_name" 
+                                   name="edit_program_name"
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Department ID <span style="color: red;">*</span></label>
+                            <input type="text" class="form-input" 
+                                   placeholder="CCIS"
+                                   [(ngModel)]="editingProgram.department_id" 
+                                   name="edit_department_id"
+                                   required>
+                            <small class="form-hint">e.g., CCIS, COE, COC</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Department Name <span style="color: red;">*</span></label>
+                            <input type="text" class="form-input" 
+                                   placeholder="College of Computer and Information Sciences"
+                                   [(ngModel)]="editingProgram.department_name" 
+                                   name="edit_department_name"
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Chairperson <span style="color: red;">*</span></label>
+                            <select class="form-select" 
+                                    [(ngModel)]="editingProgram.chairperson_email" 
+                                    name="edit_chairperson_email"
+                                    required>
+                                <option [value]="originalChairpersonEmail">
+                                    {{ originalChairpersonEmail }} (Current)
+                                </option>
+                                <option *ngFor="let faculty of availableFaculty" [value]="faculty.email">
+                                    {{ getFacultyDisplayName(faculty) }}
+                                </option>
+                            </select>
+                            <small class="form-hint">Current chairperson can remain, or select a new one from available faculty</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn cancel-btn" 
+                            (click)="closeEditProgramModal()">Cancel</button>
+                    <button class="modal-btn confirm-btn" 
+                            (click)="updateProgram()"
+                            [disabled]="!isEditFormValid()">Update</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

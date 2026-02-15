@@ -59,7 +59,6 @@ export class AdminSideBar {
 
     ref.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        console.log('🔍 Admin/SuperAdmin logout confirmed - clearing AuthServices');
         
         // Clear both AuthServices
         this.navAuthService.logout();

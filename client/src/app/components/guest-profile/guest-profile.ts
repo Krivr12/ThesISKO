@@ -72,11 +72,24 @@ export class GuestProfile implements OnInit {
 
   private loadUserData() {
     if (this.currentUser) {
-      // For guests, we'll use the data from auth service (Google OAuth data)
-      this.profileForm.patchValue({
-        firstName: this.currentUser.Firstname,
-        lastName: this.currentUser.Lastname,
-        email: this.currentUser.email || this.currentUser.Email
+      // Get additional user data from the server to ensure we have the latest information
+      this.http.get(`${environment.authApiUrl}/api/users/${this.currentUser.id}`).subscribe({
+        next: (userData: any) => {
+          this.profileForm.patchValue({
+            firstName: userData.Firstname || this.currentUser?.Firstname,
+            lastName: userData.Lastname || this.currentUser?.Lastname,
+            email: userData.Email || this.currentUser?.email || this.currentUser?.Email
+          });
+        },
+        error: (error) => {
+          
+          // Fallback to user data from auth service
+          this.profileForm.patchValue({
+            firstName: this.currentUser?.Firstname,
+            lastName: this.currentUser?.Lastname,
+            email: this.currentUser?.email || this.currentUser?.Email
+          });
+        }
       });
     }
   }
@@ -119,7 +132,7 @@ export class GuestProfile implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Error updating profile:', error);
+          
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

@@ -36,6 +36,9 @@ export class Signup {
   private messageService = inject(MessageService);
   private router = inject(Router);
 
+  // Modal visibility state
+  showVerificationModal = false;
+
   departments = [
     { value: 'OUS', viewValue: 'OPEN UNIVERSITY SYSTEM' },
     { value: 'CAF', viewValue: 'COLLEGE OF ACCOUNTANCY AND FINANCE' },
@@ -190,17 +193,11 @@ export class Signup {
 
       this.signupService.signupUser(postData).subscribe({
         next: (response: any) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: response.message || 'Congrats! You\'ve signed up successfully.',
-        });
-
-        // Navigate to login page after successful signup (like source project)
-        this.router.navigate(['/login']);
+        // Show verification modal instead of toast + immediate redirect
+        this.showVerificationModal = true;
         },
         error: (err) => {
-          console.error(err);
+          
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -227,5 +224,9 @@ export class Signup {
   get course() { return this.signupForm.get('course') as FormControl; }
   get studentNum() { return this.signupForm.get('studentNum') as FormControl; }
 
-
+  // Handle modal okay button click
+  onModalOkay() {
+    this.showVerificationModal = false;
+    this.router.navigate(['/login']);
+  }
 }

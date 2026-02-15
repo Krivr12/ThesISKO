@@ -1,0 +1,26 @@
+<div class="sidenav">
+    <h2 class="logo">ThesISKO</h2>
+  
+    <div class="nav-links">
+        <a 
+            *ngFor="let item of menuItems()"
+            [routerLink]="item.route"
+            class="nav-link"
+            routerLinkActive="active-link">
+            {{ item.label }}
+        </a>
+        
+        <!-- Logout as navigation item -->
+        <a 
+            class="nav-link"
+            (click)="logout(); $event.preventDefault()"
+            href="javascript:void(0)"
+            style="cursor: pointer;">
+            Logout
+        </a>
+    </div>
+</div>
+
+<!-- Custom Confirmation Dialog -->
+<app-custom-confirm-dialog></app-custom-confirm-dialog>
+

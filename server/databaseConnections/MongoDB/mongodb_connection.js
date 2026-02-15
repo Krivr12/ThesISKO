@@ -21,7 +21,7 @@ if (uri && uri.startsWith("mongodb")) {
     await client.connect();
     await client.db("admin").command({ ping: 1 });
     console.log("✅ Pinged your deployment. Connected to MongoDB Atlas!");
-    db = client.db("DocumentsRepo");
+    db = client.db("thesisko");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
     console.log("⚠️ Continuing without MongoDB connection...");
@@ -31,5 +31,15 @@ if (uri && uri.startsWith("mongodb")) {
   console.log("⚠️ No MongoDB URI provided, continuing without MongoDB...");
   db = null;
 }
+
+// Helper functions for compatibility with existing code
+export const connectToDatabase = async () => {
+  // Connection is already established in the module initialization
+  return db;
+};
+
+export const getDb = () => {
+  return db;
+};
 
 export default db;

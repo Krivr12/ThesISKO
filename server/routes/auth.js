@@ -5,18 +5,24 @@ import {
   googleAuthFailure
 } from '../controller/authController.js';
 import { loginUser, getCurrentUser, logoutUser } from '../controller/userController.js';
-// Lazy import mailer to ensure environment variables are loaded first
+import authRateLimiter from '../middlewares/authRateLimiter.js';
 
 const router = express.Router();
 
-// Test endpoint
-router.get('/test', (req, res) => {
-  console.log('🚀 Test endpoint accessed');
-  res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
-});
+// Only register debug/test routes when not in production
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Test Google OAuth callback simulation
-router.get('/test-google-callback', async (req, res) => {
+// Test endpoint (disabled in production)
+if (!isProduction) {
+  router.get('/test', (req, res) => {
+    console.log('🚀 Test endpoint accessed');
+    res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
+  });
+}
+
+// Test Google OAuth callback simulation (disabled in production)
+if (!isProduction) {
+  router.get('/test-google-callback', async (req, res) => {
   console.log('🚀 Test Google OAuth callback simulation');
   try {
     // Simulate what the Google OAuth callback should do
@@ -51,7 +57,7 @@ router.get('/test-google-callback', async (req, res) => {
     
     // Test user creation
     const insertResult = await pool.query(
-      'INSERT INTO users_info (email, firstname, lastname, role_id, avatar_url, password_hash, course_id, department_id, google_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING user_id',
+      'INSERT INTO users_info (email, firstname, lastname, role_id, avatar_url, password_hash, course, department, google_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING user_id',
       [mockUser.email, mockUser.firstName, mockUser.lastName, roleId, mockUser.avatar, 'guest_no_password', null, null, mockUser.googleId]
     );
     
@@ -79,38 +85,29 @@ router.get('/test-google-callback', async (req, res) => {
       stack: error.stack
     });
   }
-});
+  });
+}
 
 // Google OAuth routes
 router.get('/google', (req, res, next) => {
-  // Google OAuth route accessed
-  console.log('🚀 Google OAuth route accessed');
   try {
     passport.authenticate('google', { 
       scope: ['profile', 'email'] 
     })(req, res, next);
   } catch (error) {
-    console.error('❌ Google OAuth route error:', error);
     res.status(500).json({ error: 'Google OAuth initialization failed', details: error.message });
   }
 });
 
 router.get('/google/callback',
-  (req, res, next) => {
-    console.log('🚀 Google OAuth callback reached!');
-    console.log('🚀 Query params:', req.query);
-    console.log('🚀 Body:', req.body);
-    console.log('🚀 Headers:', req.headers);
-    next();
-  },
   passport.authenticate('google', { failureRedirect: '/auth/google/failure' }),
   googleAuthSuccess
 );
 
 router.get('/google/failure', googleAuthFailure);
 
-// Login endpoint for faculty and admin
-router.post('/login', async (req, res) => {
+// Login endpoint (rate limited)
+router.post('/login', authRateLimiter, async (req, res) => {
   try {
     // Use the userController login function
     await loginUser(req, res);
@@ -120,8 +117,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Faculty login endpoint - only allows faculty role (role_id = 3)
-router.post('/faculty-login', async (req, res) => {
+// Admin login endpoint - allows faculty (3), chairperson (4), superadmin (5) only (rate limited)
+router.post('/admin-login', authRateLimiter, async (req, res) => {
   try {
     const rawEmail = req.body.email ?? req.body.Email
     const password = req.body.password ?? req.body.Password
@@ -136,7 +133,7 @@ router.post('/faculty-login', async (req, res) => {
       const pool = (await import('../data/database.js')).default;
       const bcrypt = (await import('bcrypt')).default;
       
-      // Find user with faculty role (3, 7, 8)
+      // Find user with admin, superadmin, or faculty role (3, 4, 5, 7, 8)
       const userResult = await pool.query(`
         SELECT 
           ui.user_id,
@@ -146,18 +143,16 @@ router.post('/faculty-login', async (req, res) => {
           ui.password_hash,
           ui.role_id,
           r.role_name,
-          c.course_code,
-          d.department_name,
+          ui.course AS course_code,
+          ui.department AS department_name,
           ui.student_id,
           ui.faculty_id,
           ui.admin_id,
           ui.avatar_url
         FROM users_info ui
         LEFT JOIN roles r ON ui.role_id = r.role_id
-        LEFT JOIN courses c ON ui.course_id = c.course_id
-        LEFT JOIN departments d ON ui.department_id = d.department_id
         WHERE LOWER(ui.email) = $1 
-        AND ui.role_id IN (3, 7, 8) -- Faculty (3), admin_faculty (7), superadmin_faculty (8)
+        AND ui.role_id IN (3, 4, 5) -- faculty (3), chairperson (4), superadmin/dean (5) only
         LIMIT 1
       `, [email])
       
@@ -165,7 +160,7 @@ router.post('/faculty-login', async (req, res) => {
       
       if (users.length === 0) {
         return res.status(401).json({ 
-          error: 'Access denied. Only faculty members can access this login.' 
+          error: 'Access denied. Only faculty, administrators and super administrators can access this login.' 
         })
       }
       
@@ -201,133 +196,8 @@ router.post('/faculty-login', async (req, res) => {
           role_id: userWithoutPassword.role_id
         };
         
-        // Set HttpOnly cookie with user data
-        res.cookie('auth_user', JSON.stringify({
-          id: userWithoutPassword.StudentID,
-          email: userWithoutPassword.Email,
-          Status: userWithoutPassword.Status,
-          Firstname: userWithoutPassword.Firstname,
-          Lastname: userWithoutPassword.Lastname,
-          Course: userWithoutPassword.Course,
-          Department: userWithoutPassword.Department,
-          AvatarUrl: userWithoutPassword.AvatarUrl,
-          role_id: userWithoutPassword.role_id,
-          account_type: 'faculty'
-        }), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
-        
-        res.json({
-          message: 'Faculty login successful',
-          user: userWithoutPassword,
-          account_type: 'faculty'
-        })
-      } else {
-        res.status(401).json({ error: 'Invalid password' })
-      }
-    } catch (dbError) {
-      // Database connection failed
-      console.error('❌ Database connection failed:', dbError.message);
-      return res.status(500).json({ 
-        error: 'Database connection failed. Please try again later.',
-        details: dbError.message
-      })
-    }
-  } catch (error) {
-    console.error('❌ Faculty login error:', error.message);
-    res.status(500).json({ 
-      error: 'Error during faculty login',
-      details: error.message
-    })
-  }
-});
-
-// Admin login endpoint - only allows admin and superadmin roles
-router.post('/admin-login', async (req, res) => {
-  try {
-    const rawEmail = req.body.email ?? req.body.Email
-    const password = req.body.password ?? req.body.Password
-
-    const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : ''
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' })
-    }
-    
-    try {
-      // Import pool here to avoid circular dependency
-      const pool = (await import('../data/database.js')).default;
-      const bcrypt = (await import('bcrypt')).default;
-      
-      // Find user with admin or superadmin role (4, 5, 7, 8)
-      const userResult = await pool.query(`
-        SELECT 
-          ui.user_id,
-          ui.firstname,
-          ui.lastname,
-          ui.email,
-          ui.password_hash,
-          ui.role_id,
-          r.role_name,
-          c.course_code,
-          d.department_name,
-          ui.student_id,
-          ui.faculty_id,
-          ui.admin_id,
-          ui.avatar_url
-        FROM users_info ui
-        LEFT JOIN roles r ON ui.role_id = r.role_id
-        LEFT JOIN courses c ON ui.course_id = c.course_id
-        LEFT JOIN departments d ON ui.department_id = d.department_id
-        WHERE LOWER(ui.email) = $1 
-        AND ui.role_id IN (4, 5, 7, 8) -- admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
-        LIMIT 1
-      `, [email])
-      
-      const users = userResult.rows
-      
-      if (users.length === 0) {
-        return res.status(401).json({ 
-          error: 'Access denied. Only administrators and super administrators can access this login.' 
-        })
-      }
-      
-      const user = {
-        StudentID: users[0].user_id,
-        Firstname: users[0].firstname,
-        Lastname: users[0].lastname,
-        Email: users[0].email,
-        Password: users[0].password_hash,
-        role_id: users[0].role_id,
-        Status: users[0].role_name,
-        Course: users[0].course_code,
-        Department: users[0].department_name,
-        student_id: users[0].student_id,
-        faculty_id: users[0].faculty_id,
-        admin_id: users[0].admin_id,
-        AvatarUrl: users[0].avatar_url
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.Password)
-      
-      if (isValidPassword) {
-        const { Password: _ignored, ...userWithoutPassword } = user
-        
-        // Store user data in server session
-        req.session.user = {
-          id: userWithoutPassword.StudentID,
-          user_id: userWithoutPassword.StudentID,
-          email: userWithoutPassword.Email,
-          Status: userWithoutPassword.Status,
-          Firstname: userWithoutPassword.Firstname,
-          Lastname: userWithoutPassword.Lastname,
-          role_id: userWithoutPassword.role_id
-        };
-        
-        // Set HttpOnly cookie with user data
-        res.cookie('auth_user', JSON.stringify({
+        const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
+        const payload = {
           id: userWithoutPassword.StudentID,
           email: userWithoutPassword.Email,
           Status: userWithoutPassword.Status,
@@ -338,12 +208,8 @@ router.post('/admin-login', async (req, res) => {
           AvatarUrl: userWithoutPassword.AvatarUrl,
           role_id: userWithoutPassword.role_id,
           account_type: 'admin'
-        }), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
+        };
+        res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(payload)), getAuthCookieConfig());
         
         res.json({
           message: 'Admin login successful',
@@ -373,59 +239,108 @@ router.post('/admin-login', async (req, res) => {
 // Get current user
 router.get('/me', getCurrentUser);
 
+// Test endpoint to check cookie status (disabled in production)
+if (!isProduction) {
+  router.get('/cookie-status', async (req, res) => {
+    try {
+      const { AUTH_COOKIE_NAME } = await import('../utils/cookieConfig.js');
+      const authCookie = req.cookies[AUTH_COOKIE_NAME];
+      
+      res.json({
+        hasCookie: !!authCookie,
+        cookieName: AUTH_COOKIE_NAME,
+        allCookies: Object.keys(req.cookies || {}),
+        cookieValue: authCookie ? (authCookie.length > 100 ? authCookie.substring(0, 100) + '...' : authCookie) : null,
+        parsedUser: authCookie ? (() => {
+          try {
+            const user = JSON.parse(authCookie);
+            return {
+              id: user.id || user.user_id,
+              email: user.email || user.Email,
+              status: user.Status
+            };
+          } catch (e) {
+            return { error: 'Failed to parse cookie' };
+          }
+        })() : null
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Test protected endpoint (disabled in production)
+  router.get('/protected-test', async (req, res) => {
+    try {
+      const { requireAuth } = await import('../middlewares/authMiddleware.js');
+      requireAuth(req, res, () => {
+        res.json({ 
+          success: true,
+          message: 'Protected route accessed successfully!',
+          user: {
+            id: req.user.id || req.user.user_id,
+            email: req.user.email || req.user.Email,
+            status: req.user.Status,
+            role_id: req.user.role_id,
+            firstname: req.user.Firstname || req.user.firstname,
+            lastname: req.user.Lastname || req.user.lastname
+          },
+          timestamp: new Date().toISOString(),
+          note: 'If you see this message, the authentication middleware is working correctly!'
+        });
+      });
+    } catch (error) {
+      console.error('Protected test endpoint error:', error);
+      res.status(500).json({ success: false, error: 'Internal server error', details: error.message });
+    }
+  });
+}
+
 // Logout
 router.post('/logout', logoutUser);
 
-// Debug endpoint for Google OAuth configuration
-router.get('/google/debug', (req, res) => {
-  res.json({
-    googleConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-    clientId: process.env.GOOGLE_CLIENT_ID ? `${process.env.GOOGLE_CLIENT_ID.substring(0, 10)}...` : 'Missing',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Missing',
-    callbackUrl: process.env.GOOGLE_CALLBACK_URL,
-    serverPort: process.env.PORT || 5050,
-    hasSession: !!req.session,
-    sessionId: req.sessionID,
-    user: req.user || null,
-    sessionUser: req.session?.user || null
+// Debug endpoint for Google OAuth configuration (disabled in production)
+if (!isProduction) {
+  router.get('/google/debug', (req, res) => {
+    res.json({
+      googleConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+      clientId: process.env.GOOGLE_CLIENT_ID ? `${process.env.GOOGLE_CLIENT_ID.substring(0, 10)}...` : 'Missing',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Missing',
+      callbackUrl: process.env.GOOGLE_CALLBACK_URL,
+      serverPort: process.env.PORT || 5050,
+      hasSession: !!req.session,
+      sessionId: req.sessionID,
+      user: req.user || null,
+      sessionUser: req.session?.user || null
+    });
   });
-});
 
-// Test email route
-router.post('/test-email', async (req, res) => {
-  try {
-    const { to, subject, text } = req.body;
-    
-    // Lazy import transporter to ensure environment variables are loaded
-    const { transporter } = await import('../config/mailer.js');
-    
-    const mailOptions = {
-      from: process.env.MAIL_FROM || 'thesiskopup@gmail.com',
-      to: to || 'test@example.com',
-      subject: subject || 'Test Email',
-      text: text || 'This is a test email from ThesISKO server'
-    };
+  // Test email route (disabled in production)
+  router.post('/test-email', async (req, res) => {
+    try {
+      const { to, subject, message } = req.body;
+      const { sendEmail } = await import('../services/emailService.js');
+      const result = await sendEmail({
+        to: to || 'test@example.com',
+        subject: subject || 'Test Email - ThesISKO',
+        template: 'general',
+        data: {
+          recipientName: 'Test User',
+          message: message || 'This is a test email from ThesISKO unified email service.',
+          mainContent: 'If you received this email, the email service is working correctly!',
+          footerNote: 'This is an automated test. Please disregard if received in error.'
+        }
+      });
+      res.json({ success: true, message: 'Email sent successfully', provider: result.provider, messageId: result.messageId });
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      res.status(500).json({ success: false, error: 'Failed to send email via all providers', details: error.message });
+    }
+  });
+}
 
-    const result = await transporter.sendMail(mailOptions);
-    // Email sent successfully
-    
-    res.json({ 
-      success: true, 
-      message: 'Email sent successfully',
-      messageId: result.messageId 
-    });
-  } catch (error) {
-    console.error('Email sending failed:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to send email',
-      details: error.message 
-    });
-  }
-});
-
-// Resend verification email
-router.post('/resend-verification', async (req, res) => {
+// Resend verification email (rate limited)
+router.post('/resend-verification', authRateLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     
@@ -458,41 +373,33 @@ router.post('/resend-verification', async (req, res) => {
     
     const verifyUrl = `${req.protocol}://${req.get('host')}/verify-student?token=${user.token}&email=${encodeURIComponent(email)}`;
     
-    // Resending verification email
+    // Use unified email service
+    const { sendEmail } = await import('../services/emailService.js');
     
-    // Lazy import transporter
-    const { transporter } = await import('../config/mailer.js');
+    const expiryHours = Math.round((new Date(user.expiresat) - new Date()) / (1000 * 60 * 60));
     
-    const emailOptions = {
-      from: process.env.MAIL_FROM || process.env.SMTP_USER,
+    const emailResult = await sendEmail({
       to: email,
       subject: 'Resend: Verify your email - ThesISKO',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #800000;">Verification Email Resent</h2>
-          <p>Hello ${user.firstname},</p>
-          <p>You requested to resend your verification email. Please verify your email by clicking the button below:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verifyUrl}"
-              style="display:inline-block;background:#4CAF50;color:white;
-                     padding:15px 30px;text-decoration:none;border-radius:5px;
-                     font-weight:bold;font-size:16px;">
-              Verify Email Address
-            </a>
-          </div>
-          <p>This link will expire in ${Math.round((new Date(user.expiresat) - new Date()) / (1000 * 60 * 60))} hours.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        </div>
-      `
-    };
-    
-    const emailResult = await transporter.sendMail(emailOptions);
-    
-    // Verification email resent successfully
+      template: 'verification',
+      data: {
+        headerIcon: '✉️',
+        headerTitle: 'Verification Email Resent',
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: email,
+        verifyUrl: verifyUrl,
+        status: user.status,
+        department: user.department,
+        course: user.course,
+        warningMessage: `This verification link will expire in ${expiryHours} hours.`
+      }
+    });
     
     res.json({ 
       success: true, 
       message: 'Verification email resent successfully',
+      provider: emailResult.provider,
       messageId: emailResult.messageId 
     });
     

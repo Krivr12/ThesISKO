@@ -1,0 +1,67 @@
+<div style="text-align: center; margin-bottom: 30px;">
+  {{#if recipientName}}
+  <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">
+    Hello {{recipientName}}! 👋
+  </h2>
+  {{/if}}
+  <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+    {{message}}
+  </p>
+</div>
+
+{{#if mainContent}}
+<!-- Main Content Area -->
+<div style="background: #f8f9fa; border-left: 4px solid #800000; border-radius: 8px; padding: 20px; margin: 25px 0;">
+  <div style="color: #333; line-height: 1.8; white-space: pre-line;">{{mainContent}}</div>
+</div>
+{{/if}}
+
+{{#if infoBoxes}}
+<!-- Info Boxes -->
+{{#each infoBoxes}}
+<div style="background: {{this.background}}; border: 1px solid {{this.border}}; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  {{#if this.title}}
+  <h3 style="color: {{this.titleColor}}; margin: 0 0 10px 0; font-size: 18px;">
+    {{this.icon}} {{this.title}}
+  </h3>
+  {{/if}}
+  <div style="color: #333; line-height: 1.8; white-space: pre-line;">{{this.content}}</div>
+</div>
+{{/each}}
+{{/if}}
+
+{{#if actionButton}}
+<!-- Action Button -->
+<div style="text-align: center; margin: 30px 0;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 0 auto;">
+    <tr>
+      <td align="center" bgcolor="#800000" style="background-color: #800000 !important; border-radius: 50px;">
+        <a href="{{actionButton.url}}" 
+           target="_blank"
+           style="display: inline-block; background-color: #800000 !important; color: #ffffff !important; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+          <span style="color: #ffffff !important;">{{actionButton.text}}</span>
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
+{{/if}}
+
+{{#if warningMessage}}
+<!-- Warning Message -->
+<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0;">
+  <p style="margin: 0; color: #856404; font-size: 14px;">
+    <strong>⚠️ Important:</strong> {{warningMessage}}
+  </p>
+</div>
+{{/if}}
+
+{{#if footerNote}}
+<!-- Footer Note -->
+<div style="text-align: center; margin: 30px 0;">
+  <p style="color: #666; font-size: 14px; line-height: 1.6;">
+    {{footerNote}}
+  </p>
+</div>
+{{/if}}
+

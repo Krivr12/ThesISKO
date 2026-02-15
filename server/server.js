@@ -1,17 +1,5 @@
-// Load environment variables FIRST before any other imports
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load config.env from the same directory as server.js
-dotenv.config({ path: join(__dirname, "config.env") });
-
-// Verify environment variables are loaded
-console.log("✅ Environment variables loaded from config.env");
+// Environment variables are loaded via --env-file flag in npm scripts
+// No need for dotenv when using Node.js native --env-file flag
 
 import express from "express";
 import cors from "cors";
@@ -29,11 +17,19 @@ import s3SearchRoutes from "./routes/s3Search.js";
 import users from "./routes/users.js";
 import auth from "./routes/auth.js";
 import admin from "./routes/admin.js";
-import facultyPassword from "./routes/faculty-password.js";
 import requests from "./routes/requests.js";
 import programs from "./routes/programs.js";
 import groups from "./routes/groups.js";
 import blocks from "./routes/blocks.js";
+import analytics from "./routes/analytics.js";
+import documentTypes from "./routes/document-types.js";
+import requirements from "./routes/requirements.js";
+import submissions from "./routes/submissions.js";
+import contact from "./routes/contact.js";
+import webhooks from "./routes/webhooks.js";
+import { preloadModel } from "./controller/embeddingService.js";
+preloadModel();
+
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -91,19 +87,30 @@ app.use(
   })
 );
 
-// Body parsing middleware
-app.use(express.json());
+// Body parsing middleware (preserve raw body for webhook signature verification)
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    if (buf && buf.length) req.rawBody = buf;
+  },
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Require SESSION_SECRET in production (no fallback)
+const sessionSecret = process.env.SESSION_SECRET;
+if (process.env.NODE_ENV === 'production' && !sessionSecret) {
+  console.error('❌ SESSION_SECRET must be set in production. Exiting.');
+  process.exit(1);
+}
 
 // Session configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "fallback-secret-key",
+    secret: sessionSecret || "fallback-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
@@ -121,11 +128,16 @@ app.use("/s3", s3SearchRoutes);
 app.use("/api/users", users);
 app.use("/auth", auth);
 app.use("/admin", admin);
-app.use("/api/faculty", facultyPassword);
 app.use("/requests", requests);
 app.use("/programs", programs);
 app.use("/groups", groups);
 app.use("/blocks", blocks);
+app.use("/analytics", analytics);
+app.use("/document-types", documentTypes);
+app.use("/requirements", requirements);
+app.use("/submissions", submissions);
+app.use("/contact", contact);
+app.use("/webhooks", webhooks);
 
 // Direct verification route (for email links)
 app.get("/verify-student", async (req, res) => {
@@ -150,7 +162,6 @@ app.get("/health", async (req, res) => {
       status: "OK",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      sessionID: req.sessionID,
       database: "Connected",
     });
   } catch (error) {
@@ -158,7 +169,6 @@ app.get("/health", async (req, res) => {
       status: "ERROR",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      sessionID: req.sessionID,
       database: "Disconnected",
       error: error.message,
     });

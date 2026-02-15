@@ -9,8 +9,9 @@ import { environment } from './environments/environment';
   recordsApiUrl: environment.recordsApiUrl
 };
 
-console.log('✅ Using environment config:', environment);
 
 // Bootstrap Angular
 bootstrapApplication(App, appConfig)
-  .catch((err) => console.error('❌ Failed to bootstrap Angular:', err));
+  .catch((err) => {
+    // Failed to bootstrap Angular
+  });

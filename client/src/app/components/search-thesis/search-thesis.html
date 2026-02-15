@@ -12,20 +12,16 @@
       <!-- Main Content -->
       <div *ngIf="!isLoading" class="main-content">
       <div class="search-bar-container">
-      <input 
-        type="text" 
-        placeholder="Search by title, author, or keywords..." 
-        class="search-input" 
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="onSearch()"
-      />
-      <button class="search-button" (click)="onSearch()">Search</button>
-    </div>
+        <app-search-bar
+          placeholder="Search by title, author, or keywords..."
+          [(value)]="searchQuery"
+          (search)="onSearch()">
+        </app-search-bar>
+      </div>
 
     <div class="results-layout">
-      <aside class="filter-sidebar">
+      <aside class="filter-sidebar" [ngClass]="{'sidebar-collapsed': isCollapsed}">
         <div class="filter-header">
-          <h3 class="filter-title">Filter</h3>
           <button class="collapse-button" (click)="toggleFilters()">
             <span *ngIf="isCollapsed">Show Filters</span>
             <span *ngIf="!isCollapsed">Hide Filters</span>
@@ -67,21 +63,6 @@
               <button class="add-tag-button" (click)="addCustomTag()">+</button>
             </div>
             
-            <!-- Predefined tags -->
-            <h5 class="filter-subtitle">Tags</h5>
-            <ul class="filter-list">
-              <li *ngFor="let tag of predefinedTags()">
-                <label class="filter-option">
-                  <input 
-                    type="checkbox" 
-                    [checked]="selectedTags.includes(tag)"
-                    (change)="onTagChange(tag, $event)"
-                  >
-                  {{ tag }}
-                </label>
-              </li>
-            </ul>
-            
             <!-- Custom tags -->
             <h5 class="filter-subtitle" *ngIf="customTags().length > 0">Your Tags</h5>
             <ul class="filter-list">
@@ -110,20 +91,46 @@
       <div class="search-results">
         <h2 class="results-count">{{ totalItems }} records found.</h2>
 
-        <div class="result-card" *ngFor="let thesis of displayedTheses" (click)="viewThesis(thesis)">
-          <h3 class="thesis-title">{{ thesis.title }}</h3>
-          <p class="thesis-meta">By: {{ thesis.author }} | Year: {{ thesis.year }}</p>
-          <div class="tags-container">
-            <span class="tag tag-year">{{ thesis.year }}</span>
-            <span *ngFor="let keyword of thesis.keywords" class="tag tag-keywords">
-              {{ keyword }}
-            </span>
+        <!-- No Results Message -->
+        <div *ngIf="totalItems === 0" class="no-results-container">
+          <h3 class="no-results-title">No documents found</h3>
+          <p class="no-results-message">
+            We couldn't find any documents matching your search criteria.
+          </p>
+          <div class="no-results-suggestions">
+            <p class="suggestions-title">Try:</p>
+            <ul class="suggestions-list">
+              <li>Checking your spelling or trying different keywords</li>
+              <li>Clearing your filters to see more results</li>
+              <li>Searching with broader terms</li>
+            </ul>
           </div>
+          <button class="clear-filters-button" (click)="clearFilters()">
+            Clear All Filters
+          </button>
         </div>
 
-        <div class="paginator" *ngIf="totalPages > 1">
-          <!-- Your existing paginator code -->
+        <div class="result-card" *ngFor="let thesis of displayedTheses" (click)="viewThesis(thesis)">
+          <h3 class="thesis-title">{{ thesis.title }}</h3>
+          <p class="thesis-meta">By: {{ thesis.author }} </p>
+          <p class="tags-text">
+            <span class="tag-year">{{ thesis.year }}</span>
+            <span *ngIf="thesis.keywords && thesis.keywords.length > 0" class="tags-label">Tags: </span>
+            <span *ngFor="let keyword of thesis.keywords; let last = last" class="tags-label">
+              {{ keyword }}<span *ngIf="!last">, </span>
+            </span>
+          </p>
         </div>
+
+        <mat-paginator
+          class="paginator"
+          [length]="totalItems"
+          [pageIndex]="currentPage - 1"
+          [pageSize]="itemsPerPage"
+          [pageSizeOptions]="[5, 8, 10, 20]"
+          (page)="onPage($event)"
+          *ngIf="totalItems > 0">
+        </mat-paginator>
       </div>
     </div>
       </div> <!-- End main-content -->

@@ -27,15 +27,21 @@ export interface RequestDetails {
     userType: string;
     requester: {
       email: string;
+      fullName?: string;
+      role?: string;
       department?: string;
       program?: string;
       country?: string;
       city?: string;
       school?: string;
+      supervisor?: string;
+      contact_number?: string;
       [key: string]: any;
     };
     chaptersRequested: string[];
     purpose: string;
+    intendedUse?: string;
+    howDidYouLearn?: string;
     status: string;
     createdAt: string;
     updatedAt: string;
@@ -51,8 +57,15 @@ export interface RequestDetails {
     authors: string[];
     tags: string[];
     file_key: string;
+    files: {
+      key: string;
+      file_key: string;
+      filename: string;
+    }[];
     program_name: string;
     department: string;
+    year?: number | string;
+    document_status?: string;
     submitted_at?: string;
     created_at: string;
   } | null;

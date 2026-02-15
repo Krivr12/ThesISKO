@@ -1,16 +1,19 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Auth } from '../../service/auth';
 import { AuthService } from '../navbar/navbar';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { take } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { createLogger } from '../../utils/logger';
+
+const log = createLogger('LoginComponent');
 
 @Component({
   selector: 'app-login',
@@ -28,19 +31,65 @@ import { environment } from '../../../environments/environment';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login {
+export class Login implements OnInit {
 login = {
   email: '',
   password: '',
 }
 
+// Control whether Google login button is shown
+// Google login is only for guests, not for PUPians who have their own accounts
+showGoogleLogin = false;
+
 private authService = inject(Auth);
 private navAuthService = inject(AuthService);
 private router = inject(Router);
+private route = inject(ActivatedRoute);
 private messageService = inject(MessageService);
+
+ngOnInit(): void {
+  // Read query parameter to determine login type
+  const loginType = this.route.snapshot.queryParams['type'];
+  
+  // Check if user is in guest mode (fallback check - only used if no query param)
+  const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
+  
+  // Show Google login ONLY if explicitly set to 'guest' in query parameter
+  // Priority: Query parameter > sessionStorage guestMode
+  // If type=pupian is explicitly set, respect it and hide Google login
+  // If type=guest is explicitly set, show Google login
+  // If no query param but guestMode is true, show Google login (fallback for backward compatibility)
+  if (loginType === 'guest') {
+    // Explicitly guest - show Google login
+    this.showGoogleLogin = true;
+  } else if (loginType === 'pupian') {
+    // Explicitly PUPian - hide Google login (even if guestMode is set)
+    this.showGoogleLogin = false;
+    // Clear guest mode since user explicitly chose PUPian login
+    sessionStorage.removeItem('guestMode');
+  } else {
+    // No query param - use fallback: check guestMode
+    this.showGoogleLogin = isGuestMode;
+  }
+  
+  log.debug('Login page initialized', { 
+    loginType, 
+    isGuestMode, 
+    showGoogleLogin: this.showGoogleLogin 
+  });
+}
 
 onLogin() {
   const {email, password} = this.login;
+  
+  // Show loading state
+  this.messageService.add({
+    severity: 'info',
+    summary: 'Logging in...',
+    detail: 'Please wait',
+    life: 2000
+  });
+  
   this.authService.loginUser(email, password).subscribe({
     next: (response: {message: string, user: any, account_type?: string, redirect_to?: string}) => {
       if (response.user) {
@@ -74,15 +123,12 @@ onLogin() {
         const userStatus = user.Status?.toLowerCase();
         const userRoleId = user.role_id;
         
-        // Debug logging
-        console.log('Login attempt - User data:', user);
-        console.log('User Status:', userStatus);
-        console.log('User Role ID:', userRoleId);
+        log.debug('Login attempt:', { role_id: userRoleId, status: userStatus });
         
         // Only allow student (role_id: 2), group leader (role_id: 6), and guest (role_id: 1) roles to login through this component
         // Block faculty (3), admin (4), superadmin (5), admin_faculty (7), superadmin_faculty (8)
         if (userRoleId === 3 || userRoleId === 4 || userRoleId === 5 || userRoleId === 7 || userRoleId === 8) {
-          console.log('Access denied - User role not allowed for this login page');
+          log.warn('Access denied - User role not allowed for this login page:', userRoleId);
           this.messageService.add({
             severity: 'error',
             summary: 'Access Denied',
@@ -90,8 +136,6 @@ onLogin() {
           });
           return;
         }
-        
-        console.log('Access granted - User role allowed for this login page (role_id:', userRoleId, ')');
         
         // Regular user login (student, group leader, and guest)
         const userData = {
@@ -105,38 +149,35 @@ onLogin() {
           group_id: user.group_id // Include group_id for group leaders
         };
         
-        console.log('Created userData object:', userData);
-        console.log('userData.role_id specifically:', userData.role_id);
-        console.log('userData.role_id type:', typeof userData.role_id);
+        log.debug('User data created:', { id: userData.id, role_id: userData.role_id });
         
-        // Store user data in session
+        // Store user data in session storage for persistence
         sessionStorage.setItem('currentUser', JSON.stringify(userData));
         sessionStorage.setItem('user', JSON.stringify(user));
         sessionStorage.setItem('role', user.Status || 'student');
         
         // Update both AuthServices with user data
-        console.log('About to set user in AuthService:', userData);
         this.authService.setUser(userData);
         this.navAuthService.setUser(userData);
-        console.log('AuthService user after setUser:', this.authService.currentUser);
-        console.log('NavAuthService user after setUser:', this.navAuthService.currentUser);
         
         // Wait for AuthService observable to be updated
         this.authService.currentUser$.pipe(take(1)).subscribe((authUser: any) => {
-          console.log('AuthService observable user:', authUser);
+          log.debug('User authenticated, navigating...');
+          
+          // Show success message
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Login Successful',
+            detail: 'Redirecting...',
+            life: 2000
+          });
           
           // Navigate based on user status (only student and guest)
-          console.log('About to navigate - User Status:', user.Status);
-          
           if (user.Status === 'Pending') {
-            console.log('Navigating to verify-message');
             this.router.navigate(['/verify-message']);
           } else {
-            console.log('Navigating to home');
-            this.router.navigate(['/home']).then(success => {
-              console.log('Navigation to home successful:', success);
-            }).catch(error => {
-              console.error('Navigation to home failed:', error);
+            this.router.navigate(['/home']).catch(error => {
+              log.error('Navigation failed:', error);
             });
           }
         });
@@ -149,10 +190,11 @@ onLogin() {
       }
     },
     error: (error: any) => {
-      console.error('Login error:', error);
-      console.error('Error status:', error.status);
-      console.error('Error message:', error.message);
-      console.error('Error details:', error.error);
+      log.error('Login failed:', { 
+        status: error.status, 
+        message: error.message,
+        details: error.error 
+      });
       this.messageService.add({
         severity: 'error',
         summary: 'Error',

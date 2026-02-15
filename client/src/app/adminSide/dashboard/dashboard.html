@@ -1,0 +1,126 @@
+<div class="dashboard-layout admin-page">
+    <!-- Unified navigation -->
+    <app-admin-side-nav></app-admin-side-nav>
+
+    <main class="main-content">
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="welcome-banner">
+                <h1 class="welcome-title">Welcome back, {{ userName }}!</h1>
+                <p class="user-role">{{ userRole }}</p>
+            </div>
+            <button class="btn-refresh" (click)="refreshDashboard()" [disabled]="isLoading">
+                <span *ngIf="!isLoading">🔄 Refresh</span>
+                <span *ngIf="isLoading">Loading...</span>
+            </button>
+        </header>
+
+        <!-- Error State -->
+        <div *ngIf="hasError && !isLoading" class="error-container">
+            <div class="error-message">
+                <p>⚠️ {{ errorMessage }}</p>
+                <button class="btn-retry" (click)="refreshDashboard()">Retry</button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading && !hasError" class="loading-container">
+            <div class="spinner"></div>
+            <p>Loading dashboard data...</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div *ngIf="!isLoading && !hasError">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h2 class="stat-title">Total Documents</h2>
+                    <p class="stat-value">{{ stats.totalThesis }}</p>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title">Total Users</h2>
+                    <p class="stat-value">{{ stats.totalUsers }}</p>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title">Total Requests</h2>
+                    <p class="stat-value">{{ stats.totalRequests }}</p>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title">Pending Approvals</h2>
+                    <p class="stat-value">{{ stats.pendingApprovals }}</p>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="chart-grid">
+                <div class="stat-card">
+                    <h2 class="stat-title mb-4">User Growth</h2>
+                    <div *ngIf="isLoadingUserGrowth" class="loading-mini">
+                        <div class="spinner-small"></div>
+                        <p>Loading chart data...</p>
+                    </div>
+                    <div *ngIf="!isLoadingUserGrowth" class="chart-wrapper">
+                        <canvas #userChart></canvas>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title mb-4">Requests by User Type</h2>
+                    <div class="chart-wrapper">
+                        <canvas #requestTypeChart></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div class="two-column-grid-bottom">
+                <div class="stat-card">
+                    <h2 class="stat-title mb-4">Tags in the Repository</h2>
+                    <div class="chart-container-with-legend">
+                        <div class="chart-legend-vertical">
+                            <div class="legend-item" *ngFor="let keyword of topKeywords; let i = index">
+                                <span class="legend-color" [style.background-color]="getChartColor(i)"></span>
+                                <span class="legend-label">{{ keyword.name }}</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper-small">
+                            <canvas #tagsChart></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h2 class="stat-title mb-4">
+                        <span class="icon"></span>
+                        Most Requested Documents
+                    </h2>
+                    <div *ngIf="isLoadingViewedDocs" class="loading-mini">
+                        <div class="spinner-small"></div>
+                        <p>Loading...</p>
+                    </div>
+                    <div *ngIf="!isLoadingViewedDocs && mostViewedDocs.length === 0" class="no-data">
+                        <p>No request data available</p>
+                    </div>
+                    <div *ngIf="!isLoadingViewedDocs && mostViewedDocs.length > 0" class="documents-list">
+                        <div *ngFor="let doc of mostViewedDocs; let i = index" class="document-item">
+                            <div class="doc-rank">{{ i + 1 }}</div>
+                            <div class="doc-info">
+                                <p class="doc-title">{{ doc.title }}</p>
+                                <p class="doc-meta">{{ doc.program }} • {{ doc.year }}</p>
+                            </div>
+                            <div class="doc-views">
+                                <span class="view-count">{{ doc.views }}</span>
+                                <span class="view-label">requests</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+

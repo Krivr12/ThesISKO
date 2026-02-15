@@ -16,9 +16,10 @@
 }
 
 .profile-container {
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 80px);
   background-color: #800000;
   padding: 2rem 1rem;
+  padding-top: calc(80px + 2rem); /* Account for fixed navbar (80px) + original padding */
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -276,30 +277,97 @@ p-password .p-inputtext {
   border-top: 1px solid #e1e5e9;
 }
 
-.cancel-button :deep(.p-button) {
-  background: white;
-  border: 2px solid #800000;
+/* Cancel Button - White background, Maroon text and border */
+.btn-cancel {
+  background-color: #ffffff;
   color: #800000;
+  border: 1px solid #800000;
   padding: 0.75rem 2rem;
-  font-weight: bold;
-  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.cancel-button :deep(.p-button:hover) {
-  background: #f9f9f9;
-  border-color: #a00000;
-  color: #a00000;
+.btn-cancel:hover {
+  background-color: #fef2f2;
+  border-color: #800000;
+  color: #800000;
 }
 
-.save-button :deep(.p-button:disabled) {
+.btn-cancel:focus {
+  outline: 2px solid #800000;
+  outline-offset: 2px;
+}
+
+.btn-cancel:active {
+  transform: scale(0.98);
+}
+
+/* Save Changes Button - Maroon background, White text */
+.btn-save {
+  background-color: #800000;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-save:hover:not(:disabled) {
+  background-color: #910101;
+  color: #ffffff;
+}
+
+.btn-save:disabled {
+  background-color: #800000;
+  color: #ffffff;
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-save:focus {
+  outline: 2px solid #800000;
+  outline-offset: 2px;
+}
+
+.btn-save:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Loading Spinner */
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .profile-container {
     padding: 1rem 0.5rem;
+    padding-top: calc(80px + 1rem); /* Account for fixed navbar */
   }
   
   .profile-card :deep(.p-card-body) {
@@ -316,17 +384,21 @@ p-password .p-inputtext {
   }
   
   .form-actions {
-    flex-direction: column-reverse;
+    justify-content: space-between;
+    flex-wrap: wrap;
   }
   
-  .form-actions :deep(.p-button) {
-    width: 100%;
+  .form-actions .btn-cancel,
+  .form-actions .btn-save {
+    flex: 1;
+    min-width: 0;
   }
 }
 
 @media (max-width: 480px) {
   .profile-container {
     padding: 0.5rem;
+    padding-top: calc(80px + 0.5rem); /* Account for fixed navbar */
   }
   
   .profile-card :deep(.p-card-header) {

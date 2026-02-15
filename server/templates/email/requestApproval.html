@@ -1,0 +1,95 @@
+<div style="text-align: center; margin-bottom: 30px;">
+  <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">
+    Document Request Update
+  </h2>
+  <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+    Your request for <strong>{{documentId}}</strong> has been <strong style="color: {{statusColor}};">{{status}}</strong>.
+  </p>
+</div>
+
+<!-- Status Badge -->
+<div style="text-align: center; margin: 25px 0;">
+  <div style="display: inline-block; background: {{statusColor}}; color: white; padding: 10px 25px; border-radius: 50px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+    {{statusIcon}} {{statusText}}
+  </div>
+</div>
+
+<!-- Request Details -->
+<div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #495057; margin: 0 0 15px 0; font-size: 18px;">
+    📄 Request Details:
+  </h3>
+  <div style="color: #333; line-height: 1.8;">
+    <p style="margin: 5px 0;"><strong>Document ID:</strong> {{documentId}}</p>
+    {{#if documentTitle}}
+    <p style="margin: 5px 0;"><strong>Title:</strong> {{documentTitle}}</p>
+    {{/if}}
+    {{#if chaptersRequested}}
+    <p style="margin: 5px 0;"><strong>Chapters Requested:</strong> {{chaptersRequested}}</p>
+    {{/if}}
+    {{#if purpose}}
+    <p style="margin: 5px 0;"><strong>Purpose:</strong> {{purpose}}</p>
+    {{/if}}
+  </div>
+</div>
+
+{{#if remarks}}
+<!-- Remarks Section -->
+<div style="background: {{remarksBackground}}; border: 1px solid {{remarksBorder}}; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: {{remarksColor}}; margin: 0 0 10px 0; font-size: 18px;">
+    💬 {{remarksLabel}}:
+  </h3>
+  <p style="color: #333; margin: 0; font-size: 15px; line-height: 1.6; white-space: pre-line;">{{remarks}}</p>
+</div>
+{{/if}}
+
+{{#if approvedChapters}}
+<!-- Approved Chapters -->
+<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 10px; padding: 20px; margin: 25px 0;">
+  <h3 style="color: #155724; margin: 0 0 10px 0; font-size: 18px;">
+    ✅ Approved Chapters:
+  </h3>
+  <p style="color: #333; margin: 0; font-size: 15px;">{{approvedChapters}}</p>
+</div>
+{{/if}}
+
+{{#if downloadUrl}}
+<!-- Download Section -->
+<div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center;">
+  <h3 style="color: #2e7d32; margin: 0 0 15px 0; font-size: 20px;">
+    📥 Download Your Document
+  </h3>
+  <p style="color: #1b5e20; margin: 0 0 20px 0; font-size: 14px;">
+    Your approved document is ready for download. This link is valid for <strong>{{expiryTime}}</strong>.
+  </p>
+  <a href="{{downloadUrl}}" 
+     style="display: inline-block; background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);">
+    Download Document
+  </a>
+</div>
+
+<!-- Expiry Warning -->
+<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0;">
+  <p style="margin: 0; color: #856404; font-size: 14px;">
+    <strong>⏰ Important:</strong> Please download your document within {{expiryTime}}. After this period, the link will expire and you'll need to request access again.
+  </p>
+</div>
+{{/if}}
+
+{{#if isRejected}}
+<!-- Rejection Notice -->
+<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; padding: 15px; margin: 20px 0;">
+  <p style="margin: 0; color: #721c24; font-size: 14px;">
+    <strong>ℹ️ Next Steps:</strong> If you believe this decision was made in error or if you have questions, please contact your department administrator or faculty advisor.
+  </p>
+</div>
+{{/if}}
+
+<!-- Contact Information -->
+<div style="text-align: center; margin: 30px 0;">
+  <p style="color: #666; font-size: 14px; line-height: 1.6;">
+    If you have any questions or concerns about this decision, please contact:<br>
+    <a href="mailto:thesiskopup@gmail.com" style="color: #800000; text-decoration: underline; font-weight: bold;">thesiskopup@gmail.com</a>
+  </p>
+</div>
+

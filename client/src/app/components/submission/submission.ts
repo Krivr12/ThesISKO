@@ -25,7 +25,6 @@ type ViewState =
   | 'revisionSubmitted'
   | 'approved'
   // states for step 2
-  | 'step2_templateDownload'
   | 'step2_initial'
   | 'step2_fileSelected'
   | 'step2_confirming'
@@ -34,8 +33,9 @@ type ViewState =
   // step 3
   | 'step3_initial'
   | 'step3_fileSelected'
-  | 'step3_checking'
-  | 'step3_results'
+  | 'step3_confirming'
+  | 'step3_submitted'
+  | 'step3_approved'
   // step 4
   | 'step4_initial'
   | 'step4_filesSelected'
@@ -49,11 +49,7 @@ type ViewState =
   // stp 5
   | 'step5_initial'
   | 'step5_confirming'
-  | 'step5_submitted'
-  // step 6
-  | 'step6_initial'
-  | 'step6_confirming'
-  | 'step6_archived';
+  | 'step5_submitted';
 
 @Component({
   selector: 'app-submission',
@@ -74,35 +70,25 @@ export class Submission implements OnInit {
   ngOnInit() {
     // Role guard: Only group leaders (role_id = 6) can access this page
     const currentUser = this.authService.currentUser;
-    
-    console.log('🔒 Submission Page Access Check:', {
-      user: currentUser?.email,
-      role_id: currentUser?.role_id,
-      group_id: currentUser?.group_id
-    });
 
     if (!currentUser) {
-      console.warn('❌ No user logged in. Redirecting to login.');
       alert('Please log in to access the submission page.');
       this.router.navigate(['/login']);
       return;
     }
 
     if (currentUser.role_id !== 6) {
-      console.warn(`❌ Access denied. User has role_id ${currentUser.role_id}, but needs role_id 6 (Group Leader).`);
       alert('Only group leaders can submit thesis manuscripts.');
       this.router.navigate(['/home']);
       return;
     }
 
     if (!currentUser.group_id) {
-      console.warn('❌ User is group leader but has no group_id.');
       alert('You are not assigned to a group. Please contact your Faculty-in-Charge.');
       this.router.navigate(['/home']);
       return;
     }
 
-    console.log('✅ Access granted. User is a group leader with group_id:', currentUser.group_id);
     
     // Load current group status on page load
     this.loadInitialGroupStatus(currentUser.group_id);
@@ -115,65 +101,186 @@ export class Submission implements OnInit {
   private loadInitialGroupStatus(groupId: string) {
     this.submissionService.getGroupStatus(groupId).subscribe({
       next: (group) => {
-        console.log('📊 Initial group status loaded:', group);
         
-        // Check each milestone and update status history
-        if (group.milestones && Array.isArray(group.milestones)) {
-          group.milestones.forEach((milestone: any) => {
-            if (milestone.status === true) {
-              // Milestone has files uploaded
-              const milestoneName = this.getMilestoneDisplayName(milestone.type);
-              
-              // Check for approvals
-              if (milestone.type === 'upload_manuscript') {
-                const panelistApprovals = milestone.approved_by?.length || 0;
-                const facultyApproved = milestone.verified?.faculty_in_charge?.approved || false;
-                
-                if (facultyApproved) {
-                  this.statusHistory.update(history => [...history, { 
-                    text: `${milestoneName}: Approved by Faculty`, 
-                    type: 'success' 
-                  }]);
-                } else if (panelistApprovals > 0) {
-                  this.statusHistory.update(history => [...history, { 
-                    text: `${milestoneName}: ${panelistApprovals}/3 panelists approved`, 
-                    type: 'default' 
-                  }]);
-                } else {
-                  this.statusHistory.update(history => [...history, { 
-                    text: `${milestoneName}: Awaiting panelist review`, 
-                    type: 'default' 
-                  }]);
-                }
-              } else if (milestone.type !== 'describe_work') {
-                const chairpersonApproved = milestone.verified?.chairperson?.some((c: any) => c.approved) || false;
-                
-                if (chairpersonApproved) {
-                  this.statusHistory.update(history => [...history, { 
-                    text: `${milestoneName}: Approved by Chairperson`, 
-                    type: 'success' 
-                  }]);
-                } else {
-                  this.statusHistory.update(history => [...history, { 
-                    text: `${milestoneName}: Awaiting chairperson review`, 
-                    type: 'default' 
-                  }]);
-                }
-              }
-            }
-          });
+        // Check for group-level rejections first (Chairperson or Dean)
+        if (group.chairperson_approval?.rejected) {
+          this.hasRejection.set(true);
+          this.rejectionReason.set(group.chairperson_approval.rejection_reason);
+          this.rejectedMilestone.set(group.chairperson_approval.rejected_milestone);
+          this.rejectionType.set('chairperson');
+          this.statusHistory.set([{ 
+            text: `REJECTED by Chairperson: ${group.chairperson_approval.rejection_reason}. Please fix ${this.getMilestoneDisplayName(group.chairperson_approval.rejected_milestone)}.`,
+            type: 'error' 
+          }]);
+        } else if (group.dean_approval?.rejected) {
+          this.hasRejection.set(true);
+          this.rejectionReason.set(group.dean_approval.rejection_reason);
+          this.rejectedMilestone.set(group.dean_approval.rejected_milestone);
+          this.rejectionType.set('dean');
+          this.statusHistory.set([{ 
+            text: `REJECTED by Dean: ${group.dean_approval.rejection_reason}. Please fix ${this.getMilestoneDisplayName(group.dean_approval.rejected_milestone)}.`,
+            type: 'error' 
+          }]);
         }
+        
+        // Determine which step to show based on milestone completion
+        let nextIncompleteStep = 1;
+        
+        // Check each milestone and update status history + determine current step
+        if (group.milestones && Array.isArray(group.milestones)) {
+          // Step 1: Upload Manuscript
+          const manuscriptMilestone = group.milestones.find((m: any) => m.type === 'upload_manuscript');
+          if (manuscriptMilestone) {
+            const panelistApprovals = manuscriptMilestone.approved_by?.length || 0;
+            const facultyApproved = manuscriptMilestone.verified?.faculty_in_charge?.approved || false;
+            const facultyRejected = manuscriptMilestone.verified?.faculty_in_charge?.rejected || false;
+            const panelistRejections = manuscriptMilestone.rejected_by || [];
+            
+            // Check for FIC rejection
+            if (facultyRejected) {
+              this.hasRejection.set(true);
+              this.rejectionReason.set(manuscriptMilestone.verified.faculty_in_charge.rejection_reason);
+              this.rejectedMilestone.set('upload_manuscript');
+              this.rejectionType.set('fic');
+              this.statusHistory.set([{ 
+                text: `REJECTED by Faculty: ${manuscriptMilestone.verified.faculty_in_charge.rejection_reason}. Please resubmit.`,
+                type: 'error' 
+              }]);
+              this.viewState.set('initial'); // Reset to allow resubmission
+              nextIncompleteStep = 1;
+            } else if (panelistRejections.length > 0) {
+              // Check for panelist rejections
+              const latestRejection = panelistRejections[panelistRejections.length - 1];
+              this.hasRejection.set(true);
+              this.rejectionReason.set(latestRejection.reason);
+              this.rejectedMilestone.set('upload_manuscript');
+              this.rejectionType.set('panelist');
+              this.statusHistory.set([{ 
+                text: `REJECTED by Panelist (${latestRejection.name}): ${latestRejection.reason}. Please resubmit.`,
+                type: 'error' 
+              }]);
+              this.viewState.set('initial'); // Reset to allow resubmission
+              nextIncompleteStep = 1;
+            } else if (facultyApproved) {
+              this.statusHistory.update(history => [...history, { 
+                text: `Manuscript: Approved by Faculty`, 
+                type: 'success' 
+              }]);
+              this.viewState.set('approved'); // Set to approved state
+              nextIncompleteStep = 2; // Move to step 2
+            } else if (panelistApprovals > 0) {
+              this.statusHistory.update(history => [...history, { 
+                text: `Manuscript: ${panelistApprovals} panelists approved`, 
+                type: 'default' 
+              }]);
+              this.viewState.set('submitted'); // Waiting for approval
+              nextIncompleteStep = 1;
+            } else if (manuscriptMilestone.status === true) {
+              this.statusHistory.update(history => [...history, { 
+                text: `Manuscript: Awaiting panelist review`, 
+                type: 'default' 
+              }]);
+              this.viewState.set('submitted');
+              nextIncompleteStep = 1;
+            }
+          }
+          
+          // Step 2: Copyright Form
+          const copyrightMilestone = group.milestones.find((m: any) => m.type === 'complete_copyright');
+          if (copyrightMilestone?.status === true && nextIncompleteStep === 2) {
+            this.statusHistory.update(history => [...history, { 
+              text: `Copyright Form: Submitted`, 
+              type: 'success' 
+            }]);
+            nextIncompleteStep = 3;
+          }
+          
+          // Step 3: Turnitin
+          const turnitinMilestone = group.milestones.find((m: any) => m.type === 'pass_turnitin');
+          if (turnitinMilestone?.status === true && nextIncompleteStep === 3) {
+            this.statusHistory.update(history => [...history, { 
+              text: `Turnitin: Passed`, 
+              type: 'success' 
+            }]);
+            nextIncompleteStep = 4;
+          }
+          
+          // Step 4: All Documents
+          const allDocsMilestone = group.milestones.find((m: any) => m.type === 'upload_all_docs');
+          if (allDocsMilestone?.status === true && nextIncompleteStep === 4) {
+            this.statusHistory.update(history => [...history, { 
+              text: `All Documents: Submitted`, 
+              type: 'success' 
+            }]);
+            nextIncompleteStep = 5;
+          }
+          
+          // Step 5: Describe Work
+          const describeWorkMilestone = group.milestones.find((m: any) => m.type === 'describe_work');
+          if (describeWorkMilestone?.status === true && nextIncompleteStep === 5) {
+            this.statusHistory.update(history => [...history, { 
+              text: `Work Description: Submitted`, 
+              type: 'success' 
+            }]);
+            nextIncompleteStep = 6;
+          }
+        }
+        
+        // Handle rejection navigation - override nextIncompleteStep if there's a chairperson/dean rejection
+        if (this.hasRejection() && this.rejectedMilestone() && 
+            (this.rejectionType() === 'chairperson' || this.rejectionType() === 'dean')) {
+          const rejectedStep = this.getMilestoneStep(this.rejectedMilestone()!);
+          if (rejectedStep) {
+            nextIncompleteStep = rejectedStep;
+          }
+        }
+        
+        // Update current step to the next incomplete one (or rejected step)
+        if (nextIncompleteStep > 1) {
+          this.currentStep.set(nextIncompleteStep);
+          
+          // Set appropriate view state for the current step
+          switch(nextIncompleteStep) {
+            case 2:
+              this.viewState.set('step2_initial');
+              break;
+            case 3:
+              this.viewState.set('step3_initial');
+              break;
+            case 4:
+              this.viewState.set('step4_initial');
+              break;
+            case 5:
+              this.viewState.set('step5_initial');
+              break;
+          }
+        }
+        
       },
       error: (error) => {
-        console.error('❌ Error loading initial group status:', error);
+        // Error loading initial group status
       }
     });
   }
   
   /**
+   * Get step number for milestone type
+   */
+  private getMilestoneStep(type: string): number | null {
+    switch(type) {
+      case 'upload_manuscript': return 1;
+      case 'complete_copyright': return 2;
+      case 'pass_turnitin': return 3;
+      case 'upload_all_docs': return 4;
+      case 'describe_work': return 5;
+      default: return null;
+    }
+  }
+  
+  /**
    * Get display name for milestone type
    */
-  private getMilestoneDisplayName(type: string): string {
+  getMilestoneDisplayName(type: string): string {
     switch(type) {
       case 'upload_manuscript': return 'Manuscript';
       case 'complete_copyright': return 'Copyright Form';
@@ -195,21 +302,23 @@ export class Submission implements OnInit {
   files = signal<File[]>([]);
   uploadProgresses = signal<Map<string, number>>(new Map());
   // Step 5 & 6 data
-  groupNumber = signal<number | null>(null);
-  memberNames = signal<string[]>([]);
   tags = signal<string[]>([]);
   customTag = signal<string>('');
   title = signal<string>('');
   abstract = signal<string>('');
   accessLevel = signal<'Full' | 'Partial' | 'Restricted' | null>(null);
   confirmationChecked = signal<boolean>(false);
-  memberInput = signal<string>('');
-  memberNamesString = computed(() => this.memberNames().join('\n'));
   
   // Upload tracking signals
   currentS3Keys = signal<string[]>([]); // Store S3 keys for current upload
   isUploading = signal<boolean>(false); // Track if upload is in progress
   uploadError = signal<string | null>(null); // Track upload errors
+  
+  // Rejection tracking
+  hasRejection = signal<boolean>(false); // Track if any rejection exists
+  rejectionReason = signal<string | null>(null); // Reason for rejection
+  rejectedMilestone = signal<string | null>(null); // Which milestone was rejected
+  rejectionType = signal<'panelist' | 'fic' | 'chairperson' | 'dean' | null>(null); // Who rejected
   
   // predefined tags
   predefinedTags = signal<string[]>([
@@ -283,23 +392,20 @@ export class Submission implements OnInit {
     } else if (this.currentStep() === 2) {
       nextState = 'step2_fileSelected';
     } else if (this.currentStep() === 3) {
-      this.uploadProgress.set(100);
       nextState = 'step3_fileSelected';
     }
     this.viewState.set(nextState);
 
-    // only run progress bar for steps that need it
-    if (this.currentStep() !== 3) {
-      const interval = setInterval(() => {
-        this.uploadProgress.update(p => {
-          if (p >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return p + 10;
-        });
-      }, 100);
-    }
+    // Run progress bar simulation
+    const interval = setInterval(() => {
+      this.uploadProgress.update(p => {
+        if (p >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return p + 10;
+      });
+    }, 100);
   }
 
   // --- UI ACTION METHODS ---
@@ -312,6 +418,8 @@ export class Submission implements OnInit {
       nextState = 'revisionConfirming';
     } else if (this.viewState() === 'step2_fileSelected') {
       nextState = 'step2_confirming';
+    } else if (this.viewState() === 'step3_fileSelected') {
+      nextState = 'step3_confirming';
     }
     this.viewState.set(nextState);
   }
@@ -324,6 +432,8 @@ export class Submission implements OnInit {
       this.viewState.set('revisionFileSelected');
     } else if (currentState === 'step2_confirming') {
       this.viewState.set('step2_fileSelected');
+    } else if (currentState === 'step3_confirming') {
+      this.viewState.set('step3_fileSelected');
     }
   }
 
@@ -339,6 +449,8 @@ export class Submission implements OnInit {
         nextState = 'needsRevision';
       } else if (currentState === 'step2_confirming') {
         nextState = 'step2_initial';
+      } else if (currentState === 'step3_confirming') {
+        nextState = 'step3_initial';
       }
       this.viewState.set(nextState);
       return;
@@ -380,6 +492,9 @@ export class Submission implements OnInit {
     } else if (currentState === 'step2_confirming') {
       this.viewState.set('step2_submitted');
       this.statusHistory.set([{ text: 'Uploading to server...', type: 'default' }]);
+    } else if (currentState === 'step3_confirming') {
+      this.viewState.set('step3_submitted');
+      this.statusHistory.set([{ text: 'Uploading to server...', type: 'default' }]);
     }
     
     this.isUploading.set(true);
@@ -395,39 +510,102 @@ export class Submission implements OnInit {
     this.statusHistory.set([]);
 
     if(this.currentStep() === 2) {
-      this.viewState.set('step2_templateDownload');
+      this.viewState.set('step2_initial');
     } else if (this.currentStep() === 3) {
       this.viewState.set('step3_initial');
     } else if (this.currentStep() === 4) {
       this.viewState.set('step4_initial');
     } else if (this.currentStep() === 5) {
       this.viewState.set('step5_initial');
-    } else if (this.currentStep() === 6) {
-      this.viewState.set('step6_initial');
     } else {
       this.viewState.set('initial'); 
     }
   }
 
-  // --- STEP 3 SPECIFIC METHODS ---
-  
-  clearStep3File() {
-    this.file.set(null);
-    this.viewState.set('step3_initial');
+  /**
+   * Navigate to a specific step
+   * @param stepNumber - The step number to navigate to (1-6)
+   */
+  navigateToStep(stepNumber: number) {
+    if (!this.canNavigateToStep(stepNumber)) {
+      return;
+    }
+
+    this.currentStep.set(stepNumber);
+    this.statusHistory.set([]);
+
+    // Set appropriate view state for each step
+    switch(stepNumber) {
+      case 1:
+        this.viewState.set('initial');
+        break;
+      case 2:
+        this.viewState.set('step2_initial');
+        break;
+      case 3:
+        this.viewState.set('step3_initial');
+        break;
+      case 4:
+        this.viewState.set('step4_initial');
+        break;
+      case 5:
+        this.viewState.set('step5_initial');
+        break;
+    }
+
+    // Reload group status to show current progress
+    const currentUser = this.authService.currentUser;
+    if (currentUser?.group_id) {
+      this.loadGroupStatus(currentUser.group_id);
+    }
   }
 
-  checkStep3File() {
-    if (!this.file()) return;
-    this.viewState.set('step3_checking');
-    
-    // simulate checking
-    setTimeout(() => {
-      const randomSimilarity = Math.floor(Math.random() * 14) + 5; // random number of percentage 5-18
-      this.similarityIndex.set(randomSimilarity);
-      this.statusHistory.set([{ text: 'Approved', type: 'success' }]);
-      this.viewState.set('step3_results');
-    }, 2500);
+  /**
+   * Check if user can navigate to a specific step
+   * Logic: Can navigate to current step or any previously completed steps
+   */
+  canNavigateToStep(stepNumber: number): boolean {
+    // Can always navigate to step 1 (start over)
+    if (stepNumber === 1) return true;
+
+    // Can navigate to current step
+    if (stepNumber === this.currentStep()) return true;
+
+    // Can navigate backwards to any previous step
+    if (stepNumber < this.currentStep()) return true;
+
+    // Can only navigate forward if current step is completed
+    // Check if current step shows completion/approval state
+    const currentState = this.viewState();
+    const completionStates = [
+      'approved',
+      'step2_approved',
+      'step3_approved',
+      'step4_approved',
+      'step5_submitted'
+    ];
+
+    if (stepNumber === this.currentStep() + 1 && completionStates.includes(currentState)) {
+      return true;
+    }
+
+    return false;
   }
+
+  /**
+   * Get CSS class for step item based on its state
+   */
+  getStepClass(stepNumber: number): string {
+    if (stepNumber === this.currentStep()) {
+      return 'active';
+    } else if (stepNumber < this.currentStep()) {
+      return 'completed';
+    } else {
+      return 'locked';
+    }
+  }
+
+  // --- STEP 4 SPECIFIC METHODS ---
 
   // multiple file handling for step 4
 onDropMultiple(event: DragEvent) {
@@ -561,38 +739,6 @@ private simulateStep4FinalApproval() {
 }
 
   // step 5 methods
-updateGroupNumber(number: number) {
-  this.groupNumber.set(number);
-}
-
-updateMemberNames(names: string) {
-  // pressing "enter" creates the chipped name
-  const nameArray = names.split('\n')
-    .map(name => name.trim())
-    .filter(name => name.length > 0);
-  
-  this.memberNames.set(nameArray);
-}
-
-onMemberKeydown(event: KeyboardEvent) {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    this.addMember();
-  }
-}
-
-addMember() {
-  const name = this.memberInput().trim();
-  if (name) {
-    this.memberNames.update(names => [...names, name]);
-    this.memberInput.set('');
-  }
-}
-
-removeMember(index: number) {
-  this.memberNames.update(names => names.filter((_, i) => i !== index));
-}
-
 updateTitle(title: string) {
   this.title.set(title);
 }
@@ -632,24 +778,13 @@ toggleConfirmation() {
 
 // step 5 validation
 isStep5Valid(): boolean {
-  return !!this.groupNumber() && 
-         !!this.memberNames() && 
-         this.tags().length > 0 && 
+  return this.tags().length > 0 && 
          !!this.title() && 
          !!this.abstract() && 
          !!this.accessLevel();
 }
 
 // step 6 validation
-isStep6Valid(): boolean {
-  return this.isStep5Valid() && this.confirmationChecked();
-}
-
-backToStep5() {
-  this.currentStep.update(() => 5);
-  this.viewState.set('step5_initial');
-}
-
 submitStep5() {
   if (this.isStep5Valid()) {
     this.viewState.set('step5_confirming');
@@ -687,36 +822,29 @@ confirmStep5(isConfirmed: boolean) {
   // Update group metadata
   this.submissionService.updateGroupMetadata(groupId, metadata).subscribe({
     next: (result) => {
-      console.log('✅ Group metadata updated:', result);
-      this.viewState.set('step5_submitted');
+      
+      // Also update the describe_work milestone status to true
+      this.submissionService.updateMilestoneStatus(groupId, 'describe_work', true).subscribe({
+        next: () => {
+          this.viewState.set('step5_submitted');
+          this.statusHistory.set([{ text: 'Work description saved successfully', type: 'success' }]);
+        },
+        error: (error) => {
+          // Still proceed even if milestone update fails
+          this.viewState.set('step5_submitted');
+          this.statusHistory.set([{ text: 'Metadata saved (milestone update pending)', type: 'warning' }]);
+        }
+      });
     },
     error: (error) => {
-      console.error('Error updating group metadata:', error);
       alert('Failed to save work description. Please try again.');
       this.viewState.set('step5_initial');
     }
   });
 }
 
-submitStep6() {
-  if (this.isStep6Valid()) {
-    this.viewState.set('step6_confirming');
-  }
-}
-
-//THIS WILL BRING IT TO THANK YOU PAGE
-confirmStep6(isConfirmed: boolean) {
-  if (isConfirmed) {
-    this.router.navigate(['/thank-you']);//route to thank you pageee
-  } else {
-    this.viewState.set('step6_initial');
-  }
-}
-
 resetToHome() {
   // clear data and states
-  this.groupNumber.set(null);
-   this.memberNames.set([]);
   this.tags.set([]);
   this.customTag.set('');
   this.title.set('');
@@ -735,15 +863,13 @@ resetToHome() {
     case 'fileSelected': return 'Submit';
     case 'revisionFileSelected': return 'Submit Revision';
     case 'step2_fileSelected': return 'Submit';
+    case 'step3_fileSelected': return 'Submit';
     case 'step4_filesSelected': return 'Submit';
     case 'step4_revisionFilesSelected': return 'Submit Revision';
     case 'step5_initial': return 'Submit';
-    case 'step6_initial': return 'Archive';
-    case 'step6_archived': return 'Back to Home';
     case 'approved':
-    case 'step2_templateDownload':
     case 'step2_approved':
-    case 'step3_results':
+    case 'step3_approved':
     case 'step4_approved':
     case 'step5_submitted':
       return 'Next';
@@ -754,8 +880,8 @@ resetToHome() {
   isButtonDisabled(): boolean {
     const state = this.viewState();
     
-    //single file
-    if (state === 'fileSelected' || state === 'revisionFileSelected' || state === 'step2_fileSelected') {
+    //single file (steps 1, 2, 3)
+    if (state === 'fileSelected' || state === 'revisionFileSelected' || state === 'step2_fileSelected' || state === 'step3_fileSelected') {
       return this.uploadProgress() < 100;
     }
     
@@ -770,31 +896,22 @@ resetToHome() {
       return !this.isStep5Valid();
     }
     
-    //step 6
-    if (state === 'step6_initial') {
-      return !this.isStep6Valid();
-    }
-    
     // main button
     return ![
       'approved', 
-      'step2_templateDownload', 
       'step2_approved', 
-      'step3_results', 
+      'step3_approved', 
       'step4_approved',
-      'step5_submitted',
-      'step6_archived'
+      'step5_submitted'
     ].includes(state);
   }
 
   handleButtonClick(): void {
     const state = this.viewState();
     
-    if (['approved', 'step2_approved', 'step3_results', 'step4_approved', 'step5_submitted'].includes(state)) {
+    if (['approved', 'step2_approved', 'step3_approved', 'step4_approved', 'step5_submitted'].includes(state)) {
       this.goToNextStep();
-    } else if (state === 'step2_templateDownload') {
-      this.viewState.set('step2_initial');
-    } else if (['fileSelected', 'revisionFileSelected', 'step2_fileSelected'].includes(state)) {
+    } else if (['fileSelected', 'revisionFileSelected', 'step2_fileSelected', 'step3_fileSelected'].includes(state)) {
       this.submitFile();
     } else if (['step4_filesSelected', 'step4_revisionFilesSelected'].includes(state)) {
       this.submitStep4Files();
@@ -847,7 +964,6 @@ resetToHome() {
                 this.loadGroupStatus(groupId);
               },
               error: (error) => {
-                console.error('Error updating milestone:', error);
                 this.isUploading.set(false);
                 this.uploadError.set('Failed to update milestone');
                 this.statusHistory.update(history => [...history, { 
@@ -858,7 +974,6 @@ resetToHome() {
             });
           },
           error: (error) => {
-            console.error('Error uploading to S3:', error);
             this.isUploading.set(false);
             this.uploadError.set('Failed to upload file');
             this.statusHistory.update(history => [...history, { 
@@ -869,7 +984,6 @@ resetToHome() {
         });
       },
       error: (error) => {
-        console.error('Error getting signed URL:', error);
         this.isUploading.set(false);
         this.uploadError.set('Failed to get upload URL');
         this.statusHistory.update(history => [...history, { 
@@ -932,7 +1046,6 @@ resetToHome() {
                 this.loadGroupStatus(groupId);
               },
               error: (error) => {
-                console.error('Error updating milestone:', error);
                 this.isUploading.set(false);
                 this.uploadError.set('Failed to update milestone');
                 this.statusHistory.update(history => [...history, { 
@@ -943,7 +1056,6 @@ resetToHome() {
             });
           },
           error: (error) => {
-            console.error('Error uploading files to S3:', error);
             this.isUploading.set(false);
             this.uploadError.set('Failed to upload one or more files');
             this.statusHistory.update(history => [...history, { 
@@ -954,7 +1066,6 @@ resetToHome() {
         });
       },
       error: (error) => {
-        console.error('Error getting signed URLs:', error);
         this.isUploading.set(false);
         this.uploadError.set('Failed to get upload URLs');
         this.statusHistory.update(history => [...history, { 
@@ -971,7 +1082,6 @@ resetToHome() {
   private loadGroupStatus(groupId: string) {
     this.submissionService.getGroupStatus(groupId).subscribe({
       next: (group) => {
-        console.log('✅ Group status loaded:', group);
         
         // Update status history based on milestone approvals
         const currentMilestoneType = this.getMilestoneTypeForStep(this.currentStep());
@@ -980,7 +1090,7 @@ resetToHome() {
         if (milestone) {
           // Check for approvals
           if (currentMilestoneType === 'upload_manuscript') {
-            // Check panelist approvals
+            // Stage 1: Requires panelist + faculty approval
             const panelistApprovals = milestone.approved_by?.length || 0;
             const requiredPanelists = 3;
             const facultyApproved = milestone.verified?.faculty_in_charge?.approved || false;
@@ -1000,30 +1110,40 @@ resetToHome() {
                 type: 'default' 
               }]);
             }
-          } else {
-            // Other milestones checked by chairperson
-            const chairpersonApproved = milestone.verified?.chairperson?.some((c: any) => c.approved) || false;
+          } else if (currentMilestoneType === 'complete_copyright' || 
+                     currentMilestoneType === 'pass_turnitin' || 
+                     currentMilestoneType === 'upload_all_docs') {
+            // Stages 2-4: Auto-approve after file upload (no manual approval needed)
+            const hasFiles = milestone.s3_key && milestone.s3_key.length > 0;
             
-            if (chairpersonApproved) {
+            if (hasFiles) {
               this.statusHistory.update(history => [...history, { 
-                text: 'Approved by Chairperson', 
+                text: 'Files uploaded - Ready for next stage', 
                 type: 'success' 
               }]);
               
-              // Update view state based on step
+              // Auto-transition to approved state
               if (this.currentStep() === 2) {
                 this.viewState.set('step2_approved');
               } else if (this.currentStep() === 3) {
-                this.viewState.set('step3_results');
+                this.viewState.set('step3_approved');
               } else if (this.currentStep() === 4) {
                 this.viewState.set('step4_approved');
               }
+            }
+          } else if (currentMilestoneType === 'describe_work') {
+            // Stage 5: Just needs data filled (no approval)
+            if (milestone.status === true) {
+              this.statusHistory.update(history => [...history, { 
+                text: 'Work description saved', 
+                type: 'success' 
+              }]);
             }
           }
         }
       },
       error: (error) => {
-        console.error('Error loading group status:', error);
+        // Error loading group status
       }
     });
   }

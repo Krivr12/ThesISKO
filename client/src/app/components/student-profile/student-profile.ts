@@ -73,19 +73,26 @@ export class StudentProfile implements OnInit {
   private messageService = inject(MessageService);
 
   ngOnInit() {
+    // Initialize form first to prevent template binding errors
+    this.initializeForm();
+    
     this.currentUser = this.authService.currentUser;
     
-    if (!this.currentUser || this.currentUser.Status?.toLowerCase() !== 'student') {
+    // Check if user is a student or PUPian (same logic as navbar)
+    const userStatus = this.currentUser?.Status?.toLowerCase();
+    const userRoleId = this.currentUser?.role_id;
+    const isStudent = userStatus === 'student' || userStatus === 'pup-ian' || userRoleId === 2;
+    
+    if (!this.currentUser || !isStudent) {
       this.messageService.add({
         severity: 'error',
         summary: 'Access Denied',
-        detail: 'This page is only accessible to students.'
+        detail: 'This page is only accessible to students and PUPians.'
       });
       this.router.navigate(['/home']);
       return;
     }
 
-    this.initializeForm();
     this.loadUserData();
   }
 
@@ -94,7 +101,7 @@ export class StudentProfile implements OnInit {
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: [{ value: '', disabled: true }], // Email should not be editable
-      studentId: ['', [Validators.required]],
+      studentId: [{ value: '', disabled: true }], // Student ID should not be editable
       currentPassword: [''],
       newPassword: ['', [Validators.minLength(6)]],
       confirmPassword: ['']
@@ -133,7 +140,7 @@ export class StudentProfile implements OnInit {
           });
         },
         error: (error) => {
-          console.error('Error loading user data:', error);
+          
           // Fallback to user data from auth service
           this.profileForm.patchValue({
             firstName: this.currentUser?.Firstname,
@@ -153,8 +160,8 @@ export class StudentProfile implements OnInit {
 
       const updateData: any = {
         firstname: formData.firstName,
-        lastname: formData.lastName,
-        student_id: formData.studentId
+        lastname: formData.lastName
+        // Note: student_id and email are not included as they cannot be modified
       };
 
       // Add password data if user wants to change password
@@ -191,7 +198,7 @@ export class StudentProfile implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Error updating profile:', error);
+          
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

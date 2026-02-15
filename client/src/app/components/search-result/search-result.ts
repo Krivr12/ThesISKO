@@ -1,7 +1,7 @@
 import { Component, TemplateRef, ViewChild, HostListener, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 /* Angular Material */
@@ -15,7 +15,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatOptionModule } from '@angular/material/core';
 
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { NgIf, NgFor, DatePipe } from '@angular/common';
+import { NgIf, NgFor } from '@angular/common';
 import { Footer } from "../footer/footer";
 import { Navbar, AuthService } from "../navbar/navbar";
 
@@ -26,7 +26,7 @@ type UserRole = 'student' | 'guest' | 'group';
   standalone: true,
   imports: [
     Footer, Navbar,
-    NgIf, NgFor, DatePipe, CommonModule, FormsModule,
+    NgIf, NgFor, CommonModule, FormsModule,
     MatDialogModule, MatCheckboxModule, MatFormFieldModule, MatInputModule, MatButtonModule,
     MatSelectModule, MatDividerModule,
     HttpClientModule, MatOptionModule
@@ -38,6 +38,19 @@ export class SearchResult implements OnInit, AfterViewInit {
   // ===== Templates for role-based dialogs =====
   @ViewChild('dlgRequestAccessStudent', { static: false }) dlgStudent!: TemplateRef<any>;
   @ViewChild('dlgRequestAccessGuest', { static: false }) dlgGuest!: TemplateRef<any>;
+  @ViewChild('dlgGuestStep2', { static: false }) dlgGuestStep2!: TemplateRef<any>;
+  @ViewChild('dlgGuestStep3', { static: false }) dlgGuestStep3!: TemplateRef<any>;
+  @ViewChild('dlgGuestStep4', { static: false }) dlgGuestStep4!: TemplateRef<any>;
+  @ViewChild('dlgOldPupianStep1', { static: false }) dlgOldPupianStep1!: TemplateRef<any>;
+  @ViewChild('dlgOldPupianStep2', { static: false }) dlgOldPupianStep2!: TemplateRef<any>;
+  @ViewChild('dlgOldPupianStep3', { static: false }) dlgOldPupianStep3!: TemplateRef<any>;
+  @ViewChild('dlgOldGuestStep1', { static: false }) dlgOldGuestStep1!: TemplateRef<any>;
+  @ViewChild('dlgOldGuestStep2', { static: false }) dlgOldGuestStep2!: TemplateRef<any>;
+  @ViewChild('dlgOldGuestStep3', { static: false }) dlgOldGuestStep3!: TemplateRef<any>;
+  @ViewChild('dlgOldGuestStep4', { static: false }) dlgOldGuestStep4!: TemplateRef<any>;
+  @ViewChild('dlgUserAffiliation', { static: false }) dlgUserAffiliation!: TemplateRef<any>;
+  @ViewChild('dlgExternalAffiliation', { static: false }) dlgExternalAffiliation!: TemplateRef<any>;
+  @ViewChild('dlgRequestDetails', { static: false }) dlgRequestDetails!: TemplateRef<any>;
   @ViewChild('dlgLoginRequired', { static: false }) dlgLoginRequired!: TemplateRef<any>;
   @ViewChild('dlgTerms', { static: false }) dlgTerms!: TemplateRef<any>;
 
@@ -47,25 +60,37 @@ export class SearchResult implements OnInit, AfterViewInit {
   isLoading: boolean = true; // Loading state for spinner
   isSubmittingRequest: boolean = false; // Loading state for request submission
 
+  private searchQuery: string = ''; // Store search query from navigation state
+
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private dialog: MatDialog,
     private http: HttpClient,
     private authService: AuthService
   ) {
-    console.log('🔍 [SEARCH-RESULT] Constructor called');
     const nav = this.router.getCurrentNavigation();
-    console.log('🔍 [SEARCH-RESULT] Navigation object:', nav);
-    console.log('🔍 [SEARCH-RESULT] Navigation extras:', nav?.extras);
-    console.log('🔍 [SEARCH-RESULT] Navigation state:', nav?.extras?.state);
-    console.log('🔍 [SEARCH-RESULT] Document ID from state:', nav?.extras?.state?.['document_id']);
+
     
-    if (nav?.extras?.state && nav.extras.state['document_id']) {
-      const documentId = nav.extras.state['document_id'];
-      console.log('✅ [SEARCH-RESULT] Found document_id, calling loadThesisDetails:', documentId);
+    // Try to get document_id from navigation state first
+    let documentId = nav?.extras?.state?.['document_id'];
+    
+    // Store search query from navigation state for return navigation
+    this.searchQuery = nav?.extras?.state?.['searchQuery'] || '';
+    
+    // If not in navigation state, try to get from browser history state (for page refreshes)
+    if (!documentId && window.history.state && window.history.state['document_id']) {
+      documentId = window.history.state['document_id'];
+    }
+    
+    // Also try to get search query from history state
+    if (!this.searchQuery && window.history.state && window.history.state['searchQuery']) {
+      this.searchQuery = window.history.state['searchQuery'];
+    }
+    
+    if (documentId) {
       this.loadThesisDetails(documentId);
     } else {
-      console.log('❌ [SEARCH-RESULT] No document_id found, redirecting to search-thesis');
       this.router.navigate(['/search-thesis']);
     }
 
@@ -80,28 +105,18 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // Verify ViewChild references are available
-    console.log('🔍 [VIEW-INIT] Checking ViewChild references...');
-    console.log('🔍 [VIEW-INIT] dlgStudent:', this.dlgStudent ? 'Available' : 'Undefined');
-    console.log('🔍 [VIEW-INIT] dlgGuest:', this.dlgGuest ? 'Available' : 'Undefined');
-    console.log('🔍 [VIEW-INIT] dlgLoginRequired:', this.dlgLoginRequired ? 'Available' : 'Undefined');
-    console.log('🔍 [VIEW-INIT] dlgTerms:', this.dlgTerms ? 'Available' : 'Undefined');
+
   }
 
   loadThesisDetails(document_id: string): void {
     this.isLoading = true; // Show spinner
-    console.log('🔍 [LOAD-THESIS] Starting to fetch details for document_id:', document_id);
-    console.log('🔍 [LOAD-THESIS] API URL:', `${environment.recordsApiUrl}/${document_id}`);
-    
+
     this.http.get<any>(`${environment.recordsApiUrl}/${document_id}`).subscribe({
       next: (data) => {
-        console.log('✅ [LOAD-THESIS] API call successful, received data:', data);
-        this.thesis = data;
-        console.log('✅ [LOAD-THESIS] Thesis object set:', this.thesis);
+        this.thesis = data
         this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
-        console.error('❌ [LOAD-THESIS] Error loading thesis details:', error);
-        console.log('❌ [LOAD-THESIS] Redirecting back to search-thesis due to error');
         this.isLoading = false; // Hide spinner even on error
         this.router.navigate(['/search-thesis']);
       }
@@ -114,24 +129,13 @@ export class SearchResult implements OnInit, AfterViewInit {
     
     // Debug: Show what user data we actually have
     const currentUser = this.authService.currentUser;
-    console.log('DEBUG - Full user object:', currentUser);
-    console.log('DEBUG - Available properties:', currentUser ? Object.keys(currentUser) : 'No user');
-    console.log('DEBUG - Course property:', currentUser?.Course);
-    console.log('DEBUG - Department property:', currentUser?.Department);
     
     // Auto-select course and department for students based on their account data
     if (this.userRole === 'student') {
       this.studentProgram = this.getCurrentUserCourse();
       this.studentDepartment = this.getCurrentUserDepartment();
       
-    }
-    
-    console.log('User role initialized:', { 
-      email: this.currentUserEmail, 
-      role: this.userRole,
-      preselectedCourse: this.studentProgram,
-      preselectedDepartment: this.studentDepartment
-    });
+    };
   }
 
   // ===== Auth / identity =====
@@ -142,23 +146,85 @@ export class SearchResult implements OnInit, AfterViewInit {
   requestOptions = ['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4', 'Chapter 5', 'All'] as const;
   selectedRequestChapters = new Set<string>();
 
-  // ===== Common form fields =====
+  // ===== Legacy fields - removed for active documents =====
+  guestContactNumber = '';
+
+  // ===== STEP 2A: PUP MEMBER DETAILS =====
+  colleges: string[] = [
+    'College of Computer and Information Sciences',
+    'College of Business Administration',
+    'College of Communication',
+  ];
+  departments: { [key: string]: string[] } = {
+    'College of Computer and Information Sciences': ['BSIT', 'BSCS'],
+    'College of Business Administration': ['Marketing', 'HR'],
+    'College of Communication': ['Broadcasting', 'Journalism']
+  };
+  selectedCollege = '';
+  selectedDepartment = '';
+  filteredDepartments: string[] = [];
+  userRoleForm: string = ''; // 'Student' or 'Faculty' for PUP members (different from userRole which is 'student'|'guest'|'group')
+  studentID = ''; // Student ID if role is Student
+  facultyID = ''; // Faculty ID if role is Faculty
+
+  // ===== STEP 2B: NON-PUP MEMBER DETAILS =====
+  affiliationCollege = '';
+  affiliationDepartment = '';
+  affiliationCountry = '';
+  affiliationRole = '';
+  countryList = ['Philippines', 'Japan', 'USA', 'Canada'];
+
+  // ===== STEP 3: REQUEST DETAILS =====
+  paperType = '';
+  selectedChapters = new Set<string>();
   requestPurpose = '';
+  requestRemarks = '';
+
+  // ===== Old document specific fields (added to STEP 3 when document is old) =====
+  oldDocumentJustification = ''; // Justification for requesting old documents
+  researchPurposeDetails = ''; // Research purpose details for old documents
+
+  // ===== STEP 4: TERMS =====
   termsAccepted = false;
 
-  // ===== Student-only fields =====
+  // ===== PUPian form fields (Active Documents) =====
   studentProgram: string = '';
   studentDepartment: string = '';
+  pupianRole: string = ''; // 'Student' or 'Faculty' for PUPian form
 
-  // ===== Guest-only fields =====
+  // ===== Guest form fields (Active Documents) =====
+  guestEmail: string = '';
+  guestFullName: string = '';
+  guestCity: string = '';
+  guestCountry: string = '';
+  guestSchool: string = ''; // University/Organization
+  guestProgram: string = '';
+  guestDepartment: string = '';
+  guestRole: string = ''; // 'Student' or 'Faculty' for Guest form
+
+  // ===== Old document form fields =====
+  oldPupianSupervisor: string = ''; // Optional supervisor/adviser for PUPian
+  oldGuestSupervisor: string = ''; // Optional supervisor/adviser for Guest
+  oldPupianContactNumber: string = ''; // Contact number for old PUPian forms
+  oldGuestContactNumber: string = ''; // Contact number for old Guest forms
+  intendedUse: string = ''; // Intended use of information
+  howDidYouLearn: string = ''; // How did you learn about this document (optional)
+  consentToContact: boolean = false; // Consent to contact checkbox
+  preferredContactMethod: string = ''; // 'Email' or 'Phone'
+
+  // ===== Legacy fields (keeping for backward compatibility) =====
   requestEmail = '';       // guest email
   touchGuestEmail = false;
-  guestCountry: string = '';
-  guestCity: string = '';
-  guestSchool: string = '';
 
   onReturnClick(): void {
-    this.router.navigate(['/search-thesis']);
+    // Navigate back to search-thesis with the preserved search query
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      this.router.navigate(['/search-thesis'], {
+        queryParams: { q: this.searchQuery }
+      });
+    } else {
+      this.router.navigate(['/search-thesis']);
+    }
   }
 
   // ===== Role helpers =====
@@ -196,16 +262,23 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   // ===== Validation helpers =====
-  // Student: email, program, department auto-filled from account; needs purpose, chapters
+  // PUPian: email (pre-filled), program, department, role, chapters, purpose (min 24 chars)
   get studentFormValid(): boolean {
-    const valid = this.chaptersValid && this.purposeValid && !!this.studentProgram && !!this.studentDepartment;
-    console.log('🔍 [VALIDATION] Student form valid:', valid, {
-      chaptersValid: this.chaptersValid,
-      purposeValid: this.purposeValid,
-      studentProgram: this.studentProgram,
-      studentDepartment: this.studentDepartment
-    });
+    const valid = this.chaptersValid && this.purposeValid24 && !!this.studentProgram && !!this.studentDepartment && !!this.pupianRole;
     return valid;
+  }
+
+  // Guest form validation helpers
+  get guestStep1Valid(): boolean {
+    return !!(this.guestEmail && this.guestFullName && this.guestCity && this.guestCountry);
+  }
+
+  get guestStep2Valid(): boolean {
+    return !!(this.guestSchool && this.guestProgram && this.guestDepartment && this.guestRole);
+  }
+
+  get guestStep3Valid(): boolean {
+    return this.chaptersValid && this.purposeValid24;
   }
 
   // Static mapping of programs to departments
@@ -296,19 +369,11 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   // Get filtered department options based on selected program (method instead of getter)
   getFilteredDepartmentOptions(): {value: string, label: string}[] {
-    console.log('🔍 getFilteredDepartmentOptions called:', {
-      studentProgram: this.studentProgram,
-      hasMapping: !!this.programToDepartments[this.studentProgram],
-      availablePrograms: Object.keys(this.programToDepartments),
-      resultLength: (this.programToDepartments[this.studentProgram] || []).length
-    });
-    
     const result = this.programToDepartments[this.studentProgram] || [];
     
     // If no departments found and we have a program, try to find a close match
     if (result.length === 0 && this.studentProgram) {
-      console.warn('⚠️ No departments found for program:', this.studentProgram);
-      console.log('Available program keys:', Object.keys(this.programToDepartments));
+      // No departments found for program
     }
     
     return result;
@@ -321,20 +386,17 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   // Handle program selection change
   onProgramChange(): void {
-    console.log('🔄 Program changed to:', this.studentProgram);
     
     // Clear department selection if the current selection is not valid for the new program
     const validDepartments = this.getFilteredDepartmentOptions().map(d => d.value);
-    console.log('🔍 Valid departments for new program:', validDepartments);
     
     if (this.studentDepartment && !validDepartments.includes(this.studentDepartment)) {
-      console.log('🔄 Clearing invalid department:', this.studentDepartment);
       this.studentDepartment = '';
     }
     
-    // If no departments are available, log a warning
+    // If no departments are available
     if (validDepartments.length === 0) {
-      console.warn('⚠️ No departments available for program:', this.studentProgram);
+      // No departments available for program
     }
   }
 
@@ -348,19 +410,13 @@ export class SearchResult implements OnInit, AfterViewInit {
     const valid = this.chaptersValid && this.purposeValid &&
            this.isGmail(this.requestEmail) &&
            !!this.guestCountry && !!this.guestCity && !!this.guestSchool;
-    console.log('🔍 [VALIDATION] Guest form valid:', valid, {
-      chaptersValid: this.chaptersValid,
-      purposeValid: this.purposeValid,
-      isGmail: this.isGmail(this.requestEmail),
-      requestEmail: this.requestEmail,
-      guestCountry: this.guestCountry,
-      guestCity: this.guestCity,
-      guestSchool: this.guestSchool
-    });
     return valid;
   }
   private get purposeValid(): boolean {
     return (this.requestPurpose?.trim().length ?? 0) >= 8;
+  }
+  private get purposeValid24(): boolean {
+    return (this.requestPurpose?.trim().length ?? 0) >= 24;
   }
   private get chaptersValid(): boolean {
     return this.selectedRequestChapters.size > 0;
@@ -368,64 +424,221 @@ export class SearchResult implements OnInit, AfterViewInit {
 
   // ===== UI actions =====
   openRequestDialog(): void {
-    console.log('🔍 [REQUEST-DIALOG] Opening request dialog...');
-    console.log('🔍 [REQUEST-DIALOG] User role:', this.userRole);
-    console.log('🔍 [REQUEST-DIALOG] User email:', this.currentUserEmail);
     
     // Check if user is logged in
     if (!this.currentUserEmail) {
-      console.log('🔍 [REQUEST-DIALOG] No user email, showing login required dialog');
       // Show login required dialog
       if (this.dlgLoginRequired) {
         this.dialog.open(this.dlgLoginRequired, { width: '500px', autoFocus: false });
-      } else {
-        console.error('❌ [REQUEST-DIALOG] Login required dialog template not available');
       }
       return;
     }
     
     this.resetRequestDialog();
     
-    // Students and groups use the student template, guests use the guest template
-    const tpl = (this.userRole === 'student' || this.userRole === 'group') ? this.dlgStudent : this.dlgGuest;
-    console.log('🔍 [REQUEST-DIALOG] Selected template:', tpl ? 'Available' : 'Undefined');
-    console.log('🔍 [REQUEST-DIALOG] Template type:', this.userRole === 'student' || this.userRole === 'group' ? 'Student/Group' : 'Guest');
+    // Route to correct form based on document status and user role
+    const isOldDocument = this.thesis?.document_status === 'old';
+    const isPUPMember = this.userRole === 'student' || this.userRole === 'group';
     
-    if (!tpl) {
-      console.error('❌ [REQUEST-DIALOG] Dialog template not available');
-      console.error('❌ [REQUEST-DIALOG] dlgStudent:', this.dlgStudent);
-      console.error('❌ [REQUEST-DIALOG] dlgGuest:', this.dlgGuest);
-      return;
+    if (isOldDocument) {
+      // Old document forms
+      if (isPUPMember) {
+        // Old PUPian form - Step 1
+        if (!this.dlgOldPupianStep1) {
+          return;
+        }
+        this.dialog.open(this.dlgOldPupianStep1, { width: '600px', disableClose: true });
+      } else {
+        // Old Guest form - Step 1
+        if (!this.dlgOldGuestStep1) {
+          return;
+        }
+        // Pre-fill email from logged-in user
+        this.guestEmail = this.currentUserEmail;
+        this.dialog.open(this.dlgOldGuestStep1, { width: '600px', disableClose: true });
+      }
+    } else {
+      // Active document forms
+      if (isPUPMember) {
+        // PUPian form - single dialog
+        if (!this.dlgStudent) {
+          return;
+        }
+        this.dialog.open(this.dlgStudent, { width: '600px', disableClose: true });
+      } else {
+        // Guest form - multi-step, start with Step 1
+        if (!this.dlgGuest) {
+          return;
+        }
+        // Pre-fill email from logged-in user
+        this.guestEmail = this.currentUserEmail;
+        this.dialog.open(this.dlgGuest, { width: '600px', disableClose: true });
+      }
     }
-    
-    console.log('✅ [REQUEST-DIALOG] Opening dialog with template');
-    this.dialog.open(tpl, { width: '640px', autoFocus: false });
   }
 
   resetRequestDialog(): void {
+    // PUPian form fields
+    this.studentProgram = '';
+    this.studentDepartment = '';
+    this.pupianRole = '';
+
+    // Guest form fields
+    this.guestEmail = '';
+    this.guestFullName = '';
+    this.guestCity = '';
+    this.guestCountry = '';
+    this.guestSchool = '';
+    this.guestProgram = '';
+    this.guestDepartment = '';
+    this.guestRole = '';
+
+    // Common fields
     this.selectedRequestChapters.clear();
     this.requestPurpose = '';
+    this.termsAccepted = false;
 
-    // student fields
-    // (keep email from auth and auto-select course/department based on user account)
-    if (this.userRole === 'student') {
-      this.studentProgram = this.getCurrentUserCourse();
-      this.studentDepartment = this.getCurrentUserDepartment();
-    } else if (this.userRole === 'group') {
-      // Groups can also use program/department if needed
-      this.studentProgram = this.getCurrentUserCourse();
-      this.studentDepartment = this.getCurrentUserDepartment();
-    } else {
-      this.studentProgram = '';
-      this.studentDepartment = '';
-    }
+    // Old document fields
+    this.oldPupianSupervisor = '';
+    this.oldGuestSupervisor = '';
+    this.oldPupianContactNumber = '';
+    this.oldGuestContactNumber = '';
+    this.intendedUse = '';
+    this.howDidYouLearn = '';
+    this.consentToContact = false;
+    this.preferredContactMethod = '';
 
-    // guest fields
+    // Legacy fields (for backward compatibility)
+    this.guestContactNumber = '';
+    this.selectedCollege = '';
+    this.selectedDepartment = '';
+    this.filteredDepartments = [];
+    this.userRoleForm = '';
+    this.studentID = '';
+    this.facultyID = '';
+    this.affiliationCollege = '';
+    this.affiliationDepartment = '';
+    this.affiliationCountry = '';
+    this.affiliationRole = '';
+    this.paperType = '';
+    this.selectedChapters.clear();
+    this.requestRemarks = '';
+    this.oldDocumentJustification = '';
+    this.researchPurposeDetails = '';
     this.requestEmail = '';
     this.touchGuestEmail = false;
-    this.guestCountry = '';
-    this.guestCity = '';
-    this.guestSchool = '';
+  }
+
+  // ===== Guest form navigation methods (Active Documents) =====
+  openGuestStep2(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgGuestStep2) {
+      return;
+    }
+    this.dialog.open(this.dlgGuestStep2, { width: '600px', disableClose: true });
+  }
+
+  openGuestStep3(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgGuestStep3) {
+      return;
+    }
+    this.dialog.open(this.dlgGuestStep3, { width: '600px', disableClose: true });
+  }
+
+  openGuestStep4(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgGuestStep4) {
+      return;
+    }
+    this.dialog.open(this.dlgGuestStep4, { width: '720px', autoFocus: false, restoreFocus: false });
+  }
+
+  // ===== Old document form navigation methods =====
+  openOldPupianStep2(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldPupianStep2) {
+      return;
+    }
+    this.dialog.open(this.dlgOldPupianStep2, { width: '600px', disableClose: true });
+  }
+
+  openOldPupianStep3(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldPupianStep2) {
+      return;
+    }
+    this.dialog.open(this.dlgOldPupianStep3, { width: '720px', autoFocus: false, restoreFocus: false });
+  }
+
+  openOldGuestStep2(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldGuestStep2) {
+      return;
+    }
+    this.dialog.open(this.dlgOldGuestStep2, { width: '600px', disableClose: true });
+  }
+
+  openOldGuestStep3(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldGuestStep3) {
+      return;
+    }
+    this.dialog.open(this.dlgOldGuestStep3, { width: '600px', disableClose: true });
+  }
+
+  openOldGuestStep4(prevDialogRef: any): void {
+    prevDialogRef.close();
+    if (!this.dlgOldGuestStep4) {
+      return;
+    }
+    this.dialog.open(this.dlgOldGuestStep4, { width: '720px', autoFocus: false, restoreFocus: false });
+  }
+
+  // ===== Multi-step navigation methods (Legacy - for old documents) =====
+  openAffiliationDialog(prevDialogRef: any): void {
+    prevDialogRef.close();
+    // Check user role to determine if PUP member or not
+    // 'student' and 'group' are PUP members, 'guest' is non-PUP
+    const isPUPMember = this.userRole === 'student' || this.userRole === 'group';
+    const target = isPUPMember
+      ? this.dlgUserAffiliation
+      : this.dlgExternalAffiliation;
+    this.dialog.open(target, { width: '600px', disableClose: true });
+  }
+
+  openRequestDetails(prevDialogRef: any): void {
+    prevDialogRef.close();
+    this.dialog.open(this.dlgRequestDetails, { width: '600px', disableClose: true });
+  }
+
+  openTerms(prevDialogRef: any): void {
+    prevDialogRef.close();
+    const ref = this.dialog.open(this.dlgTerms, { width: '720px', autoFocus: false, restoreFocus: false });
+    ref.afterClosed().subscribe(agreed => {
+      if (agreed === true) {
+        this.finalizeRequestSubmission();
+      }
+    });
+  }
+
+  toggleChapter(chapter: string, checked: boolean): void {
+    if (checked) {
+      this.selectedChapters.add(chapter);
+    } else {
+      this.selectedChapters.delete(chapter);
+    }
+  }
+
+  // Filter departments based on selected college
+  onCollegeChange(): void {
+    if (this.selectedCollege && this.departments[this.selectedCollege]) {
+      this.filteredDepartments = this.departments[this.selectedCollege];
+      this.selectedDepartment = ''; // Reset department when college changes
+    } else {
+      this.filteredDepartments = [];
+      this.selectedDepartment = '';
+    }
   }
 
   toggleRequestChapter(opt: string, checked: boolean): void {
@@ -457,8 +670,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   openTermsAndSubmit(prevDialogRef?: any): void {
-    console.log('🔍 [TERMS] Opening terms dialog...');
-    console.log('🔍 [TERMS] dlgTerms template:', this.dlgTerms ? 'Available' : 'Undefined');
     
     // Optional: keep the original dialog open but block accidental outside close
     if (prevDialogRef) prevDialogRef.disableClose = true;
@@ -466,7 +677,6 @@ export class SearchResult implements OnInit, AfterViewInit {
     this.termsAccepted = false; // reset each time
     
     if (!this.dlgTerms) {
-      console.error('❌ [TERMS] Terms dialog template not available');
       alert('Error: Terms dialog not available. Please try again.');
       return;
     }
@@ -481,7 +691,7 @@ export class SearchResult implements OnInit, AfterViewInit {
       if (agreed === true) {
         // Close the original request dialog and proceed
         if (prevDialogRef) prevDialogRef.close();
-        this.finalizeRequestSubmission();
+        this.finalizeRequestSubmission('pupian', 'active');
       } else {
         // User canceled; allow original dialog to be closed normally again
         if (prevDialogRef) prevDialogRef.disableClose = false;
@@ -489,15 +699,28 @@ export class SearchResult implements OnInit, AfterViewInit {
     });
   }
 
+  // ===== Submission methods for Active Documents =====
+  finalizeGuestRequest(dialogRef: any): void {
+    dialogRef.close();
+    this.finalizeRequestSubmission('guest', 'active');
+  }
+
+  // ===== Submission methods for Old Documents =====
+  finalizeOldPupianRequest(dialogRef: any): void {
+    dialogRef.close();
+    this.finalizeRequestSubmission('pupian', 'old');
+  }
+
+  finalizeOldGuestRequest(dialogRef: any): void {
+    dialogRef.close();
+    this.finalizeRequestSubmission('guest', 'old');
+  }
+
   // Your actual submit logic (API call, snackbar, etc.)
-  finalizeRequestSubmission(): void {
-    console.log('🔍 [FINALIZE] Starting final request submission...');
-    console.log('🔍 [FINALIZE] User role:', this.userRole);
-    console.log('🔍 [FINALIZE] Thesis ID:', this.thesis?._id);
+  finalizeRequestSubmission(formType: 'pupian' | 'guest' = 'pupian', docStatus: 'active' | 'old' = 'active'): void {
     
     // Validate that we have the required data
     if (!this.thesis?._id) {
-      console.error('❌ [FINALIZE] No thesis ID available');
       alert('Error: Document information not available. Please try again.');
       return;
     }
@@ -505,36 +728,72 @@ export class SearchResult implements OnInit, AfterViewInit {
     this.isSubmittingRequest = true; // Show loading state
 
     // Prepare chapters array
-    const chapters = this.selectedRequestChapters.has('All')
-      ? this.requestOptions.filter(o => o !== 'All')
-      : Array.from(this.selectedRequestChapters);
+    const chapters = Array.from(this.selectedRequestChapters);
 
-    // Transform data to backend format
-    const requestPayload = {
-      document_id: this.thesis._id, // Use thesis._id as document_id
-      userType: this.userRole === 'group' ? 'student' : this.userRole, // Map group to student
-      requester: this.userRole === 'student' || this.userRole === 'group'
-        ? {
-            email: this.currentUserEmail,
-            program: this.studentProgram,
-            department: this.studentDepartment
-          }
-        : {
-            email: this.requestEmail.trim(),
-            country: this.guestCountry.trim(),
-            city: this.guestCity.trim(),
-            school: this.guestSchool.trim()
-          },
+    // Determine user_type
+    const userType = formType === 'pupian' ? 'student' : 'guest';
+
+    // Build MongoDB payload (only long texts and arrays)
+    const mongoPayload: any = {
+      document_id: this.thesis._id,
+      user_type: userType, // Only redundant field allowed
       chaptersRequested: chapters,
       purpose: this.requestPurpose.trim()
     };
 
-    console.log('📤 [FINALIZE] Submitting to backend:', requestPayload);
+    // Add old document specific long text fields
+    if (docStatus === 'old') {
+      mongoPayload.intendedUse = this.intendedUse.trim();
+      if (this.howDidYouLearn) {
+        mongoPayload.howDidYouLearn = this.howDidYouLearn.trim();
+      }
+    }
+
+    // Build structured data for PostgreSQL table (sent separately, not in MongoDB)
+    const structuredData: any = {
+      user_type: userType,
+      email: formType === 'pupian' ? this.currentUserEmail.trim() : this.guestEmail.trim(),
+      program: formType === 'pupian' ? this.studentProgram : this.guestProgram.trim(),
+      department: formType === 'pupian' ? this.studentDepartment : this.guestDepartment.trim(),
+      role: formType === 'pupian' ? this.pupianRole : this.guestRole
+    };
+
+    // Add guest-specific structured fields
+    if (formType === 'guest') {
+      structuredData.full_name = this.guestFullName.trim();
+      structuredData.city = this.guestCity.trim();
+      structuredData.country = this.guestCountry.trim();
+      structuredData.school = this.guestSchool.trim();
+    }
+
+    // Add old document specific structured fields
+    if (docStatus === 'old') {
+      const supervisor = formType === 'pupian' ? this.oldPupianSupervisor : this.oldGuestSupervisor;
+      if (supervisor) {
+        structuredData.supervisor = supervisor.trim();
+      }
+      structuredData.consent_to_contact = this.consentToContact;
+      if (this.consentToContact) {
+        structuredData.preferred_contact_method = this.preferredContactMethod;
+      }
+      // Add contact number
+      const contactNumber = formType === 'pupian' ? this.oldPupianContactNumber : this.oldGuestContactNumber;
+      if (contactNumber) {
+        structuredData.contact_number = contactNumber.trim();
+      }
+    }
+
+    // Combine payload (MongoDB fields + structured data for table)
+    const requestPayload: any = {
+      ...mongoPayload,
+      ...structuredData
+    };
+
+
 
     // Call backend API
     this.http.post(`${environment.authApiUrl}/requests/`, requestPayload).subscribe({
       next: (response: any) => {
-        console.log('✅ [FINALIZE] Success response:', response);
         this.isSubmittingRequest = false;
         
         // Show success message
@@ -544,7 +803,6 @@ export class SearchResult implements OnInit, AfterViewInit {
         this.resetRequestDialog();
       },
       error: (error) => {
-        console.error('❌ [FINALIZE] Error response:', error);
         this.isSubmittingRequest = false;
         
         // Handle different types of errors
@@ -565,6 +823,12 @@ export class SearchResult implements OnInit, AfterViewInit {
     });
   }
 
+  // Validation helper for contact number (numbers only)
+  isValidContactNumber(contactNumber: string): boolean {
+    if (!contactNumber) return false;
+    return /^[0-9]+$/.test(contactNumber);
+  }
+
   // Get current user email from AuthService
   private getCurrentUserEmail(): string {
     const currentUser = this.authService.currentUser;
@@ -575,13 +839,7 @@ export class SearchResult implements OnInit, AfterViewInit {
     const currentUser = this.authService.currentUser;
     const department = currentUser?.Department || '';
     
-    console.log('🔍 Course Debug (now returning college names):', {
-      hasCurrentUser: !!currentUser,
-      department: department,
-      departmentType: typeof department,
-      allUserKeys: currentUser ? Object.keys(currentUser) : 'no user',
-      fullUser: currentUser
-    });
+
     
     // Map department codes to full college names for Program dropdown
     const departmentMapping: { [key: string]: string } = {
@@ -600,22 +858,13 @@ export class SearchResult implements OnInit, AfterViewInit {
     };
     
     const result = departmentMapping[department] || department || '';
-    console.log('🔍 Course Result (college name):', { input: department, mapped: result });
     return result;
   }
 
   private getCurrentUserDepartment(): string {
     const currentUser = this.authService.currentUser;
     const course = currentUser?.Course || '';
-    
-    console.log('🔍 Department Debug (now returning full course names):', {
-      hasCurrentUser: !!currentUser,
-      course: course,
-      courseType: typeof course,
-      allUserKeys: currentUser ? Object.keys(currentUser) : 'no user',
-      fullUser: currentUser
-    });
-    
+
     // Map course codes to full course names
     const courseMapping: { [key: string]: string } = {
       // OUS - Open University System
@@ -702,7 +951,6 @@ export class SearchResult implements OnInit, AfterViewInit {
     };
     
     const result = courseMapping[course] || course || '';
-    console.log('🔍 Department Result (full course name):', { input: course, mapped: result });
     return result;
   }
 
@@ -729,11 +977,8 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   generateCitation(format: 'apa' | 'mla'): void {
-    console.log(`🔥 ${format.toUpperCase()} CITATION CLICKED!`);
-    console.log('generateCitation called', { thesis: this.thesis, citationCopied: this.citationCopied, format });
     
     if (!this.thesis || this.citationCopied) {
-      console.log('❌ Returning early:', { hasThesis: !!this.thesis, citationCopied: this.citationCopied });
       return;
     }
 
@@ -749,7 +994,6 @@ export class SearchResult implements OnInit, AfterViewInit {
   private generateAPACitation(): void {
 
     // Convert authors to APA format: "Last, F. M., Last, F. M., & Last, F. M."
-    console.log('Authors data:', this.thesis.authors, typeof this.thesis.authors);
     
     let authorsRaw: string[];
     if (typeof this.thesis.authors === 'string') {
@@ -776,52 +1020,46 @@ export class SearchResult implements OnInit, AfterViewInit {
     }
 
     // Year (APA needs only year, not full date)
-    const year = this.thesis.submitted_at
-      ? new Date(this.thesis.submitted_at).getFullYear()
-      : 'n.d.';
+    // First check for direct year field, then try submitted_at, finally fallback to 'n.d.'
+    const year = this.thesis.year 
+      || (this.thesis.submitted_at ? new Date(this.thesis.submitted_at).getFullYear() : null)
+      || 'n.d.';
 
-    // Title in sentence case (only first word + proper nouns capitalized)
+    // Title in sentence case for APA 7th edition (only first word and proper nouns capitalized)
+    // Normalize spaces (remove double spaces) and trim
     const title = this.thesis.title
-      ? this.thesis.title.charAt(0).toUpperCase() +
-        this.thesis.title.slice(1).toLowerCase()
+      ? this.toSentenceCase(this.thesis.title.replace(/\s+/g, ' ').trim())
       : 'Untitled';
 
     // Thesis type
-    const thesisType = this.thesis.document_type || 'Thesis';
+    const thesisType = this.thesis.document_type || 'Capstone Project';
 
     const university = 'Polytechnic University of the Philippines';
 
-    // APA 7th edition format
-    const apaCitation = `${authorsAPA} (${year}). ${title} [${thesisType}, ${university}].`;
+    // APA 7th edition format: Author (Year). *Title in italics* [Thesis type, Institution].
+    const apaCitation = `${authorsAPA} (${year}). *${title}* [${thesisType}, ${university}].`;
 
     // Copy to clipboard with fallback
-    console.log('Generated APA citation:', apaCitation);
     
     // Check if clipboard API is available
     if (navigator.clipboard && window.isSecureContext) {
       // Modern clipboard API
       navigator.clipboard.writeText(apaCitation).then(() => {
-        console.log('✅ Successfully copied to clipboard');
         this.citationCopied = true;
         setTimeout(() => {
           this.citationCopied = false;
           this.copiedFormat = '';
-          console.log('Reset citationCopied to false');
         }, 2000);
       }).catch(err => {
-        console.error('❌ Clipboard API failed:', err);
         this.fallbackCopyTextToClipboard(apaCitation);
       });
     } else {
       // Fallback for older browsers or non-secure contexts
-      console.log('📋 Using fallback copy method');
       this.fallbackCopyTextToClipboard(apaCitation);
     }
   }
 
   private generateMLACitation(): void {
-    // Convert authors to MLA format: "Last, First M., et al." or "Last, First M."
-    console.log('Authors data:', this.thesis.authors, typeof this.thesis.authors);
     
     let authorsRaw: string[];
     if (typeof this.thesis.authors === 'string') {
@@ -832,7 +1070,7 @@ export class SearchResult implements OnInit, AfterViewInit {
       authorsRaw = ['Unknown Author'];
     }
     
-    // MLA author formatting
+    // MLA 9th edition author formatting
     let authorsMLA = '';
     if (authorsRaw.length === 1) {
       // Single author: Last, First
@@ -841,7 +1079,7 @@ export class SearchResult implements OnInit, AfterViewInit {
       const firstName = parts.join(' ');
       authorsMLA = `${lastName}, ${firstName}`;
     } else if (authorsRaw.length === 2) {
-      // Two authors: Last1, First1, and Last2 First2
+      // Two authors: Last1, First1, and First2 Last2
       const author1Parts = authorsRaw[0].trim().split(' ');
       const lastName1 = author1Parts.pop() || '';
       const firstName1 = author1Parts.join(' ');
@@ -851,67 +1089,64 @@ export class SearchResult implements OnInit, AfterViewInit {
       const firstName2 = author2Parts.join(' ');
       
       authorsMLA = `${lastName1}, ${firstName1}, and ${firstName2} ${lastName2}`;
-    } else if (authorsRaw.length === 3) {
-      // Three authors: Last1, First1, Last2 First2, and Last3 First3
+    } else if (authorsRaw.length >= 3) {
+      // Three or more authors: Last1, First1, First2 Last2, First3 Last3, and FirstN LastN
       const author1Parts = authorsRaw[0].trim().split(' ');
       const lastName1 = author1Parts.pop() || '';
       const firstName1 = author1Parts.join(' ');
       
-      const author2Parts = authorsRaw[1].trim().split(' ');
-      const lastName2 = author2Parts.pop() || '';
-      const firstName2 = author2Parts.join(' ');
+      // Format remaining authors as "First Last"
+      const remainingAuthors = authorsRaw.slice(1).map((author: string) => {
+        const parts = author.trim().split(' ');
+        const lastName = parts.pop() || '';
+        const firstName = parts.join(' ');
+        return `${firstName} ${lastName}`;
+      });
       
-      const author3Parts = authorsRaw[2].trim().split(' ');
-      const lastName3 = author3Parts.pop() || '';
-      const firstName3 = author3Parts.join(' ');
-      
-      authorsMLA = `${lastName1}, ${firstName1}, ${firstName2} ${lastName2}, and ${firstName3} ${lastName3}`;
-    } else if (authorsRaw.length > 3) {
-      // More than 3 authors: Last1, First1, et al.
-      const firstAuthor = authorsRaw[0].trim().split(' ');
-      const lastName = firstAuthor.pop() || '';
-      const firstName = firstAuthor.join(' ');
-      authorsMLA = `${lastName}, ${firstName}, et al.`;
+      // Join with commas, and "and" before the last author
+      if (remainingAuthors.length === 1) {
+        authorsMLA = `${lastName1}, ${firstName1}, and ${remainingAuthors[0]}`;
+      } else {
+        const lastAuthor = remainingAuthors.pop();
+        authorsMLA = `${lastName1}, ${firstName1}, ${remainingAuthors.join(', ')}, and ${lastAuthor}`;
+      }
     }
 
     // Year
-    const year = this.thesis.submitted_at
-      ? new Date(this.thesis.submitted_at).getFullYear()
-      : 'n.d.';
+    // First check for direct year field, then try submitted_at, finally fallback to 'n.d.'
+    const year = this.thesis.year 
+      || (this.thesis.submitted_at ? new Date(this.thesis.submitted_at).getFullYear() : null)
+      || 'n.d.';
 
-    // Title in title case for MLA (capitalize each major word)
+    // Title in title case for MLA (capitalize each major word) with italics
+    // Normalize spaces (remove double spaces) and trim
     const title = this.thesis.title 
-      ? this.toTitleCase(this.thesis.title)
+      ? this.toTitleCase(this.thesis.title.replace(/\s+/g, ' ').trim())
       : 'Untitled';
 
     const university = 'Polytechnic University of the Philippines';
-    const thesisType = this.thesis.document_type || 'Thesis';
+    const thesisType = this.thesis.document_type || 'Capstone Project';
 
-    // MLA 8th edition format: Author. *Title in Italics.* Year, Institution, Type.
+    // MLA 9th edition format: Author. *Title*. Year. Institution, Type.
     // Remove any trailing period from authorsMLA to avoid double periods
-    const mlaCitation = `${authorsMLA.replace(/\.$/, '')}. *${title}.* ${year}, ${university}, ${thesisType}.`;
+    const mlaCitation = `${authorsMLA.replace(/\.$/, '')}. *${title}*. ${year}. ${university}, ${thesisType}.`;
 
     // Copy to clipboard with fallback
-    console.log('Generated MLA citation:', mlaCitation);
     
     // Check if clipboard API is available
     if (navigator.clipboard && window.isSecureContext) {
       // Modern clipboard API
       navigator.clipboard.writeText(mlaCitation).then(() => {
-        console.log('✅ Successfully copied to clipboard');
         this.citationCopied = true;
         setTimeout(() => {
           this.citationCopied = false;
           this.copiedFormat = '';
-          console.log('Reset citationCopied to false');
         }, 2000);
       }).catch(err => {
-        console.error('❌ Clipboard API failed:', err);
         this.fallbackCopyTextToClipboard(mlaCitation);
       });
     } else {
       // Fallback for older browsers or non-secure contexts
-      console.log('📋 Using fallback copy method');
       this.fallbackCopyTextToClipboard(mlaCitation);
     }
   }
@@ -933,19 +1168,15 @@ export class SearchResult implements OnInit, AfterViewInit {
     try {
       const successful = document.execCommand('copy');
       if (successful) {
-        console.log('✅ Fallback copy successful');
         this.citationCopied = true;
         setTimeout(() => {
           this.citationCopied = false;
           this.copiedFormat = '';
-          console.log('Reset citationCopied to false');
         }, 2000);
       } else {
-        console.error('❌ Fallback copy failed');
         alert(`Citation (copy manually):\n\n${text}`);
       }
     } catch (err) {
-      console.error('❌ Fallback copy error:', err);
       alert(`Citation (copy manually):\n\n${text}`);
     }
     
@@ -953,17 +1184,50 @@ export class SearchResult implements OnInit, AfterViewInit {
   }
 
   private toTitleCase(str: string): string {
-    // Words that should stay lowercase in titles (except when first word)
+    // Words that should stay lowercase in titles (except when first word or after colon)
     const articles = ['a', 'an', 'the'];
     const prepositions = ['in', 'on', 'at', 'by', 'for', 'with', 'without', 'to', 'from', 'up', 'down', 'of', 'and', 'or', 'but'];
     const exceptions = [...articles, ...prepositions];
     
-    return str.toLowerCase().split(' ').map((word, index) => {
-      // Always capitalize first word, or if not in exceptions list
-      if (index === 0 || !exceptions.includes(word)) {
+    let capitalizeNext = true; // Start with true to capitalize first word
+    
+    return str.toLowerCase().split(' ').map((word) => {
+      // Check if previous word ended with a colon (word after colon should be capitalized)
+      const shouldCapitalize = capitalizeNext || !exceptions.includes(word.replace(/[^a-z]/gi, ''));
+      
+      // Check if this word ends with a colon for the next word
+      capitalizeNext = word.endsWith(':');
+      
+      if (shouldCapitalize) {
         return word.charAt(0).toUpperCase() + word.slice(1);
       }
       return word;
     }).join(' ');
+  }
+
+  private toSentenceCase(str: string): string {
+    // APA 7th edition: Only capitalize the first word and proper nouns
+    // Also capitalize the first word after a colon
+    if (!str) return str;
+    
+    return str.toLowerCase().split(': ').map((segment, index) => {
+      // Capitalize the first letter of each segment (after colon)
+      if (segment.length > 0) {
+        return segment.charAt(0).toUpperCase() + segment.slice(1);
+      }
+      return segment;
+    }).join(': ');
+  }
+
+  /** Format array or string with proper spacing after commas */
+  formatList(value: string | string[] | null | undefined): string {
+    if (!value) return '';
+    
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    
+    // If it's a string, ensure proper spacing after commas
+    return value.replace(/,(?!\s)/g, ', ');
   }
 }

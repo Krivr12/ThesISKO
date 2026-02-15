@@ -118,7 +118,7 @@ export class ForFIC implements OnInit, AfterViewInit {
         const user = JSON.parse(userStr);
         this.currentUserEmail = user.email || user.Email || '';
       } catch (e) {
-        console.error('Error parsing user data:', e);
+        
       }
     }
 
@@ -126,26 +126,24 @@ export class ForFIC implements OnInit, AfterViewInit {
     this.block_id = this.route.snapshot.queryParamMap.get('block') || '';
 
     if (!this.currentUserEmail) {
-      console.error('No user email found in session');
+      
       return;
     }
 
     if (!this.block_id) {
-      console.error('No block_id provided in query params');
+      
       return;
     }
 
-    console.log('📚 Fetching groups for block:', this.block_id);
 
     // Fetch groups for this specific block
     const apiUrl = `${environment.authApiUrl}/groups?block_id=${encodeURIComponent(this.block_id)}`;
 
     this.http.get<any[]>(apiUrl).subscribe({
       next: (response) => {
-        console.log('✅ Groups response:', response);
 
         if (!Array.isArray(response)) {
-          console.error('Invalid response format');
+          
           return;
         }
 
@@ -245,7 +243,7 @@ export class ForFIC implements OnInit, AfterViewInit {
         };
       },
       error: (err) => {
-        console.error('❌ Error fetching FIC groups:', err);
+        
       }
     });
   }
@@ -346,11 +344,9 @@ export class ForFIC implements OnInit, AfterViewInit {
       }))
     };
 
-    console.log('🔨 Creating group with payload:', payload);
 
     this.http.post(`${environment.authApiUrl}/groups`, payload).subscribe({
       next: (response: any) => {
-        console.log('✅ Group created successfully:', response);
         alert(`Group created successfully! 
         
 Group ID: ${response.group.group_id}
@@ -366,7 +362,7 @@ Group ID: ${response.group.group_id}
         ref.close();
       },
       error: (err) => {
-        console.error('❌ Error creating group:', err);
+        
         const errorMessage = err.error?.error || 'Failed to create group';
         alert(`Error: ${errorMessage}`);
       }

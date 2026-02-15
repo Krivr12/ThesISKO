@@ -1,0 +1,505 @@
+:host {
+  font-family: 'Inter', sans-serif;
+}
+
+.page-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 200px;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: #fff;
+  color: #800000;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #800000;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.add-faculty-btn {
+  background-color: #800000;
+  color: #fff;
+  border: 1px solid;
+  padding: 0.5rem 1.5rem;
+  border-radius: 99px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-faculty-btn:hover {
+  background-color: #910101;
+}
+
+/* Faculties Table */
+.faculties-table {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.table-header, .table-row {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.table-row .row-item:last-child {
+  text-align: center;
+}
+
+.table-header {
+  background-color: #f9f9f9;
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+  color: #800000;
+}
+
+.table-header .header-item:last-child {
+  text-align: center;
+}
+
+.header-item.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.table-row {
+  border-bottom: 1px solid #eee;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.row-item {
+  padding: 0.5rem 0;
+}
+
+/* Role-specific styling */
+.role-faculty {
+  color: #007bff;
+  font-weight: 600;
+}
+
+.role-chairperson {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.role-dean {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Action Buttons Container */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Edit Button */
+.edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.edit-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.edit-btn svg {
+  flex-shrink: 0;
+}
+
+/* Delete Button */
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  min-width: 36px;
+  height: 36px;
+}
+
+.delete-btn:hover {
+  background-color: #dc3545;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+.delete-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Delete Dialog Styles - Updated to match Confirm Sign Out design */
+.modal-header {
+  background-color: #800000; /* Maroon background from image */
+  color: white;
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.modal-close-btn:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  color: #374151;
+  padding: 2.5rem 2rem; /* Increased vertical padding for better spacing */
+  text-align: center;
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.modal-body p {
+  margin: 0;
+  padding: 0;
+}
+
+.modal-body strong {
+  font-weight: 600;
+  color: #374151;
+}
+
+/* --- UPDATED ACTION BUTTON STYLES (Matches Image) --- */
+.modal-actions {
+  display: flex;
+  justify-content: center; /* Centers buttons horizontally */
+  align-items: center;
+  gap: 1.5rem;             /* Creates the gap between buttons */
+  padding: 0 2rem 2.5rem 2rem; /* Bottom padding to lift buttons off edge */
+}
+
+.modal-btn {
+  /* Fixed width/height ensures they look identical like the reference */
+  width: 140px; 
+  height: 45px;
+  
+  /* Center text inside the button */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700; /* Bold text like the image */
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* YES / CONFIRM Button Style */
+.modal-btn.confirm-btn {
+  background-color: #800000;
+  color: white;
+  border: 2px solid #800000; /* Solid border to match size of cancel */
+}
+
+.modal-btn.confirm-btn:hover {
+  background-color: #910101;
+  border-color: #910101;
+}
+
+/* CANCEL Button Style */
+.modal-btn.cancel-btn {
+  background-color: white;
+  color: #800000;
+  border: 2px solid #800000; /* Visible maroon border */
+}
+
+.modal-btn.cancel-btn:hover {
+  background-color: #fef2f2;
+}
+
+/* Modal Styles - Updated to match Confirm Sign Out design */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 500px;
+  width: calc(100% - 2rem);
+  transform: scale(1);
+  transition: all 0.3s;
+  overflow: hidden; /* Ensures child elements don't overflow rounded corners */
+}
+
+.ag-header {
+  background-color: #800000;
+  color: white;
+  padding: 1.25rem;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ag-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ag-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.ag-close:hover {
+  opacity: 1;
+}
+
+.ag-body {
+  padding: 2rem;
+}
+
+.ag-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 0 2rem 2rem 2rem;
+}
+
+.ag-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ag-field-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.ag-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.ag-field input {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.ag-field input:focus {
+  outline: none;
+  border-color: #800000;
+}
+
+.ag-field input::placeholder {
+  color: #9ca3af;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Table Styles */
+.documents-table {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.full-width-table {
+  width: 100%;
+}
+
+.no-table-margin {
+  margin: 0;
+}
+
+.mat-elevation-z8 {
+  box-shadow: 0 5px 5px -3px rgba(0,0,0,.2), 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12);
+}
+
+/* Table header styling */
+.mat-header-cell {
+  background-color: #f8f9fa;
+  color: #800000;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Table row styling */
+.mat-row {
+  transition: background-color 0.2s;
+}
+
+.mat-row:hover {
+  background-color: #f8f9fa;
+}
+
+.mat-cell {
+  color: #374151;
+  font-size: 0.875rem;
+  padding: 1rem 0.75rem;
+}
+
+/* Action buttons */
+.link-btn {
+  color: #007bff !important;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.link-btn:hover {
+  background-color: #e3f2fd;
+}
+
+/* ========== PAGINATOR: CENTER & NO BACKGROUND ========== */
+.paginator {
+  display: flex;
+  justify-content: center;   /* centers the paginator */
+  padding: 2px 0;
+  margin-top: 0;
+  color: #800000;
+}
+
+:host ::ng-deep .paginator .mat-mdc-paginator {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  color: #800000;
+}
+
+/* Optional: make the select & inputs flat/transparent too */
+:host ::ng-deep .paginator .mat-mdc-form-field-subscript-wrapper { display: none; }
+:host ::ng-deep .paginator .mdc-notched-outline__leading,
+:host ::ng-deep .paginator .mdc-notched-outline__trailing,
+:host ::ng-deep .paginator .mdc-notched-outline__notch {
+  border: 0 !important;
+  color: #800000;
+}
+:host ::ng-deep .paginator .mat-mdc-select-trigger,
+:host ::ng-deep .paginator .mat-mdc-text-field-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #800000;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+  
+  .modal-content {
+    width: calc(100% - 1rem);
+    margin: 1rem;
+  }
+  
+  .ag-body {
+    padding: 1rem;
+  }
+  
+  .ag-actions {
+    padding: 0 1rem 1rem 1rem;
+  }
+}

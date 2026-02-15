@@ -75,4 +75,26 @@ export class SubmissionService {
       data
     );
   }
+
+  /**
+   * Update milestone status to true/false
+   * Used for describe_work milestone which doesn't have files
+   * @param groupId - Group ID
+   * @param milestoneType - Milestone type
+   * @param status - Status value (true/false)
+   * @returns Observable with response
+   */
+  updateMilestoneStatus(groupId: string, milestoneType: string, status: boolean): Observable<GroupResponse> {
+    return this.http.patch<GroupResponse>(
+      `${this.apiUrl}/${groupId}`,
+      { 
+        milestones: {
+          [milestoneType]: {
+            status: status,
+            updated_at: new Date()
+          }
+        }
+      }
+    );
+  }
 }

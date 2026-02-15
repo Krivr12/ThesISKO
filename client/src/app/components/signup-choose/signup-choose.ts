@@ -17,6 +17,14 @@ export class SignupChoose {
   private router = inject(Router);
   private authService = inject(AuthService);
 
+  /**
+   * Navigate to login page for PUPian users
+   * PUPians have their own accounts, so Google login should be hidden
+   */
+  onPupianLogin(): void {
+    this.router.navigate(['/login'], { queryParams: { type: 'pupian' } });
+  }
+
   onGuestAccess() {
     // Set guest mode flag for temporary access
     sessionStorage.setItem('guestMode', 'true');

@@ -11,34 +11,33 @@
     Upload your manuscript, showcase your authorship, 
     and help the next generation of iskolar move ideas forward.</p>
 
-  <div class="search-container">
-    <input
-      type="text"
-      placeholder="Look for a thesis"
-      [(ngModel)]="homeQuery"
-      (keyup.enter)="goSearch()" />
-  
-    <!-- PrimeNG directive button -->
-    <button pButton class="search" type="button" (click)="goSearch()">Search</button>
-  </div>
+  <app-search-bar
+    placeholder="Look for a thesis"
+    [(value)]="homeQuery"
+    (search)="goSearch()">
+  </app-search-bar>
 </div> 
 </div>
 
 <div class="carousel-container">
   <h3 class="carousel-title">Check this Out</h3>
 
-  <div class="carousel-shell">
-    <p-carousel
-      [value]="updates"
-      [numVisible]="3"
-      [numScroll]="1"
-      [circular]="true"
-      [responsiveOptions]="responsiveOptions"
-      [autoplayInterval]="3000"
-      class="custom-carousel">
+  <div class="carousel-shell"
+       (mouseenter)="onCarouselMouseEnter()"
+       (mouseleave)="onCarouselMouseLeave()"
+       (touchstart)="onTouchStart($event)"
+       (touchend)="onTouchEnd($event)">
+    
+    <!-- Previous Button -->
+    <button class="carousel-nav carousel-prev" (click)="prevSlide()" aria-label="Previous">
+      ‹
+    </button>
 
-      <ng-template pTemplate="item" let-item>
+    <!-- Carousel Items -->
+    <div class="carousel-track">
+      <div class="carousel-items" [style.transform]="'translateX(' + translateX + '%)'">
         <div
+          *ngFor="let item of updates"
           class="carousel-box"
           role="button"
           tabindex="0"
@@ -47,17 +46,28 @@
           (keyup.space)="navigateToRecord(item)">
 
           <h3 class="title">{{ item.title }}</h3>
-          <p class="date">Year: {{ item.submitted_at ? (item.submitted_at | date:'yyyy') : 'No year' }}</p>
-          <p class="authors">Author: {{ item.authors?.length ? item.authors.join(', ') : 'N/A' }}</p>
-
-          <div class="tags">Keywords: {{ item.tags?.length ? item.tags.join(', ') : 'None' }}</div>
-          
-        
-          
+          <p class="date">Year: {{ item.year || (item.submitted_at ? (item.submitted_at | date:'yyyy') : 'N/A') }}</p>
+          <p class="authors">Author: {{ item.authors.length ? item.authors.join(', ') : 'N/A' }}</p>
+          <div class="tags">Keywords: {{ item.tags.length ? item.tags.join(', ') : 'None' }}</div>
         </div>
-      </ng-template>
+      </div>
+    </div>
 
-    </p-carousel>
+    <!-- Next Button -->
+    <button class="carousel-nav carousel-next" (click)="nextSlide()" aria-label="Next">
+      ›
+    </button>
+  </div>
+
+  <!-- Indicators -->
+  <div class="carousel-indicators">
+    <button
+      *ngFor="let page of [].constructor(totalPages); let i = index"
+      class="carousel-indicator"
+      [class.active]="i === currentIndex"
+      (click)="goToPage(i)"
+      [attr.aria-label]="'Go to slide ' + (i + 1)">
+    </button>
   </div>
 </div>
 
@@ -70,10 +80,11 @@
           Want to Submit <span class="break">Your Work?</span>
         </h1>
         <p>Publish with pride! register using Iskolarngbayan, upload, and reach the readers who matter.</p>
-        <p-button class="submit" [disabled]="true">Submit Work</p-button>
+        <p-button *ngIf="isPupian()" class="submit" routerLink="/submission">Submit Work</p-button>
       </div>
   
       <div class="rightside">
+        <h2 class="workflow-title">Submission Workflow</h2>
         <div class="instructions">Upload Thesis and Certification of Completion</div>
         <div class="instructions">Enter Tags, Abstract and Metadata</div>
         <div class="instructions">Choose Access Level for your Thesis</div>

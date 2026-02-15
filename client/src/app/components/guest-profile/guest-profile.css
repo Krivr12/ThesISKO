@@ -16,9 +16,10 @@
 }
 
 .profile-container {
-  min-height: calc(100vh - 140px);
+  min-height: calc(100vh - 80px);
   background-color: #800000;
   padding: 2rem 1rem;
+  padding-top: calc(80px + 2rem); /* Account for fixed navbar (80px) + original padding */
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -178,6 +179,7 @@
 @media (max-width: 768px) {
   .profile-container {
     padding: 1rem 0.5rem;
+    padding-top: 100px; /* Account for fixed navbar */
   }
 
   .profile-content {
@@ -195,6 +197,10 @@
 
   .form-section {
     padding: 1rem;
+  }
+  
+  .form-section h3 {
+    margin-top: 0;
   }
 
   .form-row {
@@ -216,10 +222,12 @@
 @media (max-width: 480px) {
   .profile-container {
     padding: 0.5rem 0.25rem;
+    padding-top: 90px; /* Account for fixed navbar */
   }
 
   .form-section h3 {
     font-size: 1.125rem;
+    margin-top: 0;
   }
 
   .form-field input[pInputText] {

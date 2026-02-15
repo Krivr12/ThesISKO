@@ -5,11 +5,6 @@
         <div *ngIf="view === 'list'" class="list-view-container">
             <header class="page-header">
                 <h1 class="page-title">Documents</h1>
-                <div class="filter-buttons">
-                    <button [class.active]="currentFilter === 'For Approval'" (click)="setFilter('For Approval')">For Approval</button>
-                    <button [class.active]="currentFilter === 'With Issues'" (click)="setFilter('With Issues')">With Issues</button>
-                    <button [class.active]="currentFilter === 'Approved'" (click)="setFilter('Approved')">Approved</button>
-                </div>
             </header>
 
             <div class="documents-table">
@@ -26,20 +21,14 @@
                         Document ID
                         <span class="sort-arrow" *ngIf="sortColumn === 'id'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
                     </div>
-                    <div class="header-item"></div>
+                    <div class="header-item">Actions</div>
                 </div>
                 <div class="table-row" *ngFor="let doc of paginatedDocuments">
                     <div class="row-item">{{ doc.title }}</div>
                     <div class="row-item">{{ doc.submissionDate }}</div>
                     <div class="row-item">{{ doc.id }}</div>
                     <div class="row-item action-cell">
-                        <button *ngIf="doc.status === 'For Approval'" class="verify-btn" (click)="showDetailsView(doc)">Verify</button>
-                        <span *ngIf="doc.status !== 'For Approval'" 
-                              class="status-tag clickable" 
-                              [ngClass]="doc.status.split(' ')[0].toLowerCase()"
-                              (click)="showDetailsView(doc)">
-                            {{ doc.status }}
-                        </span>
+                        <button class="update-btn" (click)="openUpdateModal(doc)">Update</button>
                     </div>
                 </div>
             </div>
@@ -209,16 +198,73 @@
         <div class="modal-overlay" *ngIf="isDeleteModalVisible">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title">Confirm Document Deletion</h3>
-                    <button class="modal-close-btn" (click)="closeDeleteModal()">×</button>
+                    <h3 class="modal-title">Delete User</h3> <button class="modal-close-btn" (click)="closeDeleteModal()">×</button>
+                </div>
+                
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong>FACULTY test?</strong></p>
+                </div>
+        
+                <div class="modal-actions">
+                    <button class="modal-btn cancel-btn" (click)="closeDeleteModal()">Cancel</button>
+                    <button class="modal-btn confirm-btn" (click)="deleteDocument()">Yes</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Update Document Modal -->
+        <div class="modal-overlay" *ngIf="isUpdateModalVisible">
+            <div class="modal-content update-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">Update Document</h3>
+                    <button class="modal-close-btn" (click)="closeUpdateModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="update-form">
+                        <div class="form-group">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-input" [(ngModel)]="updateForm.title" placeholder="Enter document title">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Abstract</label>
+                            <textarea class="form-textarea" [(ngModel)]="updateForm.abstract" placeholder="Enter document abstract" rows="4"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Authors (comma-separated)</label>
+                            <input type="text" class="form-input" [(ngModel)]="updateForm.authorsString" placeholder="e.g., John Doe, Jane Smith">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Upload New Manuscript (Optional)</label>
+                            <input type="file" accept="application/pdf" (change)="onManuscriptFileSelected($event)" class="file-input">
+                            <p class="file-hint" *ngIf="updateForm.manuscriptFileName">Selected: {{ updateForm.manuscriptFileName }}</p>
+                            <p class="file-hint" *ngIf="!updateForm.manuscriptFileName">Upload a new PDF to replace the existing manuscript</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" (click)="openConfirmUpdateModal()" [disabled]="!isUpdateFormValid()">Save Changes</button>
+                    <button class="modal-btn cancel-btn" (click)="closeUpdateModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm Update Modal -->
+        <div class="modal-overlay" *ngIf="isConfirmUpdateModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Confirm Update</h3>
+                    <button class="modal-close-btn" (click)="closeConfirmUpdateModal()">×</button>
                 </div>
                 <p class="modal-body">
-                    Are you sure you want to delete this document? This action cannot be undone.
-                    The document and its file will be permanently removed from the system.
+                    Are you sure you want to update this document? 
+                    <span *ngIf="updateForm.manuscriptFile">The existing manuscript will be replaced with the new file.</span>
                 </p>
                 <div class="modal-actions">
-                    <button class="modal-btn confirm-btn" (click)="deleteDocument()">Yes, Delete</button>
-                    <button class="modal-btn cancel-btn" (click)="closeDeleteModal()">Cancel</button>
+                    <button class="modal-btn confirm-btn" (click)="updateDocument()">Yes, Update</button>
+                    <button class="modal-btn cancel-btn" (click)="closeConfirmUpdateModal()">Cancel</button>
                 </div>
             </div>
         </div>

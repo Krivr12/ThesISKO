@@ -116,18 +116,16 @@ export class PanelistApprovalPage implements OnInit {
     // (history.state may have cached data without milestones)
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      console.log('👥 Fetching group data for panelist approval:', id);
       
       // Fetch group from MongoDB API using environment URL
       this.submissionService.getGroupStatus(id).subscribe({
         next: (response) => {
-          console.log('✅ Group response:', response);
           if (response) {
             this.setGroup(this.normalizeGroup(response));
           }
         },
         error: (err) => {
-          console.error('❌ Error fetching group:', err);
+          
           // swallow; empty state will show
         }
       });
@@ -277,7 +275,6 @@ export class PanelistApprovalPage implements OnInit {
     decision: 'Approved' | 'Rejected' | 'For Revision',
     payload: { reasons?: string[]; remarks?: string }
   ) {
-    console.log('DECISION:', decision, 'GROUP:', this.group, 'PAYLOAD:', payload);
     
     if (!this.group?.group_id) {
       alert('Group ID not found');
@@ -297,7 +294,6 @@ export class PanelistApprovalPage implements OnInit {
       const panelistEmail = currentUser.email || currentUser.Email || '';
       const panelistName = `${currentUser.Firstname || ''} ${currentUser.Lastname || ''}`.trim() || 'Panelist';
 
-      console.log('📝 Panelist approval by:', { email: panelistEmail, name: panelistName, user_id: currentUser.id });
 
       this.http.patch<any>(
         `${environment.authApiUrl}/groups/${this.group.group_id}/milestones/upload_manuscript/approve`,
@@ -307,12 +303,11 @@ export class PanelistApprovalPage implements OnInit {
         }
       ).subscribe({
         next: (response) => {
-          console.log('✅ Approval recorded:', response);
           alert('Manuscript approved successfully!');
           this.router.navigate(['/faculty-home']); // Navigate back to faculty home
         },
         error: (error) => {
-          console.error('❌ Error recording approval:', error);
+          
           alert('Failed to record approval. Please try again.');
         }
       });
@@ -321,7 +316,6 @@ export class PanelistApprovalPage implements OnInit {
       // Currently the API doesn't have a reject endpoint for panelists,
       // so we'll just show a message
       alert('Rejection functionality coming soon. For now, please contact the group leader directly.');
-      console.log('Rejection payload:', payload);
     }
   }
 
@@ -368,7 +362,7 @@ export class PanelistApprovalPage implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error getting signed URL:', error);
+        
         this.pdfError = 'Failed to load document. Please try again.';
         this.pdfLoading = false;
       }

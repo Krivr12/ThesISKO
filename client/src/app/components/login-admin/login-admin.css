@@ -178,14 +178,184 @@ h1 {
     font-size: 0.95rem;
   }
   
-  @media (max-width: 1024px) {
-    .background { flex-direction: column; }
-    .leftside { display: none; }
-    .rightside { align-items: flex-start; }
-    .form-container { margin-top: 32px; }
+  /* Back to Home link */
+  .back-link {
+    margin-top: 1.5rem;
+    text-align: center;
+    width: 100%;
+    max-width: 480px;
   }
-  
-  @media (max-width: 480px) {
-    .header { font-size: 32px; }
-    .form-container { max-width: calc(100% - 32px); }
+
+  .back-button {
+    color: #800000;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+    display: inline-block;
   }
+
+  .back-button:hover {
+    color: #a00000;
+    text-decoration: underline;
+  }
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablets and smaller desktops */
+@media (max-width: 1024px) {
+  .background {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .leftside {
+    display: none;
+  }
+
+  .leftside .overlay {
+    display: none;
+  }
+
+  .rightside {
+    width: 100%;
+    flex: 1;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .loginform {
+    width: 100%;
+    max-width: 450px;
+  }
+
+  .login-header {
+    font-size: 48px;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .p-inputtext,
+  .p-password,
+  .p-password input,
+  :host ::ng-deep .p-password input {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  :host ::ng-deep .loginbtn .p-button {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 768px) {
+  .rightside {
+    padding: 1.5rem 1rem;
+  }
+
+  .loginform {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .login-header {
+    font-size: 36px;
+    margin-left: 0;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .field {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .field label {
+    font-size: 0.95rem;
+  }
+
+  .p-inputtext,
+  .p-password,
+  .p-password input,
+  :host ::ng-deep .p-password input,
+  :host ::ng-deep .p-inputtext {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 48px;
+  }
+
+  :host ::ng-deep .loginbtn .p-button {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 50px;
+  }
+
+  .back-link {
+    max-width: 100%;
+    margin-top: 1rem;
+  }
+}
+
+/* Small mobile phones */
+@media (max-width: 480px) {
+  .rightside {
+    padding: 1rem 0.75rem;
+  }
+
+  .loginform {
+    padding: 0.75rem;
+    border-radius: 20px;
+  }
+
+  .login-header {
+    font-size: 28px;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+  }
+
+  .field label {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .p-inputtext,
+  .p-password input,
+  :host ::ng-deep .p-password input {
+    height: 45px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  :host ::ng-deep .loginbtn .p-button {
+    height: 48px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .back-link {
+    margin-top: 1rem;
+  }
+
+  .back-button {
+    font-size: 0.9rem;
+  }
+
+  .p-error {
+    font-size: 0.8rem;
+  }
+}

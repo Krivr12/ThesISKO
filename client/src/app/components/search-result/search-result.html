@@ -50,14 +50,14 @@
     </div>
     
 
-<!-- ===================== STUDENT DIALOG ===================== -->
-<ng-template #dlgRequestAccessStudent let-dialogRef="dialogRef">
+<!-- ===================== OLD PUPIAN DIALOG - STEP 1 ===================== -->
+<ng-template #dlgOldPupianStep1 let-dialogRef="dialogRef">
   <h2 mat-dialog-title>Request Manuscript</h2>
 
   <mat-dialog-content class="dialog-body">
     <!-- Email (read-only from auth) -->
     <div class="dialog-section">
-      <div class="section-title">Your PUP email</div>
+      <div class="section-title">Your PUP email <span class="required-asterisk">*</span></div>
       <mat-form-field appearance="outline" class="w-100">
         <input matInput [value]="currentUserEmail" readonly />
         <mat-hint>Signed in via @iskolarngbayan.pup.edu.ph</mat-hint>
@@ -66,7 +66,7 @@
 
     <!-- Program -->
     <div class="dialog-section">
-      <div class="section-title">Program</div>
+      <div class="section-title">Program <span class="required-asterisk">*</span></div>
       <mat-form-field appearance="outline" class="w-100">
         <mat-select [(ngModel)]="studentProgram" placeholder="Select program" (selectionChange)="onProgramChange()">
           <mat-option value="OPEN UNIVERSITY SYSTEM">OPEN UNIVERSITY SYSTEM</mat-option>
@@ -88,7 +88,7 @@
 
     <!-- Department -->
     <div class="dialog-section">
-      <div class="section-title">Department</div>
+      <div class="section-title">Department <span class="required-asterisk">*</span></div>
       <mat-form-field appearance="outline" class="w-100">
         <mat-select [(ngModel)]="studentDepartment" placeholder="Select department">
           <mat-option *ngFor="let dept of getFilteredDepartmentOptions(); trackBy: trackDepartmentBy" [value]="dept.value">
@@ -99,9 +99,58 @@
       </mat-form-field>
     </div>
 
+    <!-- Role -->
+    <div class="dialog-section">
+      <div class="section-title">Role <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="pupianRole" placeholder="Select role" required>
+          <mat-option value="Student">Student</mat-option>
+          <mat-option value="Faculty">Faculty</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Contact Number -->
+    <div class="dialog-section">
+      <div class="section-title">Contact Number <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput type="tel" placeholder="Enter contact number" [(ngModel)]="oldPupianContactNumber" required pattern="[0-9]+" />
+        <mat-hint>Numbers only</mat-hint>
+        <mat-error *ngIf="!oldPupianContactNumber">Contact number is required.</mat-error>
+        <mat-error *ngIf="oldPupianContactNumber && !isValidContactNumber(oldPupianContactNumber)">Contact number must contain numbers only.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!studentProgram || !studentDepartment || !pupianRole || !oldPupianContactNumber || !isValidContactNumber(oldPupianContactNumber)"
+      (click)="openOldPupianStep2(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== OLD PUPIAN DIALOG - STEP 2 ===================== -->
+<ng-template #dlgOldPupianStep2 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request Details</h2>
+
+  <mat-dialog-content class="dialog-body">
+    <!-- Supervisor or Adviser (Optional) -->
+    <div class="dialog-section">
+      <div class="section-title">Supervisor or Adviser</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter supervisor or adviser name" [(ngModel)]="oldPupianSupervisor" />
+        <mat-hint>If applicable, provide the name of your supervisor or adviser</mat-hint>
+      </mat-form-field>
+    </div>
+
     <!-- Chapters -->
     <div class="dialog-section">
-      <div class="section-title">Select chapters</div>
+      <div class="section-title">Select chapters <span class="required-asterisk">*</span></div>
       <div class="checkbox-grid">
         <mat-checkbox
           *ngFor="let c of requestOptions"
@@ -115,16 +164,105 @@
 
     <!-- Purpose -->
     <div class="dialog-section">
-      <div class="section-title">Purpose of request</div>
+      <div class="section-title">Purpose of Request <span class="required-asterisk">*</span></div>
       <mat-form-field appearance="outline" class="w-100">
         <textarea
           matInput
           [(ngModel)]="requestPurpose"
-          placeholder="State your purpose"
-          rows="4"
+          placeholder="Provide a detailed explanation of your purpose for requesting this older document"
+          rows="5"
           required></textarea>
-        <mat-hint>Give a short but clear reason.</mat-hint>
-        <mat-error *ngIf="requestPurpose.trim().length < 8">Please enter at least 8 characters.</mat-error>
+        <mat-hint>
+          Please provide a comprehensive explanation of why you need access to this older document.
+          <span class="char-count" [class.char-count-warning]="requestPurpose.trim().length < 50">
+            ({{ requestPurpose.trim().length }}/50 characters minimum)
+          </span>
+        </mat-hint>
+        <mat-error *ngIf="requestPurpose.trim().length < 50">Please enter at least 50 characters with detailed information.</mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Intended Use -->
+    <div class="dialog-section">
+      <div class="section-title">Intended Use of Information <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea
+          matInput
+          [(ngModel)]="intendedUse"
+          placeholder="Will this be used for academic, research, reference, or publication purposes? Please elaborate."
+          rows="5"
+          required></textarea>
+        <mat-hint>
+          Please specify how you intend to use the information from this document.
+          <span class="char-count" [class.char-count-warning]="intendedUse.trim().length < 24">
+            ({{ intendedUse.trim().length }}/24 characters minimum)
+          </span>
+        </mat-hint>
+        <mat-error *ngIf="intendedUse.trim().length < 24">Please enter at least 24 characters.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="selectedRequestChapters.size === 0 || !requestPurpose || requestPurpose.trim().length < 50 || !intendedUse || intendedUse.trim().length < 24"
+      (click)="openOldPupianStep3(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== OLD PUPIAN DIALOG - STEP 3 ===================== -->
+<ng-template #dlgOldPupianStep3 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Terms &amp; Conditions for Thesis/Manuscript Access</h2>
+  <mat-dialog-content class="dialog-body">
+    <div class="terms-scroll">
+      <ul class="terms-list">
+        <li><strong>Scope &amp; Purpose (Academic Use Only)</strong> — Access is granted solely for academic activities such as coursework, thesis, capstone projects, or non-commercial research.</li>
+    
+        <li><strong>Non-Commercial Use</strong> — You shall not sell, rent, license, or otherwise use any part of the work for profit or commercial purposes.</li>
+    
+        <li><strong>No Plagiarism</strong> — You must not copy, paraphrase, or reproduce any portion of the work without proper citation. Submitting any part as your own work is strictly prohibited.</li>
+    
+        <li><strong>Proper Citation</strong> — You agree to properly acknowledge the authors and sources of the work using your institution's required citation style (e.g., APA, MLA, Chicago, etc.).</li>
+    
+        <li><strong>No Unauthorized Distribution</strong> — You may not publicly upload, repost, mirror, or distribute full copies of any work without written authorization from the Polytechnic University of the Philippines (PUP) or the rightful copyright holder.</li>
+    
+        <li><strong>Integrity of the Work</strong> — You will not alter or remove author names, titles, watermarks, or copyright and attribution notices from any accessed material.</li>
+    
+        <li><strong>Access &amp; Security</strong> — You must not bypass or tamper with access controls. All access and download activity may be logged for audit and compliance purposes.</li>
+    
+        <li><strong>Reporting Misuse</strong> — Any accidental leaks, unauthorized sharing, or suspected misuse must be immediately reported to the system administrator or library staff.</li>
+    
+        <li><strong>Data Privacy &amp; Protection</strong> — You acknowledge that any personal information collected or processed through this system is protected under the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>. Your data will be used solely for authentication, monitoring, and documentation purposes related to repository access, in accordance with applicable data protection policies.</li>
+    
+        <li><strong>Compliance &amp; Consequences</strong> — Any violation of these terms may result in revoked access, disciplinary action from your institution, and/or legal remedies as applicable under Philippine law.</li>
+    
+        <li><strong>Acknowledgment</strong> — By proceeding, you affirm that you have read, understood, and agree to these terms and conditions, and accept full responsibility for compliance.</li>
+      </ul>
+    </div>
+    
+    <mat-checkbox [(ngModel)]="termsAccepted" class="terms-checkbox">
+      I have read, understood, and agree to the Terms &amp; Conditions for academic, non-commercial use.
+    </mat-checkbox>
+
+    <div class="dialog-section" style="margin-top: 20px;">
+      <mat-checkbox [(ngModel)]="consentToContact" class="terms-checkbox">
+        I allow the university/library staff to contact me for clarification or verification of this request.
+      </mat-checkbox>
+    </div>
+
+    <div class="dialog-section" *ngIf="consentToContact">
+      <div class="section-title">Preferred Contact Method <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="preferredContactMethod" placeholder="Select preferred contact method" required>
+          <mat-option value="Email">Email</mat-option>
+          <mat-option value="Phone">Phone</mat-option>
+        </mat-select>
+        <mat-error *ngIf="consentToContact && !preferredContactMethod">Please select a preferred contact method.</mat-error>
       </mat-form-field>
     </div>
   </mat-dialog-content>
@@ -134,7 +272,115 @@
     <button
       mat-raised-button
       color="accent"
-      [disabled]="!(studentFormValid && studentProgram && studentDepartment) || isSubmittingRequest"
+      [disabled]="!termsAccepted || (consentToContact && !preferredContactMethod) || isSubmittingRequest"
+      (click)="finalizeOldPupianRequest(dialogRef)">
+      <span *ngIf="!isSubmittingRequest">Send request</span>
+      <span *ngIf="isSubmittingRequest">Submitting...</span>
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== PUPIAN DIALOG (ACTIVE DOCUMENTS) ===================== -->
+<ng-template #dlgRequestAccessStudent let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request Manuscript</h2>
+
+  <mat-dialog-content class="dialog-body">
+    <!-- Email (read-only from auth) -->
+    <div class="dialog-section">
+      <div class="section-title">Your PUP email <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput [value]="currentUserEmail" readonly />
+        <mat-hint>Signed in via @iskolarngbayan.pup.edu.ph</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Program -->
+    <div class="dialog-section">
+      <div class="section-title">Program <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="studentProgram" placeholder="Select program" (selectionChange)="onProgramChange()">
+          <mat-option value="OPEN UNIVERSITY SYSTEM">OPEN UNIVERSITY SYSTEM</mat-option>
+          <mat-option value="COLLEGE OF ACCOUNTANCY AND FINANCE">COLLEGE OF ACCOUNTANCY AND FINANCE</mat-option>
+          <mat-option value="COLLEGE OF ARCHITECTURE, DESIGN AND THE BUILT ENVIRONMENT">COLLEGE OF ARCHITECTURE, DESIGN AND THE BUILT ENVIRONMENT</mat-option>
+          <mat-option value="COLLEGE OF ARTS AND LETTERS">COLLEGE OF ARTS AND LETTERS</mat-option>
+          <mat-option value="COLLEGE OF BUSINESS ADMINISTRATION">COLLEGE OF BUSINESS ADMINISTRATION</mat-option>
+          <mat-option value="COLLEGE OF COMMUNICATION">COLLEGE OF COMMUNICATION</mat-option>
+          <mat-option value="COLLEGE OF COMPUTER AND INFORMATION SCIENCES">COLLEGE OF COMPUTER AND INFORMATION SCIENCES</mat-option>
+          <mat-option value="COLLEGE OF EDUCATION">COLLEGE OF EDUCATION</mat-option>
+          <mat-option value="COLLEGE OF ENGINEERING">COLLEGE OF ENGINEERING</mat-option>
+          <mat-option value="COLLEGE OF HUMAN KINETICS">COLLEGE OF HUMAN KINETICS</mat-option>
+          <mat-option value="COLLEGE OF SOCIAL SCIENCES AND DEVELOPMENT">COLLEGE OF SOCIAL SCIENCES AND DEVELOPMENT</mat-option>
+          <mat-option value="COLLEGE OF SCIENCE">COLLEGE OF SCIENCE</mat-option>
+        </mat-select>
+        <mat-hint>Pre-selected from your account (can be changed)</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Department -->
+    <div class="dialog-section">
+      <div class="section-title">Department <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="studentDepartment" placeholder="Select department">
+          <mat-option *ngFor="let dept of getFilteredDepartmentOptions(); trackBy: trackDepartmentBy" [value]="dept.value">
+            {{dept.label}}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Filtered based on selected program (can be changed)</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Role -->
+    <div class="dialog-section">
+      <div class="section-title">Role <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="pupianRole" placeholder="Select role" required>
+          <mat-option value="Student">Student</mat-option>
+          <mat-option value="Faculty">Faculty</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Chapters -->
+    <div class="dialog-section">
+      <div class="section-title">Select chapters <span class="required-asterisk">*</span></div>
+      <div class="checkbox-grid">
+        <mat-checkbox
+          *ngFor="let c of requestOptions"
+          [checked]="selectedRequestChapters.has(c)"
+          (change)="toggleRequestChapter(c, $event.checked)">
+          {{ c }}
+        </mat-checkbox>
+      </div>
+      <small class="hint">Tip: Select "All" if you need the entire manuscript.</small>
+    </div>
+
+    <!-- Purpose -->
+    <div class="dialog-section">
+      <div class="section-title">Purpose of request <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea
+          matInput
+          [(ngModel)]="requestPurpose"
+          placeholder="State your purpose"
+          rows="4"
+          required></textarea>
+        <mat-hint>
+          Give a detailed explanation of your purpose.
+          <span class="char-count" [class.char-count-warning]="requestPurpose.trim().length < 24">
+            ({{ requestPurpose.trim().length }}/24 characters minimum)
+          </span>
+        </mat-hint>
+        <mat-error *ngIf="requestPurpose.trim().length < 24">Please enter at least 24 characters.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!(studentFormValid && studentProgram && studentDepartment && pupianRole) || isSubmittingRequest"
       (click)="openTermsAndSubmit(dialogRef)">
       <span *ngIf="!isSubmittingRequest">Send request</span>
       <span *ngIf="isSubmittingRequest">Submitting...</span>
@@ -142,59 +388,165 @@
   </mat-dialog-actions>
 </ng-template>
 
-<!-- ===================== GUEST DIALOG ======================= -->
+<!-- ===================== GUEST FORM - STEP 1: BASIC USER INFO (ACTIVE DOCUMENTS) ===================== -->
 <ng-template #dlgRequestAccessGuest let-dialogRef="dialogRef">
-  <h2 mat-dialog-title>Request Manuscript</h2>
-
+  <h2 mat-dialog-title>Request Access</h2>
   <mat-dialog-content class="dialog-body">
     <!-- Email -->
     <div class="dialog-section">
-      <div class="section-title">Your email</div>
+      <div class="section-title">Email <span class="required-asterisk">*</span></div>
       <mat-form-field appearance="outline" class="w-100">
-        <input
-          matInput
-          [(ngModel)]="requestEmail"
-          type="email"
-          placeholder="name@gmail.com"
-          (ngModelChange)="touchGuestEmail = true"
-          required />
-        <mat-hint>Guests must request using Gmail.</mat-hint>
-        <mat-error *ngIf="touchGuestEmail && !isGmail(requestEmail)">
-          Please use a valid Gmail address.
-        </mat-error>
+        <input matInput placeholder="Enter your email address" [(ngModel)]="guestEmail" required email [readonly]="!!currentUserEmail" />
+        <mat-hint *ngIf="currentUserEmail">Pre-filled from your account</mat-hint>
+        <mat-error *ngIf="!guestEmail || !guestEmail.includes('@')">Please enter a valid email.</mat-error>
       </mat-form-field>
     </div>
-
-    <!-- Country -->
+    <!-- Full Name -->
     <div class="dialog-section">
-      <div class="section-title">Country</div>
+      <div class="section-title">Full Name <span class="required-asterisk">*</span></div>
       <mat-form-field appearance="outline" class="w-100">
-        <input matInput [(ngModel)]="guestCountry" placeholder="e.g., Philippines" required />
-        <mat-error *ngIf="!guestCountry">Country is required.</mat-error>
+        <input matInput placeholder="Enter your full name" [(ngModel)]="guestFullName" required />
+        <mat-error *ngIf="!guestFullName">Full name is required.</mat-error>
       </mat-form-field>
     </div>
-
-    <!-- School -->
-    <div class="dialog-section">
-      <div class="section-title">School</div>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput [(ngModel)]="guestSchool" placeholder="e.g., XYZ University" required />
-        <mat-error *ngIf="!guestSchool">School is required.</mat-error>
-      </mat-form-field>
-    </div>
-
     <!-- City -->
     <div class="dialog-section">
-      <div class="section-title">City</div>
+      <div class="section-title">City <span class="required-asterisk">*</span></div>
       <mat-form-field appearance="outline" class="w-100">
-        <input matInput [(ngModel)]="guestCity" placeholder="e.g., Manila" required />
+        <input matInput placeholder="Enter your city" [(ngModel)]="guestCity" required />
         <mat-error *ngIf="!guestCity">City is required.</mat-error>
       </mat-form-field>
     </div>
-
-    <!-- Chapters -->
+    <!-- Country -->
     <div class="dialog-section">
-      <div class="section-title">Select chapters</div>
+      <div class="section-title">Country <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your country" [(ngModel)]="guestCountry" required />
+        <mat-error *ngIf="!guestCountry">Country is required.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!guestEmail || !guestFullName || !guestCity || !guestCountry"
+      (click)="openGuestStep2(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+<!-- STEP 2A: PUP MEMBER DETAILS -->
+<ng-template #dlgUserAffiliation let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>PUP Member Information</h2>
+  <mat-dialog-content class="dialog-body">
+    <div class="dialog-section">
+      <div class="section-title">College</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="selectedCollege" placeholder="Select College" required (selectionChange)="onCollegeChange()">
+          <mat-option *ngFor="let college of colleges" [value]="college">{{ college }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Department <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="selectedDepartment" placeholder="Select Department" required>
+          <mat-option *ngFor="let dept of filteredDepartments" [value]="dept">{{ dept }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Role <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="userRoleForm" placeholder="Select Role" required>
+          <mat-option value="Student">Student</mat-option>
+          <mat-option value="Faculty">Faculty</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    
+    <!-- Conditional ID field based on selected role -->
+    <div class="dialog-section" *ngIf="userRoleForm === 'Student'">
+      <div class="section-title">Student ID</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your Student ID" [(ngModel)]="studentID" required />
+        <mat-error *ngIf="!studentID">Student ID is required.</mat-error>
+      </mat-form-field>
+    </div>
+    
+    <div class="dialog-section" *ngIf="userRoleForm === 'Faculty'">
+      <div class="section-title">Faculty ID</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your Faculty ID" [(ngModel)]="facultyID" required />
+        <mat-error *ngIf="!facultyID">Faculty ID is required.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button mat-raised-button color="accent" 
+      [disabled]="!selectedCollege || !selectedDepartment || !userRoleForm || (userRoleForm === 'Student' && !studentID) || (userRoleForm === 'Faculty' && !facultyID)"
+      (click)="openRequestDetails(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+<!-- ===================== GUEST FORM - STEP 2: AFFILIATION INFO (ACTIVE DOCUMENTS) ===================== -->
+<ng-template #dlgGuestStep2 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Affiliation Information</h2>
+  <mat-dialog-content class="dialog-body">
+    <div class="dialog-section">
+      <div class="section-title">University / Organization <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your university or organization" [(ngModel)]="guestSchool" required />
+        <mat-error *ngIf="!guestSchool">University/Organization is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Program <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your program" [(ngModel)]="guestProgram" required />
+        <mat-error *ngIf="!guestProgram">Program is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Department <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your department" [(ngModel)]="guestDepartment" required />
+        <mat-error *ngIf="!guestDepartment">Department is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Role <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="guestRole" placeholder="Select role" required>
+          <mat-option value="Student">Student</mat-option>
+          <mat-option value="Faculty">Faculty</mat-option>
+        </mat-select>
+        <mat-error *ngIf="!guestRole">Role is required.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!guestSchool || !guestProgram || !guestDepartment || !guestRole"
+      (click)="openGuestStep3(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== GUEST FORM - STEP 3: REQUEST DETAILS (ACTIVE DOCUMENTS) ===================== -->
+<ng-template #dlgGuestStep3 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request Details</h2>
+  <mat-dialog-content class="dialog-body">
+    <div class="dialog-section">
+      <div class="section-title">Select chapters <span class="required-asterisk">*</span></div>
       <div class="checkbox-grid">
         <mat-checkbox
           *ngFor="let c of requestOptions"
@@ -205,36 +557,409 @@
       </div>
       <small class="hint">Tip: Select "All" if you need the entire manuscript.</small>
     </div>
-
-    <!-- Purpose -->
     <div class="dialog-section">
-      <div class="section-title">Purpose of request</div>
+      <div class="section-title">Purpose of Request <span class="required-asterisk">*</span></div>
       <mat-form-field appearance="outline" class="w-100">
         <textarea
           matInput
           [(ngModel)]="requestPurpose"
-          placeholder="State your purpose"
-          rows="4"
+          placeholder="Provide a detailed explanation of your purpose for requesting this document"
+          rows="5"
           required></textarea>
-        <mat-error *ngIf="requestPurpose.trim().length < 8">Please enter at least 8 characters.</mat-error>
+        <mat-hint>
+          Please provide a comprehensive explanation of why you need access to this document.
+          <span class="char-count" [class.char-count-warning]="requestPurpose.trim().length < 24">
+            ({{ requestPurpose.trim().length }}/24 characters minimum)
+          </span>
+        </mat-hint>
+        <mat-error *ngIf="requestPurpose.trim().length < 24">Please enter at least 24 characters.</mat-error>
       </mat-form-field>
     </div>
-
-    <mat-divider></mat-divider>
-    <p class="policy-note">
-      Requests are reviewed by admin. You may be asked to verify your email.
-    </p>
   </mat-dialog-content>
-
   <mat-dialog-actions align="end">
-    <button mat-button (click)="resetRequestDialog(); dialogRef.close()">Cancel</button>
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
     <button
       mat-raised-button
       color="accent"
-      [disabled]="!(guestFormValid && guestCountry && guestCity && guestSchool) || isSubmittingRequest"
-      (click)="openTermsAndSubmit(dialogRef)">
+      [disabled]="selectedRequestChapters.size === 0 || !requestPurpose || requestPurpose.trim().length < 24"
+      (click)="openGuestStep4(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== GUEST FORM - STEP 4: TERMS (ACTIVE DOCUMENTS) ===================== -->
+<ng-template #dlgGuestStep4 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Terms &amp; Conditions for Thesis/Manuscript Access</h2>
+  <mat-dialog-content class="dialog-body">
+    <div class="terms-scroll">
+      <ul class="terms-list">
+        <li><strong>Scope &amp; Purpose (Academic Use Only)</strong> — Access is granted solely for academic activities such as coursework, thesis, capstone projects, or non-commercial research.</li>
+    
+        <li><strong>Non-Commercial Use</strong> — You shall not sell, rent, license, or otherwise use any part of the work for profit or commercial purposes.</li>
+    
+        <li><strong>No Plagiarism</strong> — You must not copy, paraphrase, or reproduce any portion of the work without proper citation. Submitting any part as your own work is strictly prohibited.</li>
+    
+        <li><strong>Proper Citation</strong> — You agree to properly acknowledge the authors and sources of the work using your institution's required citation style (e.g., APA, MLA, Chicago, etc.).</li>
+    
+        <li><strong>No Unauthorized Distribution</strong> — You may not publicly upload, repost, mirror, or distribute full copies of any work without written authorization from the Polytechnic University of the Philippines (PUP) or the rightful copyright holder.</li>
+    
+        <li><strong>Integrity of the Work</strong> — You will not alter or remove author names, titles, watermarks, or copyright and attribution notices from any accessed material.</li>
+    
+        <li><strong>Access &amp; Security</strong> — You must not bypass or tamper with access controls. All access and download activity may be logged for audit and compliance purposes.</li>
+    
+        <li><strong>Reporting Misuse</strong> — Any accidental leaks, unauthorized sharing, or suspected misuse must be immediately reported to the system administrator or library staff.</li>
+    
+        <li><strong>Data Privacy &amp; Protection</strong> — You acknowledge that any personal information collected or processed through this system is protected under the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>. Your data will be used solely for authentication, monitoring, and documentation purposes related to repository access, in accordance with applicable data protection policies.</li>
+    
+        <li><strong>Compliance &amp; Consequences</strong> — Any violation of these terms may result in revoked access, disciplinary action from your institution, and/or legal remedies as applicable under Philippine law.</li>
+    
+        <li><strong>Acknowledgment</strong> — By proceeding, you affirm that you have read, understood, and agree to these terms and conditions, and accept full responsibility for compliance.</li>
+      </ul>
+    </div>
+    
+    <mat-checkbox [(ngModel)]="termsAccepted" class="terms-checkbox">
+      I have read, understood, and agree to the Terms &amp; Conditions for academic, non-commercial use.
+    </mat-checkbox>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button mat-raised-button color="accent"
+            [disabled]="!termsAccepted || isSubmittingRequest"
+            (click)="finalizeGuestRequest(dialogRef)">
       <span *ngIf="!isSubmittingRequest">Send request</span>
       <span *ngIf="isSubmittingRequest">Submitting...</span>
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+<!-- ===================== OLD GUEST FORM - STEP 1: BASIC USER INFO ===================== -->
+<ng-template #dlgOldGuestStep1 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request Access</h2>
+  <mat-dialog-content class="dialog-body">
+    <!-- Email -->
+    <div class="dialog-section">
+      <div class="section-title">Email <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your email address" [(ngModel)]="guestEmail" required email [readonly]="!!currentUserEmail" />
+        <mat-hint *ngIf="currentUserEmail">Pre-filled from your account</mat-hint>
+        <mat-error *ngIf="!guestEmail || !guestEmail.includes('@')">Please enter a valid email.</mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Full Name -->
+    <div class="dialog-section">
+      <div class="section-title">Full Name <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your full name" [(ngModel)]="guestFullName" required />
+        <mat-error *ngIf="!guestFullName">Full name is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <!-- City -->
+    <div class="dialog-section">
+      <div class="section-title">City <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your city" [(ngModel)]="guestCity" required />
+        <mat-error *ngIf="!guestCity">City is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Country -->
+    <div class="dialog-section">
+      <div class="section-title">Country <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your country" [(ngModel)]="guestCountry" required />
+        <mat-error *ngIf="!guestCountry">Country is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Contact Number -->
+    <div class="dialog-section">
+      <div class="section-title">Contact Number <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput type="tel" placeholder="Enter contact number" [(ngModel)]="oldGuestContactNumber" required pattern="[0-9]+" />
+        <mat-hint>Numbers only</mat-hint>
+        <mat-error *ngIf="!oldGuestContactNumber">Contact number is required.</mat-error>
+        <mat-error *ngIf="oldGuestContactNumber && !isValidContactNumber(oldGuestContactNumber)">Contact number must contain numbers only.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!guestEmail || !guestFullName || !guestCity || !guestCountry || !oldGuestContactNumber || !isValidContactNumber(oldGuestContactNumber)"
+      (click)="openOldGuestStep2(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== OLD GUEST FORM - STEP 2: AFFILIATION INFO ===================== -->
+<ng-template #dlgOldGuestStep2 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Affiliation Information</h2>
+  <mat-dialog-content class="dialog-body">
+    <!-- Supervisor or Adviser (Optional) -->
+    <div class="dialog-section">
+      <div class="section-title">Supervisor or Adviser</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter supervisor or adviser name" [(ngModel)]="oldGuestSupervisor" />
+        <mat-hint>If applicable, provide the name of your supervisor or adviser</mat-hint>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">University / Organization <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your university or organization" [(ngModel)]="guestSchool" required />
+        <mat-error *ngIf="!guestSchool">University/Organization is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Program <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your program" [(ngModel)]="guestProgram" required />
+        <mat-error *ngIf="!guestProgram">Program is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Department <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput placeholder="Enter your department" [(ngModel)]="guestDepartment" required />
+        <mat-error *ngIf="!guestDepartment">Department is required.</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Role <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="guestRole" placeholder="Select role" required>
+          <mat-option value="Student">Student</mat-option>
+          <mat-option value="Faculty">Faculty</mat-option>
+        </mat-select>
+        <mat-error *ngIf="!guestRole">Role is required.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!guestSchool || !guestProgram || !guestDepartment || !guestRole"
+      (click)="openOldGuestStep3(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== OLD GUEST FORM - STEP 3: REQUEST DETAILS ===================== -->
+<ng-template #dlgOldGuestStep3 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request Details</h2>
+  <mat-dialog-content class="dialog-body">
+    <div class="dialog-section">
+      <div class="section-title">Select chapters <span class="required-asterisk">*</span></div>
+      <div class="checkbox-grid">
+        <mat-checkbox
+          *ngFor="let c of requestOptions"
+          [checked]="selectedRequestChapters.has(c)"
+          (change)="toggleRequestChapter(c, $event.checked)">
+          {{ c }}
+        </mat-checkbox>
+      </div>
+      <small class="hint">Tip: Select "All" if you need the entire manuscript.</small>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Purpose of Request <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea
+          matInput
+          [(ngModel)]="requestPurpose"
+          placeholder="Provide a detailed explanation of your purpose for requesting this older document"
+          rows="5"
+          required></textarea>
+        <mat-hint>
+          Please provide a comprehensive explanation of why you need access to this older document.
+          <span class="char-count" [class.char-count-warning]="requestPurpose.trim().length < 50">
+            ({{ requestPurpose.trim().length }}/50 characters minimum)
+          </span>
+        </mat-hint>
+        <mat-error *ngIf="requestPurpose.trim().length < 50">Please enter at least 50 characters with detailed information.</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Intended Use of Information <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea
+          matInput
+          [(ngModel)]="intendedUse"
+          placeholder="Will this be used for academic, research, reference, or publication purposes? Please elaborate."
+          rows="5"
+          required></textarea>
+        <mat-hint>
+          Please specify how you intend to use the information from this document.
+          <span class="char-count" [class.char-count-warning]="intendedUse.trim().length < 24">
+            ({{ intendedUse.trim().length }}/24 characters minimum)
+          </span>
+        </mat-hint>
+        <mat-error *ngIf="intendedUse.trim().length < 24">Please enter at least 24 characters.</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">How did you learn about this document?</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea
+          matInput
+          [(ngModel)]="howDidYouLearn"
+          placeholder="If known, indicate where you found out about this document (catalog, reference, professor, etc.)"
+          rows="3"></textarea>
+        <mat-hint>
+          Optional: Share how you discovered this document
+          <span class="char-count">({{ howDidYouLearn.trim().length }} characters)</span>
+        </mat-hint>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="selectedRequestChapters.size === 0 || !requestPurpose || requestPurpose.trim().length < 50 || !intendedUse || intendedUse.trim().length < 24"
+      (click)="openOldGuestStep4(dialogRef)">
+      Next
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- ===================== OLD GUEST FORM - STEP 4: TERMS & CONSENT ===================== -->
+<ng-template #dlgOldGuestStep4 let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Terms &amp; Conditions for Thesis/Manuscript Access</h2>
+  <mat-dialog-content class="dialog-body">
+    <div class="terms-scroll">
+      <ul class="terms-list">
+        <li><strong>Scope &amp; Purpose (Academic Use Only)</strong> — Access is granted solely for academic activities such as coursework, thesis, capstone projects, or non-commercial research.</li>
+    
+        <li><strong>Non-Commercial Use</strong> — You shall not sell, rent, license, or otherwise use any part of the work for profit or commercial purposes.</li>
+    
+        <li><strong>No Plagiarism</strong> — You must not copy, paraphrase, or reproduce any portion of the work without proper citation. Submitting any part as your own work is strictly prohibited.</li>
+    
+        <li><strong>Proper Citation</strong> — You agree to properly acknowledge the authors and sources of the work using your institution's required citation style (e.g., APA, MLA, Chicago, etc.).</li>
+    
+        <li><strong>No Unauthorized Distribution</strong> — You may not publicly upload, repost, mirror, or distribute full copies of any work without written authorization from the Polytechnic University of the Philippines (PUP) or the rightful copyright holder.</li>
+    
+        <li><strong>Integrity of the Work</strong> — You will not alter or remove author names, titles, watermarks, or copyright and attribution notices from any accessed material.</li>
+    
+        <li><strong>Access &amp; Security</strong> — You must not bypass or tamper with access controls. All access and download activity may be logged for audit and compliance purposes.</li>
+    
+        <li><strong>Reporting Misuse</strong> — Any accidental leaks, unauthorized sharing, or suspected misuse must be immediately reported to the system administrator or library staff.</li>
+    
+        <li><strong>Data Privacy &amp; Protection</strong> — You acknowledge that any personal information collected or processed through this system is protected under the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>. Your data will be used solely for authentication, monitoring, and documentation purposes related to repository access, in accordance with applicable data protection policies.</li>
+    
+        <li><strong>Compliance &amp; Consequences</strong> — Any violation of these terms may result in revoked access, disciplinary action from your institution, and/or legal remedies as applicable under Philippine law.</li>
+    
+        <li><strong>Acknowledgment</strong> — By proceeding, you affirm that you have read, understood, and agree to these terms and conditions, and accept full responsibility for compliance.</li>
+      </ul>
+    </div>
+    
+    <mat-checkbox [(ngModel)]="termsAccepted" class="terms-checkbox">
+      I have read, understood, and agree to the Terms &amp; Conditions for academic, non-commercial use.
+    </mat-checkbox>
+
+    <div class="dialog-section" style="margin-top: 20px;">
+      <mat-checkbox [(ngModel)]="consentToContact" class="terms-checkbox">
+        I allow the university/library staff to contact me for clarification or verification of this request.
+      </mat-checkbox>
+    </div>
+
+    <div class="dialog-section" *ngIf="consentToContact">
+      <div class="section-title">Preferred Contact Method <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="preferredContactMethod" placeholder="Select preferred contact method" required>
+          <mat-option value="Email">Email</mat-option>
+          <mat-option value="Phone">Phone</mat-option>
+        </mat-select>
+        <mat-error *ngIf="consentToContact && !preferredContactMethod">Please select a preferred contact method.</mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button mat-raised-button color="accent"
+            [disabled]="!termsAccepted || (consentToContact && !preferredContactMethod) || isSubmittingRequest"
+            (click)="finalizeOldGuestRequest(dialogRef)">
+      <span *ngIf="!isSubmittingRequest">Send request</span>
+      <span *ngIf="isSubmittingRequest">Submitting...</span>
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- STEP 3: REQUEST DETAILS -->
+<ng-template #dlgRequestDetails let-dialogRef="dialogRef">
+  <h2 mat-dialog-title>Request Manuscript</h2>
+  <mat-dialog-content class="dialog-body">
+    <div class="dialog-section">
+      <div class="section-title">Type of Paper Requested</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="paperType" placeholder="Select type" required>
+          <mat-option value="Capstone">Capstone</mat-option>
+          <mat-option value="Thesis">Thesis</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Chapters Requested</div>
+      <div class="checkbox-grid">
+        <mat-checkbox *ngFor="let chapter of ['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4', 'Chapter 5']"
+          [checked]="selectedChapters.has(chapter)" (change)="toggleChapter(chapter, $event.checked)">
+          {{ chapter }}
+        </mat-checkbox>
+      </div>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Purpose of Request <span class="required-asterisk">*</span></div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="requestPurpose" placeholder="Select purpose" required>
+          <mat-option *ngFor="let purpose of ['Citation', 'Referencing', 'Review', 'Replication', 'Others']" [value]="purpose">
+            {{ purpose }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="dialog-section">
+      <div class="section-title">Remarks</div>
+      <mat-form-field appearance="outline" class="w-100">
+        <textarea matInput [(ngModel)]="requestRemarks" placeholder="Add your remarks" rows="3" required></textarea>
+      </mat-form-field>
+    </div>
+    
+    <!-- Old document specific fields (only show if document_status === "old") -->
+    <ng-container *ngIf="thesis?.document_status === 'old'">
+      <div class="dialog-section">
+        <div class="section-title">Justification for requesting older document</div>
+        <mat-form-field appearance="outline" class="w-100">
+          <textarea matInput [(ngModel)]="oldDocumentJustification" 
+            placeholder="Explain why you need to access this older document (e.g., historical research, comparative analysis, etc.)"
+            rows="4" required></textarea>
+          <mat-hint>Please provide a clear justification for accessing a document that is 5+ years old.</mat-hint>
+          <mat-error *ngIf="oldDocumentJustification.trim().length < 20">Please provide at least 20 characters explaining your justification.</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="dialog-section">
+        <div class="section-title">Research purpose details</div>
+        <mat-form-field appearance="outline" class="w-100">
+          <textarea matInput [(ngModel)]="researchPurposeDetails" 
+            placeholder="Provide detailed information about your research purpose, methodology, and how this document will be used in your research"
+            rows="5" required></textarea>
+          <mat-hint>Describe your research objectives and how this document fits into your study.</mat-hint>
+          <mat-error *ngIf="researchPurposeDetails.trim().length < 30">Please provide at least 30 characters with detailed research purpose information.</mat-error>
+        </mat-form-field>
+      </div>
+    </ng-container>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">Cancel</button>
+    <button
+      mat-raised-button
+      color="accent"
+      [disabled]="!paperType || selectedChapters.size === 0 || !requestPurpose || !requestRemarks || (thesis?.document_status === 'old' && (oldDocumentJustification.trim().length < 20 || researchPurposeDetails.trim().length < 30))"
+      (click)="openTerms(dialogRef)">
+      Next
     </button>
   </mat-dialog-actions>
 </ng-template>
@@ -262,30 +987,40 @@
 </ng-template>
 
 <!-- ===================== TERMS & CONDITIONS ======================= -->
+<!-- STEP 4: TERMS & CONDITIONS -->
 <ng-template #dlgTerms let-dialogRef="dialogRef">
   <h2 mat-dialog-title>Terms &amp; Conditions for Thesis/Manuscript Access</h2>
-
   <mat-dialog-content class="dialog-body">
     <div class="terms-scroll">
       <ul class="terms-list">
-        <li><strong>Scope &amp; Purpose (Academic-Only)</strong> — You will use the file strictly for coursework, capstone, or non-commercial academic research.</li>
-        <li><strong>Non-Commercial Use</strong> — You will not sell, rent, license, or otherwise monetize any part of the work.</li>
-        <li><strong>No Plagiarism</strong> — You will not copy or paraphrase without proper attribution, nor submit any portion as your own work.</li>
-        <li><strong>Proper Citation</strong> — When quoting, paraphrasing, or referencing, you will cite the work using your required style (APA/MLA/Chicago/etc.).</li>
-        <li><strong>No Unauthorized Distribution</strong> — You will not publicly upload, repost, mirror, or share full copies with others without written permission from the rights holder and/or PUP.</li>
-        <li><strong>Integrity of the Work</strong> — You will not alter or remove author names, titles, watermarks, or copyright notices.</li>
-        <li><strong>Access &amp; Security</strong> — You will not bypass access controls. You acknowledge that access may be logged for audit and compliance.</li>
-        <li><strong>Reporting Misuse</strong> — You will promptly report any accidental leaks, unauthorized access, or suspected misuse to the librarian/admin.</li>
-        <li><strong>Compliance &amp; Consequences</strong> — Violations may lead to revoked access, school disciplinary action, and/or legal remedies.</li>
-        <li><strong>Acknowledgment</strong> — By proceeding, you affirm you have read, understood, and agree to these terms and are responsible for compliance.</li>
+        <li><strong>Scope &amp; Purpose (Academic Use Only)</strong> — Access is granted solely for academic activities such as coursework, thesis, capstone projects, or non-commercial research.</li>
+    
+        <li><strong>Non-Commercial Use</strong> — You shall not sell, rent, license, or otherwise use any part of the work for profit or commercial purposes.</li>
+    
+        <li><strong>No Plagiarism</strong> — You must not copy, paraphrase, or reproduce any portion of the work without proper citation. Submitting any part as your own work is strictly prohibited.</li>
+    
+        <li><strong>Proper Citation</strong> — You agree to properly acknowledge the authors and sources of the work using your institution's required citation style (e.g., APA, MLA, Chicago, etc.).</li>
+    
+        <li><strong>No Unauthorized Distribution</strong> — You may not publicly upload, repost, mirror, or distribute full copies of any work without written authorization from the Polytechnic University of the Philippines (PUP) or the rightful copyright holder.</li>
+    
+        <li><strong>Integrity of the Work</strong> — You will not alter or remove author names, titles, watermarks, or copyright and attribution notices from any accessed material.</li>
+    
+        <li><strong>Access &amp; Security</strong> — You must not bypass or tamper with access controls. All access and download activity may be logged for audit and compliance purposes.</li>
+    
+        <li><strong>Reporting Misuse</strong> — Any accidental leaks, unauthorized sharing, or suspected misuse must be immediately reported to the system administrator or library staff.</li>
+    
+        <li><strong>Data Privacy &amp; Protection</strong> — You acknowledge that any personal information collected or processed through this system is protected under the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>. Your data will be used solely for authentication, monitoring, and documentation purposes related to repository access, in accordance with applicable data protection policies.</li>
+    
+        <li><strong>Compliance &amp; Consequences</strong> — Any violation of these terms may result in revoked access, disciplinary action from your institution, and/or legal remedies as applicable under Philippine law.</li>
+    
+        <li><strong>Acknowledgment</strong> — By proceeding, you affirm that you have read, understood, and agree to these terms and conditions, and accept full responsibility for compliance.</li>
       </ul>
     </div>
-
+    
     <mat-checkbox [(ngModel)]="termsAccepted" class="terms-checkbox">
       I have read, understood, and agree to the Terms &amp; Conditions for academic, non-commercial use.
     </mat-checkbox>
   </mat-dialog-content>
-
   <mat-dialog-actions align="end">
     <button mat-button (click)="dialogRef.close(false)">Cancel</button>
     <button mat-raised-button color="accent"
@@ -327,9 +1062,9 @@
          (dragstart)="preventAction($event)">
       <div class="details-column">
         <div class="detail-item">
-          <p class="detail-label">Date of Publication</p>
+          <p class="detail-label">Year of Publication</p>
           <p class="detail-value">
-            {{ thesis.submitted_at | date:'MMMM d, y' }}
+            {{ thesis.year}}
           </p>
         </div>
         <div class="detail-item">
@@ -337,14 +1072,14 @@
           <p class="detail-value">{{ thesis.access_level }}</p>
         </div>
         <div class="detail-item">
-          <p class="detail-label">Subject Categories</p>
-          <p class="detail-value">{{ thesis.tags }}</p>
+          <p class="detail-label">Tags</p>
+          <p class="detail-value">{{ formatList(thesis.tags) }}</p>
         </div>
       </div>
       <div class="details-column">
         <div class="detail-item">
           <p class="detail-label">Author's</p>
-          <p class="detail-value">{{ thesis.authors }}</p>
+          <p class="detail-value">{{ formatList(thesis.authors) }}</p>
         </div>
         <div class="detail-item">
           <p class="detail-label">Program</p>

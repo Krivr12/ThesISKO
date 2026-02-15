@@ -1,14 +1,16 @@
 import express from "express";
 import RepoMongodb from "../databaseConnections/MongoDB/mongodb_connection.js";
 import pool from '../data/database.js';
+import { requireAuth } from '../middlewares/authMiddleware.js';
+import { requireRole } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 const collection = RepoMongodb.collection("programs"); // collection name
 
 // -------------------- Routes --------------------
 
-// GET available faculty (not yet assigned as chairpersons)
-router.get("/faculty/available", async (req, res) => {
+// GET available faculty (admin only - for assigning chairpersons)
+router.get("/faculty/available", requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const query = `
       SELECT ui.email, ui.firstname, ui.lastname, ui.faculty_id
@@ -60,8 +62,8 @@ router.get("/:program_id", async (req, res) => {
   }
 });
 
-// POST new program
-router.post("/", async (req, res) => {
+// POST new program (admin only)
+router.post("/", requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { program_id, department_id, department_name, program_name, chairperson_email } = req.body;
 
@@ -129,7 +131,7 @@ router.post("/", async (req, res) => {
       // Keep existing program_id, only update chairperson role
       await pool.query(`
         UPDATE users_info
-        SET role_id = 7,
+        SET role_id = 4,
             admin_type = 'ADMIN',
             admin_program = $1
         WHERE email = $2
@@ -139,7 +141,7 @@ router.post("/", async (req, res) => {
       // No existing program, assign them as faculty in this program
       await pool.query(`
         UPDATE users_info
-        SET role_id = 7,
+        SET role_id = 4,
             admin_type = 'ADMIN',
             admin_program = $1,
             program_id = $1
@@ -164,7 +166,7 @@ router.post("/", async (req, res) => {
 });
 
 // PUT update program by program_id (including chairperson reassignment)
-router.put("/:program_id", async (req, res) => {
+router.put("/:program_id", requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { program_id } = req.params;
     const { department_id, department_name, program_name, chairperson_email } = req.body;
@@ -207,16 +209,15 @@ router.put("/:program_id", async (req, res) => {
         });
       }
 
-      // Unassign old chairperson (revert role_id to 3 - faculty, keep their program_id)
+      // Unassign old chairperson (remove admin privileges but keep current role)
       if (existingProgram.chairperson_email) {
         await pool.query(`
           UPDATE users_info
-          SET role_id = 3,
-              admin_type = NULL,
+          SET admin_type = NULL,
               admin_program = NULL
           WHERE email = $1
         `, [existingProgram.chairperson_email]);
-        console.log(`✅ Demoted ${existingProgram.chairperson_email} to faculty (kept program_id)`);
+        console.log(`✅ Unassigned ${existingProgram.chairperson_email} as chairperson (removed admin privileges)`);
       }
 
       // Assign new chairperson
@@ -228,7 +229,7 @@ router.put("/:program_id", async (req, res) => {
         // Keep existing program_id
         await pool.query(`
           UPDATE users_info
-          SET role_id = 7,
+          SET role_id = 4,
               admin_type = 'ADMIN',
               admin_program = $1
           WHERE email = $2
@@ -238,7 +239,7 @@ router.put("/:program_id", async (req, res) => {
         // No existing program, assign them as faculty in this program
         await pool.query(`
           UPDATE users_info
-          SET role_id = 7,
+          SET role_id = 4,
               admin_type = 'ADMIN',
               admin_program = $1,
               program_id = $1
@@ -273,7 +274,7 @@ router.put("/:program_id", async (req, res) => {
 });
 
 // DELETE a program by program_id (also unassigns chairperson)
-router.delete("/:program_id", async (req, res) => {
+router.delete("/:program_id", requireAuth, requireRole(3, 4, 5), async (req, res) => {
   try {
     const { program_id } = req.params;
 
@@ -284,18 +285,16 @@ router.delete("/:program_id", async (req, res) => {
       return res.status(404).json({ success: false, message: "Program not found" });
     }
 
-    // Unassign chairperson if exists (revert role_id to 3 - faculty)
-    // Keep their program_id - they remain faculty in their program even if they were demoted
+    // Unassign chairperson if exists (remove admin privileges but keep current role)
     if (program.chairperson_email) {
       await pool.query(`
         UPDATE users_info
-        SET role_id = 3,
-            admin_type = NULL,
+        SET admin_type = NULL,
             admin_program = NULL
         WHERE email = $1
       `, [program.chairperson_email]);
       
-      console.log(`✅ Unassigned chairperson ${program.chairperson_email} from program ${program_id} (kept program_id for faculty status)`);
+      console.log(`✅ Unassigned chairperson ${program.chairperson_email} from program ${program_id} (removed admin privileges)`);
     }
 
     // Delete program from MongoDB

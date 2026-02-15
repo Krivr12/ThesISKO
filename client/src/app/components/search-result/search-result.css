@@ -36,6 +36,7 @@
   min-height: 100vh; /* Full viewport height */
   width: 100%;
   background-color: #fff;
+  padding-top: 80px; /* Account for fixed navbar */
 }
 
 .main-content-area {
@@ -103,20 +104,20 @@
 }
 
 .request-button {
-  background-color: transparent;
-  border: 1px solid #800000;
-  color: #800000;
+  background-color: transparent !important;
+  border: 1px solid #800000 !important;
+  color: #000000 !important;
   padding: 0.5rem 1.25rem;
-  border-radius: 4px;
+  border-radius: 4px !important;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s;
 }
 
 .request-button:hover {
-  background-color: #800000;
-  border-color: #aaa;
-  color: #f5f5f5;
+  background-color: #800000 !important;
+  border-color: #800000 !important;
+  color: #ffffff !important;
 }
 
 .main-title {
@@ -179,25 +180,25 @@
 
 /* Main citation button */
 .citation-button {
-  background-color: transparent;
-  border: 1px solid #800000;
-  color: #800000;
+  background-color: transparent !important;
+  border: 1px solid #800000 !important;
+  color: #000000 !important;
   padding: 0.5rem 1.25rem;
-  border-radius: 4px;
+  border-radius: 4px !important;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 160px;
-  width: 160px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
 .citation-button:hover {
-  background-color: #800000;
-  border-color: #aaa;
-  color: #f5f5f5;
+  background-color: #800000 !important;
+  border-color: #800000 !important;
+  color: #ffffff !important;
 }
 
 /* Citation button copied state */
@@ -210,8 +211,7 @@
 
 /* Dropdown arrow */
 .dropdown-arrow {
-  font-size: 0.8em;
-  margin-left: 0.5rem;
+  font-size: 0.7em;
   transition: transform 0.3s ease;
 }
 
@@ -224,7 +224,7 @@
   position: absolute;
   top: 100%;
   left: 0;
-  right: 0;
+  min-width: 100%;
   background: white;
   border: 1px solid #800000;
   border-top: none;
@@ -322,6 +322,109 @@
   padding: 8px 16px 16px;
   gap: 8px;
 }
+/* MODIFIED CSS for modal <<start>> - vincent */
+:host ::ng-deep .mat-mdc-dialog-surface[aria-labelledby*="login"] {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* modal overlay */
+:host ::ng-deep .cdk-overlay-pane[aria-labelledby*="login"] {
+  z-index: 50;
+}
+
+/* modal header */
+:host ::ng-deep .mat-mdc-dialog-title[id*="login"] {
+  background-color: #800000 !important;
+  color: white !important;
+  padding: 1.25rem !important;
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  border-top-left-radius: 1rem !important;
+  border-top-right-radius: 1rem !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+/* modal body */
+:host ::ng-deep .mat-mdc-dialog-content[aria-labelledby*="login"] {
+  color: #374151 !important;
+  padding: 2rem !important;
+  text-align: center !important;
+  font-size: 1.125rem !important;
+  margin: 0 !important;
+}
+
+/* modal actions */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 1rem !important;
+  padding: 0 2rem 2rem 2rem !important;
+  margin: 0 !important;
+}
+
+/* BUTTONS */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-button {
+  font-weight: 700 !important;
+  padding: 0.75rem 2.5rem !important;
+  border-radius: 0.5rem !important;
+  transition: background-color 0.2s !important;
+  cursor: pointer !important;
+  border: none !important;
+  font-size: 1rem !important;
+  min-width: 120px !important;
+}
+
+/* primary button (login) */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-raised-button.mat-primary {
+  background-color: #800000 !important;
+  color: white !important;
+}
+/* hovered version */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-raised-button.mat-primary:hover {
+  background-color: #910101 !important;
+}
+
+/* cancel button */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-button:not(.mat-mdc-raised-button) {
+  background-color: white !important;
+  color: #800000 !important;
+  border: 2px solid #800000 !important;
+  padding: calc(0.75rem - 2px) calc(2.5rem - 2px) !important;
+}
+/* hovered version */
+:host ::ng-deep .mat-mdc-dialog-actions[aria-labelledby*="login"] .mat-mdc-button:not(.mat-mdc-raised-button):hover {
+  background-color: #fef2f2 !important;
+}
+
+/* text styles */
+:host ::ng-deep .mat-mdc-dialog-content[aria-labelledby*="login"] .mb-2 {
+  margin-bottom: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+:host ::ng-deep .mat-mdc-dialog-content[aria-labelledby*="login"] .muted {
+  color: #6b7280 !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  margin-top: 1rem !important;
+}
+
+:host ::ng-deep .mat-mdc-dialog-content[aria-labelledby*="login"] strong {
+  color: #800000 !important;
+  font-weight: 600 !important;
+}
+
+/* similar modal size as submission modal */
+:host ::ng-deep .cdk-overlay-pane[aria-labelledby*="login"] {
+  max-width: 500px !important;
+  width: calc(100% - 2rem) !important;
+}
+/* MODIFIED CSS for modal <<end>> - vincent */
 
 /* Make the primary (accent) action maroon like your brand */
 :host ::ng-deep .mat-mdc-raised-button.mat-accent:not(:disabled) {
@@ -332,10 +435,135 @@
 /* Dialog body & sections */
 .dialog-body {
   min-width: 520px;
+  padding: 8px 0;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Mobile responsive dialog */
+@media (max-width: 768px) {
+  .dialog-body {
+    min-width: unset;
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .dialog-section {
+    margin-bottom: 0.3rem;
+    margin-top: 0.2rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Labels - make them readable */
+  .dialog-section .section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #800000;
+  }
+  
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+    gap: 1px 2px;
+  }
+  
+  /* Fix form field widths on mobile */
+  .w-100,
+  .dialog-section mat-form-field,
+  .dialog-section .mat-mdc-form-field {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Input boxes - make them smaller */
+  :host ::ng-deep .mat-mdc-text-field-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    padding: 0 8px !important;
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field-flex,
+  :host ::ng-deep .mat-mdc-form-field-infix {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    padding: 4px 0 !important;
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mdc-text-field {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 32px !important;
+    height: 32px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field input,
+  :host ::ng-deep .mat-mdc-form-field textarea {
+    width: 100% !important;
+    box-sizing: border-box;
+    font-size: 11px !important;
+  }
+  
+  /* Reduce form field subscript (hints/errors) spacing */
+  :host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-form-field-hint-wrapper,
+  :host ::ng-deep .mat-mdc-form-field-error-wrapper {
+    padding: 0 !important;
+  }
+  
+  :host ::ng-deep mat-hint {
+    font-size: 0.55rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  /* Compact select dropdowns */
+  :host ::ng-deep .mat-mdc-select-value-text {
+    font-size: 11px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-select-placeholder {
+    font-size: 11px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-select {
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-select-arrow-wrapper {
+    height: 20px !important;
+  }
 }
 
 .dialog-section {
-  margin: 12px 0 16px;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+}
+
+.dialog-section:first-child {
+  margin-top: 0;
+}
+
+.dialog-section:last-child {
+  margin-bottom: 1rem;
 }
 
 /* Checkbox grid layout */
@@ -361,12 +589,55 @@
   width: 100%; 
 }
 
+/* Section title spacing */
+.dialog-section .section-title {
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+}
+
+/* Form field spacing */
+.dialog-section mat-form-field {
+  margin-bottom: 0.5rem;
+}
+
 /* Comfy textarea height */
 mat-form-field.w-100 textarea[matInput] {
   min-height: 120px;
 }
 
-/* Tip line */
+/* Hint text spacing */
+.dialog-section .hint,
+.dialog-section mat-hint {
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Error text spacing */
+.dialog-section mat-error {
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Required field asterisk */
+.required-asterisk {
+  color: #d32f2f;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* Character count indicator */
+.char-count {
+  display: inline-block;
+  margin-left: 8px;
+  font-weight: 500;
+  color: #666;
+}
+
+.char-count-warning {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
 .hint {
   color: #6b6b6b;
   font-size: 12px;
@@ -407,4 +678,303 @@ mat-form-field.w-100 textarea[matInput] {
 .terms-checkbox {
   display: block;
   margin-top: 16px;
+}
+
+/* ===================== SMALLER SCREENS ======================= */
+
+/* Mobile responsive dialog container */
+@media (max-width: 768px) {
+  :host ::ng-deep .cdk-overlay-pane {
+    max-width: 280px !important;
+    width: 280px !important;
+    margin: 0 auto !important;
+    max-height: calc(100vh - 100px) !important;
+    margin-top: 90px !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    max-height: calc(100vh - 100px) !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-surface {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    border-radius: 10px !important;
+    max-height: calc(100vh - 100px) !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-content {
+    padding: 0 12px 4px !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    max-height: calc(100vh - 200px) !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-title {
+    padding: 10px 12px 4px !important;
+    font-size: 14px !important;
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-actions {
+    padding: 4px 12px 10px !important;
+    gap: 8px !important;
+    min-height: unset !important;
+  }
+  
+  :host ::ng-deep .mat-mdc-dialog-actions button {
+    font-size: 12px !important;
+    padding: 6px 14px !important;
+    min-width: unset !important;
+    min-height: unset !important;
+    line-height: 1.3 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-page-container {
+    padding: 0 15px;
+    margin: 20px auto;
+  }
+  
+  .content-card {
+    padding: 15px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .actions {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: nowrap;
+    align-self: flex-end;
+  }
+  
+  .citation-dropdown {
+    flex: 0 1 auto;
+  }
+  
+  .request-button {
+    flex: 0 1 auto;
+  }
+  
+  .citation-button,
+  .request-button {
+    justify-content: center;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    background-color: transparent !important;
+    border: 1px solid #800000 !important;
+    color: #000000 !important;
+  }
+  
+  .main-title h1 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
+  
+  .section-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .detail-item {
+    padding: 10px 0;
+  }
+  
+  .detail-label {
+    font-size: 0.9rem;
+  }
+  
+  .detail-value {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .search-page-container {
+    padding: 0 10px;
+    margin: 15px auto;
+  }
+  
+  .content-card {
+    padding: 12px;
+    margin: 0 -10px;
+    border-radius: 8px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .main-title h1 {
+    font-size: 1.3rem;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+  }
+  
+  .section-text {
+    font-size: 0.9rem;
+  }
+  
+  .return-link {
+    font-size: 0.85rem;
+  }
+  
+  .actions {
+    flex-direction: row;
+    gap: 8px;
+    align-self: flex-end;
+  }
+  
+  .citation-dropdown,
+  .request-button {
+    flex: 0 1 auto;
+  }
+  
+  .citation-button,
+  .request-button {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    background-color: transparent !important;
+    border: 1px solid #800000 !important;
+    color: #000000 !important;
+  }
+  
+  .citation-options {
+    min-width: 100px;
+  }
+  
+  .dropdown-arrow {
+    font-size: 0.6em;
+  }
+  
+  .detail-label {
+    font-size: 0.85rem;
+  }
+  
+  .detail-value {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-page-container {
+    padding: 0 8px;
+    margin: 10px auto;
+  }
+  
+  .content-card {
+    padding: 10px;
+    margin: 0 -8px;
+  }
+  
+  .main-title h1 {
+    font-size: 1.2rem;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+  }
+  
+  .section-text {
+    font-size: 0.85rem;
+  }
+  
+  .card-header {
+    gap: 8px;
+  }
+  
+  .actions {
+    gap: 6px;
+  }
+  
+  .return-link {
+    font-size: 0.8rem;
+  }
+  
+  .citation-button,
+  .request-button {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    background-color: transparent !important;
+    border: 1px solid #800000 !important;
+    color: #000000 !important;
+  }
+  
+  .dropdown-arrow {
+    font-size: 0.55em;
+    margin-left: 4px;
+  }
+  
+  .detail-item {
+    padding: 8px 0;
+  }
+  
+  .detail-label {
+    font-size: 0.8rem;
+  }
+  
+  .detail-value {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .search-page-container {
+    padding: 0 5px;
+  }
+  
+  .content-card {
+    padding: 8px;
+    margin: 0 -5px;
+  }
+  
+  .main-title h1 {
+    font-size: 1.1rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+  }
+  
+  .citation-button,
+  .request-button {
+    font-size: 0.7rem;
+    padding: 5px 8px;
+    background-color: transparent !important;
+    border: 1px solid #800000 !important;
+    color: #000000 !important;
+  }
+  
+  .citation-option {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
 }

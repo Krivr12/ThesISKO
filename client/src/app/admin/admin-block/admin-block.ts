@@ -138,7 +138,7 @@ export class AdminBlock implements OnInit, AfterViewInit {
         this.dataSource.data = processedBlocks;
       },
       error: (err) => {
-        console.error('Failed to load blocks:', err);
+        
         alert('Failed to load blocks from server');
         this.dataSource.data = [];
       }
@@ -152,7 +152,7 @@ export class AdminBlock implements OnInit, AfterViewInit {
         this.availableFaculty = response.data || [];
       },
       error: (err) => {
-        console.error('Error loading faculty:', err);
+        
         alert('Failed to load faculty list');
       }
     });
@@ -301,13 +301,12 @@ export class AdminBlock implements OnInit, AfterViewInit {
 
     this.http.post(`${environment.authApiUrl}/blocks`, payload).subscribe({
       next: (response: any) => {
-        console.log('Block created successfully:', response);
         alert('Block created successfully!');
         this.loadBlocks(); // Reload the table
         dialogRef.close();
       },
       error: (err) => {
-        console.error('Error creating block:', err);
+        
         const errorMessage = err.error?.error || 'Failed to create block';
         alert(`Error: ${errorMessage}`);
       }
@@ -362,13 +361,12 @@ export class AdminBlock implements OnInit, AfterViewInit {
 
     this.http.put(`${environment.authApiUrl}/blocks/${this.editRow.block_id}`, payload).subscribe({
       next: (response: any) => {
-        console.log('Block updated successfully:', response);
         alert('Block updated successfully!');
         this.loadBlocks(); // Reload the table
         dialogRef.close();
       },
       error: (err) => {
-        console.error('Error updating block:', err);
+        
         const errorMessage = err.error?.error || 'Failed to update block';
         alert(`Error: ${errorMessage}`);
       }
@@ -383,12 +381,11 @@ export class AdminBlock implements OnInit, AfterViewInit {
 
     this.http.delete(`${environment.authApiUrl}/blocks/${block_id}`).subscribe({
       next: (response: any) => {
-        console.log('Block deleted successfully:', response);
         alert('Block deleted successfully!');
         this.loadBlocks(); // Reload the table
       },
       error: (err) => {
-        console.error('Error deleting block:', err);
+        
         const errorMessage = err.error?.error || 'Failed to delete block';
         alert(`Error: ${errorMessage}`);
       }

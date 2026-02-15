@@ -14,7 +14,6 @@
     padding: 2rem;
     overflow-y: auto;
     background-color: white;
-    margin-left: 200px;
 }
 
 /* Header */
@@ -215,6 +214,10 @@
     margin-top: 0.5rem;
 }
 
+.stat-change-negative {
+    color: #DC2626 !important;
+}
+
 .stat-change svg {
     height: 1em;
     width: 1em;
@@ -227,17 +230,133 @@
 }
 @media (min-width: 1024px) { 
     .chart-grid { 
-        grid-template-columns: repeat(3, minmax(0, 1fr)); 
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
     }
-    .chart-container {
-        grid-column: span 2 / span 2;
-    }
+}
+
+/* Line Chart Container - Increased Height */
+.line-chart-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+}
+
+.chart-wrapper {
+    flex: 1;
+    position: relative;
+    height: 320px;
+    padding: 0 1rem 1rem 1rem;
+}
+
+.line-chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 320px !important;
+}
+
+/* Pie Chart Container - Increased Height */
+.pie-chart-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    overflow: hidden;
+}
+
+.pie-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1rem 1.5rem;
+    max-height: 340px;
+}
+
+.pie-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 200px;
+    flex-shrink: 0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.legend-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.legend-label {
+    font-size: 1rem;
+    color: #800000;
+    font-weight: 600;
+}
+
+.pie-chart-wrapper {
+    flex: 1;
+    position: relative;
+    width: 280px;
+    height: 280px;
+    max-width: 280px;
+    max-height: 280px;
+    margin: 0 auto;
+}
+
+.pie-chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 280px !important;
+    max-height: 280px !important;
 }
 
 .lists-grid {
     grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 @media (min-width: 1024px) { .lists-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Three Column Grid - Reduced Height to Match Top Cards */
+.three-column-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+@media (min-width: 1024px) { 
+    .three-column-grid { 
+        grid-template-columns: repeat(3, minmax(0, 1fr)); 
+    } 
+}
+
+.three-column-grid .stat-card {
+    min-height: auto;
+    height: auto;
+}
+
+.three-column-grid .stat-card .stat-title {
+    margin-bottom: 1rem;
+}
+
+.three-column-grid .stat-card .text-5xl {
+    font-size: 2.5rem;
+}
+
+.three-column-grid .stat-card .list-content {
+    max-height: none;
+}
+
+.three-column-grid .stat-card .list-item {
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+}
 
 /* Lists */
 .list-title {

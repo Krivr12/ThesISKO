@@ -1,28 +1,64 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { Auth } from '../service/auth';
-import { map, take } from 'rxjs/operators';
+import { map, take, startWith } from 'rxjs/operators';
 import { ConfirmationService } from 'primeng/api';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger('AuthGuard');
 
 export const authGuard: CanActivateFn = (route, state) => {
-  console.log('🚨 Auth Guard is running for path:', state.url);
+  log.debug('Auth Guard running for path:', state.url);
   const authService = inject(Auth);
   const router = inject(Router);
   const confirmationService = inject(ConfirmationService);
-
-  console.log('🔍 Auth Guard - About to subscribe to currentUser$');
-  console.log('🔍 Auth Guard - Current user before subscription:', authService.currentUser);
   
+  // First, check sessionStorage for user data (faster than waiting for observable)
+  // This is critical for page refreshes where the observable might not have emitted yet
+  let sessionUser: any = null;
+  try {
+    const userData = sessionStorage.getItem('currentUser');
+    if (userData) {
+      sessionUser = JSON.parse(userData);
+      // If we have sessionStorage data but observable hasn't emitted, set it immediately
+      if (!authService.currentUser) {
+        authService.setUser(sessionUser);
+      }
+    }
+  } catch (e) {
+    // Invalid sessionStorage data, ignore
+  }
+  
+  // Use startWith to ensure we have a value immediately (from sessionStorage)
   return authService.currentUser$.pipe(
+    startWith(sessionUser), // Start with sessionUser if available
     take(1),
     map(user => {
       const currentPath = state.url;
-      console.log('🔍 Auth Guard - User from observable:', user);
-      console.log('🔍 Auth Guard - Current path:', currentPath);
+      // Extract path without query parameters for route matching
+      const pathWithoutQuery = currentPath.split('?')[0];
       
-      // Special handling for login route
-      if (currentPath === '/login') {
-        if (!user) {
+      // Use sessionUser as fallback if observable hasn't emitted yet
+      // Also check sessionStorage again in case it was updated
+      let currentUser = user || sessionUser;
+      if (!currentUser) {
+        try {
+          const userData = sessionStorage.getItem('currentUser');
+          if (userData) {
+            currentUser = JSON.parse(userData);
+            // Set it in the service if not already set
+            if (!authService.currentUser) {
+              authService.setUser(currentUser);
+            }
+          }
+        } catch (e) {
+          // Invalid sessionStorage data, ignore
+        }
+      }
+      
+      // Special handling for login route (with or without query parameters)
+      if (pathWithoutQuery === '/login') {
+        if (!currentUser) {
           // User not logged in, allow access to login page
           return true;
         } else {
@@ -40,7 +76,7 @@ export const authGuard: CanActivateFn = (route, state) => {
             },
             reject: () => {
               // Redirect to appropriate home page
-              const userRole = user.role_id;
+              const userRole = currentUser.role_id;
               if (userRole === 1) {
                 router.navigate(['/home']); // guest
               } else if (userRole === 2 || userRole === 6) {
@@ -60,8 +96,8 @@ export const authGuard: CanActivateFn = (route, state) => {
         }
       }
 
-      if (!user) {
-        // Check if in guest mode
+      if (!currentUser) {
+        // Check if in guest mode (for unauthenticated browsing)
         const isGuestMode = sessionStorage.getItem('guestMode') === 'true';
         if (isGuestMode) {
           // Allow access to guest routes in guest mode
@@ -82,21 +118,14 @@ export const authGuard: CanActivateFn = (route, state) => {
         }
       }
 
-      // Get the current user's role
-      const userRole = user.role_id;
-      const userStatus = user.Status?.toLowerCase();
+      // Get the current user's role (use currentUser which includes sessionUser fallback)
+      const userRole = currentUser.role_id;
+      const userStatus = currentUser.Status?.toLowerCase();
 
-      // Debug logging
-      console.log('🔍 Auth Guard Debug:');
-      console.log('  - User object:', user);
-      console.log('  - User role_id:', userRole);
-      console.log('  - User Status:', userStatus);
-      console.log('  - Current path:', currentPath);
-
-      // Define allowed paths for each role
+      // Define allowed paths for each role (guest and pupian/student share submission access)
       const allowedPaths: Record<string, string[]> = {
         student: ['/home', '/search-thesis', '/search-result', '/submission', '/thank-you', '/about-us', '/student-profile'],
-        guest: ['/home', '/search-thesis', '/search-result', '/about-us', '/guest-profile'],
+        guest: ['/home', '/search-thesis', '/search-result', '/submission', '/thank-you', '/about-us', '/guest-profile'],
         faculty: ['/home', '/faculty-home', '/for-fic', '/for-ficlanding', '/for-panel', '/for-panellanding', '/panelist-approval-page', '/fichistory-page', '/faculty-change-password'],
         admin: ['/admin-dashboard', '/admin-documents', '/admin-block', '/admin-faculties', '/admin-request', '/admin-template'],
         superadmin: ['/superadmin-dashboard', '/superadmin-documents', '/superadmin-programs', '/superadmin-faculties', '/superadmin-request', '/superadmin-templates', '/admin-dashboard', '/admin-documents', '/admin-faculties', '/admin-programs', '/admin-request', '/admin-template'],
@@ -123,15 +152,16 @@ export const authGuard: CanActivateFn = (route, state) => {
         userRoleCategory = 'admin_faculty';
       } else if (userRole === 8) {
         userRoleCategory = 'superadmin_faculty';
+      } else if (userStatus === 'guest' || !userRole) {
+        // Fallback: if role_id is missing but Status is 'guest', or role_id is undefined
+        // treat as guest to maintain backward compatibility
+        userRoleCategory = 'guest';
+        log.warn('User has missing/invalid role_id, falling back to guest:', { role_id: userRole, status: userStatus });
       }
-
-      console.log('  - Determined role category:', userRoleCategory);
 
       // Check if current path is allowed for this user
       const isPathAllowed = allowedPaths[userRoleCategory]?.some((path: string) => currentPath.startsWith(path));
       
-      console.log('  - Is path allowed:', isPathAllowed);
-      console.log('  - Allowed paths for role:', allowedPaths[userRoleCategory]);
 
       if (!isPathAllowed) {
         // Show logout confirmation dialog

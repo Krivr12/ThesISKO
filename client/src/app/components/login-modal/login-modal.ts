@@ -24,7 +24,6 @@ export class LoginModal {
 
   // sends user to the login page
   onLogin(): void {
-    console.log('Navigating to login pageeee...');
     this.onClose();
     this.router.navigate(['/login']);
   }

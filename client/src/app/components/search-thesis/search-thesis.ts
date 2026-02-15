@@ -1,29 +1,34 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../navbar/navbar';
 import { Footer } from "../footer/footer";
+import { SearchBar } from '../search-bar/search-bar';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 interface Thesis {
   _id: string;
   document_id: string;
   title: string;
   author: string;
-  year: number;
+  authors?: string[]; // Full array from API for filtering by any author
+  year: number | string; // Can be number or "N/A"
   keywords: string[];
 }
 
 @Component({
   selector: 'app-search-thesis',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar, Footer, HttpClientModule],
+  imports: [CommonModule, FormsModule, Navbar, Footer, SearchBar, HttpClientModule, MatPaginatorModule],
   templateUrl: './search-thesis.html',
   styleUrl: './search-thesis.css'
 })
 export class SearchThesis implements OnInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  
   constructor(private router: Router, private http: HttpClient, private route: ActivatedRoute) {}
   totalItems: number = 0;
   itemsPerPage: number = 8;
@@ -41,20 +46,6 @@ export class SearchThesis implements OnInit {
   selectedYear: string = '';
   authorName: string = '';
   customTagInput: string = ''; //added filter state for custom tag
-
-  // can add tags here
-  predefinedTags = signal<string[]>([
-    'Technology',
-    'Information Systems',
-    'Web Application',
-    'Mobile Application',
-    'Artificial Intelligence',
-    'Data Science',
-    'Cloud Computing',
-    'Cybersecurity',
-    'User Experience',
-    'Database'
-  ]);
 
   // user-added tags
   customTags = signal<string[]>([]);
@@ -89,7 +80,7 @@ export class SearchThesis implements OnInit {
         this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
-        console.error('Error loading theses:', error);
+        
         // Fallback to empty array if API fails
         this.allTheses = [];
         this.updateAvailableYears();
@@ -118,33 +109,27 @@ export class SearchThesis implements OnInit {
             ? doc.authors[0] 
             : "Unknown Author";
           
-          let year = null;
-          if (doc.submitted_at) {
-            try {
-              year = new Date(doc.submitted_at).getFullYear();
-            } catch (dateError) {
-              year = new Date().getFullYear();
-            }
-          } else {
-            year = new Date().getFullYear();
-          }
+          // Use year field directly, show "N/A" if not available
+          const year = doc.year || "N/A";
           
           return {
             _id: doc._id,
             document_id: doc._id?.toString(),
             title: doc.title || "Untitled",
             author: firstAuthor,
+            authors: doc.authors || [],
             year: year,
             keywords: doc.tags || []
           };
         });
+        
         
         this.updateAvailableYears();
         this.applyFilters();
         this.isLoading = false; // Hide spinner, show content
       },
       error: (error) => {
-        console.error('Error performing semantic search:', error);
+        
         // Fallback to regular search on error
         this.loadTheses();
       }
@@ -152,8 +137,15 @@ export class SearchThesis implements OnInit {
   }
 
   updateAvailableYears(): void {
-    // Extract unique years from theses
-    const years = [...new Set(this.allTheses.map(thesis => thesis.year))].sort((a, b) => b - a);
+    // Extract unique numeric years from theses, filter out "N/A"
+    // Handle both string and number years, convert strings to numbers
+    const years = [...new Set(
+      this.allTheses
+        .map(thesis => thesis.year)
+        .filter(year => year !== "N/A" && year !== null && year !== undefined)
+        .map(year => typeof year === 'string' ? parseInt(year, 10) : year)
+        .filter(year => !isNaN(year) && isFinite(year))
+    )].sort((a, b) => b - a);
     this.availableYears.set(years);
   }
 
@@ -224,11 +216,9 @@ export class SearchThesis implements OnInit {
 
   applyFilters(): void {
     this.filteredTheses = this.allTheses.filter(thesis => {
-      // Search query filter
-      const matchesSearch = this.searchQuery === '' || 
-        thesis.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        thesis.author.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        thesis.keywords.some(kw => kw.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      // Skip search query filter for semantic search results
+      // The semantic search already filtered by relevance
+      const matchesSearch = true; // Always true for semantic search results
       
       // Tag filter
       const matchesTags = this.selectedTags.length === 0 || 
@@ -236,13 +226,15 @@ export class SearchThesis implements OnInit {
           thesis.keywords.some(kw => kw.toLowerCase().includes(tag.toLowerCase()))
         );
       
-      // Year filter
+      // Year filter - handle both string and number years
       const matchesYear = this.selectedYear === '' || 
-        thesis.year.toString() === this.selectedYear;
+        (thesis.year !== "N/A" && thesis.year !== null && thesis.year !== undefined &&
+         thesis.year.toString() === this.selectedYear.toString());
       
-      // Author filter
-      const matchesAuthor = this.authorName === '' || 
-        thesis.author.toLowerCase().includes(this.authorName.toLowerCase());
+      // Author filter: match if any author in the array (or single author) contains the search string
+      const authorList = (thesis.authors && thesis.authors.length > 0) ? thesis.authors : [thesis.author];
+      const matchesAuthor = this.authorName === '' ||
+        authorList.some(a => (a || '').toLowerCase().includes(this.authorName.toLowerCase()));
       
       return matchesSearch && matchesTags && matchesYear && matchesAuthor;
     });
@@ -292,12 +284,18 @@ export class SearchThesis implements OnInit {
     }
   }
 
+  onPage(event: PageEvent): void {
+    this.itemsPerPage = event.pageSize;
+    this.currentPage = event.pageIndex + 1; // convert 0-based -> 1-based
+    this.updateDisplayedTheses();
+  }
+
   viewThesis(thesis: Thesis): void {
-    console.log('🔍 [SEARCH-THESIS] Navigating to search-result with _id:', thesis._id);
-    console.log('🔍 [SEARCH-THESIS] Document ID for display:', thesis.document_id);
-    console.log('🔍 [SEARCH-THESIS] Full thesis object:', thesis);
     this.router.navigate(['/search-result'], { 
-      state: { document_id: thesis._id } // Use _id for navigation
+      state: { 
+        document_id: thesis._id,
+        searchQuery: this.searchQuery // Preserve search query for return navigation
+      }
     });
   }
 }
