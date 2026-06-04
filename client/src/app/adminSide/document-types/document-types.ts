@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AdminSideNav } from '../admin-side-nav/admin-side-nav';
+import { Auth } from '../../service/auth.service';
 
 interface FileRequirement {
   id: string;
@@ -56,7 +57,10 @@ export class DocumentTypes implements OnInit {
 
   private apiUrl = `${environment.apiUrl}/document-types`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: Auth
+  ) {}
 
   ngOnInit() {
     this.loadDocumentTypes();
@@ -205,7 +209,7 @@ export class DocumentTypes implements OnInit {
         type_name: current.type_name,
         required_metadata: current.required_metadata,
         required_files: current.required_files,
-        created_by: 'dean' // TODO: Get from auth service
+        created_by: this.authService.currentUser?.email || 'admin'
       }).subscribe({
         next: () => {
           alert('Document type created successfully');

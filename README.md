@@ -16,6 +16,8 @@
 - [Running Client and Server Separately](#running-client-and-server-separately)
 - [Production Build](#production-build)
 - [Deployment](#deployment)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
 
 ---
 
@@ -220,3 +222,55 @@ The root `npm run dev` script is for **local development only** and is not used 
 
 ---
 
+
+## API Documentation
+
+Complete API documentation is available in **[API.md](./API.md)**, including:
+
+- Authentication endpoints (login, signup, logout)
+- Submission management (create, read, update, delete)
+- File upload and download
+- Admin operations (approvals, rejections)
+- Search and statistics
+- Error responses and rate limits
+
+Quick example:
+
+```bash
+# Login
+curl -X POST http://localhost:5050/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}'
+
+# Get submissions (with JWT token)
+curl http://localhost:5050/submissions/student/user@example.com \
+  -H "Authorization: Bearer <your-jwt-token>"
+```
+
+See **[API.md](./API.md)** for complete endpoint documentation.
+
+---
+
+## Testing
+
+Basic tests are available in `server/tests/`:
+
+```bash
+# Test database connections
+node server/tests/database-connection.test.js
+
+# Test S3 connection
+node server/tests/s3-connection.test.js
+
+# Test authentication (JWT)
+node server/tests/auth.test.js
+
+# Test email service
+node server/test-email.js
+```
+
+All tests require proper environment variables in `server/config.env`.
+
+See **[server/tests/README.md](./server/tests/README.md)** for detailed test documentation.
+
+---

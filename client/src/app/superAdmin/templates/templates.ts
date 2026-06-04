@@ -60,12 +60,11 @@ export class Templates implements OnInit, AfterViewInit {
   }
 
   openAddTemplateDialog(): void {
-    // TODO: open dialog for uploading/creating a new template
+    // Feature pending: Template upload functionality - Future enhancement
   }
 
   openUpdateTemplateDialog(row: TemplateRow): void {
-    // TODO: open dialog to update selected template
-    // e.g., this.dialog.open(UpdateTemplateDialog, { data: row });
+    // Feature pending: Template update functionality - Future enhancement
   }
 
 }

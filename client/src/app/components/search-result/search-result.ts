@@ -127,15 +127,11 @@ export class SearchResult implements OnInit, AfterViewInit {
     this.currentUserEmail = this.getCurrentUserEmail();
     this.userRole = this.deriveRole(this.currentUserEmail);
     
-    // Debug: Show what user data we actually have
-    const currentUser = this.authService.currentUser;
-    
     // Auto-select course and department for students based on their account data
     if (this.userRole === 'student') {
       this.studentProgram = this.getCurrentUserCourse();
       this.studentDepartment = this.getCurrentUserDepartment();
-      
-    };
+    }
   }
 
   // ===== Auth / identity =====

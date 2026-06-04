@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AdminSideNav } from '../admin-side-nav/admin-side-nav';
+import { Auth } from '../../service/auth.service';
 
 interface FileRequirement {
   id: string;
@@ -50,6 +51,7 @@ interface Requirement {
 })
 export class Requirements implements OnInit {
   private http = inject(HttpClient);
+  private authService = inject(Auth);
 
   requirements = signal<Requirement[]>([]);
   loading = signal<boolean>(false);
@@ -320,7 +322,7 @@ export class Requirements implements OnInit {
         required_structured_fields: current.required_structured_fields,
         required_files: current.required_files,
         archive_files: this.generateArchiveFiles(),
-        created_by: 'dean' // TODO: Get from auth service
+        created_by: this.authService.currentUser?.email || 'admin'
       }).subscribe({
         next: () => {
           alert('Requirements created successfully');
