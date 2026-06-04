@@ -60,12 +60,12 @@ export class AdminTemplates implements OnInit, AfterViewInit {
   }
 
   openAddTemplateDialog(): void {
-    // TODO: open dialog for uploading/creating a new template
+    // Feature pending: Template upload functionality
     alert('Add Template functionality - To be implemented');
   }
 
   openUpdateTemplateDialog(row: TemplateRow): void {
-    // TODO: open dialog to update selected template
+    // Feature pending: Template update functionality
     alert(`Update Template: ${row.name} - To be implemented`);
   }
 

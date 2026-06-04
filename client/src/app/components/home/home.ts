@@ -80,16 +80,6 @@ export class Home implements OnInit, OnDestroy {
         // Backend now returns the correct structure, no mapping needed
         this.updates = data || [];
         
-        // Debug: Log first item to check year field and full structure
-        if (this.updates.length > 0) {
-          
-          // Check if year is accessible
-          if (this.updates[0].year) {
-          } else {
-            
-          }
-        }
-        
         // Start autoplay after data loads
         this.startAutoplay();
       },

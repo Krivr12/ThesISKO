@@ -98,13 +98,9 @@ router.post('/resend/inbound', async (req, res) => {
         console.log('Text Body Length:', emailContent?.text?.length || 0);
         console.log('Attachments:', emailContent?.attachments?.length || 0);
 
-        // TODO: Process the email content here
-        // Examples:
-        // - Save to database
-        // - Forward to another service
-        // - Trigger automation
-        // - Send notification
-        // - Parse and extract data
+        // Email content processing - Future enhancement
+        // Can be extended to:
+        // - Save to database, forward to services, trigger automation, parse data
 
         // Example: Log full content (remove in production)
         if (process.env.NODE_ENV === 'development') {
@@ -125,7 +121,7 @@ router.post('/resend/inbound', async (req, res) => {
       emailId: emailId
     });
 
-    // TODO: Add your email processing logic here
+    // Email processing logic can be added here
     // This runs after the response is sent
     processInboundEmail({
       emailId,
@@ -156,23 +152,9 @@ async function processInboundEmail(emailData) {
   try {
     console.log('🔄 Processing inbound email:', emailData.emailId);
     
-    // TODO: Implement your email processing logic
-    // Examples:
-    // 
-    // 1. Save to database
-    // await saveEmailToDatabase(emailData);
-    //
-    // 2. Forward to Zapier/Make.com webhook
-    // await forwardToAutomation(emailData);
-    //
-    // 3. Send notification
-    // await sendNotification(emailData);
-    //
-    // 4. Parse and extract structured data
-    // const extractedData = await parseEmail(emailData);
-    //
-    // 5. Trigger workflow
-    // await triggerWorkflow(emailData);
+    // Email processing logic - Future enhancement
+    // Can be extended for:
+    // - Database storage, automation forwarding, notifications, data parsing, workflow triggers
 
     console.log('✅ Email processing completed');
   } catch (error) {

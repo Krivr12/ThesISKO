@@ -11,8 +11,10 @@ pnpm-lock.yaml
 # Environment variables
 .env
 *.env
+!*.env.example
 config.env
 server/config.env
+!server/config.env.example
 
 # Logs
 logs/
