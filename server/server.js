@@ -4,10 +4,12 @@
 import express from "express";
 import cors from "cors";
 import session from "express-session";
+import pgSession from "connect-pg-simple";
 import passport from "passport";
 import "./config/passport.js"; // Import passport configuration
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import pool from "./data/database.js";
 
 // Import routes
 import records from "./routes/records.js";
@@ -103,14 +105,25 @@ if (process.env.NODE_ENV === 'production' && !sessionSecret) {
   process.exit(1);
 }
 
-// Session configuration
+// Initialize PostgreSQL session store
+const PostgresqlStore = pgSession(session);
+const sessionStore = new PostgresqlStore({
+  pool,
+  tableName: 'session',
+  createTableIfMissing: false, // Table already created in Supabase
+});
+
+// Session configuration with persistent PostgreSQL store
 app.use(
   session({
+    store: sessionStore,
     secret: sessionSecret || "fallback-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
