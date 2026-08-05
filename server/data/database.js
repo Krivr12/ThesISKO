@@ -2,11 +2,24 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 // Supabase PostgreSQL connection configuration
+// Using Session Pooler (port 5432)
+const connectionConfig = process.env.DATABASE_URL 
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      ssl: false  // Session pooler doesn't require SSL
+    }
+  : {
+      // Fallback to individual parameters if DATABASE_URL not set
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      port: parseInt(process.env.DB_PORT || '5432'),
+      ssl: false
+    };
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  },
+  ...connectionConfig,
   // Reduced pool size to avoid connection limits
   max: 2, // Maximum number of clients in the pool
   min: 0, // Minimum number of clients in the pool

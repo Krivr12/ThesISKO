@@ -110,7 +110,7 @@ const PostgresqlStore = pgSession(session);
 const sessionStore = new PostgresqlStore({
   pool,
   tableName: 'session',
-  createTableIfMissing: false, // Table already created in Supabase
+  createTableIfMissing: true, // Auto-create table if missing
 });
 
 // Session configuration with persistent PostgreSQL store
