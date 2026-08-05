@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AdminSideNav } from '../admin-side-nav/admin-side-nav';
-import { Auth } from '../../service/auth.service';
+import { Auth } from '../../service/auth';
 
 interface FileRequirement {
   id: string;
