@@ -3,20 +3,15 @@ const { Pool } = pkg;
 
 // Supabase PostgreSQL connection configuration
 // Using Session Pooler (port 5432)
-const connectionConfig = process.env.DATABASE_URL 
-  ? {
-      connectionString: process.env.DATABASE_URL,
-      ssl: false  // Session pooler doesn't require SSL
-    }
-  : {
-      // Fallback to individual parameters if DATABASE_URL not set
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      port: parseInt(process.env.DB_PORT || '5432'),
-      ssl: false
-    };
+// Prioritize individual parameters for better local compatibility
+const connectionConfig = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT || '5432'),
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+};
 
 const pool = new Pool({
   ...connectionConfig,
@@ -72,12 +67,12 @@ const testConnection = async () => {
   }
 };
 
-// Test connection on startup (disabled for now)
-// testConnection().catch(error => {
-//   console.log('⚠️ Initial database connection failed, but server will continue...');
-//   console.log('🔄 Database will be available when first query is made');
-//   console.log('💡 This is normal - connection will work when needed');
-// });
+// Test connection on startup
+testConnection().catch(error => {
+  console.log('⚠️ Initial database connection failed, but server will continue...');
+  console.log('🔄 Database will be available when first query is made');
+  console.log('💡 This is normal - connection will work when needed');
+});
 
 // Graceful shutdown (disabled for now to prevent server crashes)
 // process.on('SIGINT', async () => {

@@ -12,6 +12,15 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
+  <!-- Runtime environment config — keep in sync with environment.ts -->
+  <script>
+    window.appConfig = {
+      authApiUrl: 'http://localhost:5050',
+      apiBaseUrl: 'http://localhost:5050',
+      apiUrl: 'http://localhost:5050',
+      recordsApiUrl: 'http://localhost:5050/records'
+    };
+  </script>
   <app-root></app-root>
 </body>
 </html>

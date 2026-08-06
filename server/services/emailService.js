@@ -33,10 +33,16 @@ const __dirname = path.dirname(__filename);
 let resendClient = null;
 try {
   if (process.env.RESEND_API_KEY) {
+    console.log('🔧 Initializing Resend client with API key...');
     resendClient = new Resend(process.env.RESEND_API_KEY);
+    console.log('✅ Resend client initialized successfully');
+  } else {
+    console.warn('⚠️ RESEND_API_KEY not found in environment variables');
   }
 } catch (error) {
-  console.error('⚠️ Failed to initialize Resend client:', error.message);
+  console.error('❌ Failed to initialize Resend client:', error.message);
+  console.error('   Error type:', error.constructor.name);
+  console.error('   Full error:', error);
 }
 
 // Email provider configurations
@@ -53,7 +59,7 @@ const providers = {
     priority: 1,
     dailyLimit: 100,
     monthlyLimit: 3000,
-    enabled: !!process.env.RESEND_API_KEY,
+    enabled: !!process.env.RESEND_API_KEY && !!resendClient,
     client: resendClient
   },
   gmail: {
@@ -295,6 +301,9 @@ async function sendWithResend(to, subject, html, from) {
   }
 
   console.log('📧 Attempting to send email via Resend...');
+  console.log(`   To: ${to}`);
+  console.log(`   From: ${from || process.env.RESEND_MAIL_FROM || process.env.MAIL_FROM}`);
+  
   const result = await providers.resend.client.emails.send({
     from: from || process.env.RESEND_MAIL_FROM || process.env.MAIL_FROM,
     to: to,
@@ -302,8 +311,22 @@ async function sendWithResend(to, subject, html, from) {
     html: html
   });
 
+  // Check if there's an error in the response
+  if (result.error) {
+    console.error('❌ Resend API returned error:', result.error);
+    throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+  }
+
+  // Check if email was actually sent (has an id)
+  const messageId = result.data?.id || result.id;
+  if (!messageId) {
+    console.error('❌ Resend did not return a message ID. Response:', JSON.stringify(result));
+    throw new Error('Resend API did not return a message ID - email may not have been sent');
+  }
+
   console.log('✅ Email sent successfully via Resend');
-  return { provider: 'resend', messageId: result.data?.id || result.id };
+  console.log(`   Message ID: ${messageId}`);
+  return { provider: 'resend', messageId };
 }
 
 /**
@@ -395,21 +418,29 @@ export async function sendEmail(options) {
   // Try Resend first (Primary)
   if (providers.resend.enabled) {
     try {
+      console.log('[sendEmail] Using Resend as primary provider...');
       return await sendWithResend(to, subject, html, from);
     } catch (error) {
-      console.warn('⚠️ Resend failed:', error.message);
+      console.error('❌ Resend failed:', error.message);
+      console.error('   Full error:', error);
       errors.push({ provider: 'resend', error: error.message });
     }
+  } else {
+    console.warn('⚠️ Resend is not enabled (RESEND_API_KEY not set)');
   }
 
   // Try Gmail SMTP (Fallback)
   if (providers.gmail.enabled) {
     try {
+      console.log('[sendEmail] Using Gmail SMTP as fallback...');
       return await sendWithGmail(to, subject, html, from);
     } catch (error) {
-      console.warn('⚠️ Gmail SMTP failed:', error.message);
+      console.error('❌ Gmail SMTP failed:', error.message);
+      console.error('   Full error:', error);
       errors.push({ provider: 'gmail', error: error.message });
     }
+  } else {
+    console.warn('⚠️ Gmail SMTP is not enabled (SMTP_HOST not set)');
   }
 
   // All providers failed

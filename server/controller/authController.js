@@ -177,13 +177,35 @@ const googleAuthSuccess = async (req, res) => {
       }
       
       const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
-      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(guestUser)), getAuthCookieConfig());
       
-      // Encode user data and redirect to Google callback component
-      const userData = { user: guestUser };
-      const encodedData = encodeURIComponent(JSON.stringify(userData));
-      const redirectUrl = `${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?data=${encodedData}`;
-      res.redirect(redirectUrl);
+      // ✅ SECURITY FIX: Regenerate session ID to prevent session fixation attacks
+      // For OAuth, we regenerate even though we're redirecting, for consistency
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error('❌ Session regeneration error during OAuth:', err.message);
+          res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=session_error`);
+          return;
+        }
+        
+        try {
+          // Set user data with new session ID
+          req.session.user = guestUser;
+          
+          // Set auth cookie with regenerated session
+          res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(guestUser)), getAuthCookieConfig());
+          
+          console.log('✅ OAuth user authenticated with session ID:', req.sessionID);
+          
+          // Encode user data and redirect to Google callback component
+          const userData = { user: guestUser };
+          const encodedData = encodeURIComponent(JSON.stringify(userData));
+          const redirectUrl = `${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?data=${encodedData}`;
+          res.redirect(redirectUrl);
+        } catch (innerError) {
+          console.error('❌ Error setting OAuth session data:', innerError.message);
+          res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=session_setup_failed`);
+        }
+      });
     } else {
       res.redirect(`${process.env.FRONTEND_URL || 'https://thesisko.online'}/google-callback?error=auth_failed`);
     }

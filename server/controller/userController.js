@@ -542,37 +542,58 @@ const loginUser = async (req, res) => {
     if (isValidPassword) {
       const { Password: _ignored, ...userWithoutPassword } = user
       
-      // Store user data in server session
-      req.session.user = {
-        id: userWithoutPassword.StudentID,
-        user_id: userWithoutPassword.StudentID,
-        email: userWithoutPassword.Email,
-        Status: userWithoutPassword.Status,
-        Firstname: userWithoutPassword.Firstname,
-        Lastname: userWithoutPassword.Lastname,
-        role_id: userWithoutPassword.role_id
-      };
-      
-      const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
-      const payload = {
-        id: userWithoutPassword.StudentID,
-        email: userWithoutPassword.Email,
-        Status: userWithoutPassword.Status,
-        Firstname: userWithoutPassword.Firstname,
-        Lastname: userWithoutPassword.Lastname,
-        Course: userWithoutPassword.Course,
-        Department: userWithoutPassword.Department,
-        AvatarUrl: userWithoutPassword.AvatarUrl,
-        role_id: userWithoutPassword.role_id,
-        account_type: 'user'
-      };
-      res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(payload)), getAuthCookieConfig());
-      
-      res.json({
-        message: 'Login successful',
-        user: userWithoutPassword,
-        account_type: 'user'
-      })
+      // ✅ SECURITY FIX: Regenerate session ID to prevent session fixation attacks
+      // This must be done BEFORE setting user data on the session
+      req.session.regenerate(async (err) => {
+        if (err) {
+          console.error('❌ Session regeneration error during login:', err.message);
+          return res.status(500).json({ 
+            error: 'Session error during login',
+            details: 'Failed to establish secure session'
+          });
+        }
+        
+        try {
+          // Now set user data with new session ID
+          req.session.user = {
+            id: userWithoutPassword.StudentID,
+            user_id: userWithoutPassword.StudentID,
+            email: userWithoutPassword.Email,
+            Status: userWithoutPassword.Status,
+            Firstname: userWithoutPassword.Firstname,
+            Lastname: userWithoutPassword.Lastname,
+            role_id: userWithoutPassword.role_id
+          };
+          
+          const { getAuthCookieConfig, AUTH_COOKIE_NAME, signAuthPayload } = await import('../utils/cookieConfig.js');
+          const payload = {
+            id: userWithoutPassword.StudentID,
+            email: userWithoutPassword.Email,
+            Status: userWithoutPassword.Status,
+            Firstname: userWithoutPassword.Firstname,
+            Lastname: userWithoutPassword.Lastname,
+            Course: userWithoutPassword.Course,
+            Department: userWithoutPassword.Department,
+            AvatarUrl: userWithoutPassword.AvatarUrl,
+            role_id: userWithoutPassword.role_id,
+            account_type: 'user'
+          };
+          res.cookie(AUTH_COOKIE_NAME, signAuthPayload(JSON.stringify(payload)), getAuthCookieConfig());
+          
+          console.log('✅ User logged in successfully with session ID:', req.sessionID);
+          res.json({
+            message: 'Login successful',
+            user: userWithoutPassword,
+            account_type: 'user'
+          });
+        } catch (innerError) {
+          console.error('❌ Error setting session data:', innerError.message);
+          return res.status(500).json({ 
+            error: 'Session setup failed',
+            details: innerError.message
+          });
+        }
+      });
     } else {
       res.status(401).json({ error: 'Invalid password' })
     }
