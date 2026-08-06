@@ -7,6 +7,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminSideNav } from '../admin-side-nav/admin-side-nav';
 import { RecordsService, RecordItem } from '../../service/records.service';
 import { S3Service } from '../../service/s3.service';
+import { Auth } from '../../service/auth';
 import { environment } from '../../../environments/environment';
 
 interface DocumentFile {
@@ -45,11 +46,17 @@ export class DocumentEdit implements OnInit {
   private sanitizer = inject(DomSanitizer);
   private recordsService = inject(RecordsService);
   private s3Service = inject(S3Service);
+  private authService = inject(Auth);
 
   document = signal<Document | null>(null);
   loading = signal<boolean>(false);
   saving = signal<boolean>(false);
   showConfirmModal = signal<boolean>(false);
+  showSoftDeleteModal = signal<boolean>(false);
+  showSoftDeleteConfirmModal = signal<boolean>(false);
+
+  // User role tracking
+  currentUserRole: number | null = null;
 
   // Form data
   formData = {
@@ -79,12 +86,24 @@ export class DocumentEdit implements OnInit {
   private apiUrl = environment.recordsApiUrl;
 
   ngOnInit() {
+    // Load user role
+    this.authService.currentUser$.subscribe(user => {
+      if (user && user.role_id) {
+        this.currentUserRole = user.role_id;
+      }
+    });
+
     const documentId = this.route.snapshot.paramMap.get('id');
     if (documentId) {
       this.loadDocument(documentId);
     } else {
       this.router.navigate(['/adminSide/documents']);
     }
+  }
+
+  // Check if current user is SUPERADMIN/DEAN (role_id = 5)
+  isSuperAdmin(): boolean {
+    return this.currentUserRole === 5;
   }
 
   loadDocument(documentId: string) {
@@ -509,5 +528,45 @@ export class DocumentEdit implements OnInit {
    */
   getStagedFileIds(): string[] {
     return Array.from(this.fileReplacements.keys());
+  }
+
+  // Soft delete modals
+  openSoftDeleteModal(): void {
+    this.showSoftDeleteModal.set(true);
+  }
+
+  closeSoftDeleteModal(): void {
+    this.showSoftDeleteModal.set(false);
+  }
+
+  openSoftDeleteConfirmModal(): void {
+    this.showSoftDeleteConfirmModal.set(true);
+  }
+
+  closeSoftDeleteConfirmModal(): void {
+    this.showSoftDeleteConfirmModal.set(false);
+  }
+
+  // Soft delete document
+  softDeleteDocument(): void {
+    if (!this.document()) {
+      return;
+    }
+
+    const documentId = this.document()!._id;
+
+    this.recordsService.softDeleteRecord(documentId).subscribe({
+      next: (response) => {
+        alert('Document has been successfully soft deleted.');
+        this.closeSoftDeleteConfirmModal();
+        this.closeSoftDeleteModal();
+        this.router.navigate(['/adminSide/documents']);
+      },
+      error: (error) => {
+        
+        alert('Failed to soft delete document. Please try again.');
+        this.closeSoftDeleteConfirmModal();
+      }
+    });
   }
 }

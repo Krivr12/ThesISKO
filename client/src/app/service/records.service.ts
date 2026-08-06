@@ -55,6 +55,11 @@ export class RecordsService {
     return this.http.delete(`${this.apiUrl}/${_id}`);
   }
 
+  // Soft delete record by MongoDB _id (marks as deleted instead of permanent deletion)
+  softDeleteRecord(_id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${_id}/soft-delete`, {});
+  }
+
   // Update record without file
   updateRecord(_id: string, updateData: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${_id}`, updateData);

@@ -8,6 +8,7 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { RecordsService, RecordItem } from '../../service/records.service';
 import { S3Service } from '../../service/s3.service';
 import { HttpClientModule } from '@angular/common/http';
+import { Auth } from '../../service/auth';
 
 // data Structure
 interface Thesis {
@@ -43,6 +44,11 @@ export class AdminDocuments implements OnInit {
   isPdfViewerVisible = false;
   isUpdateModalVisible = false;
   isConfirmUpdateModalVisible = false;
+  isSoftDeleteModalVisible = false;  // Add soft delete modal state
+  isSoftDeleteConfirmModalVisible = false;  // Add soft delete confirmation modal state
+  
+  // Current user info
+  currentUserRole: number | null = null;  // Add user role tracking
   
   // PDF Viewer state
   currentPdfDocument: { name: string; file: string } | null = null;
@@ -93,11 +99,23 @@ export class AdminDocuments implements OnInit {
     private sanitizer: DomSanitizer,
     private recordsService: RecordsService,
     private s3Service: S3Service,
-    private router: Router
+    private router: Router,
+    private authService: Auth
   ) {}
 
   ngOnInit(): void {
     this.loadRecordsFromDatabase();
+    // Subscribe to current user changes to update role
+    this.authService.currentUser$.subscribe(user => {
+      if (user && user.role_id) {
+        this.currentUserRole = user.role_id;
+      }
+    });
+  }
+
+  // Check if current user is SUPERADMIN (role_id = 5)
+  isSuperAdmin(): boolean {
+    return this.currentUserRole === 5;
   }
 
   // Load records from MongoDB via API
@@ -278,6 +296,22 @@ export class AdminDocuments implements OnInit {
     this.isDeleteModalVisible = false;
   }
 
+  openSoftDeleteModal(): void {
+    this.isSoftDeleteModalVisible = true;
+  }
+
+  closeSoftDeleteModal(): void {
+    this.isSoftDeleteModalVisible = false;
+  }
+
+  openSoftDeleteConfirmModal(): void {
+    this.isSoftDeleteConfirmModalVisible = true;
+  }
+
+  closeSoftDeleteConfirmModal(): void {
+    this.isSoftDeleteConfirmModalVisible = false;
+  }
+
   // Data handling
   approveSubmission(): void {
     if (this.selectedDocument) {
@@ -328,6 +362,36 @@ export class AdminDocuments implements OnInit {
         
         alert('Failed to delete document. Please try again.');
         this.closeDeleteModal();
+      }
+    });
+  }
+
+  // Soft delete - Mark document as "deleted" so it won't be visible to users
+  softDeleteDocument(): void {
+    if (!this.selectedDocument) return;
+
+    const documentId = this.selectedDocument._id;
+
+    this.recordsService.softDeleteRecord(documentId).subscribe({
+      next: (response) => {
+        
+        // Remove from local documents array
+        this.documents = this.documents.filter(d => d._id !== documentId);
+        
+        // Close modals and return to list view
+        this.closeSoftDeleteConfirmModal();
+        this.closeSoftDeleteModal();
+        this.showListView();
+        
+        // Refresh the filtered view
+        this.filterAndSortDocuments();
+        
+        alert('Document has been successfully soft deleted.');
+      },
+      error: (error) => {
+        
+        alert('Failed to soft delete document. Please try again.');
+        this.closeSoftDeleteConfirmModal();
       }
     });
   }

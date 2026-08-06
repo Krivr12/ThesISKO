@@ -31,7 +31,15 @@ const checkMongoDB = (res) => {
 router.get("/", optionalAuth, async (req, res) => {
   if (!checkMongoDB(res)) return;
   try {
-    const results = await collection.find({}).toArray();
+    // Build query to exclude deleted documents for non-admin users
+    let query = {};
+    
+    // If not admin, exclude deleted documents
+    if (!req.user || !([3, 4, 5].includes(req.user.role_id))) {
+      query = { document_status: { $ne: 'deleted' } };
+    }
+    
+    const results = await collection.find(query).toArray();
     
     const fullData = req.query.full === 'true';
     
@@ -79,8 +87,9 @@ router.get("/", optionalAuth, async (req, res) => {
 router.get("/latest", async (req, res) => {
   if (!checkMongoDB(res)) return;
   try {
+    // Exclude deleted documents from latest records
     const results = await collection
-      .find({})
+      .find({ document_status: { $ne: 'deleted' } })
       .sort({ created_at: -1 })
       .limit(6)
       .toArray();
@@ -401,6 +410,54 @@ router.delete("/:_id", requireAuth, requireRole(3, 4, 5), async (req, res) => {
   } catch (err) {
     console.error("❌ Error deleting record:", err);
     res.status(500).json({ error: "Error deleting record" });
+  }
+});
+
+// PATCH soft delete a record by _id (admin only - SUPERADMIN role 5)
+router.patch("/:_id/soft-delete", requireAuth, requireRole(5), async (req, res) => {
+  try {
+    const { _id } = req.params;
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(_id)) {
+      return res.status(400).json({ error: "Invalid record ID" });
+    }
+
+    // Find the record first
+    const record = await collection.findOne({ _id: new ObjectId(_id) });
+
+    if (!record) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    // Soft delete: mark document_status as "deleted"
+    const result = await collection.updateOne(
+      { _id: new ObjectId(_id) },
+      {
+        $set: {
+          document_status: "deleted",
+          updated_at: new Date(),
+          deleted_at: new Date(),  // Track when it was soft deleted
+          deleted_by: req.user?.user_id || "system"  // Track who deleted it
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    console.log(`✅ Document soft deleted (marked as deleted): ${record.document_id}`);
+
+    res.status(200).json({
+      message: "Document soft deleted successfully (marked as deleted)",
+      deletedId: _id,
+      document_id: record.document_id,
+      document_status: "deleted"
+    });
+  } catch (err) {
+    console.error("❌ Error soft deleting record:", err);
+    res.status(500).json({ error: "Error soft deleting record" });
   }
 });
 

@@ -264,6 +264,7 @@
                 <div class="modal-actions">
                     <button class="modal-btn confirm-btn" (click)="openConfirmUpdateModal()" [disabled]="!isUpdateFormValid()">Save Changes</button>
                     <button class="modal-btn cancel-btn" (click)="closeUpdateModal()">Cancel</button>
+                    <button *ngIf="isSuperAdmin()" class="modal-btn delete-btn" (click)="openSoftDeleteModal()">Delete Document</button>
                 </div>
             </div>
         </div>
@@ -282,6 +283,54 @@
                 <div class="modal-actions">
                     <button class="modal-btn confirm-btn" (click)="updateDocument()">Yes, Update</button>
                     <button class="modal-btn cancel-btn" (click)="closeConfirmUpdateModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soft Delete Modal -->
+        <div class="modal-overlay" *ngIf="isSoftDeleteModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Soft Delete Document</h3>
+                    <button class="modal-close-btn" (click)="closeSoftDeleteModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to soft delete this document?</p>
+                    <br>
+                    <p><strong>This action will:</strong></p>
+                    <ul style="text-align: left; margin: 10px 0;">
+                        <li>Mark the document as deleted</li>
+                        <li>Hide it from user and guest views</li>
+                        <li>Make it invisible in searches</li>
+                        <li>Preserve the data (not permanently removed)</li>
+                    </ul>
+                    <br>
+                    <p>This action cannot be easily undone. Proceed?</p>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" (click)="openSoftDeleteConfirmModal()">Yes, Proceed</button>
+                    <button class="modal-btn cancel-btn" (click)="closeSoftDeleteModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soft Delete Confirmation Modal -->
+        <div class="modal-overlay" *ngIf="isSoftDeleteConfirmModalVisible">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Final Confirmation</h3>
+                    <button class="modal-close-btn" (click)="closeSoftDeleteConfirmModal()">×</button>
+                </div>
+                <p class="modal-body">
+                    <strong>FINAL WARNING:</strong> This will permanently soft delete the document from the system.
+                    <br><br>
+                    Users and guests will not be able to see or access this document anymore.
+                    <br><br>
+                    Are you absolutely sure?
+                </p>
+                <div class="modal-actions">
+                    <button class="modal-btn confirm-btn" (click)="softDeleteDocument()">Yes, Delete Permanently</button>
+                    <button class="modal-btn cancel-btn" (click)="closeSoftDeleteConfirmModal()">Cancel</button>
                 </div>
             </div>
         </div>

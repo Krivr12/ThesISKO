@@ -395,6 +395,15 @@
     background-color: #fef2f2;
 }
 
+.modal-btn.delete-btn {
+    background-color: #dc2626;
+    color: white;
+}
+
+.modal-btn.delete-btn:hover {
+    background-color: #b91c1c;
+}
+
 /* Reject Modal Specific Styles */
 .reject-modal .modal-body {
     text-align: left;
