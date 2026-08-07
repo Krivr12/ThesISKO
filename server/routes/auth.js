@@ -6,6 +6,11 @@ import {
 } from '../controller/authController.js';
 import { loginUser, getCurrentUser, logoutUser } from '../controller/userController.js';
 import authRateLimiter from '../middlewares/authRateLimiter.js';
+import {
+  requestPasswordReset,
+  validateResetTokenEndpoint,
+  executePasswordReset
+} from '../controller/passwordResetController.js';
 
 const router = express.Router();
 
@@ -319,6 +324,16 @@ if (!isProduction) {
 
 // Logout
 router.post('/logout', logoutUser);
+
+// ── Password Reset (rate-limited to prevent abuse) ───────────────────────────
+// Step 1: Request a reset link
+router.post('/forgot-password', authRateLimiter, requestPasswordReset);
+
+// Step 2: Validate token before showing reset form
+router.get('/reset-password', validateResetTokenEndpoint);
+
+// Step 3: Submit new password
+router.post('/reset-password', authRateLimiter, executePasswordReset);
 
 // Debug endpoint for Google OAuth configuration (disabled in production)
 if (!isProduction) {

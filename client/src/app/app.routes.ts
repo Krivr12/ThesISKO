@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { Login } from './components/login/login';
 import { Signup } from './components/signup/signup';
+import { ForgotPassword } from './components/forgot-password/forgot-password';
+import { ResetPassword } from './components/reset-password/reset-password';
 import { Home } from './components/home/home';
 import { AboutUs } from './components/about-us/about-us';
 import { SearchThesis } from './components/search-thesis/search-thesis';
@@ -40,6 +42,8 @@ export const routes: Routes = [
     {path: 'login', component: Login, canActivate: [authGuard]},
     {path: 'login-admin', component: LoginAdmin},
     {path: 'signup', component: Signup},
+    {path: 'forgot-password', component: ForgotPassword},
+    {path: 'reset-password', component: ResetPassword},
     {path: 'home', component: Home},
     {path: 'about-us', component: AboutUs, canActivate: [authGuard]},
     {path: 'search-thesis', component: SearchThesis, canActivate: [authGuard]},

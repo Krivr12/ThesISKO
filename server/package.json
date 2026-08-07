@@ -8,7 +8,8 @@
     "start": "node --env-file config.env server.js",
     "dev": "nodemon --env-file config.env server.js",
     "build": "echo 'No build needed'",
-    "seed:document-types": "node scripts/seed-document-types.js"
+    "seed:document-types": "node scripts/seed-document-types.js",
+    "migrate:password-reset": "node --env-file config.env migrations/add-password-reset-tables.js"
   },
   "keywords": [],
   "author": "",

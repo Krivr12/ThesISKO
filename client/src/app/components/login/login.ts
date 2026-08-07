@@ -12,7 +12,6 @@ import { ToastModule } from 'primeng/toast';
 import { take } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { createLogger } from '../../utils/logger';
-import { ModalService } from '../../service/modal.service';
 
 const log = createLogger('LoginComponent');
 
@@ -47,7 +46,6 @@ private navAuthService = inject(AuthService);
 private router = inject(Router);
 private route = inject(ActivatedRoute);
 private messageService = inject(MessageService);
-private modalService = inject(ModalService);
 
 ngOnInit(): void {
   // Read query parameter to determine login type
@@ -212,11 +210,6 @@ loginWithGoogle() {
 }
 
 onForgotPassword() {
-  this.modalService.showModal({
-    title: 'Coming Soon',
-    message: 'The password reset feature is currently under development. Please try again later or contact support if you need immediate assistance.',
-    primaryButtonText: 'Close',
-    icon: 'info'
-  });
+  this.router.navigate(['/forgot-password']);
 }
 }
