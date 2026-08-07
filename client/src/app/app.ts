@@ -6,14 +6,17 @@ import { ToastModule } from 'primeng/toast';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
+import { GlobalModal } from './components/global-modal/global-modal';
 
 @Component({
   selector: 'app-root',
   imports: [
     RouterOutlet,
     ButtonModule,
-  ToastModule,
-  MatToolbarModule],
+    ToastModule,
+    MatToolbarModule,
+    GlobalModal
+  ],
   providers: [MessageService],
   templateUrl: './app.html',
   styleUrl: './app.css'

@@ -348,8 +348,8 @@ export class Navbar implements OnInit {
     sessionStorage.removeItem('guestMode');
     localStorage.removeItem('guestMode');
     
-    // Navigate all users to signup-choose after logout
-    this.router.navigate(['/signup-choose']);
+    // Navigate all users to login-admin after logout
+    this.router.navigate(['/login-admin']);
   }
 
 
@@ -548,6 +548,11 @@ export class Navbar implements OnInit {
     return currentUser !== null && currentUser !== undefined;
   }
 
+  /** Hide nav links on /home when user is not authenticated */
+  shouldHideNavLinks(): boolean {
+    const currentUrl = this.router.url.split('?')[0].split('#')[0];
+    return currentUrl === '/home' && !this.isUserLoggedIn();
+  }
 
   /** Navigate to About Us page */
   navigateToAbout(): void {

@@ -1,0 +1,33 @@
+@if (currentConfig) {
+  <div class="modal-overlay" (click)="onClose()">
+    <!-- Prevents clicks inside modal to close it -->
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2 class="modal-title">{{ currentConfig.title }}</h2>
+        <button class="modal-close-btn" (click)="onClose()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="icon-container">
+          <div [innerHTML]="getIconSvg()"></div>
+        </div>
+        <p class="modal-text">
+          {{ currentConfig.message }}
+        </p>
+        
+        <div class="modal-actions">
+          <button class="btn-primary" (click)="onPrimaryAction()">
+            {{ currentConfig.primaryButtonText || 'Confirm' }}
+          </button>
+          @if (currentConfig.secondaryButtonText) {
+            <button class="btn-secondary" (click)="onClose()">
+              {{ currentConfig.secondaryButtonText }}
+            </button>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+}

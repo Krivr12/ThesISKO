@@ -184,7 +184,7 @@ export class StudentProfile implements OnInit {
           // Always log out user after successful profile update
           setTimeout(() => {
             this.authService.logout();
-            this.router.navigate(['/signup-choose']);
+            this.router.navigate(['/login-admin']);
           }, 2000);
 
           // Clear password fields after successful update

@@ -328,8 +328,7 @@ router.post('/faculty/:id/reset-password', async (req, res) => {
     }
 
     // Hash new password
-    const saltRounds = 10;
-    const password_hash = await bcrypt.hash(newPassword, saltRounds);
+    const password_hash = await bcrypt.hash(newPassword, 12);
 
     // Update password
     const result = await pool.query(

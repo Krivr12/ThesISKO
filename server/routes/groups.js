@@ -593,8 +593,7 @@ router.post("/", async (req, res) => {
         console.log(`🔐 Generated password for ${user.email}`);
 
         // Hash password
-        const salt = await bcrypt.genSalt();
-        const hashedPassword = await bcrypt.hash(generatedPassword, salt);
+        const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
         // Create user with appropriate role:
         // Leader: role_id = 6 (Group Leader)

@@ -396,8 +396,7 @@ const signupUser = async (req, res) => {
       // users_pending table may not exist
     }
 
-    const salt = await bcrypt.genSalt()
-    const hashedPassword = await bcrypt.hash(password, salt)
+    const hashedPassword = await bcrypt.hash(password, 12)
     const token = crypto.randomBytes(24).toString('hex')
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24)
 
@@ -897,7 +896,7 @@ const updateUser = async (req, res) => {
       }
 
       // Hash the new password
-      hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      hashedNewPassword = await bcrypt.hash(newPassword, 12);
     }
 
     // Build update query with PostgreSQL syntax
@@ -995,8 +994,7 @@ const adminCreateFaculty = async (req, res) => {
     const generatedPassword = generatePassword();
     
     // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(generatedPassword, salt);
+    const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
     // Insert faculty into users_info with role_id = 3 (Faculty)
     const result = await pool.query(

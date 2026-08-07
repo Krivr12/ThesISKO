@@ -64,8 +64,8 @@ export class AdminSideBar {
         this.navAuthService.logout();
         this.authService.logout();
         
-        // Navigate to signup choose
-        this.router.navigateByUrl('/signup-choose');
+        // Navigate to login-admin
+        this.router.navigateByUrl('/login-admin');
       }
     });
 

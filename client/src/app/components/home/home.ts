@@ -10,6 +10,7 @@ import { DatePipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { Auth } from '../../service/auth';
+import { ModalService } from '../../service/modal.service';
 
 interface UpdateItem {
   // data para sa carousel cards (matches backend /latest/ endpoint)
@@ -64,7 +65,8 @@ export class Home implements OnInit, OnDestroy {
     private router: Router,                 
     private recordsService: RecordsService, // API calls
     private datePipe: DatePipe,
-    private authService: Auth
+    private authService: Auth,
+    private modalService: ModalService
   ) {}
 
   @HostListener('window:resize')
@@ -204,11 +206,15 @@ export class Home implements OnInit, OnDestroy {
 
   // click sa carousel item -> punta sa Search Result 
   navigateToRecord(item: UpdateItem) {
-    if (!item || !item._id) {
-      
+    // Check if user is authenticated
+    if (!this.authService.currentUser) {
+      this.modalService.showLoginRequired('To view document details, you must be logged in with your official account.');
       return;
     }
     
+    if (!item || !item._id) {
+      return;
+    }
     
     // Pass document_id in state (same pattern as search-thesis -> search-result)
     // Use navigateByUrl with state for more reliable navigation
@@ -217,23 +223,26 @@ export class Home implements OnInit, OnDestroy {
     }).then(success => {
       if (success) {
       } else {
-        
         // If navigation fails, try again after a short delay (in case user is still loading)
         setTimeout(() => {
           this.router.navigateByUrl('/search-result', { 
             state: { document_id: item._id } 
           }).catch(err => {
-            
           });
         }, 100);
       }
     }).catch(error => {
-      
     });
   }
 
   // search function
   goSearch() {
+    // Check if user is authenticated
+    if (!this.authService.currentUser) {
+      this.modalService.showLoginRequired('To search for thesis, you must be logged in with your official account.');
+      return;
+    }
+    
     const q = (this.homeQuery || '').trim();
     this.router.navigate(['/search-thesis'], {
       queryParams: { q: q || null }

@@ -8,7 +8,6 @@ import { SearchResult } from './components/search-result/search-result';
 import { Submission } from './components/submission/submission';
 import { NewSubmission } from './components/new-submission/new-submission';
 import { ThankYou } from './components/thank-you/thank-you';
-import { SignupChoose } from './components/signup-choose/signup-choose';
 import { LoginAdmin } from './components/login-admin/login-admin';
 import { StudentProfile } from './components/student-profile/student-profile';
 import { GuestProfile } from './components/guest-profile/guest-profile';
@@ -38,11 +37,10 @@ import { DeanDetails } from './superAdmin/dean-details/dean-details';
 import { RoleTestComponent } from './components/role-test/role-test';
 import { LoginModal } from './components/login-modal/login-modal';
 export const routes: Routes = [
-    {path: 'signup-choose', component: SignupChoose},
     {path: 'login', component: Login, canActivate: [authGuard]},
     {path: 'login-admin', component: LoginAdmin},
     {path: 'signup', component: Signup},
-    {path: 'home', component: Home, canActivate: [authGuard]},
+    {path: 'home', component: Home},
     {path: 'about-us', component: AboutUs, canActivate: [authGuard]},
     {path: 'search-thesis', component: SearchThesis, canActivate: [authGuard]},
     {path: 'search-result', component: SearchResult, canActivate: [authGuard]},
@@ -117,7 +115,7 @@ export const routes: Routes = [
     {path: 'dashboard', redirectTo: '/adminSide/dashboard', pathMatch: 'full'},
     {path: 'documents', redirectTo: '/adminSide/documents', pathMatch: 'full'},
     
-    {path: '', redirectTo: '/signup-choose', pathMatch: 'full'},
+    {path: '', redirectTo: '/home', pathMatch: 'full'},
     {path: 'login-modal', component: LoginModal},
-    {path: '**', redirectTo: '/signup-choose'} // Catch-all route
+    {path: '**', redirectTo: '/home'} // Catch-all route
 ];

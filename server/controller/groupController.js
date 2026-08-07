@@ -96,7 +96,7 @@ export const createStudentGroup = async (req, res) => {
 
     // Generate password and hash it
     const plainPassword = generatePassword(8);
-    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+    const hashedPassword = await bcrypt.hash(plainPassword, 12);
 
     // Create group record in student_groups table
     await client.query(

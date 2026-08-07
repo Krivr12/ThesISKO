@@ -4,8 +4,7 @@ import bcrypt from 'bcrypt';
 const newPassword = 'admin123'; // ⬅️ CHANGE THIS TO YOUR DESIRED PASSWORD
 
 // Generate hash (same method used in your app)
-const saltRounds = 10;
-bcrypt.hash(newPassword, saltRounds, (err, hash) => {
+bcrypt.hash(newPassword, 12, (err, hash) => {
   if (err) {
     console.error('Error generating hash:', err);
     return;

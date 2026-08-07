@@ -8,8 +8,8 @@
         &#9776;
       </button>
 
-      <!-- Navigation links -->
-      <div class="nav-links" [class.open]="isMenuOpen">
+      <!-- Navigation links - hidden when unauthenticated on /home -->
+      <div class="nav-links" [class.open]="isMenuOpen" *ngIf="!shouldHideNavLinks()">
         <p-button
           *ngFor="let item of navItems"
           [label]="item.label"

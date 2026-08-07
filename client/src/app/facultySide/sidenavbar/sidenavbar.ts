@@ -48,8 +48,8 @@ export class Sidenavbar {
         this.navAuthService.logout();
         this.mainAuthService.logout();
         
-        // Navigate to signup choose
-        this.router.navigateByUrl('/signup-choose');
+        // Navigate to login-admin
+        this.router.navigateByUrl('/login-admin');
       }
     });
 
