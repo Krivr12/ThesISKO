@@ -348,8 +348,8 @@ export class Navbar implements OnInit {
     sessionStorage.removeItem('guestMode');
     localStorage.removeItem('guestMode');
     
-    // Navigate all users to login-admin after logout
-    this.router.navigate(['/login-admin']);
+    // Navigate all users to /login after logout (STRICTLY /login, not /login-admin)
+    this.router.navigate(['/login']);
   }
 
 

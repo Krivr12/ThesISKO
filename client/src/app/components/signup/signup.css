@@ -1,24 +1,43 @@
 * {
   color: #800000;
-  background-color: white;
+  font-family: 'Inter', sans-serif;
 }
 
 .background {
-  background-color: white;
+  background-color: #f3f4f6;
   display: flex;
-  height: 100vh;   
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.login-card {
+  display: flex;
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  height: 750px;
 }
 
 .leftside {
-  flex: 1; 
-  height: 100%;
+  flex: 1;
   position: relative;
+  overflow: hidden;
 }
 
 .leftside img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .leftside .overlay {
@@ -27,167 +46,313 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(128, 0, 0, 0.3); 
+  background-color: rgba(128, 0, 0, 0.3);
+  z-index: 1;
 }
 
 .rightside {
   flex: 1;
   display: flex;
-  align-items: center; 
-  justify-content: center; 
-  background-color: white; 
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  padding: 2rem 1.75rem;
   position: relative;
+  overflow: visible;
+  scrollbar-gutter: stable;
 }
 
 .form-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  overflow: visible;
 }
 
 .login-header {
-  font-size: 50px;
+  font-size: 2rem;
   font-weight: 900;
   color: #800000;
-  margin-bottom: 1rem;
-  text-align: center;
+  margin-bottom: 0.75rem;
+  text-align: left;
   width: 100%;
 }
 
 .signupForm {
   background-color: white !important;
-  padding: 2rem;
-  border-radius: 30px;
   display: flex;
   flex-direction: column;
-  align-items: center;
   width: 100%;
-  max-width: 600px;
   color: #800000;
   box-sizing: border-box;
 }
 
 .field label {
   display: block;
-  margin-bottom: 0.5rem;
-  margin-top: 0.5rem;
-  font-weight: 400;
-  font-size: 1rem;
-  color: #0b0202;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   width: 100%;
 }
 
+.required-asterisk {
+  color: #d32f2f !important;
+  margin-left: 0.25rem;
+  font-weight: 600;
+}
+
 .field {
-  margin-bottom: 0.5rem; 
-  width: 100%; 
-  max-width: 480px;
+  margin-bottom: 0.75rem;
+  width: 100%;
 }
 
 .p-error {
-  display: block;        
-  margin-top: 0.25rem;  
-  color: #800000;         
-  font-size: 0.85rem;    
+  display: none !important;
 }
 
 .format-hint {
   display: block;
   margin-top: 0.25rem;
   color: #666;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-style: italic;
 }
 
 .p-inputtext {
-  background-color: white !important; 
-  border: 1px solid #800000 !important;    
-  color: rgb(0, 0, 0);                             
-  padding: 0.5rem;
-  width: 100%;
-  height: 50px; 
-  border-radius: 10px;
+  background-color: white !important;
+  border: 1.5px solid #800000 !important;
+  color: #333 !important;
+  padding: 0.5rem 0.65rem !important;
+  width: 100% !important;
+  height: 40px !important;
+  border-radius: 6px !important;
+  font-size: 0.85rem !important;
+  transition: border-color 0.3s ease !important;
+  box-sizing: border-box !important;
 }
 
 .p-inputtext:focus {
   border-color: #a00000 !important;
-  box-shadow: none !important;
+  box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.08) !important;
+}
+
+.p-inputtext.input-error {
+  background-color: #fee !important;
+  border: 1.5px solid #d32f2f !important;
 }
 
 /* Password styling */
 :host ::ng-deep .p-password input {
-  background-color: white !important; 
-  border: 1px solid #800000 !important;      
-  color: black !important;    
+  background-color: white !important;
+  border: 1.5px solid #800000 !important;
+  color: #333 !important;
   width: 100% !important;
-  height: 50px; 
-  border-radius: 10px;             
+  height: 40px !important;
+  border-radius: 6px !important;
+  padding: 0.5rem 0.65rem !important;
+  font-size: 0.85rem !important;
+  transition: border-color 0.3s ease !important;
+  box-sizing: border-box !important;
 }
 
 :host ::ng-deep .p-password input:focus {
-  background-color: white !important; 
-  border-color: #a00000 !important;          
-  box-shadow: none !important;              
+  background-color: white !important;
+  border-color: #a00000 !important;
+  box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.08) !important;
+}
+
+:host ::ng-deep .p-password input.input-error {
+  background-color: #fee !important;
+  border: 1.5px solid #d32f2f !important;
+}
+
+/* Error wrapper for p-password components */
+.input-error-wrapper :host ::ng-deep .p-password input {
+  background-color: #fee !important;
+  border: 1.5px solid #d32f2f !important;
 }
 
 .p-inputtext,
 :host ::ng-deep .p-password input {
   width: 100% !important;
-  height: 50px; 
-  border-radius: 10px;
-  padding: 0.5rem;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
 }
 
-/* Angular Material Form Field Styling */
-:host ::ng-deep .mat-mdc-form-field {
-  width: 100% !important;
-  margin-bottom: 0.5rem;
+/* Custom Select Dropdown Styling */
+.custom-select {
+  position: relative;
+  width: 100%;
+  margin-bottom: 0;
+  min-width: 0;
 }
 
-:host ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+.select-trigger {
+  width: 100%;
+  height: 40px;
   background-color: white !important;
-  border: 1px solid #800000 !important;
-  border-radius: 10px !important;
-  height: 50px !important;
+  border: 1.5px solid #800000 !important;
+  border-radius: 6px !important;
+  padding: 0.5rem 0.65rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-size: 0.85rem !important;
+  color: #333 !important;
+  font-family: 'Inter', sans-serif !important;
+  min-width: 0 !important;
 }
 
-:host ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper:hover {
+.select-trigger:hover:not(:disabled) {
   border-color: #a00000 !important;
 }
 
-:host ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+.select-trigger:focus {
   border-color: #a00000 !important;
-  box-shadow: none !important;
+  box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.08) !important;
+  outline: none !important;
 }
 
-:host ::ng-deep .mat-mdc-form-field .mat-mdc-floating-label {
+.select-trigger:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.select-error .select-trigger {
+  background-color: #fee !important;
+  border: 1.5px solid #d32f2f !important;
+}
+
+.select-value {
+  flex: 1;
+  min-width: 0 !important;
+  text-align: left !important;
+  color: #333 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.select-placeholder .select-value {
+  color: #999 !important;
+}
+
+.select-arrow {
   color: #800000 !important;
+  font-size: 0.65rem !important;
+  margin-left: 0.5rem !important;
 }
 
-:host ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
-  color: #a00000 !important;
+/* Custom Select Menu */
+.select-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white !important;
+  border: 1.5px solid #800000 !important;
+  border-radius: 6px !important;
+  margin-top: 0.25rem !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  z-index: 9999 !important;
+  overflow: hidden !important;
+  max-width: 100%;
 }
 
-:host ::ng-deep .mat-mdc-select-value {
-  color: black !important;
+.select-search {
+  width: 100% !important;
+  padding: 0.65rem !important;
+  border: none !important;
+  border-bottom: 1px solid #eee !important;
+  font-size: 0.8rem !important;
+  box-sizing: border-box !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
-:host ::ng-deep .mat-mdc-select-arrow {
+.select-search:focus {
+  outline: none !important;
+  background-color: #f9f9f9 !important;
+}
+
+.select-list {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-height: 240px !important;
+  overflow-y: auto !important;
+}
+
+.select-option {
+  width: 100% !important;
+  background-color: white !important;
+  border: none !important;
+  padding: 0.75rem 1rem !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  font-size: 0.85rem !important;
+  color: #333 !important;
+  transition: background-color 0.15s ease !important;
+  font-family: 'Inter', sans-serif !important;
+  text-align: center !important;
+}
+
+.select-option:hover {
+  background-color: rgba(128, 0, 0, 0.08) !important;
+}
+
+.select-option.selected {
+  background-color: rgba(128, 0, 0, 0.15) !important;
   color: #800000 !important;
+  font-weight: 600 !important;
+}
+
+/* Custom scrollbar */
+.select-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.select-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.select-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.select-list::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Firefox scrollbar */
+.select-list {
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+}
+
+/* Disabled state */
+.custom-select.select-disabled .select-trigger {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
 }
 
 /* Button styling */
 :host ::ng-deep .p-button {
-  width: 480px !important;
-  height: 55px !important; 
-  border-radius: 10px !important;
-  font-weight: bold !important;
-  font-size: 1rem !important;
+  width: 100% !important;
+  height: 40px !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
   text-align: center !important;
-  margin-top: 1.5rem !important;
-  margin-bottom: 1.5rem !important;
+  box-sizing: border-box !important;
+  transition: all 0.3s ease !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.75rem !important;
   background-color: #800000 !important;
   border: none !important;
   color: white !important;
@@ -195,188 +360,223 @@
 
 :host ::ng-deep .p-button:hover {
   background-color: #a00000 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(128, 0, 0, 0.25) !important;
 }
 
 .mt-2 {
-  margin-top: 2rem; 
-  font-size: 1rem;         
-  color: #000000;          
-  text-align: center;      
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #666;
+  text-align: left;
 }
 
 .mt-2 a {
-  text-decoration: underline;
-  font-weight: bold;
+  text-decoration: none;
+  font-weight: 600;
   color: #800000;
+  transition: color 0.2s ease;
+}
+
+.mt-2 a:hover {
+  color: #a00000;
+  text-decoration: underline;
 }
 
 .p-inputtext::placeholder {
-  color: #450808;           
-  font-size: 0.95rem;
+  color: #999 !important;
+  font-size: 0.85rem;
 }
 
 /* Form row styling for two-column layout */
 .form-row {
   display: flex;
-  gap: 16px;
+  gap: 0.75rem;
   width: 100%;
-  max-width: 480px;
 }
 
 .form-row .field {
   flex: 1;
+  min-width: 0;
+  margin-bottom: 0.75rem;
 }
 
 .form-row .department-field {
-  flex: 2;
+  flex: 1;
+  min-width: 0;
 }
 
 .form-row .course-field {
   flex: 1;
+  min-width: 0;
 }
 
-/* Responsive design - Tablet */
-@media (max-width: 992px) {
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================ */
+
+/* Hide image on medium screens (below 1024px) */
+@media (max-width: 1024px) {
+  .login-card {
+    flex-direction: column;
+    height: auto;
+  }
+
   .leftside {
+    display: none; /* Hide image container entirely */
+    height: 0;
+  }
+
+  .leftside .overlay {
     display: none;
   }
-  
+
   .rightside {
-    flex: 1;
-    width: 100%;
-    padding: 1rem;
+    width: 100%; /* Expand form to full width */
+    padding: 1.75rem 1.5rem;
+    overflow: visible;
+    scrollbar-gutter: stable;
   }
-  
+
   .form-container {
-    max-width: 500px;
+    max-width: 100%; /* Form takes full width */
+  }
+
+  .login-header {
+    font-size: 1.75rem;
   }
 }
 
-/* Responsive design - Mobile */
 @media (max-width: 768px) {
   .background {
-    height: auto;
-    min-height: 100vh;
+    padding: 0.75rem;
   }
-  
+
+  .login-card {
+    flex-direction: column;
+    border-radius: 8px;
+    height: auto;
+  }
+
   .leftside {
+    display: none; /* Keep image hidden */
+    height: 0;
+  }
+
+  .leftside .overlay {
     display: none;
   }
-  
+
   .rightside {
     width: 100%;
-    padding: 2.5rem 2rem;
-    align-items: center;
+    padding: 1.5rem 1.25rem;
+    overflow: visible;
+    scrollbar-gutter: stable;
   }
-  
+
   .form-container {
     width: 100%;
-    max-width: 420px;
-    padding: 0;
-  }
-  
-  .signupForm {
-    padding: 2rem;
     max-width: 100%;
   }
-  
-  .form-row {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .field {
-    max-width: 100%;
-    margin-bottom: 1rem;
-  }
-  
-  .field label {
-    margin-bottom: 0.6rem;
-    margin-top: 0.6rem;
-  }
-  
-  .form-row .department-field,
-  .form-row .course-field {
-    flex: 1;
-    width: 100%;
-  }
-  
+
   .login-header {
-    font-size: 38px;
-    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
   }
-  
-  :host ::ng-deep .p-button {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-top: 2rem !important;
+
+  .field {
+    margin-bottom: 0.65rem;
   }
-  
+
+  .field label {
+    font-size: 0.7rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .form-row {
+    gap: 0.5rem;
+  }
+
   .p-inputtext,
   :host ::ng-deep .p-password input {
-    height: 52px;
+    height: 36px !important;
+    font-size: 0.8rem !important;
   }
-  
+
+  :host ::ng-deep .p-button {
+    height: 36px !important;
+    font-size: 0.8rem !important;
+    margin-top: 0.65rem !important;
+    margin-bottom: 0.65rem !important;
+  }
+
   :host ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
-    height: 52px !important;
+    height: 36px !important;
   }
-  
-  :host ::ng-deep .mat-mdc-form-field {
-    margin-bottom: 1rem;
+
+  .mt-2 {
+    font-size: 0.7rem;
+    margin-top: 0.65rem;
   }
 }
 
-/* Responsive design - Small Mobile */
 @media (max-width: 480px) {
+  .background {
+    padding: 0.5rem;
+  }
+
   .rightside {
-    padding: 2rem 1.5rem;
+    padding: 1.25rem 1rem;
   }
-  
-  .signupForm {
-    padding: 1.5rem;
+
+  .form-container {
+    width: 100%;
+    max-width: 100%;
   }
-  
+
   .login-header {
-    font-size: 34px;
-    margin-bottom: 1.25rem;
+    font-size: 1.35rem;
+    margin-bottom: 0.3rem;
   }
-  
+
   .field {
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.6rem;
   }
-  
+
   .field label {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.65rem;
+    margin-bottom: 0.2rem;
   }
-  
-  .format-hint {
-    font-size: 0.85rem;
+
+  .form-row {
+    flex-direction: column;
+    gap: 0.5rem;
   }
-  
+
+  .form-row .field {
+    margin-bottom: 0.6rem;
+  }
+
+  .p-inputtext,
+  :host ::ng-deep .p-password input {
+    height: 34px !important;
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.5rem !important;
+  }
+
   :host ::ng-deep .p-button {
-    height: 54px !important;
-    font-size: 1rem !important;
-    margin-top: 1.75rem !important;
+    height: 34px !important;
+    font-size: 0.75rem !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
   }
-  
-  .modal-container {
-    padding: 40px 35px;
-    margin: 0 20px;
+
+  :host ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+    height: 34px !important;
   }
-  
-  .modal-title {
-    font-size: 26px;
-  }
-  
-  .modal-message {
-    font-size: 15px;
-    margin-bottom: 28px;
-  }
-  
-  .modal-button {
-    padding: 14px 50px;
-    font-size: 15px;
+
+  .mt-2 {
+    font-size: 0.65rem;
   }
 }
 

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, HostListener } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +11,16 @@ import { Auth } from '../../service/auth';
 import { signupPostData } from '../../interface/auth';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
-import { MatSelectModule } from '@angular/material/select';
+import { CommonModule } from '@angular/common';
+
+// Utility function to convert ALL CAPS to Title Case
+function formatTitle(text: string): string {
+  return text
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 @Component({
   selector: 'app-signup',
@@ -24,8 +33,8 @@ import { MatSelectModule } from '@angular/material/select';
     ButtonModule,
     RouterLink,
     AutoCompleteModule,
-    MatSelectModule,
     ToastModule,
+    CommonModule,
   ],
   providers: [MessageService],
   templateUrl: './signup.html',
@@ -38,6 +47,12 @@ export class Signup {
 
   // Modal visibility state
   showVerificationModal = false;
+
+  // Dropdown state
+  departmentOpen = false;
+  courseOpen = false;
+  departmentSearchFilter = '';
+  courseSearchFilter = '';
 
   departments = [
     { value: 'OUS', viewValue: 'OPEN UNIVERSITY SYSTEM' },
@@ -143,6 +158,7 @@ export class Signup {
   };
 
   filteredCourses: any[] = [];
+  filteredDepartments: any[] = [];
 
   signupForm = new FormGroup({
     firstName: new FormControl('', [
@@ -168,6 +184,128 @@ export class Signup {
   }, {
     validators: passwordMismatchValidator
   });
+
+  // Track fields with errors (to show inline error styling)
+  fieldsWithErrors: Set<string> = new Set();
+
+  ngOnInit() {
+    this.filteredDepartments = this.departments;
+  }
+
+  // Close dropdowns when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const customSelects = document.querySelectorAll('.custom-select');
+    let clickedInside = false;
+
+    customSelects.forEach(select => {
+      if (select.contains(target)) {
+        clickedInside = true;
+      }
+    });
+
+    if (!clickedInside) {
+      this.closeDropdowns();
+    }
+  }
+
+  // Format text for display
+  formatTitle(text: string): string {
+    return formatTitle(text);
+  }
+
+  // Get selected department label
+  getSelectedDepartmentLabel(): string {
+    const deptValue = this.signupForm.get('department')?.value;
+    if (!deptValue) return 'Select';
+    const dept = this.departments.find(d => d.value === deptValue);
+    return dept ? this.formatTitle(dept.viewValue) : 'Select';
+  }
+
+  // Get selected course label
+  getSelectedCourseLabel(): string {
+    const courseValue = this.signupForm.get('course')?.value;
+    if (!courseValue) return 'Select';
+    const course = this.filteredCourses.find(c => c.value === courseValue);
+    return course ? course.value : 'Select';
+  }
+
+  // Toggle department dropdown
+  toggleDepartmentDropdown() {
+    this.departmentOpen = !this.departmentOpen;
+    if (this.departmentOpen) {
+      this.courseOpen = false;
+    }
+    this.departmentSearchFilter = '';
+    this.filteredDepartments = this.departments;
+  }
+
+  // Filter departments
+  filterDepartments(searchTerm: string) {
+    this.departmentSearchFilter = searchTerm;
+    this.filteredDepartments = this.departments.filter(dept =>
+      dept.viewValue.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  // Select department
+  selectDepartment(dept: any) {
+    this.signupForm.get('department')?.setValue(dept.value);
+    this.departmentOpen = false;
+    this.onDepartmentChange(dept.value);
+  }
+
+  // Toggle course dropdown
+  toggleCourseDropdown() {
+    if (!this.signupForm.get('department')?.value) return;
+    this.courseOpen = !this.courseOpen;
+    if (this.courseOpen) {
+      this.departmentOpen = false;
+    }
+    this.courseSearchFilter = '';
+  }
+
+  // Filter courses
+  filterCourses(searchTerm: string) {
+    this.courseSearchFilter = searchTerm;
+  }
+
+  // Get filtered courses
+  getFilteredCourses(): any[] {
+    if (!this.courseSearchFilter) return this.filteredCourses;
+    return this.filteredCourses.filter(course =>
+      course.value.toLowerCase().includes(this.courseSearchFilter.toLowerCase()) ||
+      course.viewValue.toLowerCase().includes(this.courseSearchFilter.toLowerCase())
+    );
+  }
+
+  // Select course
+  selectCourse(course: any) {
+    this.signupForm.get('course')?.setValue(course.value);
+    this.courseOpen = false;
+  }
+
+  // Close dropdowns when clicking outside
+  closeDropdowns() {
+    this.departmentOpen = false;
+    this.courseOpen = false;
+  }
+
+  // Check if field is in error state
+  isFieldInError(fieldName: string): boolean {
+    return this.fieldsWithErrors.has(fieldName);
+  }
+
+  // Clear field error state and remove from error set
+  clearFieldError(fieldName: string): void {
+    this.fieldsWithErrors.delete(fieldName);
+  }
+
+  // Mark field as in error
+  private markFieldError(fieldName: string): void {
+    this.fieldsWithErrors.add(fieldName);
+  }
 
   onDepartmentChange(dept: string) {
     this.filteredCourses = this.courses[dept] || [];
@@ -206,6 +344,14 @@ export class Signup {
         },
       });
     } else {
+      // Mark all invalid fields with errors
+      Object.keys(this.signupForm.controls).forEach(key => {
+        const control = this.signupForm.get(key);
+        if (control && control.invalid) {
+          this.markFieldError(key);
+        }
+      });
+      
       this.messageService.add({
         severity: 'warn',
         summary: 'Validation Error',

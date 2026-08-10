@@ -45,25 +45,52 @@ h2 {
     width: 100%;
     display: flex;
     align-items: center;
+    justify-content: space-between;
   }
-  
-  .nav-left {
+
+  /* Logo link - remove default anchor styling */
+  .logo-link {
+    text-decoration: none;
+    color: inherit;
     display: flex;
     align-items: center;
-    gap: 2rem; 
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .logo-link:hover {
+    opacity: 0.8;
   }
   
   .logo {
     margin: 0;
     font-weight: bold;
     color: white !important;
+    white-space: nowrap;
   }
   
   .login-button {
     font-weight: bold;
   }
 
-  /* Style for Login button - white background with no border */
+  /* Centered nav links container */
+  .nav-center {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    flex: 1;
+    margin: 0 2rem;
+  }
+
+  /* Center nav button styling */
+  :host ::ng-deep .nav-center .nav-center-btn.p-button {
+    font-size: 0.875rem;
+  }
+
+  :host ::ng-deep .nav-center .nav-center-btn .p-button-label {
+    font-size: 0.875rem;
+  }
   :host ::ng-deep .dark .p-button {
     background-color: white !important;
     border: none !important;
@@ -121,6 +148,46 @@ h2 {
     color: white !important;
   }
 
+  /* Center nav links - ensure white text */
+  :host ::ng-deep .nav-center .p-button,
+  :host ::ng-deep .nav-center .p-button-text,
+  :host ::ng-deep .nav-center .p-button-plain {
+    color: white !important;
+  }
+
+  :host ::ng-deep .nav-center .p-button .p-button-label {
+    color: white !important;
+  }
+
+  :host ::ng-deep .nav-center .p-button:hover {
+    background-color: #a00000 !important;
+  }
+
+  :host ::ng-deep .nav-center .p-button:hover .p-button-label {
+    color: white !important;
+  }
+
+  /* Mobile nav drawer - hidden by default on desktop */
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    background-color: #800000;
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
   /* Mobile nav links - ensure white text */
   :host ::ng-deep .nav-links .p-button,
   :host ::ng-deep .nav-links .p-button-text,
@@ -150,23 +217,25 @@ h2 {
     display: flex !important;
     align-items: center !important;
   }
-  
+
+  :host ::ng-deep .p-toolbar .p-toolbar-group-left {
+    flex: 1;
+    justify-content: flex-start;
+    overflow: visible !important;
+  }
+
+  :host ::ng-deep .p-toolbar .p-toolbar-group-center {
+    flex: 1;
+    justify-content: center;
+    overflow: visible !important;
+  }
+
   :host ::ng-deep .p-toolbar .p-toolbar-group-right {
+    flex: 1;
+    justify-content: flex-end;
     overflow: visible !important;
     position: relative;
     z-index: 1001;
-  }
-  
-  /* Ensure the container for user profile card allows dropdown positioning */
-  :host ::ng-deep .p-toolbar .p-toolbar-group-right > * {
-    position: relative;
-  }
-  
-  :host ::ng-deep .p-toolbar .p-toolbar-group-left,
-  :host ::ng-deep .p-toolbar .p-toolbar-group-right {
-    display: flex;
-    align-items: center;
-    color: white !important;
   }
 
   /* Ensure all text elements in toolbar are white */
@@ -269,8 +338,6 @@ h2 {
     background: transparent !important;
     background-color: transparent !important;
   }
-
-  .user-email {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.8);
     opacity: 0.9;
@@ -504,9 +571,12 @@ h2 {
     width: 36px !important;
     height: 36px !important;
   }
-}
 
-/* ====== MOBILE STYLES ====== */
+  /* Hide center nav on medium screens */
+  .nav-center {
+    display: none !important;
+  }
+}
 @media (max-width: 768px) {
   .menu-toggle {
     display: block !important;
@@ -516,23 +586,10 @@ h2 {
 
   .nav-links {
     display: none;
-    flex-direction: column;
-    background-color: #800000;
-    position: fixed;
-    top: 80px;
-    left: 0;
-    width: 100%;
-    padding: 1rem 0;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 999;
-    /* iOS Safari fixes */
-    -webkit-overflow-scrolling: touch;
   }
 
   .nav-links.open {
-    display: flex;
+    display: flex !important;
   }
 
   .nav-links p-button {
@@ -590,6 +647,11 @@ h2 {
     outline: none !important;
   }
 
+  /* Hide center nav on mobile */
+  .nav-center {
+    display: none !important;
+  }
+
   /* Profile dropdown menu on mobile - ensure it's visible and clickable */
   /* When appendTo="body", menu overlay is in body, so target it directly */
   :host ::ng-deep body > .p-menu-overlay {
@@ -644,3 +706,11 @@ h2 {
 }
 
 
+
+/* ====== DESKTOP STYLES (>1200px) - Show centered nav ====== */
+@media (min-width: 1201px) {
+  /* Show center nav on desktop */
+  .nav-center {
+    display: flex !important;
+  }
+}

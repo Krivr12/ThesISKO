@@ -1,25 +1,44 @@
 <p-toolbar class="navbar" *ngIf="shouldShowNavbar">
   <ng-template #start>
     <div class="nav-left">
-      <h2 class="logo">ThesISKO</h2>
+      <!-- Logo with router link -->
+      <a routerLink="/home" class="logo-link" title="Go to home">
+        <h2 class="logo">ThesISKO</h2>
+      </a>
 
       <!-- Hamburger menu (visible only on mobile) -->
       <button class="menu-toggle" (click)="toggleMenu()" (touchend)="toggleMenu(); $event.preventDefault()">
         &#9776;
       </button>
+    </div>
+  </ng-template>
 
-      <!-- Navigation links - hidden when unauthenticated on /home -->
-      <div class="nav-links" [class.open]="isMenuOpen" *ngIf="!shouldHideNavLinks()">
-        <p-button
-          *ngFor="let item of navItems"
-          [label]="item.label"
-          text
-          plain
-          [routerLink]="item.route || undefined"
-          (click)="item.action?.()"
-          [title]="item.title">
-        </p-button>
-      </div>
+  <!-- Centered nav items container - Desktop only -->
+  <ng-template #center>
+    <div class="nav-center" *ngIf="!shouldHideNavLinks()">
+      <p-button
+        *ngFor="let item of navItems"
+        [label]="item.label"
+        text
+        plain
+        [routerLink]="item.route || undefined"
+        (click)="item.action?.()"
+        [title]="item.title"
+        class="nav-center-btn">
+      </p-button>
+    </div>
+
+    <!-- Navigation links mobile drawer - hidden when unauthenticated on /home -->
+    <div class="nav-links" [class.open]="isMenuOpen" *ngIf="!shouldHideNavLinks()">
+      <p-button
+        *ngFor="let item of navItems"
+        [label]="item.label"
+        text
+        plain
+        [routerLink]="item.route || undefined"
+        (click)="item.action?.()"
+        [title]="item.title">
+      </p-button>
     </div>
   </ng-template>
 

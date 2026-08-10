@@ -1,361 +1,397 @@
 * {
     color: #800000;
-    background-color: white;
     font-family: 'Inter', sans-serif;
 }
 
 .background {
-    background-color: white;
+    background-color: #f3f4f6;
     display: flex;
-    height: 100vh;   
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.card-container {
+    width: 100%;
+    max-width: 1100px;
+}
+
+.login-card {
+    display: flex;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    height: 750px;
 }
 
 .leftside {
-    flex: 1; 
-    height: 100%;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
 }
 
 .leftside img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
+    display: block;
 }
 
 .leftside .overlay {
     position: absolute;
     top: 0;
     left: 0;
-    width: 50%;
+    width: 100%;
     height: 100%;
-    background-color: rgba(128, 0, 0, 0.3); 
+    background-color: rgba(128, 0, 0, 0.3);
+    z-index: 1;
 }
 
-/* rightside */
 .rightside {
     flex: 1;
     display: flex;
-    align-items: center; 
-    justify-content: center; 
-    background-color: white; 
-  position: relative;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    padding: 2rem 1.75rem;
+    position: relative;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 380px;
 }
 
 .login-header {
-    font-size: 60px;
+    font-size: 2rem;
     font-weight: 900;
     color: #800000;
-    margin-left: 2rem;
+    margin-bottom: 0.5rem;
     text-align: left;
-  }
-
-.loginform {
-    background-color: white;
-    border-radius: 30px;
-    text-align: left; 
-    display: flex;
-    height: 100%;
-    width: 600px;
-    max-width: 90%;
-    flex-direction: column;
-    align-items: center;
-    color:#800000;
-    background-color: white !important; 
 }
 
 h1 {
     font-size: 2rem;
-    font-weight: bold;
+    font-weight: 900;
     color: #800000;
     text-align: left;
-  }
-  
+    margin-bottom: 0.5rem;
+}
+
+.loginform {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    color: #800000;
+}
+
+.field {
+    margin-bottom: 0;
+    width: 100%;
+}
 
 .field label {
     display: block;
-    margin-bottom: 1rem;
-    margin-top: 0.5rem;
-    font-weight: 400;
-    font-size: 1rem;
-    color: #0b0202;
-    width: 100%;
-  }
-
-.field {
-    margin-bottom: 1rem; 
-    width: 100%; 
-    max-width: 480px; 
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .p-error {
-    display: block;        
-    margin-top: 0.25rem;  
-    color: #800000;         
-    font-size: 0.85rem;    
+    display: block;
+    margin-top: 0.25rem;
+    color: #d32f2f;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
-/*text*/
-
+/* Input styling */
 .p-inputtext {
-    background-color: white !important; 
-    border: 1px solid #800000 !important;    
-    color: rgb(0, 0, 0);                             
-    padding: 0.5rem;
-    width: 480px !important;
-    height: 50px; 
-    border-radius: 10px;
+    background-color: white !important;
+    border: 1.5px solid #800000 !important;
+    color: #333 !important;
+    padding: 0.5rem 0.65rem !important;
+    width: 100% !important;
+    height: 40px !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    transition: border-color 0.3s ease !important;
+    box-sizing: border-box !important;
 }
-
 
 .p-inputtext:focus {
     border-color: #a00000 !important;
-    box-shadow: none !important; 
+    box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.08) !important;
 }
 
-/*passwords*/
+.p-inputtext::placeholder {
+    color: #999 !important;
+}
+
+/* Password styling */
 .p-password {
-    width: 480px !important;
-    height: 50px; 
-    border-radius: 10px;
+    width: 100% !important;
 }
 
 .p-password input {
     background-color: white !important;
-    border: 1px solid #800000 !important;
-    color: black;
-    width: 480px !important;
-    height: 50px;  
-    border-radius: 10px;
+    border: 1.5px solid #800000 !important;
+    color: #333 !important;
+    width: 100% !important;
+    height: 40px !important;
+    border-radius: 6px !important;
+    padding: 0.5rem 0.65rem !important;
+    font-size: 0.85rem !important;
+    transition: border-color 0.3s ease !important;
+    box-sizing: border-box !important;
 }
-
 
 :host ::ng-deep .p-password input {
-    background-color: white !important; 
-    border: 1px solid #800000 !important;      
-    color: black !important;    
-    width: 480px !important;
-    height: 50px; 
-    border-radius: 10px;             
+    background-color: white !important;
+    border: 1.5px solid #800000 !important;
+    color: #333 !important;
+    width: 100% !important;
+    height: 40px !important;
+    border-radius: 6px !important;
+    padding: 0.5rem 0.65rem !important;
+    box-sizing: border-box !important;
 }
-
 
 :host ::ng-deep .p-password input:focus {
-    background-color: white !important; 
-    border-color: #a00000 !important;          
-    box-shadow: none !important;              
+    background-color: white !important;
+    border-color: #a00000 !important;
+    box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.08) !important;
 }
 
-.p-inputtext,
-:host ::ng-deep .p-password input {
-    width: 480px !important;
-    height: 50px; 
-    border-radius: 10px;
-    padding: 0.5rem;
-    box-sizing: border-box;
+/* Button styling */
+:host ::ng-deep .p-button {
+    width: 100% !important;
+    height: 40px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    transition: all 0.3s ease !important;
 }
 
 :host ::ng-deep .loginbtn .p-button {
     background-color: #800000 !important;
     border: none !important;
     color: white !important;
-    font-weight: bold;
-    border-radius: 10px;
-    height: 55px;
-    width: 480px !important;
-  }
+    font-weight: 600 !important;
+    margin-bottom: 0.75rem !important;
+}
 
-:host ::ng-deep .loginbtn .p-button:hover {
+:host ::ng-deep .loginbtn .p-button:hover:not(:disabled) {
     background-color: #a00000 !important;
-  }
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(128, 0, 0, 0.25) !important;
+}
 
-.p-inputtext::placeholder {
-    color: #450808;           
-    font-size: 0.95rem;
-  }
-  
- 
-  :host ::ng-deep .p-password input::placeholder {
-    color: #450808;         
-    font-size: 0.95rem;
-  }
-  
-  /* Back to Home link */
-  .back-link {
-    margin-top: 1.5rem;
-    text-align: center;
+:host ::ng-deep .loginbtn .p-button:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+/* Back link styling */
+.back-link {
+    margin-top: 0;
+    text-align: left;
     width: 100%;
-    max-width: 480px;
-  }
+}
 
-  .back-button {
+.back-button {
     color: #800000;
     text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
     transition: color 0.2s ease;
     display: inline-block;
-  }
+}
 
-  .back-button:hover {
+.back-button:hover {
     color: #a00000;
     text-decoration: underline;
-  }
+}
+
+/* Input field spacing */
+.loginform > .field {
+    margin-bottom: 0.75rem;
+}
 
 /* ============================================
    MOBILE RESPONSIVE STYLES
    ============================================ */
 
-/* Tablets and smaller desktops */
+/* Hide image on medium screens (below 1024px) */
 @media (max-width: 1024px) {
-  .background {
-    flex-direction: column;
-    height: auto;
-    min-height: 100vh;
-  }
+    .login-card {
+        flex-direction: column;
+        height: auto;
+    }
 
-  .leftside {
-    display: none;
-  }
+    .leftside {
+        display: none; /* Hide image container entirely */
+        height: 0;
+    }
 
-  .leftside .overlay {
-    display: none;
-  }
+    .leftside .overlay {
+        display: none;
+    }
 
-  .rightside {
-    width: 100%;
-    flex: 1;
-    padding: 2rem 1rem;
-    min-height: 100vh;
-    align-items: center;
-    justify-content: center;
-  }
+    .rightside {
+        width: 100%; /* Expand form to full width */
+        padding: 1.75rem 1.5rem;
+    }
 
-  .loginform {
-    width: 100%;
-    max-width: 450px;
-  }
+    .form-container {
+        max-width: 100%; /* Form takes full width */
+    }
 
-  .login-header {
-    font-size: 48px;
-    margin-left: 0;
-    text-align: center;
-  }
+    .login-header {
+        font-size: 1.75rem;
+    }
 
-  .p-inputtext,
-  .p-password,
-  .p-password input,
-  :host ::ng-deep .p-password input {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  :host ::ng-deep .loginbtn .p-button {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
+    h1 {
+        font-size: 1.75rem;
+    }
 }
 
-/* Mobile phones */
 @media (max-width: 768px) {
-  .rightside {
-    padding: 1.5rem 1rem;
-  }
+    .background {
+        padding: 0.75rem;
+    }
 
-  .loginform {
-    width: 100%;
-    max-width: 100%;
-    padding: 1rem;
-  }
+    .login-card {
+        flex-direction: column;
+        border-radius: 8px;
+        height: auto;
+    }
 
-  .login-header {
-    font-size: 36px;
-    margin-left: 0;
-    text-align: center;
-    margin-bottom: 1rem;
-  }
+    .leftside {
+        display: none; /* Keep image hidden */
+        height: 0;
+    }
 
-  h1 {
-    font-size: 1.5rem;
-    text-align: center;
-  }
+    .leftside .overlay {
+        display: none;
+    }
 
-  .field {
-    width: 100%;
-    max-width: 100%;
-  }
+    .rightside {
+        width: 100%;
+        padding: 1.5rem 1.25rem;
+    }
 
-  .field label {
-    font-size: 0.95rem;
-  }
+    .form-container {
+        width: 100%;
+        max-width: 100%;
+    }
 
-  .p-inputtext,
-  .p-password,
-  .p-password input,
-  :host ::ng-deep .p-password input,
-  :host ::ng-deep .p-inputtext {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 48px;
-  }
+    .login-header {
+        font-size: 1.5rem;
+        margin-bottom: 0.4rem;
+    }
 
-  :host ::ng-deep .loginbtn .p-button {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 50px;
-  }
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.4rem;
+    }
 
-  .back-link {
-    max-width: 100%;
-    margin-top: 1rem;
-  }
+    .field {
+        margin-bottom: 0.75rem;
+    }
+
+    .field label {
+        font-size: 0.7rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .p-inputtext,
+    .p-password input,
+    :host ::ng-deep .p-password input {
+        height: 36px !important;
+        font-size: 0.8rem !important;
+    }
+
+    :host ::ng-deep .p-button {
+        height: 36px !important;
+        font-size: 0.8rem !important;
+    }
+
+    .back-link {
+        max-width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .back-button {
+        font-size: 0.7rem;
+    }
 }
 
-/* Small mobile phones */
 @media (max-width: 480px) {
-  .rightside {
-    padding: 1rem 0.75rem;
-  }
+    .background {
+        padding: 0.5rem;
+    }
 
-  .loginform {
-    padding: 0.75rem;
-    border-radius: 20px;
-  }
+    .rightside {
+        padding: 1.25rem 1rem;
+    }
 
-  .login-header {
-    font-size: 28px;
-  }
+    .form-container {
+        width: 100%;
+        max-width: 100%;
+    }
 
-  h1 {
-    font-size: 1.25rem;
-  }
+    .login-header {
+        font-size: 1.35rem;
+        margin-bottom: 0.3rem;
+    }
 
-  .field label {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-  }
+    h1 {
+        font-size: 1.35rem;
+        margin-bottom: 0.3rem;
+    }
 
-  .p-inputtext,
-  .p-password input,
-  :host ::ng-deep .p-password input {
-    height: 45px;
-    font-size: 0.9rem;
-    border-radius: 8px;
-  }
+    .field {
+        margin-bottom: 0.65rem;
+    }
 
-  :host ::ng-deep .loginbtn .p-button {
-    height: 48px;
-    font-size: 0.9rem;
-    border-radius: 8px;
-  }
+    .field label {
+        font-size: 0.65rem;
+        margin-bottom: 0.2rem;
+    }
 
-  .back-link {
-    margin-top: 1rem;
-  }
+    .p-inputtext,
+    .p-password input,
+    :host ::ng-deep .p-password input {
+        height: 34px !important;
+        font-size: 0.75rem !important;
+        padding: 0.4rem 0.5rem !important;
+    }
 
-  .back-button {
-    font-size: 0.9rem;
-  }
+    :host ::ng-deep .p-button {
+        height: 34px !important;
+        font-size: 0.75rem !important;
+    }
 
-  .p-error {
-    font-size: 0.8rem;
-  }
+    .back-link {
+        margin-top: 0;
+    }
+
+    .back-button {
+        font-size: 0.65rem;
+    }
+
+    .p-error {
+        font-size: 0.75rem;
+    }
 }

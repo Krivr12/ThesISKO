@@ -1,17 +1,20 @@
 <p-toast></p-toast>
 <div class="background">
-    
-    <div class="leftside">
-        <img src="/puplagoon.jpg" alt="pup lagoon" />
-        <div class="overlay"></div>
-    </div>
+    <div class="card-container">
+        <div class="login-card">
+            <!-- Left side: Image -->
+            <div class="card-leftside">
+                <img src="/puplagoon.jpg" alt="pup lagoon" />
+                <div class="overlay"></div>
+            </div>
 
-    <div class="rightside">
-        <div class="form-container">
-            <h1 class="login-header">Welcome back!</h1>
-            <p class="login-subtitle">Sign in to access repository functions and great documents</p>
+            <!-- Right side: Form -->
+            <div class="card-rightside">
+                <div class="form-container">
+                    <h1 class="login-header">Welcome back!</h1>
+                    <p class="login-subtitle">Sign in to access repository functions and great documents</p>
 
-            <form #loginForm = "ngForm" (ngSubmit)="onLogin()" class="loginform">
+                    <form #loginForm = "ngForm" (ngSubmit)="onLogin()" class="loginform">
 
                 <!-- Email Field -->
                 <div class='field'>
@@ -92,9 +95,10 @@
                     <a routerLink="/login-admin" class="admin-link">Login as Admin</a>
                 </div>
 
-            </form>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-      
 </div>
   

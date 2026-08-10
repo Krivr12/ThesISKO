@@ -1,23 +1,24 @@
 @if (currentConfig) {
-  <div class="modal-overlay" (click)="onClose()">
-    <!-- Prevents clicks inside modal to close it -->
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" [class.mobile]="isMobile()" (click)="onClose()">
+    <!-- Modal content wrapper - prevents clicks inside modal to close it -->
+    <div class="modal-content" [class.mobile]="isMobile()" (click)="$event.stopPropagation()">
       
-      <div class="modal-header">
-        <h2 class="modal-title">{{ currentConfig.title }}</h2>
-        <button class="modal-close-btn" (click)="onClose()">&times;</button>
-      </div>
+      <!-- Close button positioned absolutely on top-right -->
+      <button class="modal-close-btn" (click)="onClose()" aria-label="Close modal">&times;</button>
 
       <div class="modal-body">
-        <div class="icon-container">
-          <div [innerHTML]="getIconSvg()"></div>
-        </div>
+        <!-- Header text (bold, maroon color) -->
+        <h2 class="modal-title">{{ currentConfig.title }}</h2>
+        
+        <!-- Descriptive text (centered) -->
         <p class="modal-text">
           {{ currentConfig.message }}
         </p>
         
+        <!-- Action buttons (full-width, stacked vertically) -->
         <div class="modal-actions">
           <button class="btn-primary" (click)="onPrimaryAction()">
+            <i class="pi pi-lock" *ngIf="currentConfig.icon === 'lock'"></i>
             {{ currentConfig.primaryButtonText || 'Confirm' }}
           </button>
           @if (currentConfig.secondaryButtonText) {
