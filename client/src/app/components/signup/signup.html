@@ -17,140 +17,196 @@
       </div>
     </div>
   }
-    
-  <div class="leftside">
-    <img 
-      src="puplagoon.jpg" 
-      alt="pup lagoon" 
-    />
-    <div class="overlay"></div>
-  </div>
+  
+  <div class="card-container">
+    <div class="login-card">
+      <div class="leftside">
+        <img 
+          src="puplagoon.jpg" 
+          alt="pup lagoon" 
+        />
+        <div class="overlay"></div>
+      </div>
 
-  <div class="rightside">
-    <div class="form-container">
+      <div class="rightside">
+        <div class="form-container">
       <h1 class="login-header">Sign Up</h1>
 
       <form [formGroup]="signupForm" (ngSubmit)="onSignup()" class="signupForm">
         <div class="form-row"> 
           <div class="field">
-            <label for="firstName">First Name</label>
+            <label for="firstName">First Name<span class="required-asterisk">*</span></label>
             <input
               pInputText
               class="w-full"
               id="firstName"
               formControlName="firstName"
               placeholder="Enter first name"
+              (input)="clearFieldError('firstName')"
+              [ngClass]="{ 'input-error': isFieldInError('firstName') }"
               required
             />
-            @if(firstName.invalid &&  (firstName.dirty || firstName.touched)) {
-                <small class="block p-error"> First Name is required. </small> }
           </div>
       
           <div class="field">
-            <label for="lastName">Last Name</label>
+            <label for="lastName">Last Name<span class="required-asterisk">*</span></label>
             <input
               pInputText
               class="w-full"
               id="lastName"
               formControlName="lastName"
               placeholder="Enter last name"
+              (input)="clearFieldError('lastName')"
+              [ngClass]="{ 'input-error': isFieldInError('lastName') }"
               required
             />
-            @if(lastName.invalid &&  (lastName.dirty || lastName.touched)) {
-                <small class="block p-error"> Last Name is required. </small> }
           </div>
         </div>
  
         <div class="field">
-          <label for="email">PUP Webmail</label>
+          <label for="email">PUP Webmail<span class="required-asterisk">*</span></label>
           <input
             pInputText
             class="w-full"
             id="email"
             formControlName="email"
             placeholder="Enter PUP Webmail"
+            (input)="clearFieldError('email')"
+            [ngClass]="{ 'input-error': isFieldInError('email') }"
           />
-          @if(email.invalid &&  (email.dirty || email.touched)) {
-              <small class="block p-error">
-                  @if(email.hasError('required')) {
-                      <span> PUP Webmail is required. </span>
-                  } @else if(email.hasError('pattern')) {
-                      <span> PUP Webmail is Invalid. </span>
-                  }
-              </small>
-          }
         </div>
 
         <div class="field">
-          <label for="StudentNum">ID Number</label>
+          <label for="StudentNum">ID Number <span class="required-asterisk">*</span></label>
           <input
             pInputText
             class="w-full"
             id="studentNum"
             formControlName="studentNum"
             placeholder="Enter ID Number"
+            (input)="clearFieldError('studentNum')"
+            [ngClass]="{ 'input-error': isFieldInError('studentNum') }"
             required
           />
-        
-          <small class="format-hint">Format: 20xx-xxxxx-xx-0</small>
-        
-          @if(studentNum.invalid && (studentNum.dirty || studentNum.touched)) {
-            <small class="block p-error"> ID Number is required. </small>
-          }
-        </div>
-
-        <div class="form-row">
-          <mat-form-field appearance="fill" class="department-field">
-            <mat-label>Department</mat-label>
-            <mat-select formControlName="department" (selectionChange)="onDepartmentChange($event.value)">
-              @for (dept of departments; track dept) {
-                <mat-option [value]="dept.value">{{ dept.viewValue }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-          
-          <mat-form-field appearance="fill" class="course-field">
-            <mat-label>Course</mat-label>
-            <mat-select formControlName="course" [disabled]="!department.value">
-              @for (course of filteredCourses; track course) {
-                <mat-option [value]="course.value">{{ course.viewValue }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
         </div>
 
         <div class="form-row">
           <div class="field">
-            <label for="password">Password</label>
-            <p-password
-              placeholder="Enter password"
-              formControlName="password"
-              [feedback]="false"
-              [toggleMask]="true"
-              inputId="password"
-              inputStyleClass="w-full"
-              styleClass="w-full"
-            ></p-password>
-            @if(password.invalid &&  (password.dirty || password.touched)) {
-                <small class="block p-error"> Password is required. </small> }
+            <label for="department">Department<span class="required-asterisk">*</span></label>
+            <div class="custom-select" [ngClass]="{ 'select-open': departmentOpen, 'select-error': isFieldInError('department') }">
+              <button 
+                class="select-trigger" 
+                type="button"
+                (click)="toggleDepartmentDropdown(); clearFieldError('department')"
+                [attr.aria-expanded]="departmentOpen"
+                [ngClass]="{ 'select-placeholder': !department.value }"
+                aria-label="Department selector">
+                <span class="select-value">{{ getSelectedDepartmentLabel() }}</span>
+                <span class="select-arrow">▼</span>
+              </button>
+              
+              @if (departmentOpen) {
+                <div class="select-menu" (click)="$event.stopPropagation()">
+                  <input 
+                    type="text"
+                    class="select-search"
+                    placeholder="Search departments..."
+                    [value]="departmentSearchFilter"
+                    (input)="filterDepartments($event.target.value)"
+                  />
+                  <ul class="select-list">
+                    @for (dept of filteredDepartments; track dept.value) {
+                      <li>
+                        <button 
+                          type="button"
+                          class="select-option"
+                          (click)="selectDepartment(dept)"
+                          [class.selected]="department.value === dept.value">
+                          {{ formatTitle(dept.viewValue) }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+            <input type="hidden" [formControl]="department" />
+          </div>
+          
+          <div class="field">
+            <label for="course">Course<span class="required-asterisk">*</span></label>
+            <div class="custom-select" [ngClass]="{ 'select-open': courseOpen, 'select-disabled': !department.value, 'select-error': isFieldInError('course') }">
+              <button 
+                class="select-trigger" 
+                type="button"
+                (click)="toggleCourseDropdown(); clearFieldError('course')"
+                [disabled]="!department.value"
+                [attr.aria-expanded]="courseOpen"
+                [ngClass]="{ 'select-placeholder': !course.value }"
+                aria-label="Course selector">
+                <span class="select-value">{{ getSelectedCourseLabel() }}</span>
+                <span class="select-arrow">▼</span>
+              </button>
+              
+              @if (courseOpen && department.value) {
+                <div class="select-menu" (click)="$event.stopPropagation()">
+                  <input 
+                    type="text"
+                    class="select-search"
+                    placeholder="Search courses..."
+                    [value]="courseSearchFilter"
+                    (input)="filterCourses($event.target.value)"
+                  />
+                  <ul class="select-list">
+                    @for (course of getFilteredCourses(); track course.value) {
+                      <li>
+                        <button 
+                          type="button"
+                          class="select-option"
+                          (click)="selectCourse(course)"
+                          [class.selected]="course.value === signupForm.get('course')?.value">
+                          {{ course.viewValue || course.value }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+            <input type="hidden" [formControl]="course" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="password">Password<span class="required-asterisk">*</span></label>
+            <div [ngClass]="{ 'input-error-wrapper': isFieldInError('password') }">
+              <p-password
+                placeholder="Enter password"
+                formControlName="password"
+                [feedback]="false"
+                [toggleMask]="true"
+                inputId="password"
+                inputStyleClass="w-full"
+                styleClass="w-full"
+                (input)="clearFieldError('password')"
+              ></p-password>
+            </div>
           </div>
       
           <div class="field">
-            <label for="confirmPassword">Confirm Password</label>
-            <p-password
-              formControlName="confirmPassword"
-              [feedback]="false"
-              [toggleMask]="true"
-              inputId="confirmPassword"
-              inputStyleClass="w-full"
-              styleClass="w-full"
-            ></p-password>
-            @if(password.invalid &&  (password.dirty || password.touched)) {
-                <small class="block p-error"> Password is required. </small> }
-
-            @if(signupForm.hasError('passwordMismatch') && password.valid && confirmPassword.valid) {
-                <small class="block p-error"> Password mismatch. </small>
-            }
+            <label for="confirmPassword">Confirm Password<span class="required-asterisk">*</span></label>
+            <div [ngClass]="{ 'input-error-wrapper': isFieldInError('confirmPassword') }">
+              <p-password
+                formControlName="confirmPassword"
+                [feedback]="false"
+                [toggleMask]="true"
+                inputId="confirmPassword"
+                inputStyleClass="w-full"
+                styleClass="w-full"
+                (input)="clearFieldError('confirmPassword')"
+              ></p-password>
+            </div>
           </div>
         </div>
 
@@ -163,6 +219,8 @@
 
         <div class="mt-2"> Already have an account? <a routerLink="/login"> Login </a> </div>
       </form>
+        </div>
+      </div>
     </div>
   </div>
 </div>

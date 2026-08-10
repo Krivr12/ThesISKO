@@ -548,10 +548,11 @@ export class Navbar implements OnInit {
     return currentUser !== null && currentUser !== undefined;
   }
 
-  /** Hide nav links on /home when user is not authenticated */
+  /** Hide nav links on /home or /homepage when user is not authenticated */
   shouldHideNavLinks(): boolean {
     const currentUrl = this.router.url.split('?')[0].split('#')[0];
-    return currentUrl === '/home' && !this.isUserLoggedIn();
+    const isPublicLanding = currentUrl === '/home' || currentUrl === '/homepage';
+    return isPublicLanding && !this.isUserLoggedIn();
   }
 
   /** Navigate to About Us page */
