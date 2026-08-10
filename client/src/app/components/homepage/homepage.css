@@ -1,11 +1,8 @@
 /* ==================== GLOBAL / PAGE WRAPPER ==================== */
-/* pagewrapper para hay hero lang */
 body {
   height: 100%;
   margin: 0;
   padding: 0;
-  padding-top: 80px; /* Account for fixed navbar */
-  background-color: #800000;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -17,8 +14,8 @@ section {
   display: block;
 }
 
-/* ==================== HERO ==================== */
-.hero {
+/* ==================== HERO SECTION ==================== */
+.hero-section {
   position: relative;
   min-height: 900px;
   width: 100%;
@@ -28,14 +25,16 @@ section {
   color: white;
   overflow: hidden;
   box-sizing: border-box;
+  background-color: #800000;
+  margin-top: 80px;
 }
 
-.hero::before {
+.hero-section::before {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, rgba(128, 0, 0, 0.7) 0%, rgba(128, 0, 0, 0.5) 100%);
-  z-index: 1;
+  z-index: 0;
 }
 
 .hero-container {
@@ -73,51 +72,38 @@ section {
   position: relative;
 }
 
-.hero .bgimg {
+.hero-section .bgimg {
   width: 100%;
   height: auto;
   object-fit: contain;
   object-position: center;
   max-width: 100%;
 }
-.search-container {
-  display: flex;
-  align-items: center;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  height: 70px;
-  width: 100%;
-  max-width: 1000px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  margin-top: 0;
+
+.hero-section h1 {
+  color: white;
+  font-size: 60px;
+  font-weight: 900;
+  line-height: 100%;
+  margin: 0 0 15px 0;
 }
 
-.search-container input {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: none;
-  outline: none;
-  font-size: 1rem;
+.hero-section h1 .break {
+  display: block;
+  white-space: nowrap;
 }
 
-.search-container button {
-  background: #ffd966; 
-  border: none;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  height: 70px;
-  width: 250px;
+.hero-section p {
+  color: white;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 140%;
+  max-width: 480px;
+  margin: 0 0 20px 0;
 }
 
-:host ::ng-deep .search .p-button:hover {
-  background-color: #ffcc33 !important;
-}
-
-/* ==================== CAROUSEL ==================== */
-.carousel-container {
+/* ==================== EXPLORE SECTION ==================== */
+.explore-section {
   text-align: left;
   background: #f3f4f6;
   margin: 0;
@@ -128,7 +114,7 @@ section {
   width: 100%;
 }
 
-.carousel-inner {
+.explore-container {
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
@@ -136,19 +122,18 @@ section {
   box-sizing: border-box;
 }
 
-.carousel-title {
+.section-title {
   font-size: 1.6rem;
   font-weight: 800;
-  margin: 0 0 3rem;
+  margin: 0 0 3rem 0;
   color: #800000;
   text-align: left;
   width: 100%;
   box-sizing: border-box;
   display: block;
-  margin-bottom: 3rem !important;
 }
 
-/* PrimeNG Carousel Component Styling */
+/* PrimeNG Carousel Styling */
 :host ::ng-deep .custom-carousel {
   width: 100%;
 }
@@ -205,7 +190,6 @@ section {
   background-color: #6b7280 !important;
 }
 
-/* Active state MUST be last for proper cascade */
 :host ::ng-deep .custom-carousel .p-carousel-indicator.p-highlight button,
 :host ::ng-deep .custom-carousel li.p-highlight button,
 :host ::ng-deep .custom-carousel .p-carousel-indicator[data-pc-section="indicator"][data-p-highlight="true"] button {
@@ -213,51 +197,18 @@ section {
   opacity: 1 !important;
 }
 
-:host ::ng-deep .p-carousel-indicators .p-carousel-indicator button {
-  background-color: #9ca3af !important;
-  width: 12px !important;
-  height: 12px !important;
-  border-radius: 50% !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 4px !important;
-  outline: none !important;
-  transition: background-color 0.3s ease !important;
-}
-
-:host ::ng-deep .p-carousel-indicators .p-carousel-indicator button:hover {
-  background-color: #6b7280 !important;
-}
-
-/* Active state MUST be last for proper cascade */
-:host ::ng-deep .p-carousel-indicators .p-carousel-indicator.p-highlight button,
-:host ::ng-deep .p-carousel-indicators li.p-highlight button,
-:host ::ng-deep .p-carousel-indicator[data-pc-section="indicator"][data-p-highlight="true"] button {
-  background-color: #800000 !important;
-  opacity: 1 !important;
-}
-
-/* Hide carousel navigation buttons on mobile */
-@media (max-width: 767px) {
-  :host ::ng-deep .custom-carousel .p-carousel-prev,
-  :host ::ng-deep .custom-carousel .p-carousel-next {
-    display: none !important;
-  }
-}
-
-/* Carousel item box - responsive styling */
+/* Carousel Box Styling */
 .carousel-box {
   background: #ffffff;
   border: none;
   border-radius: 12px;
-  height: 320px; 
+  height: 320px;
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;  
+  justify-content: flex-start;
   align-items: stretch;
-  gap: 8px;                     
+  gap: 8px;
   box-sizing: border-box;
   overflow: hidden;
   word-break: break-word;
@@ -287,7 +238,8 @@ section {
   text-align: left;
   line-height: 1.15;
   display: -webkit-box;
-  -webkit-line-clamp: 3;      
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   height: 3.45em;
@@ -309,7 +261,6 @@ section {
 }
 
 .carousel-box .authors,
-.carousel-box .access,
 .carousel-box .tags {
   font-size: 0.95rem;
   color: #616161;
@@ -324,53 +275,192 @@ section {
   max-height: 2.6em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
-/* ==================== CAROUSEL: RESPONSIVE ==================== */
+/* ==================== SUBMIT SECTION ==================== */
+.submit-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 600px;
+  background-color: #800000;
+  padding: 40px 0;
+}
 
-/* Note: PrimeNG Carousel handles responsive breakpoints internally via responsiveOptions */
+.submit-container {
+  width: 100%;
+  box-sizing: border-box;
+}
 
-/* Tablet screens (< 1024px) - 2 items visible - handled by PrimeNG */
-@media (max-width: 1023px) {
-  .carousel-container {
-    padding: 3rem 1rem;
-  }
+.submit-inner {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.leftside, .rightside {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 500px;
+}
+
+.leftside {
+  flex: 1;
+  padding: 40px 20px;
+  max-width: 100%;
+  margin: 0;
+}
+
+.leftside h1 {
+  color: white;
+  font-size: 60px;
+  font-weight: 900;
+  line-height: 100%;
+  margin: 0 0 15px 0;
+}
+
+.leftside h1 .break {
+  display: block;
+  white-space: nowrap;
+}
+
+.leftside p {
+  color: white;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 140%;
+  max-width: 480px;
+  margin: 0 0 20px 0;
+}
+
+:host ::ng-deep .submit .p-button {
+  background: #ffd966;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  height: 70px;
+  width: 100%;
+  max-width: 480px;
+  color: #800000;
+}
+
+:host ::ng-deep .submit .p-button:hover {
+  background-color: #ffcc33 !important;
+}
+
+:host ::ng-deep .submit .p-button:disabled {
+  background: #ffd966 !important;
+  color: #800000 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  border: none !important;
+}
+
+:host ::ng-deep .submit .p-button:disabled:hover {
+  background: #ffd966 !important;
+  color: #800000 !important;
+  opacity: 0.6 !important;
+}
+
+.rightside {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0;
+  padding: 20px;
+  position: relative;
+}
+
+.workflow-title {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+}
+
+.instructions {
+  width: 100%;
+  max-width: 552px;
+  min-height: 80px;
+  color: #800000;
+  background-color: white;
+  border: 2px solid #444;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px;
+  margin: 10px 0;
+  font-size: 18px;
+  font-weight: bold;
+  opacity: 1;
+  position: relative;
+}
+
+.instructions:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 12px;
+  background-color: #ffd966;
+  opacity: 1;
+  z-index: 1;
+}
+
+.instructions:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid #ffd966;
+  opacity: 1;
+  z-index: 2;
 }
 
 /* ==================== RESPONSIVE STYLES ==================== */
 
-/* Tablets and below (≤1024px) */
 @media (max-width: 1024px) {
   .hero-container {
     padding: 0 1.5rem;
   }
 
-  .hero {
+  .hero-section {
     min-height: auto;
   }
 
-  .hero h1 {
+  .hero-section h1 {
     font-size: 55px;
   }
 
-  .hero p {
+  .hero-section p {
     font-size: 1rem;
     max-width: 600px;
   }
-
-  .search-container {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .search-container input,
-  .search-container button {
-    width: 100%;
-    height: 60px;
-  }
-
-  /* Carousel box width is now handled by responsive carousel, no fixed width needed */
 
   .submit-inner {
     flex-direction: column;
@@ -395,23 +485,17 @@ section {
   }
 }
 
-/* Mobile devices (≤768px) */
 @media (max-width: 768px) {
   html, body {
     overflow-x: hidden !important;
     width: 100% !important;
     max-width: 100vw !important;
   }
-  
-  .page-wrapper,
-  .carousel-container {
+
+  .submit-section,
+  .explore-section {
     max-width: 100vw !important;
     overflow-x: hidden !important;
-  }
-  
-  .containerSubmitWork {
-    max-width: 100vw !important;
-    overflow-x: visible !important;
   }
 
   .hero-grid {
@@ -419,7 +503,7 @@ section {
     gap: 20px;
   }
 
-  .hero {
+  .hero-section {
     min-height: auto;
     padding: 20px 0;
   }
@@ -428,33 +512,27 @@ section {
     padding: 1.25rem;
   }
 
-  .hero h1 {
+  .hero-section h1 {
     font-size: 40px;
     line-height: 1.1;
   }
 
-  .hero p {
+  .hero-section p {
     font-size: 0.95rem;
     line-height: 1.4;
     text-align: center;
     padding: 0 10px;
   }
 
-  .search-container {
-    flex-direction: column;
-    width: 90%;
-    margin: 0 auto;
-  }
-
-  .carousel-container {
+  .explore-section {
     padding: 2rem 0;
   }
 
-  .carousel-inner {
+  .explore-container {
     padding: 0 1rem;
   }
 
-  .carousel-title {
+  .section-title {
     font-size: 1.3rem;
   }
 
@@ -464,7 +542,7 @@ section {
     padding: 16px;
   }
 
-  .containerSubmitWork {
+  .submit-section {
     padding: 2rem 0;
     overflow: visible !important;
   }
@@ -534,17 +612,16 @@ section {
   }
 }
 
-/* Extra small (≤480px) */
 @media (max-width: 480px) {
-  .carousel-container {
+  .explore-section {
     padding: 2rem 0;
   }
 
-  .carousel-inner {
+  .explore-container {
     padding: 0 1rem;
   }
 
-  .carousel-title {
+  .section-title {
     font-size: 1.1rem;
   }
 
@@ -553,19 +630,20 @@ section {
     margin-bottom: 0.8rem;
     line-height: 1.4;
   }
+
   .hero-grid {
     padding: 1rem;
   }
 
-  .hero {
+  .hero-section {
     padding: 1rem 0;
   }
 
-  .hero h1 {
+  .hero-section h1 {
     font-size: 32px;
   }
 
-  .hero p {
+  .hero-section p {
     font-size: 0.9rem;
   }
 
@@ -577,7 +655,6 @@ section {
     font-size: 14px;
   }
 
-  /* Fix Submit Work title on small screens */
   .leftside h1 {
     font-size: 20px;
     line-height: 1.3;
@@ -587,275 +664,4 @@ section {
   .submit-inner {
     padding: 0 0.9375rem;
   }
-}
-
-/* ==================== SUBMIT WORK SECTION ==================== */
-.containerSubmitWork {
-  display: flex;
-  justify-content: center;   
-  align-items: center;       
-  width: 100%;
-  min-height: 600px;
-  background-color: #800000;
-  padding: 40px 0;           
-}
-
-.containerSubmitWork .inner {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.submit-inner {
-  max-width: 1280px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  display: flex;
-  gap: 40px;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.leftside, .rightside {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;   
-  max-width: 500px; 
-}
-
-.leftside {
-  flex: 1;
-  padding: 40px 20px;
-  max-width: 100%;
-  margin: 0;
-}
-
-.leftside h1 {
-  color: white;
-  font-size: 60px;
-  font-weight: 900;
-  line-height: 100%;
-  margin: 0 0 15px 0; 
-}
-
-.leftside h1 .break {
-  display: block;
-  white-space: nowrap; 
-}
-
-.leftside p {
-  color: white;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 140%;  
-  max-width: 480px;
-  margin: 0; 
-  margin-bottom: 20px;        
-}
-
-:host ::ng-deep .submit .p-button {
-  background: #ffd966;
-  border: none;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  height: 70px;
-  width: 100%;
-  max-width: 480px;
-  color: #800000;
-}
-
-:host ::ng-deep .submit .p-button:hover {
-  background-color: #ffcc33 !important;
-}
-
-:host ::ng-deep .submit .p-button:disabled {
-  background: #ffd966 !important;
-  color: #800000 !important;
-  cursor: not-allowed !important;
-  opacity: 0.6 !important;
-  border: none !important;
-}
-
-:host ::ng-deep .submit .p-button:disabled:hover {
-  background: #ffd966 !important;
-  color: #800000 !important;
-  opacity: 0.6 !important;
-}
-
-.rightside {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin: 0;
-  padding: 20px;
-  position: relative;
-}
-
-.workflow-title {
-  color: white;
-  font-size: 1.8rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 1.5rem;
-  line-height: 1.3;
-}
-
-.instructions {
-  width: 100%;
-  max-width: 552px;
-  min-height: 80px; 
-  color: #800000;  
-  background-color: white;
-  border: 2px solid #444;
-  border-radius: 10px;   
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;             
-  padding: 8px 16px;     
-  margin: 10px 0; 
-  font-size: 18px;
-  font-weight: bold;
-  opacity: 1;
-  position: relative;
-}
-
-/* Add connecting lines between instruction boxes */
-.instructions:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  bottom: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 12px;
-  background-color: #ffd966;
-  opacity: 1;
-  z-index: 1;
-}
-
-/* Arrow at the end of the line */
-.instructions:not(:last-child)::before {
-  content: '';
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 10px solid #ffd966;
-  opacity: 1;
-  z-index: 2;
-}
-
-/* ==================== CAROUSEL: TAGS ==================== */
-/* Tags container styling */
-.carousel-box .tags-container {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin: 0;
-}
-
-.carousel-box .tags-label {
-  font-size: 0.95rem;
-  color: #616161;
-  font-weight: 600;
-  margin: 0;
-  white-space: nowrap;
-  padding-top: 0.25rem;
-}
-
-.carousel-box .tags-wrapper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  align-items: flex-start;
-  flex: 1;
-}
-
-.carousel-box .tag-pill {
-  background: transparent;
-  color: #800000;
-  border: 1px solid rgba(128, 0, 0, 0.4);
-  padding: 0.25rem 0.75rem;
-  border-radius: 50px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  white-space: nowrap;
-  display: inline-block;
-  box-shadow: none;
-  transition: all 0.3s ease;
-}
-
-.carousel-box .tag-pill:hover {
-  background: rgba(128, 0, 0, 0.05);
-  border-color: rgba(128, 0, 0, 0.6);
-  transform: translateY(-1px);
-}
-
-.carousel-box .tag-pill.no-tags {
-  background: transparent;
-  color: #6c757d;
-  border: 1px solid rgba(108, 117, 125, 0.4);
-}
-
-.carousel-box .tag-pill.no-tags:hover {
-  background: rgba(108, 117, 125, 0.05);
-  border-color: rgba(108, 117, 125, 0.6);
-}
-
-
-/* ==================== GLOBAL PRIMENG CAROUSEL OVERRIDES ==================== */
-/* Force override PrimeNG default indicator styles - STRICT CLEANUP */
-
-/* Container styling */
-::ng-deep .p-carousel-indicators {
-  padding: 1.5rem 0 0 0 !important;
-  gap: 0 !important;
-  justify-content: center !important;
-  display: flex !important;
-  margin: 0 !important;
-}
-
-/* Clean the indicator button (remove ghosting effect) */
-::ng-deep .p-carousel-indicators .p-carousel-indicator button {
-  background-color: #9ca3af !important;
-  width: 12px !important;
-  height: 12px !important;
-  border-radius: 50% !important;
-  border: none !important;
-  box-shadow: none !important;
-  margin: 0 4px !important;
-  padding: 0 !important;
-  outline: none !important;
-  transition: background-color 0.3s ease !important;
-}
-
-/* Hover state */
-::ng-deep .p-carousel-indicators .p-carousel-indicator button:hover {
-  background-color: #6b7280 !important;
-}
-
-/* Force active maroon color - COMPREHENSIVE SELECTORS */
-::ng-deep .p-carousel-indicators .p-carousel-indicator.p-highlight button,
-::ng-deep .p-carousel-indicators li.p-highlight button,
-::ng-deep .p-carousel-indicator[data-pc-section="indicator"][data-p-highlight="true"] button,
-::ng-deep .p-carousel .p-carousel-indicators .p-highlight button,
-::ng-deep .custom-carousel .p-carousel-indicators .p-highlight button {
-  background-color: #800000 !important;
-  opacity: 1 !important;
-}
-
-/* Additional fallback - target any p-highlight class anywhere in indicators */
-::ng-deep .p-carousel-indicators .p-highlight > button,
-::ng-deep .p-carousel-indicators [class*="highlight"] button {
-  background-color: #800000 !important;
 }

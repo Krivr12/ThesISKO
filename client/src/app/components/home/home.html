@@ -1,11 +1,12 @@
 <app-navbar></app-navbar>
-<div class="hero-section">
+
+<div class="hero">
   <div class="hero-container">
     <div class="hero-grid">
       <div class="hero-left">
         <h1>
           Thesis mula sa isko, <span class="break">para sa bayan</span>
-        </h1>
+        </h1>      
         <p>Build the archive with us. free to publish, 
           simple to search, and designed for discovery. 
           Upload your manuscript, showcase your authorship, 
@@ -17,7 +18,7 @@
           (search)="goSearch()">
         </app-search-bar>
       </div>
-
+      
       <div class="hero-right">
         <img src="2.png" alt="PUP" class="bgimg">
       </div>
@@ -25,9 +26,9 @@
   </div>
 </div>
 
-<div class="explore-section">
-  <div class="explore-container">
-    <h3 class="section-title">Explore Thesis</h3>
+<div class="carousel-container">
+  <div class="carousel-inner">
+    <h3 class="carousel-title">Explore Theses</h3>
 
     <p-carousel 
       [value]="updates" 
@@ -40,6 +41,9 @@
       [autoplayInterval]="3000"
       styleClass="custom-carousel">
       
+      <ng-template pTemplate="header">
+      </ng-template>
+
       <ng-template pTemplate="item" let-item>
         <div class="carousel-box" 
              role="button"
@@ -58,26 +62,29 @@
   </div>
 </div>
 
-<div class="submit-section">
-  <div class="submit-container">
-    <div class="submit-inner">
-      <div class="leftside">
-        <h1>
-          Want to Submit <span class="break">Your Work?</span>
-        </h1>
-        <p>Publish with pride! register using Iskolarngbayan, upload, and reach the readers who matter.</p>
-        <p-button *ngIf="isPupian()" class="submit" routerLink="/submission">Submit Work</p-button>
-      </div>
 
-      <div class="rightside">
-        <h2 class="workflow-title">Submission Workflow</h2>
-        <div class="instructions">Upload Thesis and Certification of Completion</div>
-        <div class="instructions">Enter Tags, Abstract and Metadata</div>
-        <div class="instructions">Choose Access Level for your Thesis</div>
-        <div class="instructions">Wait for the Admin to Verify all your files</div>
+  
+  <div class="containerSubmitWork">
+    <div class="inner">
+      <div class="submit-inner">
+        <div class="leftside">
+          <h1>
+            Want to Submit <span class="break">Your Work?</span>
+          </h1>
+          <p>Publish with pride! register using Iskolarngbayan, upload, and reach the readers who matter.</p>
+          <p-button *ngIf="isPupian()" class="submit" routerLink="/submission">Submit Work</p-button>
+        </div>
+    
+        <div class="rightside">
+          <h2 class="workflow-title">Submission Workflow</h2>
+          <div class="instructions">Upload Thesis and Certification of Completion</div>
+          <div class="instructions">Enter Tags, Abstract and Metadata</div>
+          <div class="instructions">Choose Access Level for your Thesis</div>
+          <div class="instructions">Wait for the Admin to Verify all your files</div>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<app-footer></app-footer>
+  
+  
+<app-footer> </app-footer>

@@ -14,12 +14,11 @@ import { Auth } from '../../service/auth';
 import { ModalService } from '../../service/modal.service';
 
 interface UpdateItem {
-  // data para sa carousel cards (matches backend /latest/ endpoint)
   _id: string;
   document_id: string;
   title: string;
   submitted_at: string;
-  year?: number | string; // Year extracted from submitted_at or from document year field
+  year?: number | string;
   authors: string[];
   tags: string[];
 }
@@ -45,10 +44,9 @@ interface UpdateItem {
   styleUrl: './homepage.css'
 })
 export class Homepage implements OnInit, OnDestroy {
-  homeQuery = '';           
-  updates: UpdateItem[] = []; // items shown in carousel
+  homeQuery = '';
+  updates: UpdateItem[] = [];
 
-  // Carousel responsive options (3-2-1 rule)
   responsiveOptions: any[] = [
     {
       breakpoint: '1024px',
@@ -67,13 +65,12 @@ export class Homepage implements OnInit, OnDestroy {
     }
   ];
 
-  // Carousel properties for responsive tracking
   itemsPerPage = 3;
   autoplayInterval: any;
 
   constructor(
-    private router: Router,                 
-    private recordsService: RecordsService, // API calls
+    private router: Router,
+    private recordsService: RecordsService,
     private datePipe: DatePipe,
     private authService: Auth,
     private modalService: ModalService
@@ -84,17 +81,15 @@ export class Homepage implements OnInit, OnDestroy {
     this.updateItemsPerPage();
   }
 
-  // carousel data
   ngOnInit() {
     this.updateItemsPerPage();
     this.recordsService.getLatestRecords().subscribe({
       next: (data) => {
-        // Backend now returns the correct structure, no mapping needed
         this.updates = data || [];
       },
       error: (err) => {
         // Error fetching latest records
-      } 
+      }
     });
   }
 
@@ -102,7 +97,6 @@ export class Homepage implements OnInit, OnDestroy {
     // Cleanup
   }
 
-  // Update items per page based on screen width
   updateItemsPerPage() {
     const width = window.innerWidth;
     if (width < 768) {
@@ -114,40 +108,32 @@ export class Homepage implements OnInit, OnDestroy {
     }
   }
 
-  // Check if user is a PUPian (student or group leader) AND logged in
   isPupian(): boolean {
     const currentUser = this.authService.currentUser;
-    
-    // If no user is logged in, don't show button
+
     if (!currentUser) return false;
-    
-    // Role ID 2 = Student, Role ID 6 = Group Leader
+
     return currentUser.role_id === 2 || currentUser.role_id === 6;
   }
 
-  // click sa carousel item -> punta sa Search Result 
   navigateToRecord(item: UpdateItem) {
-    // Check if user is authenticated
     if (!this.authService.currentUser) {
       this.modalService.showLoginRequired('To view document details, you must be logged in with your official account.');
       return;
     }
-    
+
     if (!item || !item._id) {
       return;
     }
-    
-    // Pass document_id in state (same pattern as search-thesis -> search-result)
-    // Use navigateByUrl with state for more reliable navigation
-    this.router.navigateByUrl('/search-result', { 
-      state: { document_id: item._id } 
+
+    this.router.navigateByUrl('/search-result', {
+      state: { document_id: item._id }
     }).then(success => {
       if (success) {
       } else {
-        // If navigation fails, try again after a short delay (in case user is still loading)
         setTimeout(() => {
-          this.router.navigateByUrl('/search-result', { 
-            state: { document_id: item._id } 
+          this.router.navigateByUrl('/search-result', {
+            state: { document_id: item._id }
           }).catch(err => {
           });
         }, 100);
@@ -156,14 +142,12 @@ export class Homepage implements OnInit, OnDestroy {
     });
   }
 
-  // search function
   goSearch() {
-    // Check if user is authenticated
     if (!this.authService.currentUser) {
       this.modalService.showLoginRequired('To search for thesis, you must be logged in with your official account.');
       return;
     }
-    
+
     const q = (this.homeQuery || '').trim();
     this.router.navigate(['/search-thesis'], {
       queryParams: { q: q || null }
