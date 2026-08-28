@@ -54,7 +54,8 @@ export class AdminSideBar {
 
     const ref = this.dialog.open(this.logoutConfirmTpl, {
       disableClose: true, // block backdrop/ESC
-      width: '360px'
+      width: '90vw',
+      maxWidth: '360px'
     });
 
     ref.afterClosed().subscribe((confirmed: boolean) => {

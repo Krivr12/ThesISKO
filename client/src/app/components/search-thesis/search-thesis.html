@@ -21,14 +21,15 @@
 
     <div class="results-layout">
       <aside class="filter-sidebar" [ngClass]="{'sidebar-collapsed': isCollapsed}">
-        <div class="filter-header">
-          <button class="collapse-button" (click)="toggleFilters()">
-            <span *ngIf="isCollapsed">Show Filters</span>
-            <span *ngIf="!isCollapsed">Hide Filters</span>
-          </button>
-        </div>
+        <div class="filter-card">
+          <div class="filter-header">
+            <button class="collapse-button" (click)="toggleFilters()">
+              <span *ngIf="isCollapsed">Show Filters</span>
+              <span *ngIf="!isCollapsed">Hide Filters</span>
+            </button>
+          </div>
 
-        <div class="filter-options-wrapper" [ngClass]="{'collapsed': isCollapsed}">
+          <div class="filter-options-wrapper" [ngClass]="{'collapsed': isCollapsed}">
           <div class="filter-group">
             <h4 class="filter-group-title">By Author</h4>
             <input 
@@ -82,14 +83,35 @@
             </ul>
           </div>
 
-          <button class="search-button" (click)="clearFilters()" style="margin-top: 20px; width: 100%;">
+          <button class="clear-all-filters-button" (click)="clearFilters()">
+            <svg class="clear-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             Clear All Filters
           </button>
-        </div>
+          </div> <!-- End filter-options-wrapper -->
+        </div> <!-- End filter-card -->
       </aside>
 
       <div class="search-results">
-        <h2 class="results-count">{{ totalItems }} records found.</h2>
+        <div class="results-header">
+          <h2 class="results-count">{{ totalItems }} records found.</h2>
+          <div class="sort-control" *ngIf="totalItems > 0">
+            <label class="sort-label">Sort by:</label>
+            <div class="sort-dropdown">
+              <button class="sort-button" type="button">
+                <span>{{ sortLabel }}</span>
+                <span class="dropdown-arrow">▼</span>
+              </button>
+              <div class="sort-options">
+                <button class="sort-option" (click)="setSort('relevance')">Relevance</button>
+                <button class="sort-option" (click)="setSort('newest')">Newest</button>
+                <button class="sort-option" (click)="setSort('oldest')">Oldest</button>
+                <button class="sort-option" (click)="setSort('title')">Title (A–Z)</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- No Results Message -->
         <div *ngIf="totalItems === 0" class="no-results-container">
@@ -116,8 +138,8 @@
           <p class="tags-text">
             <span class="tag-year">{{ thesis.year }}</span>
             <span *ngIf="thesis.keywords && thesis.keywords.length > 0" class="tags-label">Tags: </span>
-            <span *ngFor="let keyword of thesis.keywords; let last = last" class="tags-label">
-              {{ keyword }}<span *ngIf="!last">, </span>
+            <span *ngFor="let keyword of thesis.keywords" class="tag-keyword">
+              {{ keyword }}
             </span>
           </p>
         </div>

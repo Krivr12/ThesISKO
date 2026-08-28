@@ -41,7 +41,8 @@ export class SuperAdminNavBar {
 
     const ref = this.dialog.open(this.logoutConfirmTpl, {
       disableClose: true,
-      width: '360px'
+      width: '90vw',
+      maxWidth: '360px'
     });
 
     ref.afterClosed().subscribe((confirmed: boolean) => {

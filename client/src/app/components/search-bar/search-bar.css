@@ -26,7 +26,7 @@
 }
 
 .search-button {
-  background: #ffd966;
+  background: #800000;
   border: none;
   padding: 0;
   height: 70px;
@@ -41,17 +41,18 @@
 }
 
 .search-button:hover {
-  background-color: #ffcc33;
+  background-color: #6a0000;
 }
 
 .search-button:active {
-  background-color: #ffc000;
+  background-color: #5a0000;
 }
 
 .search-button svg {
   width: 26px;
   height: 26px;
   pointer-events: none;
+  color: #ffffff;
 }
 
 /* Responsive styles */

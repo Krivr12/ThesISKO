@@ -46,6 +46,7 @@ export class SearchThesis implements OnInit {
   selectedYear: string = '';
   authorName: string = '';
   customTagInput: string = ''; //added filter state for custom tag
+  sortBy: string = 'relevance'; // sorting mode: relevance | newest | oldest | title
 
   // user-added tags
   customTags = signal<string[]>([]);
@@ -187,6 +188,41 @@ export class SearchThesis implements OnInit {
     this.applyFilters();
   }
 
+  setSort(value: string): void {
+    this.sortBy = value;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  get sortLabel(): string {
+    switch (this.sortBy) {
+      case 'newest': return 'Newest';
+      case 'oldest': return 'Oldest';
+      case 'title': return 'Title (A–Z)';
+      default: return 'Relevance';
+    }
+  }
+
+  private sortTheses(theses: Thesis[]): Thesis[] {
+    const toYear = (y: number | string): number => {
+      const n = typeof y === 'string' ? parseInt(y, 10) : y;
+      return isNaN(n as number) || !isFinite(n as number) ? 0 : (n as number);
+    };
+
+    switch (this.sortBy) {
+      case 'newest':
+        return [...theses].sort((a, b) => toYear(b.year) - toYear(a.year));
+      case 'oldest':
+        return [...theses].sort((a, b) => toYear(a.year) - toYear(b.year));
+      case 'title':
+        return [...theses].sort((a, b) =>
+          (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base' })
+        );
+      default: // 'relevance' - preserve original/backend order
+        return theses;
+    }
+  }
+
   // New function for adding user-inputted tags
   addCustomTag(): void {
     if (this.customTagInput.trim() && !this.customTags().includes(this.customTagInput.trim())) {
@@ -238,7 +274,9 @@ export class SearchThesis implements OnInit {
       
       return matchesSearch && matchesTags && matchesYear && matchesAuthor;
     });
-    
+
+    this.filteredTheses = this.sortTheses(this.filteredTheses);
+
     this.totalItems = this.filteredTheses.length;
     this.calculatePagination();
     this.updateDisplayedTheses();

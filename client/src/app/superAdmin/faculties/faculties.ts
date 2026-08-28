@@ -96,7 +96,8 @@ export class Faculties implements OnInit, AfterViewInit {
     this.newFaculty = { firstname: '', lastname: '', email: '', faculty_id: '' };
 
     const ref = this.dialog.open(this.addFacultyDialogTpl, {
-      width: '560px',
+      width: '90vw',
+      maxWidth: '560px',
       autoFocus: false,
       panelClass: 'add-group-dialog'
     });
@@ -115,7 +116,8 @@ export class Faculties implements OnInit, AfterViewInit {
     this.editFaculty = { ...row };
 
     const ref = this.dialog.open(this.editFacultyDialogTpl, {
-      width: '560px',
+      width: '90vw',
+      maxWidth: '560px',
       autoFocus: false,
       panelClass: 'add-group-dialog'
     });

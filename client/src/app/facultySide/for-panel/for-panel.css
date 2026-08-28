@@ -127,8 +127,13 @@ table { width: 100%; }
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: 0;
+}
+
+.full-width-table {
+  width: 100%;
+  min-width: 720px;
 }
 
 table.mat-mdc-table th.mat-mdc-header-cell,

@@ -263,7 +263,8 @@ export class AdminBlock implements OnInit, AfterViewInit {
     this.selectedPanelistEmail = '';
 
     const ref = this.dialog.open(this.addFacultyDialogTpl, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '700px',
       autoFocus: false,
       panelClass: 'add-group-dialog'
     });
@@ -330,7 +331,8 @@ export class AdminBlock implements OnInit, AfterViewInit {
     this.selectedPanelistEmail = '';
 
     const ref = this.dialog.open(this.editFacultyDialogTpl, {
-      width: '700px',
+      width: '90vw',
+      maxWidth: '700px',
       autoFocus: false,
       panelClass: 'add-group-dialog'
     });

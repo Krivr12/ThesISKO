@@ -280,7 +280,7 @@
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: 0;
 }
 

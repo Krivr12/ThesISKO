@@ -135,7 +135,7 @@ body {
 
 .results-layout {
   display: flex;
-  gap: 60px;
+  gap: 30px;
   align-items: flex-start;
   width: 100%; /* Always match search-bar-container width */
   max-width: 100%; /* Match search bar max-width */
@@ -162,10 +162,10 @@ body {
 }
 
 .filter-sidebar.sidebar-collapsed {
-  width: 120px; /* Collapsed width */
-  min-width: 120px;
-  max-width: 120px;
-  flex: 0 0 120px;
+  width: auto; /* Fit the button, prevent wrapping */
+  min-width: 160px;
+  max-width: 200px;
+  flex: 0 0 auto;
   padding-right: 10px;
 }
 
@@ -178,20 +178,42 @@ body {
   display: flex;
   justify-content: flex-start; /* Align button to left */
   align-items: center;
-  margin-bottom: 0; /* Remove bottom margin to align with results-count */
-  margin-top: 0; /* Align top with results-count */
+  margin-bottom: 20px; /* Space below header inside card */
+  margin-top: 0;
   transition: margin-bottom 0.3s ease-in-out;
-  position: relative; /* Ensure proper positioning */
-  z-index: 11; /* Ensure header is above other content */
-  width: 100%; /* Full width of sidebar */
-  overflow: visible; /* Allow button text to be visible */
-  margin-right: -20px; /* Extend beyond sidebar padding to prevent overlap */
-  padding-right: 20px; /* Compensate for negative margin */
+  position: relative;
+  z-index: 11;
+  width: 100%;
+  overflow: visible;
 }
 
+/* Card wrapper - always visible, holds header + collapsible options */
+.filter-card {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: padding 0.3s ease-in-out;
+}
+
+/* When collapsed, the header stays visible; trim its bottom margin */
 .filter-sidebar:has(.filter-options-wrapper.collapsed) .filter-header,
 .filter-sidebar.sidebar-collapsed .filter-header {
   margin-bottom: 0;
+}
+
+/* Compact card + button when collapsed to match records-count height */
+.filter-sidebar:has(.filter-options-wrapper.collapsed) .filter-card,
+.filter-sidebar.sidebar-collapsed .filter-card {
+  padding: 10px 15px;
+}
+
+.filter-sidebar:has(.filter-options-wrapper.collapsed) .collapse-button,
+.filter-sidebar.sidebar-collapsed .collapse-button {
+  white-space: nowrap;
 }
 
 .filter-title {
@@ -217,7 +239,7 @@ body {
 
 .filter-options-wrapper {
   overflow: hidden;
-  max-height: 1000px; /* Set a reasonable max height for expanded state */
+  max-height: 2000px; /* Set a reasonable max height for expanded state */
   opacity: 1; /* Fully visible when expanded */
   width: 100%;
   min-width: 0;
@@ -286,9 +308,115 @@ body {
   background-color: #dff0d8;
   padding: 10px 15px;
   border-radius: 8px;
-  margin-bottom: 30px;
+  margin-bottom: 0; /* header row handles spacing */
   display: inline-block;
   margin-top: 0; /* Align with filter button */
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.sort-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sort-label {
+  font-size: 0.95rem;
+  color: #616161;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Sort dropdown - matches the citation dropdown from search-result */
+.sort-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.sort-button {
+  background-color: transparent;
+  border: 1px solid #800000;
+  color: #000000;
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.sort-button:hover {
+  background-color: #800000;
+  border-color: #800000;
+  color: #ffffff;
+}
+
+.sort-dropdown .dropdown-arrow {
+  font-size: 0.7em;
+  transition: transform 0.3s ease;
+}
+
+.sort-dropdown:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.sort-options {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 100%;
+  background: white;
+  border: 1px solid #800000;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.sort-dropdown:hover .sort-options {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.sort-option {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: white;
+  color: #800000;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.sort-option:hover {
+  background-color: #f8f9fa;
+}
+
+.sort-option:last-child {
+  border-radius: 0 0 4px 4px;
 }
 
 /* Style results count when no results */
@@ -404,11 +532,12 @@ body {
 }
 
 .result-card {
-  background-color: #ffefae;
+  background-color: #ffffff;
+  border: 1px solid #ececec;
   padding: 25px;
   border-radius: 12px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   cursor: pointer; 
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   min-height: 200px; /* Minimum height, allows growth */
@@ -491,8 +620,15 @@ body {
 }
 
 .tag-keyword {
-  color: #616161;
-  font-size: 1rem; /* Same as author and year */
+  display: inline-block;
+  color: #555;
+  font-size: 0.8rem;
+  background-color: #f2f2f2;
+  border: 1px solid #e8e8e8;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin: 0 6px 6px 0;
+  line-height: 1.4;
 }
 
 .paginator {
@@ -666,6 +802,34 @@ body {
 
 .add-tag-button:hover {
   background-color: #6a0000;
+}
+
+/* Clear All Filters button - outlined style matching inspiration design */
+.clear-all-filters-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #800000;
+  background-color: #ffffff;
+  border: 1.5px solid #800000;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.clear-all-filters-button:hover {
+  background-color: #800000;
+  color: #ffffff;
+}
+
+.clear-all-filters-button .clear-icon {
+  flex-shrink: 0;
 }
 
 .filter-subtitle {

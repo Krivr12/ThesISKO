@@ -68,3 +68,32 @@
   padding-left: 1rem;
   color: #FFE477 !important;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidenav {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 1rem;
+  }
+
+  .nav-links {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .nav-links a {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .logout {
+    width: 100%;
+    text-align: center;
+    margin-left: 0;
+  }
+}

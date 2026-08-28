@@ -4,7 +4,7 @@
     <div class="hero-grid">
       <div class="hero-left">
         <h1>
-          Thesisss mula sa isko, <span class="break">para sa bayan</span>
+          Thesis mula sa isko, <span class="break">para sa bayan</span>
         </h1>
         <p>Build the archive with us. free to publish, 
           simple to search, and designed for discovery. 
@@ -60,21 +60,106 @@
 
 <div class="submit-section">
   <div class="submit-container">
-    <div class="submit-inner">
-      <div class="leftside">
-        <h1>
-          Want to Submit <span class="break">Your Work?</span>
-        </h1>
-        <p>Publish with pride! register using Iskolarngbayan, upload, and reach the readers who matter.</p>
-        <p-button *ngIf="isPupian()" class="submit" routerLink="/submission">Submit Work</p-button>
+    <div class="workflow-header">
+      <h2 class="workflow-title">Submission Workflow</h2>
+    </div>
+
+    <div class="steps-container">
+      <div class="step">
+        <div class="step-icon-wrapper">
+          <span class="step-badge">1</span>
+          <div class="step-icon-circle">
+            <i class="pi pi-upload"></i>
+          </div>
+        </div>
+        <h3 class="step-title">Upload</h3>
+        <p class="step-subtext">Upload your thesis and certification of completion.</p>
       </div>
 
-      <div class="rightside">
-        <h2 class="workflow-title">Submission Workflow</h2>
-        <div class="instructions">Upload Thesis and Certification of Completion</div>
-        <div class="instructions">Enter Tags, Abstract and Metadata</div>
-        <div class="instructions">Choose Access Level for your Thesis</div>
-        <div class="instructions">Wait for the Admin to Verify all your files</div>
+      <i class="pi pi-arrow-right step-arrow"></i>
+
+      <div class="step">
+        <div class="step-icon-wrapper">
+          <span class="step-badge">2</span>
+          <div class="step-icon-circle">
+            <i class="pi pi-tag"></i>
+          </div>
+        </div>
+        <h3 class="step-title">Enter Details</h3>
+        <p class="step-subtext">Add tags, abstract, and other metadata.</p>
+      </div>
+
+      <i class="pi pi-arrow-right step-arrow"></i>
+
+      <div class="step">
+        <div class="step-icon-wrapper">
+          <span class="step-badge">3</span>
+          <div class="step-icon-circle">
+            <i class="pi pi-lock"></i>
+          </div>
+        </div>
+        <h3 class="step-title">Choose Access</h3>
+        <p class="step-subtext">Select the access level for your thesis.</p>
+      </div>
+
+      <i class="pi pi-arrow-right step-arrow"></i>
+
+      <div class="step">
+        <div class="step-icon-wrapper">
+          <span class="step-badge">4</span>
+          <div class="step-icon-circle">
+            <i class="pi pi-check-circle"></i>
+          </div>
+        </div>
+        <h3 class="step-title">For Verification</h3>
+        <p class="step-subtext">Wait for admin verification to make it public.</p>
+      </div>
+    </div>
+
+    <div class="workflow-footer">
+      <p-button *ngIf="isPupian()" class="submit" routerLink="/submission">Submit Your Thesis</p-button>
+    </div>
+  </div>
+</div>
+
+<div class="why-section">
+  <div class="why-container">
+    <div class="why-header">
+      <h2 class="why-title">Why ThesISKO?</h2>
+      <span class="why-underline"></span>
+    </div>
+
+    <div class="features-container">
+      <div class="feature">
+        <div class="feature-icon-circle">
+          <i class="pi pi-search"></i>
+        </div>
+        <h3 class="feature-title">Discover Easily</h3>
+        <p class="feature-subtext">Find research works quickly with our powerful search.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon-circle">
+          <i class="pi pi-shield"></i>
+        </div>
+        <h3 class="feature-title">Open &amp; Accessible</h3>
+        <p class="feature-subtext">Promoting open access to knowledge for every Iskolar.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon-circle">
+          <i class="pi pi-users"></i>
+        </div>
+        <h3 class="feature-title">For the Community</h3>
+        <p class="feature-subtext">Built by Iskolar, for Iskolar and the Filipino people.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon-circle">
+          <i class="pi pi-book"></i>
+        </div>
+        <h3 class="feature-title">Preserve &amp; Inspire</h3>
+        <p class="feature-subtext">Preserve today's ideas and inspire tomorrow's innovations.</p>
       </div>
     </div>
   </div>
